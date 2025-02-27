@@ -16,6 +16,8 @@
  */
 import { Context, createContext } from 'react';
 
+import { MainInterface } from '../services/main-service';
+
 const MainContext: Context<MainInterface> = createContext({
   navbarValue: undefined,
   setNavbarValue: (_navbarValue: any) => { },
@@ -24,14 +26,5 @@ const MainContext: Context<MainInterface> = createContext({
   statusLine: undefined,
   setStatusLine: (_statusLine: any) => { },
 });
-
-export interface MainInterface {
-  navbarValue: any;
-  setNavbarValue: (navbarValue: any) => void;
-  navbarOpened: boolean;
-  setNavbarOpened: (navbarOpened: any) => void;
-  statusLine: any,
-  setStatusLine: (statusLine: any) => void;
-}
 
 export default MainContext;

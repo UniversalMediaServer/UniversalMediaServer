@@ -14,19 +14,39 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Direction } from '@mantine/core';
-import { Context, createContext } from 'react';
+export interface UmsUser {
+  id: number,
+  username: string,
+  displayName: string,
+  groupId: number,
+  avatar?: string,
+  pinCode?: string,
+  lastLoginTime: number,
+  loginFailedTime: number,
+  loginFailedCount: number,
+  libraryHidden: boolean,
+}
 
-import { I18nInterface, LanguageValue } from '../services/i18n-service';
+export interface UmsGroupPermissions {
+  value: number,
+}
 
-const I18nContext: Context<I18nInterface> = createContext({
-  get: (value: string) => { return value },
-  getI18nString: (value: string) => { return value },
-  getI18nFormat: (value: string[]) => { return value.length ? value[0] : '' },
-  language: 'en-US',
-  dir: 'ltr' as Direction,
-  languages: [] as LanguageValue[],
-  setLanguage: (_language: string) => { }
-});
+export interface UmsGroup {
+  id: number,
+  displayName: string,
+  permissions?: UmsGroupPermissions,
+}
 
-export default I18nContext;
+export interface UmsAccount {
+  user: UmsUser,
+  group: UmsGroup,
+}
+
+export interface UmsSession {
+  noAdminFound: boolean;
+  account?: UmsAccount;
+  authenticate: boolean;
+  initialized: boolean;
+  refresh: () => void;
+  player: boolean;
+}

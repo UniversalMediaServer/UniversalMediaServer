@@ -23,7 +23,7 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { redirectToLogin } from '../../services/auth-service';
 
-function UserMenu() {
+export default function UserMenu() {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
 
@@ -111,4 +111,3 @@ function UserMenu() {
     </Menu>
   );
 }
-export default UserMenu;

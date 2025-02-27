@@ -21,14 +21,15 @@ import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
 import { IconExclamationMark } from '@tabler/icons-react';
 
-import I18nContext, { LanguageValue } from '../contexts/i18n-context';
+import I18nContext from '../contexts/i18n-context';
+import { LanguageValue } from '../services/i18n-service';
 import { i18nApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode,
 }
 
-export const I18nProvider = ({ children }: Props) => {
+const I18nProvider = ({ children }: Props) => {
   const { dir, setDirection } = useDirection();
   const [i18n, setI18n] = useState<{ [key: string]: string }>({
     'Error': 'Error',
@@ -145,3 +146,5 @@ export const I18nProvider = ({ children }: Props) => {
     </Provider>
   )
 }
+
+export default I18nProvider;

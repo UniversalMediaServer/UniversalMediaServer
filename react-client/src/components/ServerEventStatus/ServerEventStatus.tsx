@@ -21,7 +21,7 @@ import { IconPlugConnected, IconPlugConnectedX } from '@tabler/icons-react';
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 
-export const ServerEventStatus = () => {
+const ServerEventStatus = () => {
   const sse = useContext(ServerEventContext);
   const i18n = useContext(I18nContext);
   const connectionStatusStr = [

@@ -21,12 +21,13 @@ import { useContext, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { IconEdit, IconEditOff } from '@tabler/icons-react';
 
+import MemoryBar from '../MemoryBar/MemoryBar';
 import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext, { UmsMemory } from '../../contexts/server-event-context';
+import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { UmsMemory } from '../../services/server-event-service';
 import { aboutApiUrl } from '../../utils';
-import MemoryBar from '../MemoryBar/MemoryBar';
 
 const About = () => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any);

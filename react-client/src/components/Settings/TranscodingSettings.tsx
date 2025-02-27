@@ -23,9 +23,9 @@ import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, Ic
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
-import { mantineSelectData } from './Settings';
 
 export default function TranscodingSettings(
   form: any,

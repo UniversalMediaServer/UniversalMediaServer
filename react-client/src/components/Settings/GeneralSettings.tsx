@@ -21,8 +21,8 @@ import { useContext } from 'react';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
-import { mantineSelectData } from './Settings';
 
 export default function GeneralSettings(
   form: any,

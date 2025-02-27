@@ -14,19 +14,13 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Direction } from '@mantine/core';
-import { Context, createContext } from 'react';
-
-import { I18nInterface, LanguageValue } from '../services/i18n-service';
-
-const I18nContext: Context<I18nInterface> = createContext({
-  get: (value: string) => { return value },
-  getI18nString: (value: string) => { return value },
-  getI18nFormat: (value: string[]) => { return value.length ? value[0] : '' },
-  language: 'en-US',
-  dir: 'ltr' as Direction,
-  languages: [] as LanguageValue[],
-  setLanguage: (_language: string) => { }
-});
-
-export default I18nContext;
+export interface PlayerEventInterface {
+  uuid: string;
+  connectionStatus: number;
+  reqId: string;
+  reqType: string;
+  askReqId: (id: string, type: string) => void;
+  askBrowseId: (id: string) => void;
+  askPlayId: (id: string) => void;
+  askShowId: (id: string) => void;
+}

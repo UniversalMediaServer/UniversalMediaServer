@@ -17,10 +17,16 @@
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 
-import { UmsAccounts } from '../contexts/accounts-context';
-import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
 import { accountApiUrl } from '../utils';
 import { clearJwt } from './auth-service';
+import { UmsAccount, UmsGroup, UmsSession, UmsUser } from './session-service';
+
+export interface UmsAccounts {
+  users: UmsUser[],
+  groups: UmsGroup[],
+  enabled: boolean,
+  localhost: boolean,
+}
 
 export const Permissions = {
   'users_manage': 1,

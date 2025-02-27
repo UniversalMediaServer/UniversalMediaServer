@@ -21,9 +21,9 @@ import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
-import { mantineSelectData } from './Settings';
 
 export default function NavigationSettings(
   form: any,

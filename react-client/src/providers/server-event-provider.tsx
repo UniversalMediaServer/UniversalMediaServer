@@ -20,16 +20,17 @@ import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
 import MainContext from '../contexts/main-context';
-import ServerEventContext, { UmsMemory } from '../contexts/server-event-context';
+import ServerEventContext from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth-service';
+import { UmsMemory } from '../services/server-event-service';
 import { sseApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
 }
 
-export const ServerEventProvider = ({ children }: Props) => {
+const ServerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const [memory, setMemory] = useState<UmsMemory>({ max: 0, used: 0, dbcache: 0, buffer: 0 });
@@ -205,3 +206,5 @@ export const ServerEventProvider = ({ children }: Props) => {
     </Provider>
   )
 }
+
+export default ServerEventProvider;

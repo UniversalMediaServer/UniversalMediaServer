@@ -16,6 +16,8 @@
  */
 import { Context, createContext } from 'react';
 
+import { ServerEventInterface } from '../services/server-event-service';
+
 const ServerEventContext: Context<ServerEventInterface> = createContext({
   connectionStatus: 0,
   memory: { max: 0, used: 0, dbcache: 0, buffer: 0 },
@@ -30,27 +32,5 @@ const ServerEventContext: Context<ServerEventInterface> = createContext({
   hasNewLogLine: false as boolean,
   getNewLogLine: () => null,
 });
-
-export interface ServerEventInterface {
-  connectionStatus: number;
-  memory: UmsMemory;
-  updateAccounts: boolean;
-  setUpdateAccounts: (updateAccounts: boolean) => void;
-  reloadable: boolean;
-  userConfiguration: any;
-  setUserConfiguration: (config: any) => void;
-  mediaScan: boolean;
-  hasRendererAction: boolean;
-  getRendererAction: () => any;
-  hasNewLogLine: boolean;
-  getNewLogLine: () => any;
-}
-
-export interface UmsMemory {
-  max: number,
-  used: number,
-  dbcache: number,
-  buffer: number
-}
 
 export default ServerEventContext;

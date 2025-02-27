@@ -17,12 +17,13 @@
 import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip } from '@mantine/core';
 import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import { sendAction } from '../../services/actions-service';
+import { ActionsValues, sendAction } from '../../services/actions-service';
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils';
 
 const Actions = () => {
@@ -30,6 +31,7 @@ const Actions = () => {
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
   const [actionsValues, setActionsValues] = useState<ActionsValues>({ canShutdownComputer: false });
+  const navigate = useNavigate();
 
   const canRestartServer = havePermission(session, Permissions.server_restart);
   const [restartServerOpened, setRestartServerOpened] = useState(false);
@@ -153,7 +155,7 @@ const Actions = () => {
       }
       <Stack>
         {canModify && (
-          <Button variant='default' leftSection={<IconReport />} onClick={() => { window.location.href = '/logs'; }}>View Logs</Button>
+          <Button variant='default' leftSection={<IconReport />} onClick={() => { navigate('/logs'); }}>View Logs</Button>
         )}
         {canRestartServer && (
           <Tooltip label={i18n.get('ThisRestartsMediaServices')} {...defaultTooltipSettings}>
@@ -179,9 +181,5 @@ const Actions = () => {
     </Box>
   );
 };
-
-export interface ActionsValues {
-  canShutdownComputer: boolean,
-}
 
 export default Actions;

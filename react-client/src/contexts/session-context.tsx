@@ -16,6 +16,8 @@
  */
 import { Context, createContext } from 'react';
 
+import { UmsSession } from '../services/session-service';
+
 const SessionContext: Context<UmsSession> = createContext({
   noAdminFound: false,
   account: undefined,
@@ -24,42 +26,5 @@ const SessionContext: Context<UmsSession> = createContext({
   refresh: () => { },
   player: false
 } as UmsSession);
-
-export interface UmsUser {
-  id: number,
-  username: string,
-  displayName: string,
-  groupId: number,
-  avatar?: string,
-  pinCode?: string,
-  lastLoginTime: number,
-  loginFailedTime: number,
-  loginFailedCount: number,
-  libraryHidden: boolean,
-}
-
-export interface UmsGroupPermissions {
-  value: number,
-}
-
-export interface UmsGroup {
-  id: number,
-  displayName: string,
-  permissions?: UmsGroupPermissions,
-}
-
-export interface UmsAccount {
-  user: UmsUser,
-  group: UmsGroup,
-}
-
-export interface UmsSession {
-  noAdminFound: boolean;
-  account?: UmsAccount;
-  authenticate: boolean;
-  initialized: boolean;
-  refresh: () => void;
-  player: boolean;
-}
 
 export default SessionContext;

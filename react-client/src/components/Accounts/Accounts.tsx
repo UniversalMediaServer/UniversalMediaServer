@@ -22,8 +22,9 @@ import { IconExclamationMark, IconFolder, IconFolderPlus, IconPhotoUp, IconPhoto
 
 import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
-import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
+import SessionContext from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
+import { UmsGroup, UmsUser } from '../../services/session-service';
 import { allowHtml } from '../../utils';
 
 const Accounts = () => {

@@ -27,6 +27,7 @@ import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
 import GeneralSettings from './GeneralSettings';
 import NavigationSettings from './NavigationSettings';
@@ -237,9 +238,4 @@ export default function Settings() {
       <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
     </Box>
   );
-}
-
-export interface mantineSelectData {
-  value: string;
-  label: string;
 }

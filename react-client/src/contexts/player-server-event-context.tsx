@@ -16,6 +16,8 @@
  */
 import { Context, createContext } from 'react';
 
+import { PlayerEventInterface } from '../services/player-server-event-service';
+
 const PlayerEventContext: Context<PlayerEventInterface> = createContext({
   uuid: '',
   connectionStatus: 0,
@@ -26,16 +28,5 @@ const PlayerEventContext: Context<PlayerEventInterface> = createContext({
   askPlayId: (_id: string) => { },
   askShowId: (_id: string) => { },
 });
-
-export interface PlayerEventInterface {
-  uuid: string;
-  connectionStatus: number;
-  reqId: string;
-  reqType: string;
-  askReqId: (id: string, type: string) => void;
-  askBrowseId: (id: string) => void;
-  askPlayId: (id: string) => void;
-  askShowId: (id: string) => void;
-}
 
 export default PlayerEventContext;

@@ -19,14 +19,15 @@ import axios from 'axios';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
-import SessionContext, { UmsSession } from '../contexts/session-context';
+import SessionContext from '../contexts/session-context';
+import { UmsSession } from '../services/session-service';
 import { authApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
 }
 
-export const SessionProvider = ({ children }: Props) => {
+const SessionProvider = ({ children }: Props) => {
   const [session, setSession] = useState({ noAdminFound: false, authenticate: true, initialized: false, player: false } as UmsSession)
   const i18n = useContext(I18nContext);
 
@@ -58,3 +59,5 @@ export const SessionProvider = ({ children }: Props) => {
     </Provider>
   )
 }
+
+export default SessionProvider;

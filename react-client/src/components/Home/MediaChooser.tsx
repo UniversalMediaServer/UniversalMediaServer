@@ -21,6 +21,7 @@ import { useContext, useState, ReactNode } from 'react';
 import { IconFolder, IconHome, IconPictureInPicture, IconPictureInPictureOn } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import { Media } from '../../services/home-service';
 import { openGitHubNewIssue, renderersApiUrl } from '../../utils';
 
 export default function MediaChooser(props: {
@@ -179,12 +180,6 @@ export default function MediaChooser(props: {
       </>
     </Group>
   );
-}
-
-export interface Media {
-  value: string,
-  label: string,
-  browsable: boolean
 }
 
 MediaChooser.defaultProps = {

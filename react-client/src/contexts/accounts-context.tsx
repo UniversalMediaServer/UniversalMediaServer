@@ -15,15 +15,9 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Context, createContext } from 'react';
-import { UmsUser, UmsGroup } from '../contexts/session-context';
+
+import { UmsAccounts } from '../services/accounts-service';
 
 const AccountsContext: Context<UmsAccounts> = createContext({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts);
-
-export interface UmsAccounts {
-  users: UmsUser[],
-  groups: UmsGroup[],
-  enabled: boolean,
-  localhost: boolean,
-}
 
 export default AccountsContext;

@@ -19,7 +19,8 @@ import { useContext } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { IconLanguage } from '@tabler/icons-react';
 
-import I18nContext, { LanguageValue } from '../../contexts/i18n-context';
+import I18nContext from '../../contexts/i18n-context';
+import { LanguageValue } from '../../services/i18n-service';
 
 function LanguagesMenu() {
   const i18n = useContext(I18nContext);

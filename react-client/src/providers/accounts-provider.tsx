@@ -18,16 +18,17 @@ import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
-import AccountsContext, { UmsAccounts } from '../contexts/accounts-context';
+import AccountsContext from '../contexts/accounts-context';
 import I18nContext from '../contexts/i18n-context';
 import ServerEventContext from '../contexts/server-event-context';
+import { UmsAccounts } from '../services/accounts-service';
 import { accountApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
 }
 
-export const AccountsProvider = ({ children }: Props) => {
+const AccountsProvider = ({ children }: Props) => {
   const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const sse = useContext(ServerEventContext);
   const i18n = useContext(I18nContext);
@@ -59,3 +60,5 @@ export const AccountsProvider = ({ children }: Props) => {
     </Provider>
   )
 }
+
+export default AccountsProvider;

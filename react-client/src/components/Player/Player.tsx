@@ -27,11 +27,12 @@ import MainContext from '../../contexts/main-context';
 import PlayerEventContext from '../../contexts/player-server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { AudioMedia, BaseBrowse, BaseMedia, ImageMedia, MediaRating, PlayMedia, VideoMedia, VideoMetadata } from '../../services/player-service';
 import { playerApiUrl } from '../../utils';
-import { VideoJsPlayer } from './VideoJsPlayer';
+import VideoJsPlayer from './VideoJsPlayer';
 import VideoMetadataEditModal from './VideoMetadataEditModal';
 
-export const Player = () => {
+const Player = () => {
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse);
   const [loading, setLoading] = useState(false);
   const i18n = useContext(I18nContext);
@@ -806,132 +807,3 @@ export const Player = () => {
 };
 
 export default Player;
-
-export interface BaseMedia {
-  goal?: string,
-  icon?: string,
-  id: string,
-  name: string,
-  fullyplayed?: boolean,
-  updateId?: string,
-}
-
-interface MediasSelections {
-  recentlyAdded: BaseMedia[],
-  recentlyPlayed: BaseMedia[],
-  inProgress: BaseMedia[],
-  mostPlayed: BaseMedia[],
-}
-
-interface BaseBrowse {
-  breadcrumbs: BaseMedia[],
-  folders: BaseMedia[],
-  goal: string,
-  medias: BaseMedia[],
-  mediaLibraryFolders?: BaseMedia[],
-  mediasSelections?: MediasSelections,
-  metadata?: VideoMetadata,
-  useWebControl: boolean,
-}
-
-interface SurroundMedias {
-  prev?: BaseMedia,
-  next?: BaseMedia,
-}
-
-interface PlayMedia extends BaseMedia {
-  autoContinue: boolean,
-  isDownload: boolean,
-  isDynamicPls: boolean,
-  mediaType: string,
-  surroundMedias: SurroundMedias,
-}
-
-interface MediaRating {
-  source: string,
-  value: string,
-}
-
-interface VideoMetadata {
-  actors?: BaseMedia[],
-  awards?: string,
-  countries?: BaseMedia[],
-  createdBy?: string,
-  credits?: string,
-  directors?: BaseMedia[],
-  endYear?: string,
-  externalIDs?: string,
-  firstAirDate?: string,
-  genres?: BaseMedia[],
-  homepage?: string,
-  images?: VideoMetadataImages[],
-  imageBaseURL: string,
-  imdbID?: string,
-  inProduction?: boolean,
-  languages?: string,
-  lastAirDate?: string,
-  mediaType?: string,
-  networks?: string,
-  numberOfEpisodes?: number,
-  numberOfSeasons?: string,
-  originCountry?: string,
-  originalLanguage?: string,
-  originalTitle?: string,
-  overview?: string,
-  poster?: string,
-  productionCompanies?: string,
-  productionCountries?: string,
-  rated?: BaseMedia,
-  rating?: number,
-  ratings?: MediaRating[],
-  seasons?: string,
-  seriesType?: string,
-  spokenLanguages?: string,
-  startYear?: string,
-  status?: string,
-  tagline?: string,
-  title?: string,
-  tmdbID?: number,
-  tmdbTvID?: number,
-  tvEpisode?: string,
-  tvSeason?: string,
-  totalSeasons?: number,
-  votes?: string,
-  isEditable: boolean,
-}
-
-interface VideoMetadataImages {
-  backdrops?: VideoMetadataImage[],
-  logos?: VideoMetadataImage[],
-  posters?: VideoMetadataImage[],
-}
-
-interface VideoMetadataImage {
-  aspect_ratio?: number,
-  height?: number,
-  iso_639_1?: string,
-  file_path?: string,
-  vote_average: number,
-  vote_count?: number,
-  width?: number,
-}
-
-export interface VideoMedia extends PlayMedia {
-  height: number,
-  isVideoWithChapters: boolean,
-  metadata?: VideoMetadata,
-  mime: string,
-  resumePosition?: number,
-  width: number,
-}
-
-export interface AudioMedia extends PlayMedia {
-  isNativeAudio: boolean,
-  mime: string,
-  width: number,
-  height: number,
-}
-
-interface ImageMedia extends PlayMedia {
-  delay?: number,
-}

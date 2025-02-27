@@ -30,7 +30,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const PlayerEventProvider = ({ children }: Props) => {
+const PlayerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const session = useContext(SessionContext);
@@ -275,3 +275,5 @@ export const PlayerEventProvider = ({ children }: Props) => {
     </Provider>
   )
 }
+
+export default PlayerEventProvider;

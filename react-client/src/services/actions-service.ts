@@ -30,6 +30,10 @@ const PERMITTED_ACTIONS = [
   'Server.ScanAllSharedFoldersCancel',
 ];
 
+export interface ActionsValues {
+  canShutdownComputer: boolean,
+}
+
 export const sendAction = async (operation: string) => {
   if (PERMITTED_ACTIONS.includes(operation)) {
     return axios
