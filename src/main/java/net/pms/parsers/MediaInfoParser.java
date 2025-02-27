@@ -1076,18 +1076,28 @@ public class MediaInfoParser {
 	}
 
 	public static Long getSpecificID(String value) {
-		// If ID is given as 'streamID-substreamID' use the second (which is hopefully unique).
-		// For example in vob audio ID can be '189 (0xBD)-32 (0x80)' and text ID '189 (0xBD)-128 (0x20)'
-		int end = value.lastIndexOf("(0x");
-		if (end > -1) {
-			int start = value.lastIndexOf('-') + 1;
-			value = value.substring(start > end ? 0 : start, end);
-		} else if (value.lastIndexOf('-') > -1) { // value could be '189-128'
-			value = value.substring(value.lastIndexOf('-') + 1);
-		}
+		try {
+			// If ID is given as 'streamID-substreamID' use the second (which is hopefully unique).
+			// For example in vob audio ID can be '189 (0xBD)-32 (0x80)' and text ID '189 (0xBD)-128 (0x20)'
+			int end = value.lastIndexOf("(0x");
+			if (end > -1) {
+				int start = value.lastIndexOf('-') + 1;
+				value = value.substring(start > end ? 0 : start, end);
+			} else if (value.lastIndexOf('-') > -1) { // value could be '189-128'
+				value = value.substring(value.lastIndexOf('-') + 1);
+			}
 
-		value = value.trim();
-		return Long.valueOf(value);
+			if (value.indexOf("CC") > -1) {
+				value = value.replaceAll("CC", "33");
+			}
+
+			value = value.trim();
+			return Long.valueOf(value);
+		} catch (NumberFormatException e) {
+			LOGGER.trace("Could not parse ID \"{}\": ", value, e.getMessage());
+			// return a number that is unlikely to conflict with a real ID
+			return 80L;
+		}
 	}
 
 	public static String getFrameRateModeValue(String value) {
