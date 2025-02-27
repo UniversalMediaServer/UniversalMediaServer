@@ -5,7 +5,7 @@ import livePreview from 'vite-live-preview'
 export default defineConfig({
   plugins: [
     react(),
-    livePreview()
+    livePreview(),
   ],
   build: {
     outDir: '../src/main/external-resources/web/react-client',
@@ -15,7 +15,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
-          hashCharacters: 'hex'
+        hashCharacters: 'hex',
       },
       onwarn(warning, defaultHandler) {
         if (warning.code === 'SOURCEMAP_ERROR') {
@@ -32,6 +32,6 @@ export default defineConfig({
     open: '/',
     proxy: {
       '/v1': 'http://localhost:9001',
-    }
-  }
+    },
+  },
 })
