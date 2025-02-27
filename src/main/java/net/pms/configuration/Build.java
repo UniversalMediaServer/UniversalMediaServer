@@ -72,7 +72,7 @@ public class Build {
 	 *     PROFILE_DIRECTORY_NAME = "pms-mlx";
 	 *
 	 * Note: custom Windows builds that change this value should change the corresponding "$ALLUSERSPROFILE\UMS"
-	 * value in nsis/setup.nsi
+	 * value in src/main/external-resources/windows/nsis-scripts/setup-*.nsi
 	 *
 	 * @return The profile directory name
 	 */
