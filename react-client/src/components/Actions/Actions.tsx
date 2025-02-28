@@ -16,19 +16,17 @@
  */
 import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip } from '@mantine/core';
 import axios from 'axios';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { ActionsValues, sendAction } from '../../services/actions-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils';
 
-const Actions = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
+const Actions = ({ i18n, session}: { i18n:I18nInterface, session:SessionInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify);
   const [actionsValues, setActionsValues] = useState<ActionsValues>({ canShutdownComputer: false });
   const navigate = useNavigate();

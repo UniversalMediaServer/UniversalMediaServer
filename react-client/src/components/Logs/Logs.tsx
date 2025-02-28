@@ -20,20 +20,17 @@ import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils';
 
-const Logs = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
+const Logs = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify);
   const [rootLogLevel, setRootLogLevel] = useState(0);
   const [guiLogLevel, setGuiLogLevel] = useState(0);

@@ -15,6 +15,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 export interface mantineSelectData {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }

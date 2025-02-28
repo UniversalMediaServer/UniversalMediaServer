@@ -15,18 +15,16 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Menu, ActionIcon, VisuallyHidden } from '@mantine/core';
-import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { IconHome, IconInfoCircle, IconLogout, IconMenu2, IconPlayerPlay, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import { redirectToLogin } from '../../services/auth-service';
+import { logout } from '../../services/auth-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
 
-export default function UserMenu() {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-
+export default function UserMenu({ i18n, session}: { i18n:I18nInterface, session:SessionInterface }) {
+  const navigate = useNavigate();
   return (
     <Menu>
       <Menu.Target>
@@ -40,7 +38,7 @@ export default function UserMenu() {
           <Menu.Item
             color='green'
             leftSection={<IconHome size={14} />}
-            onClick={() => { window.location.href = '/'; }}
+            onClick={() => { navigate('/'); }}
           >
             {i18n.get('Home')}
           </Menu.Item>
@@ -49,7 +47,7 @@ export default function UserMenu() {
           <Menu.Item
             color='blue'
             leftSection={<IconPlayerPlay size={14} />}
-            onClick={() => { window.location.href = '/player'; }}
+            onClick={() => { navigate('/player'); }}
           >
             {i18n.getI18nString('Player')}
           </Menu.Item>
@@ -60,7 +58,7 @@ export default function UserMenu() {
           {havePermission(session, Permissions.settings_view) && (
             <Menu.Item
               leftSection={<IconShare size={14} />}
-              onClick={() => { window.location.href = '/shared'; }}
+              onClick={() => { navigate('/shared'); }}
             >
               {i18n.get('SharedContent')}
             </Menu.Item>
@@ -68,7 +66,7 @@ export default function UserMenu() {
           {havePermission(session, (Permissions.server_restart | Permissions.computer_shutdown) | Permissions.settings_modify) && (
             <Menu.Item
               leftSection={<IconTool size={14} />}
-              onClick={() => { window.location.href = '/actions'; }}
+              onClick={() => { navigate('/actions'); }}
             >
               {i18n.get('Tools')}
             </Menu.Item>
@@ -76,14 +74,14 @@ export default function UserMenu() {
           {havePermission(session, Permissions.settings_view) && (
             <Menu.Item
               leftSection={<IconSettings size={14} />}
-              onClick={() => { window.location.href = '/settings'; }}
+              onClick={() => { navigate('/settings'); }}
             >
               {i18n.get('ServerSettings')}
             </Menu.Item>
           )}
           <Menu.Item
             leftSection={havePermission(session, Permissions.users_manage) ? <IconUsers size={14} /> : <IconUser size={14} />}
-            onClick={() => { window.location.href = '/accounts'; }}
+            onClick={() => { navigate('/accounts'); }}
           >
             {havePermission(session, Permissions.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
           </Menu.Item>
@@ -92,7 +90,7 @@ export default function UserMenu() {
         <Menu.Item
           color='yellow'
           leftSection={<IconInfoCircle size={14} />}
-          onClick={() => { window.location.href = '/about'; }}
+          onClick={() => { navigate('/about'); }}
         >
           {i18n.get('About')}
         </Menu.Item>
@@ -101,7 +99,9 @@ export default function UserMenu() {
             color='rgba(255, 0, 0, 1)'
             leftSection={<IconLogout size={14} />}
             onClick={() => {
-              redirectToLogin();
+              logout();
+              navigate('/')
+              session.refresh();
             }}
           >
             {i18n.get('LogOut')}

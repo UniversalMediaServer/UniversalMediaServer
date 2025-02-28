@@ -15,10 +15,10 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 export interface MainInterface {
-  navbarValue: any;
-  setNavbarValue: (navbarValue: any) => void;
-  navbarOpened: boolean;
-  setNavbarOpened: (navbarOpened: any) => void;
-  statusLine: any,
-  setStatusLine: (statusLine: any) => void;
+  navbarValue: any
+  setNavbarValue: (navbarValue: any) => void
+  navbarOpened: boolean
+  setNavbarOpened: (navbarOpened: any) => void
+  statusLine: any
+  setStatusLine: (statusLine: any) => void
 }

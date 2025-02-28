@@ -15,25 +15,23 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 export interface UmsMemory {
-  max: number,
-  used: number,
-  dbcache: number,
+  max: number
+  used: number
+  dbcache: number
   buffer: number
 }
 
 export interface ServerEventInterface {
-  connectionStatus: number;
-  memory: UmsMemory;
-  updateAccounts: boolean;
-  setUpdateAccounts: (updateAccounts: boolean) => void;
-  reloadable: boolean;
-  userConfiguration: any;
-  setUserConfiguration: (config: any) => void;
-  mediaScan: boolean;
-  hasRendererAction: boolean;
-  getRendererAction: () => any;
-  hasNewLogLine: boolean;
-  getNewLogLine: () => any;
+  connectionStatus: number
+  memory: UmsMemory
+  updateAccounts: boolean
+  setUpdateAccounts: (updateAccounts: boolean) => void
+  reloadable: boolean
+  userConfiguration: any
+  setUserConfiguration: (config: any) => void
+  mediaScan: boolean
+  hasRendererAction: boolean
+  getRendererAction: () => any
+  hasNewLogLine: boolean
+  getNewLogLine: () => any
 }
-
-

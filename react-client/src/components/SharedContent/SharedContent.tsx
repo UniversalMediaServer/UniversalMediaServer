@@ -19,21 +19,18 @@ import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
+import { useEffect, useState } from 'react';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
 import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import SharedContentSettings from './SharedContentSettings';
 
-export default function SharedContent() {
+export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) {
   const [isLoading, setLoading] = useState(true);
   const [configuration, setConfiguration] = useState({} as any);
 
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
   const form = useForm({ initialValues: {} as Record<string, unknown> });
   const formSetValues = form.setValues;
 
@@ -128,7 +125,7 @@ export default function SharedContent() {
     <Box style={{ maxWidth: 1024 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Text size="lg" mb="md">{i18n.get('SharedContent')}</Text>
-        {SharedContentSettings(form, configuration)}
+        {SharedContentSettings(i18n, sse, session, form, configuration)}
         {canModify && (
           <Group justify='flex-end' mt='md'>
             <Button type='submit' loading={isLoading}>

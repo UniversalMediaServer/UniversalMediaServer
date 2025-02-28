@@ -14,9 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react';
+import { Context, createContext } from 'react'
 
-import { MainInterface } from '../services/main-service';
+import { MainInterface } from '../services/main-service'
 
 const MainContext: Context<MainInterface> = createContext({
   navbarValue: undefined,
@@ -25,6 +25,6 @@ const MainContext: Context<MainInterface> = createContext({
   setNavbarOpened: (_navbarOpened: any) => { },
   statusLine: undefined,
   setStatusLine: (_statusLine: any) => { },
-});
+})
 
-export default MainContext;
+export default MainContext

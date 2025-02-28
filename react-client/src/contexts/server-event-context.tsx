@@ -14,9 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react';
+import { Context, createContext } from 'react'
 
-import { ServerEventInterface } from '../services/server-event-service';
+import { ServerEventInterface } from '../services/server-event-service'
 
 const ServerEventContext: Context<ServerEventInterface> = createContext({
   connectionStatus: 0,
@@ -31,6 +31,6 @@ const ServerEventContext: Context<ServerEventInterface> = createContext({
   getRendererAction: () => null,
   hasNewLogLine: false as boolean,
   getNewLogLine: () => null,
-});
+})
 
-export default ServerEventContext;
+export default ServerEventContext

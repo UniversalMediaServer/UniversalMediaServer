@@ -14,17 +14,17 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react';
+import { Context, createContext } from 'react'
 
-import { UmsSession } from '../services/session-service';
+import { SessionInterface } from '../services/session-service'
 
-const SessionContext: Context<UmsSession> = createContext({
+const SessionContext: Context<SessionInterface> = createContext({
   noAdminFound: false,
   account: undefined,
   authenticate: false,
   initialized: false,
   refresh: () => { },
-  player: false
-} as UmsSession);
+  player: false,
+} as SessionInterface)
 
-export default SessionContext;
+export default SessionContext

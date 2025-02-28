@@ -20,13 +20,13 @@ import { useLocalStorage } from '@mantine/hooks';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
 import { mantineSelectData } from '../../services/settings-service';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
 import GeneralSettings from './GeneralSettings';
@@ -34,7 +34,7 @@ import NavigationSettings from './NavigationSettings';
 import RenderersSettings from './RenderersSettings';
 import TranscodingSettings from './TranscodingSettings';
 
-export default function Settings() {
+export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) {
   const [advancedSettings] = useLocalStorage<boolean>({
     key: 'mantine-advanced-settings',
     defaultValue: false,
@@ -62,9 +62,6 @@ export default function Settings() {
     transcodingEnginesPurposes: [],
   });
 
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
   const form = useForm({ initialValues: {} as Record<string, unknown> });
   const formSetValues = form.setValues;
 
@@ -208,20 +205,20 @@ export default function Settings() {
             <Tabs.Tab value='TranscodingSettings'>{i18n.get('TranscodingSettings')}</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value='GeneralSettings'>
-            {GeneralSettings(form, defaultConfiguration, selectionSettings)}
+            {GeneralSettings(i18n, session, form, defaultConfiguration, selectionSettings)}
           </Tabs.Panel>
           {advancedSettings &&
             <Tabs.Panel value='RenderersSettings'>
-              {RenderersSettings(form, selectionSettings)}
+              {RenderersSettings(i18n, session, form, selectionSettings)}
             </Tabs.Panel>
           }
           {advancedSettings &&
             <Tabs.Panel value='NavigationSettings'>
-              {NavigationSettings(form, defaultConfiguration, selectionSettings)}
+              {NavigationSettings(i18n, session, form, defaultConfiguration, selectionSettings)}
             </Tabs.Panel>
           }
           <Tabs.Panel value='TranscodingSettings'>
-            {TranscodingSettings(form, defaultConfiguration, selectionSettings)}
+            {TranscodingSettings(i18n, session, form, defaultConfiguration, selectionSettings)}
           </Tabs.Panel>
         </Tabs>
         {canModify && (

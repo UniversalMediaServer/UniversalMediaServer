@@ -15,12 +15,12 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 export interface PlayerEventInterface {
-  uuid: string;
-  connectionStatus: number;
-  reqId: string;
-  reqType: string;
-  askReqId: (id: string, type: string) => void;
-  askBrowseId: (id: string) => void;
-  askPlayId: (id: string) => void;
-  askShowId: (id: string) => void;
+  uuid: string
+  connectionStatus: number
+  reqId: string
+  reqType: string
+  askReqId: (id: string, type: string) => void
+  askBrowseId: (id: string) => void
+  askPlayId: (id: string) => void
+  askShowId: (id: string) => void
 }

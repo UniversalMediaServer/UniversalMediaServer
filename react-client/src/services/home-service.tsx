@@ -16,54 +16,54 @@
  */
 
 export interface RendererState {
-  mute: boolean,
-  volume: number,
-  playback: number,
-  name: string,
-  uri: string,
-  metadata: string,
-  position: string,
-  duration: string,
-  buffer: number,
+  mute: boolean
+  volume: number
+  playback: number
+  name: string
+  uri: string
+  metadata: string
+  position: string
+  duration: string
+  buffer: number
 }
 
 export interface Renderer {
-  id: number,
-  name: string,
-  address: string,
-  uuid: string,
-  icon: string,
-  playing: string,
-  time: string,
-  progressPercent: number,
-  isActive: boolean,
-  isAllowed: boolean,
-  isAuthenticated: boolean,
-  userId: number,
-  controls: number,
-  state: RendererState,
+  id: number
+  name: string
+  address: string
+  uuid: string
+  icon: string
+  playing: string
+  time: string
+  progressPercent: number
+  isActive: boolean
+  isAllowed: boolean
+  isAuthenticated: boolean
+  userId: number
+  controls: number
+  state: RendererState
 }
 
 export interface NetworkDevice {
-  hostName: string,
-  ipAddress: string,
+  hostName: string
+  ipAddress: string
   lastSeen: number
 }
 
 export interface NetworkDevicesFilter {
-  name: string,
-  isAllowed: boolean,
-  isDefault: boolean,
+  name: string
+  isAllowed: boolean
+  isDefault: boolean
   devices: NetworkDevice[]
 }
 
 export interface User {
-  value: number,
+  value: number
   label: string
 }
 
 export interface Media {
-  value: string,
-  label: string,
+  value: string
+  label: string
   browsable: boolean
 }

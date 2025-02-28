@@ -17,14 +17,13 @@
 import { TextInput, Button, Group, Box, Text, Space } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { useContext } from 'react';
 import { IconUser, IconLock } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
 import { login } from '../../services/auth-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
 
-const Login = () => {
-  const i18n = useContext(I18nContext);
+const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface }) => {
   const form = useForm({
     initialValues: {
       username: '',
@@ -36,7 +35,7 @@ const Login = () => {
     const { username, password } = values;
     login(username, password).then(
       () => {
-        window.location.reload();
+        session.refresh();
       },
       () => {
         showNotification({

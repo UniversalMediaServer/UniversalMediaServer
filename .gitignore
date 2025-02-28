@@ -37,6 +37,7 @@ docker/jre*
 /nbactions-*
 
 # react web client
+/react-client/dist/
 /react-client/nbproject/
 /react-client/node/
 /react-client/node_modules/

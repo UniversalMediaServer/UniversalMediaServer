@@ -17,28 +17,24 @@
 import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useComputedColorScheme } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { createElement, useContext, useEffect, useState } from 'react';
+import { createElement, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
 import { IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadge4k, IconBadgeHd, IconBadgeSd, IconBrandYoutube, IconCalendar, IconCast, IconDeviceTv, IconDisc, IconDownload, IconEdit, IconEye, IconFolder, IconHeart, IconHome, IconInfoSquare, IconLanguageOff, IconLoader2, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconSettings, IconTag, IconVideo, IconWorldWww } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import MainContext from '../../contexts/main-context';
-import PlayerEventContext from '../../contexts/player-server-event-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { PlayerEventInterface } from '../../services/player-server-event-service';
+import { SessionInterface } from '../../services/session-service';
 import { AudioMedia, BaseBrowse, BaseMedia, ImageMedia, MediaRating, PlayMedia, VideoMedia, VideoMetadata } from '../../services/player-service';
 import { playerApiUrl } from '../../utils';
 import VideoJsPlayer from './VideoJsPlayer';
 import VideoMetadataEditModal from './VideoMetadataEditModal';
 
-const Player = () => {
+const Player = ({ i18n, main, session, sse}: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:PlayerEventInterface }) => {
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse);
   const [loading, setLoading] = useState(false);
-  const i18n = useContext(I18nContext);
-  const main = useContext(MainContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(PlayerEventContext);
   const { req, id } = useParams();
   const [showVideoMetadataEdit, setShowVideoMetadataEdit] = useState(false);
   const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true });
@@ -167,7 +163,7 @@ const Player = () => {
 
   const getVideoMetadataEditModal = () => {
     if (isVideoMetadataEditable()) {
-      return <VideoMetadataEditModal uuid={sse.uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />
+      return <VideoMetadataEditModal i18n={i18n} uuid={sse.uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />
     }
     return null;
   }

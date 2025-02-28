@@ -267,6 +267,7 @@ const Renderers = (
         }
         {rendererControlled.isActive && (<Group justify='center'>
           <MediaChooser
+            i18n={i18n}
             disabled={!canModify}
             size='xs'
             id={rendererControlled.id}

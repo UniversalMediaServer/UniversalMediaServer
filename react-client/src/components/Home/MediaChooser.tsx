@@ -17,14 +17,15 @@
 import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea, Stack, TextInput, Tooltip } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { useContext, useState, ReactNode } from 'react';
+import { useState, ReactNode } from 'react';
 import { IconFolder, IconHome, IconPictureInPicture, IconPictureInPictureOn } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
 import { Media } from '../../services/home-service';
+import { I18nInterface } from '../../services/i18n-service';
 import { openGitHubNewIssue, renderersApiUrl } from '../../utils';
 
 export default function MediaChooser(props: {
+  i18n: I18nInterface,
   tooltipText: string,
   id: number,
   media: Media | null,
@@ -36,7 +37,7 @@ export default function MediaChooser(props: {
 }) {
   const [isLoading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
-  const i18n = useContext(I18nContext);
+  const i18n = props.i18n;
 
   const [medias, setMedias] = useState<Media[]>([]);
   const [parents, setParents] = useState([] as { value: string, label: string }[]);

@@ -15,38 +15,38 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 export interface UmsUser {
-  id: number,
-  username: string,
-  displayName: string,
-  groupId: number,
-  avatar?: string,
-  pinCode?: string,
-  lastLoginTime: number,
-  loginFailedTime: number,
-  loginFailedCount: number,
-  libraryHidden: boolean,
+  id: number
+  username: string
+  displayName: string
+  groupId: number
+  avatar?: string
+  pinCode?: string
+  lastLoginTime: number
+  loginFailedTime: number
+  loginFailedCount: number
+  libraryHidden: boolean
 }
 
 export interface UmsGroupPermissions {
-  value: number,
+  value: number
 }
 
 export interface UmsGroup {
-  id: number,
-  displayName: string,
-  permissions?: UmsGroupPermissions,
+  id: number
+  displayName: string
+  permissions?: UmsGroupPermissions
 }
 
 export interface UmsAccount {
-  user: UmsUser,
-  group: UmsGroup,
+  user: UmsUser
+  group: UmsGroup
 }
 
-export interface UmsSession {
-  noAdminFound: boolean;
-  account?: UmsAccount;
-  authenticate: boolean;
-  initialized: boolean;
-  refresh: () => void;
-  player: boolean;
+export interface SessionInterface {
+  noAdminFound: boolean
+  account?: UmsAccount
+  authenticate: boolean
+  initialized: boolean
+  refresh: () => void
+  player: boolean
 }

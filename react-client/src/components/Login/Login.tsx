@@ -17,17 +17,15 @@
 import { TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconUser, IconLock } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
-import { clearJwt, create, disable, login } from '../../services/auth-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
+import { create, disable, login, logout } from '../../services/auth-service';
 import { allowHtml } from '../../utils';
 
-const Login = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
+const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface }) => {
   const [opened, setOpened] = useState(false);
   const form = useForm({
     initialValues: {
@@ -40,7 +38,7 @@ const Login = () => {
     const { username, password } = values;
     login(username, password).then(
       () => {
-        window.location.reload();
+        session.refresh();
       },
       () => {
         showNotification({
@@ -58,7 +56,7 @@ const Login = () => {
     const { username, password } = values;
     create(username, password).then(
       () => {
-        window.location.reload();
+        session.refresh();
       },
       () => {
         showNotification({
@@ -75,8 +73,8 @@ const Login = () => {
   const handleAuthDisable = () => {
     disable().then(
       () => {
-        clearJwt();
-        window.location.reload();
+        logout();
+        session.refresh();
       },
       () => {
         showNotification({

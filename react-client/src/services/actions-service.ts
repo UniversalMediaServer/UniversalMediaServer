@@ -14,9 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import axios from 'axios';
+import axios from 'axios'
 
-import { actionsApiUrl } from '../utils';
+import { actionsApiUrl } from '../utils'
 
 const PERMITTED_ACTIONS = [
   'Process.Exit',
@@ -28,10 +28,10 @@ const PERMITTED_ACTIONS = [
   'Server.ScanAllSharedFolders',
   'Server.ScanAllSharedFoldersCancel',
   'Server.ScanAllSharedFoldersCancel',
-];
+]
 
 export interface ActionsValues {
-  canShutdownComputer: boolean,
+  canShutdownComputer: boolean
 }
 
 export const sendAction = async (operation: string) => {
@@ -41,7 +41,7 @@ export const sendAction = async (operation: string) => {
         operation,
       })
       .then((response) => {
-        return response.data;
-      });
+        return response.data
+      })
   }
 }

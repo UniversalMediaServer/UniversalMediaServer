@@ -14,23 +14,22 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Direction } from "@mantine/core";
+import { Direction } from '@mantine/core'
 
 export interface I18nInterface {
-  get: (value: string) => string;
-  getI18nString: (value: string) => string;
-  getI18nFormat: (value: string[]) => string;
-  language: string;
-  dir: Direction;
-  languages: LanguageValue[];
-  setLanguage: (language: string) => void;
+  get: (value: string) => string
+  getI18nString: (value: string) => string
+  getI18nFormat: (value: string[]) => string
+  language: string
+  dir: Direction
+  languages: LanguageValue[]
+  setLanguage: (language: string) => void
 }
 
 export interface LanguageValue {
-  id: string,
-  name: string,
-  defaultname: string,
-  country: string,
-  coverage: number,
+  id: string
+  name: string
+  defaultname: string
+  country: string
+  coverage: number
 }
-

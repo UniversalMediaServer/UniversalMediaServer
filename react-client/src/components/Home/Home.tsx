@@ -18,21 +18,19 @@ import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
-import ServerEventContext from '../../contexts/server-event-context';
 import Renderers from './Renderers';
 import NetworkDevices from './NetworkDevices';
 import { renderersApiUrl } from '../../utils';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
 
-const Home = () => {
-  const i18n = useContext(I18nContext);
-  const sse = useContext(ServerEventContext);
+const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
@@ -40,7 +38,6 @@ const Home = () => {
   const [isLocalhost, setIsLocalhost] = useState(false);
   const [users, setUsers] = useState([] as User[]);
   const [currentTime, setCurrentTime] = useState(0);
-  const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
   const canView = canModify || havePermission(session, Permissions.settings_view);
   const canControlRenderers = havePermission(session, Permissions.devices_control);

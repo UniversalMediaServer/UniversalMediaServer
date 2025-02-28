@@ -17,13 +17,14 @@
 import { ActionIcon, Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea, Stack, TextInput, Tooltip } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { useContext, useState, ReactNode } from 'react';
+import { useState, ReactNode } from 'react';
 import { IconCircleMinus, IconDevices2, IconFolder, IconFolders } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
+import { I18nInterface } from '../../services/i18n-service';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
 
 export default function DirectoryChooser(props: {
+  i18n: I18nInterface,
   tooltipText: string,
   path: string,
   callback: any,
@@ -36,7 +37,7 @@ export default function DirectoryChooser(props: {
 }) {
   const [isLoading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
-  const i18n = useContext(I18nContext);
+  const i18n = props.i18n;
 
   const [directories, setDirectories] = useState([] as { value: string, label: string }[]);
   const [parents, setParents] = useState([] as { value: string, label: string }[]);

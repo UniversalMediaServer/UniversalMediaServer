@@ -18,13 +18,14 @@ import { Badge, Button, Card, Divider, Flex, Group, Image, Modal, NumberInput, S
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconListSearch } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
+import { I18nInterface } from '../../services/i18n-service';
 import { playerApiUrl } from '../../utils';
 
 export default function VideoMetadataEditModal(props: {
+  i18n:I18nInterface,
   uuid: string,
   id: string,
   start: boolean,
@@ -33,7 +34,7 @@ export default function VideoMetadataEditModal(props: {
 }) {
   const [isLoading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
-  const i18n = useContext(I18nContext);
+  const i18n = props.i18n;
   const [editResults, setEditResults] = useState<TmdbResult[]>([]);
   const [editData, setEditData] = useState<BaseEdit | null>(null);
   const searchForm = useForm();

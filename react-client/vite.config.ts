@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [
-    react()
+    react(),
   ],
   build: {
     outDir: '../src/main/external-resources/web/react-client',
@@ -13,7 +13,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
-          hashCharacters: 'hex'
+        hashCharacters: 'hex',
       },
       onwarn(warning, defaultHandler) {
         if (warning.code === 'SOURCEMAP_ERROR') {
@@ -32,7 +32,7 @@ export default defineConfig({
       '/v1': 'http://localhost:9001',
     },
     watch: {
-      usePolling: true
-    }
-  }
+      usePolling: true,
+    },
+  },
 })
