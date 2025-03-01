@@ -16,7 +16,6 @@
  */
 import { ActionIcon, Button, Card, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { CSSProperties, useEffect, useState } from 'react';
@@ -30,6 +29,7 @@ import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
+import { showError, showInfo, showWarning } from '../../utils/notifications';
 
 export default function SharedContentSettings(
   i18n:I18nInterface,
@@ -75,12 +75,11 @@ export default function SharedContentSettings(
         { directory: item, isPlayed },
       );
 
-      showNotification({
+      showInfo({
         message: i18n.get('Saved'),
       })
     } catch (err) {
-      showNotification({
-        color: 'red',
+      showError({
         title: i18n.get('Error'),
         message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },
@@ -107,16 +106,14 @@ export default function SharedContentSettings(
         (sharedContentsTemp[index] as Feed).name = name;
         setSharedContents(sharedContentsTemp);
       } else {
-        showNotification({
-          color: 'orange',
+        showWarning({
           title: i18n.get('Information'),
           message: i18n.get('FeedNameNotFound'),
         })
       }
     } catch (err) {
       console.error(err);
-      showNotification({
-        color: 'red',
+      showError({
         title: i18n.get('Error'),
         message: i18n.get('DataNotReceived'),
       })

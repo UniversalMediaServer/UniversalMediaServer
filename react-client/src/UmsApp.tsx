@@ -59,16 +59,16 @@ function UmsApp() {
   })
   const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true })
   return (
-    <I18nProvider>
-      <I18nContext.Consumer>
-        {i18n => (
-          <MainProvider>
-            <MainContext.Consumer>
-              {main => (
-                <SessionProvider i18n={i18n}>
-                  <SessionContext.Consumer>
-                    {session => (
-                      <Router>
+    <Router>
+      <I18nProvider>
+        <I18nContext.Consumer>
+          {i18n => (
+            <MainProvider>
+              <MainContext.Consumer>
+                {main => (
+                  <SessionProvider i18n={i18n}>
+                    <SessionContext.Consumer>
+                      {session => (
                         <ServerEventProvider i18n={i18n} main={main} session={session}>
                           <ServerEventContext.Consumer>
                             {sse => (
@@ -201,16 +201,16 @@ function UmsApp() {
                             )}
                           </ServerEventContext.Consumer>
                         </ServerEventProvider>
-                      </Router>
-                    )}
-                  </SessionContext.Consumer>
-                </SessionProvider>
-              )}
-            </MainContext.Consumer>
-          </MainProvider>
-        )}
-      </I18nContext.Consumer>
-    </I18nProvider>
+                      )}
+                    </SessionContext.Consumer>
+                  </SessionProvider>
+                )}
+              </MainContext.Consumer>
+            </MainProvider>
+          )}
+        </I18nContext.Consumer>
+      </I18nProvider>
+    </Router>
   )
 }
 

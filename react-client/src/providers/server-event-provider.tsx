@@ -17,7 +17,6 @@
 import { hideNotification, showNotification } from '@mantine/notifications'
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
 import { ReactNode, useEffect, useState } from 'react'
-import { useLocation } from 'react-router'
 
 import ServerEventContext from '../contexts/server-event-context'
 import { getJwt } from '../services/auth-service'
@@ -28,9 +27,8 @@ import { SessionInterface } from '../services/session-service'
 import { sseApiUrl } from '../utils'
 
 const ServerEventProvider = ({ children, i18n, main, session }: { children?: ReactNode, i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
-  const location = useLocation()
   const [prevLocation, setPrevLocation] = useState('')
-  const [handled, setHandled] = useState<boolean>(false)
+  const [handled, setHandled] = useState<boolean>(true)
   const [abortController, setAbortController] = useState(new AbortController())
   const [connectionStatus, setConnectionStatus] = useState<number>(0)
   const [memory, setMemory] = useState<UmsMemory>({ max: 0, used: 0, dbcache: 0, buffer: 0 })
@@ -48,8 +46,7 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
       return
     }
     setHandled(true)
-    const ssePath = ['/', '/about', '/accounts', '/logs', '/settings', '/shared']
-    if (!ssePath.includes(location.pathname)) {
+    if (session.sseAs == '') {
       return
     }
     let notified = false
@@ -81,8 +78,7 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
         setConnectionStatus(1)
       }
       else if (event.status == 401) {
-        // reload Unauthorized
-        session.refresh()
+        // Unauthorized
       }
       else if (event.status == 403) {
         // stop Forbidden
@@ -174,15 +170,15 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
   }, [handled, session, rendererActions, newLogLines])
 
   useEffect(() => {
-    if (prevLocation != location.pathname) {
-      setPrevLocation(location.pathname)
+    if (prevLocation != session.sseAs) {
+      setPrevLocation(session.sseAs)
       if (handled) {
         abortController.abort()
         setAbortController(new AbortController())
         setHandled(false)
       }
     }
-  }, [location])
+  }, [session.sseAs])
 
   const getRendererAction = () => {
     let result = null

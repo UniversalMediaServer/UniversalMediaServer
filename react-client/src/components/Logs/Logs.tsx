@@ -17,7 +17,6 @@
 import { Box, Button, Checkbox, Code, Divider, Group, Modal, MultiSelect, Pagination, ScrollArea, SegmentedControl, Select, Stack, Switch, Text, TextInput, Tooltip } from '@mantine/core';
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
@@ -29,6 +28,7 @@ import { I18nInterface } from '../../services/i18n-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils';
+import { showError } from '../../utils/notifications';
 
 const Logs = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify);
@@ -92,6 +92,8 @@ const Logs = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
   //set the document Title to Logs
   useEffect(() => {
     document.title="Universal Media Server - Logs";
+    session.useSseAs('Logs')
+    session.stopPlayerSse();
   }, []);
 
   useEffect(() => {
@@ -110,12 +112,10 @@ const Logs = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
         setTraceMode(response.data.traceMode);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'logs-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       });
   }, [i18n, canModify, fileMode]);

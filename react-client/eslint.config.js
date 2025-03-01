@@ -9,7 +9,9 @@ export default tseslint.config(
     ignores: [
       '.yarn/**',
       'node/**',
-      'node_modules/**'
+      'node_modules/**',
+      /* remove to check recommended stylistic rules */
+      'src/components/**',
     ],
   },
   {
@@ -41,8 +43,7 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      /* uncomment to check recommended stylistic rules */
-      //...stylisticPlugin.configs.recommended.rules,
+      ...stylisticPlugin.configs.recommended.rules,
     },
     settings: {
       react: {

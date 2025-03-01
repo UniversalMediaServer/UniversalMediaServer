@@ -42,11 +42,21 @@ export interface UmsAccount {
   group: UmsGroup
 }
 
-export interface SessionInterface {
+export interface UmsSession {
   noAdminFound: boolean
   account?: UmsAccount
   authenticate: boolean
+  player: boolean
+}
+
+export interface SessionInterface extends UmsSession {
   initialized: boolean
   refresh: () => void
-  player: boolean
+  logout: () => Promise<void>
+  sseAs: string
+  useSseAs: (name: string) => void
+  stopSse: () => void
+  usePlayerSse: boolean
+  startPlayerSse: () => void
+  stopPlayerSse: () => void
 }

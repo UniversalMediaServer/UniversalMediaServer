@@ -58,6 +58,8 @@ const Actions = ({ i18n, session}: { i18n:I18nInterface, session:SessionInterfac
   //set the document Title to Tools
   useEffect(() => {
     document.title="Universal Media Server - Tools";
+    session.stopSse()
+    session.stopPlayerSse();
   }, []);
 
   useEffect(() => {

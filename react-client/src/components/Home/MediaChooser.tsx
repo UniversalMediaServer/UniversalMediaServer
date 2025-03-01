@@ -15,7 +15,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea, Stack, TextInput, Tooltip } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useState, ReactNode } from 'react';
 import { IconFolder, IconHome, IconPictureInPicture, IconPictureInPictureOn } from '@tabler/icons-react';
@@ -23,6 +22,7 @@ import { IconFolder, IconHome, IconPictureInPicture, IconPictureInPictureOn } fr
 import { Media } from '../../services/home-service';
 import { I18nInterface } from '../../services/i18n-service';
 import { openGitHubNewIssue, renderersApiUrl } from '../../utils';
+import { showError } from '../../utils/notifications';
 
 export default function MediaChooser(props: {
   i18n: I18nInterface,
@@ -52,11 +52,9 @@ export default function MediaChooser(props: {
       }
       return setOpened(false);
     }
-    showNotification({
-      color: 'red',
+    showError({
       title: i18n.get('Error'),
       message: i18n.get('NoMediaSelected'),
-      autoClose: 3000,
     });
   };
 
@@ -68,13 +66,11 @@ export default function MediaChooser(props: {
         setParents(mediasResponse.parents.reverse());
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
           onClick: () => { openGitHubNewIssue(); },
-          autoClose: 3000,
         });
       })
       .then(function() {

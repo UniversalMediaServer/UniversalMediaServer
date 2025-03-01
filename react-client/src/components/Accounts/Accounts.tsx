@@ -17,18 +17,17 @@
 import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { IconExclamationMark, IconFolder, IconFolderPlus, IconPhotoUp, IconPhotoX, IconUser, IconUserPlus, IconX } from '@tabler/icons-react';
 
-import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction } from '../../services/accounts-service';
+import { getUserGroup, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service';
 import { I18nInterface } from '../../services/i18n-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { UmsAccounts } from '../../services/accounts-service';
-import { logout } from '../../services/auth-service';
 import { SessionInterface, UmsGroup, UmsUser } from '../../services/session-service';
 import { accountApiUrl, allowHtml } from '../../utils';
+import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
 
 const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
   const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
@@ -44,7 +43,9 @@ const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventIn
 
   //set the document Title to Accounts
   useEffect(() => {
-    document.title="Universal Media Server - Accounts";
+    document.title="Universal Media Server - Accounts"
+    session.useSseAs('Accounts')
+    session.stopPlayerSse();
   }, []);
 
   useEffect(() => {
@@ -58,15 +59,35 @@ const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventIn
         setAccounts(response.data);
       })
       .catch(function() {
-        showNotification({
-          id: 'accounts-data-loading',
-          color: 'red',
+        showError({
           title: i18n.get('Error'),
           message: i18n.get('AccountsNotReceived'),
-          autoClose: 3000,
         });
       });
   }, [sse]);
+
+  const postAccountAction = (data: any, title: string, message: string, successmessage: string, errormessage: string) => {
+    showLoading({
+      id: 'account-action',
+      title: title,
+      message: message,
+    })
+    return axios.post(accountApiUrl + 'action', data)
+      .then(function () {
+        updateSuccess({
+          id: 'account-action',
+          title: title,
+          message: successmessage,
+        })
+      })
+      .catch(function () {
+        updateError({
+          id: 'account-action',
+          title: i18n.get('Error'),
+          message: errormessage,
+        })
+      })
+  }
 
   const UserAccordionLabel = (user: UmsUser, group: UmsGroup) => {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);
@@ -552,19 +573,16 @@ const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventIn
     );
   }
 
-  const postAccountAuthAction = (data: any, errormessage: string) => {
-    return axios.post(accountApiUrl + 'action', data)
-      .then(function() {
-        logout();
-        session.refresh();
-      })
-      .catch(function() {
-        showNotification({
-          color: 'red',
-          title: 'Error',
-          message: errormessage,
-        })
-      });
+  const postAccountAuthAction = async (data: any, errormessage: string) => {
+    try {
+          await axios.post(accountApiUrl + 'action', data);
+          await session.logout();
+      } catch {
+          showError({
+              title: 'Error',
+              message: errormessage,
+          });
+      }
   };
 
   const handleAuthenticateLocalhostToggle = () => {

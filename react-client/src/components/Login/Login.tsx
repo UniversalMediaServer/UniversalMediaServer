@@ -16,14 +16,14 @@
  */
 import { TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import { useEffect, useState } from 'react';
 import { IconUser, IconLock } from '@tabler/icons-react';
 
 import { I18nInterface } from '../../services/i18n-service';
 import { SessionInterface } from '../../services/session-service';
-import { create, disable, login, logout } from '../../services/auth-service';
+import { create, disable, login } from '../../services/auth-service';
 import { allowHtml } from '../../utils';
+import { showError } from '../../utils/notifications';
 
 const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface }) => {
   const [opened, setOpened] = useState(false);
@@ -41,12 +41,10 @@ const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface
         session.refresh();
       },
       () => {
-        showNotification({
+        showError({
           id: 'pwd-error',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('ErrorLoggingIn'),
-          autoClose: 3000,
         });
       }
     );
@@ -59,12 +57,10 @@ const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface
         session.refresh();
       },
       () => {
-        showNotification({
+        showError({
           id: 'user-creation-error',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('NewUserNotCreated'),
-          autoClose: 3000,
         });
       }
     );
@@ -73,16 +69,13 @@ const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface
   const handleAuthDisable = () => {
     disable().then(
       () => {
-        logout();
-        session.refresh();
+        session.logout()
       },
       () => {
-        showNotification({
+        showError({
           id: 'auth-disable-error',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('AuthenticationServiceNotDisabled'),
-          autoClose: 3000,
         });
       }
     );
@@ -91,6 +84,8 @@ const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface
   //set the document Title to Login
   useEffect(() => {
     document.title="Universal Media Server - Login";
+    session.stopSse()
+    session.stopPlayerSse();
   }, []);
 
   return (

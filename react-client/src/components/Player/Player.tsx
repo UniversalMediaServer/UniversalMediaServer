@@ -15,7 +15,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useComputedColorScheme } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
@@ -31,6 +30,7 @@ import { AudioMedia, BaseBrowse, BaseMedia, ImageMedia, MediaRating, PlayMedia, 
 import { playerApiUrl } from '../../utils';
 import VideoJsPlayer from './VideoJsPlayer';
 import VideoMetadataEditModal from './VideoMetadataEditModal';
+import { showError } from '../../utils/notifications';
 
 const Player = ({ i18n, main, session, sse}: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:PlayerEventInterface }) => {
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse);
@@ -47,6 +47,11 @@ const Player = ({ i18n, main, session, sse}: { i18n:I18nInterface, main:MainInte
       return i18n.getI18nString(nameData[0]);
     }
   }
+
+  useEffect(() => {
+    session.stopSse()
+    session.startPlayerSse();
+  }, []);
 
    //set the document title to last breadCrumbs Name else default
    useEffect(() => {
@@ -76,12 +81,10 @@ const Player = ({ i18n, main, session, sse}: { i18n:I18nInterface, main:MainInte
           }
         })
         .catch(function() {
-          showNotification({
+          showError({
             id: 'player-data-loading',
-            color: 'red',
-            title: 'Error',
+            title: i18n.get('Error'),
             message: 'Your browse data was not received from the server.',
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -97,12 +100,10 @@ const Player = ({ i18n, main, session, sse}: { i18n:I18nInterface, main:MainInte
         refreshPage();
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'player-fully-played',
-          color: 'red',
-          title: 'Error',
+          title: i18n.get('Error'),
           message: 'Your request was not handled by the server.',
-          autoClose: 3000,
         });
       })
       .then(function() {

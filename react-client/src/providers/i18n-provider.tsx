@@ -16,7 +16,6 @@
  */
 import { useDirection } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
-import { showNotification } from '@mantine/notifications'
 import axios from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
 import { IconExclamationMark } from '@tabler/icons-react'
@@ -24,6 +23,7 @@ import { IconExclamationMark } from '@tabler/icons-react'
 import I18nContext from '../contexts/i18n-context'
 import { LanguageValue } from '../services/i18n-service'
 import { i18nApiUrl } from '../utils'
+import { showError } from '../utils/notifications'
 
 const I18nProvider = ({ children }: { children?: ReactNode }) => {
   const { dir, setDirection } = useDirection()
@@ -81,17 +81,14 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
       })
       .catch(function (error) {
         if (!error.response && error.request) {
-          showNotification({
-            color: 'red',
+          showError({
             title: i18n['Warning'],
             message: i18n['UniversalMediaServerUnreachable'],
             icon: <IconExclamationMark size="1rem" />,
           })
         }
         else {
-          showNotification({
-            id: 'data-loading',
-            color: 'red',
+          showError({
             title: i18n['Error'],
             message: i18n['LanguagesNotReceived'],
           })
@@ -107,17 +104,14 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
       })
       .catch(function (error) {
         if (!error.response && error.request) {
-          showNotification({
-            color: 'red',
+          showError({
             title: i18n['Warning'],
             message: i18n['UniversalMediaServerUnreachable'],
             icon: <IconExclamationMark size="1rem" />,
           })
         }
         else {
-          showNotification({
-            id: 'data-loading',
-            color: 'red',
+          showError({
             title: i18n['Error'],
             message: i18n['LanguagesNotReceived'],
           })

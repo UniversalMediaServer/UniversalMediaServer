@@ -16,7 +16,6 @@
  */
 import { Box, Button, Group, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
@@ -26,6 +25,7 @@ import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import SharedContentSettings from './SharedContentSettings';
+import { showError, showInfo } from '../../utils/notifications';
 
 export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) {
   const [isLoading, setLoading] = useState(true);
@@ -40,6 +40,8 @@ export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterfa
   //set the document Title to Shared Content
   useEffect(() => {
     document.title="Universal Media Server - Shared Content";
+    session.useSseAs('SharedContent')
+    session.stopPlayerSse();
   }, []);
 
   useEffect(() => {
@@ -68,13 +70,11 @@ export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterfa
           formSetValues(sharedResponse);
         })
         .catch(function() {
-          showNotification({
+          showError({
             id: 'data-loading',
-            color: 'red',
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
             onClick: () => { openGitHubNewIssue(); },
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -96,7 +96,7 @@ export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterfa
       }
 
       if (_.isEmpty(changedValues)) {
-        showNotification({
+        showInfo({
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationHasNoChanges'),
         })
@@ -104,14 +104,13 @@ export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterfa
         await axios.post(sharedApiUrl, changedValues);
         setConfiguration(values);
         setLoading(false);
-        showNotification({
+        showInfo({
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
         })
       }
     } catch (err) {
-      showNotification({
-        color: 'red',
+      showError({
         title: i18n.get('Error'),
         message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },

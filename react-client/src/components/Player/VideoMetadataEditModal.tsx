@@ -16,13 +16,13 @@
  */
 import { Badge, Button, Card, Divider, Flex, Group, Image, Modal, NumberInput, ScrollArea, Spoiler, Stack, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { IconListSearch } from '@tabler/icons-react';
 
 import { I18nInterface } from '../../services/i18n-service';
 import { playerApiUrl } from '../../utils';
+import { showError } from '../../utils/notifications';
 
 export default function VideoMetadataEditModal(props: {
   i18n:I18nInterface,
@@ -48,12 +48,10 @@ export default function VideoMetadataEditModal(props: {
         setOpened(true);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: 'Your edit data was not received from the server.',
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -68,12 +66,10 @@ export default function VideoMetadataEditModal(props: {
         setEditResults(response.data);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: 'Your search data was not received from the server.',
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -89,12 +85,10 @@ export default function VideoMetadataEditModal(props: {
         props.callback();
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: 'Your data sent was not received from the server.',
-          autoClose: 3000,
         });
       })
       .then(function() {

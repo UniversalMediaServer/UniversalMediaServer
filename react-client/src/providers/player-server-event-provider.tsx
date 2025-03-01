@@ -18,7 +18,7 @@ import { hideNotification, showNotification } from '@mantine/notifications'
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
 import axios from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import videojs from 'video.js'
 
 import PlayerEventContext from '../contexts/player-server-event-context'
@@ -27,12 +27,12 @@ import { I18nInterface } from '../services/i18n-service'
 import { MainInterface } from '../services/main-service'
 import { SessionInterface } from '../services/session-service'
 import { playerApiUrl } from '../utils'
+import { showError, showWarning } from '../utils/notifications'
 
 const PlayerEventProvider = ({ children, i18n, main, session }: { children?: ReactNode, i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
-  const location = useLocation()
   const navigate = useNavigate()
-  const [inPlayer, setInPlayer] = useState(false)
-  const [handled, setHandled] = useState<boolean>(false)
+  const [usePlayerSse, setUsePlayerSse] = useState(false)
+  const [handled, setHandled] = useState<boolean>(true)
   const [abortController, setAbortController] = useState(new AbortController())
   const [connectionStatus, setConnectionStatus] = useState<number>(0)
   const [reqId, setReqId] = useState('0')
@@ -100,7 +100,7 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
   }
 
   useEffect(() => {
-    if (uuid || askingUuid) return
+    if (uuid || askingUuid || !session.initialized || !usePlayerSse) return
     setAskingUuid(true)
     if (sessionStorage.getItem('player')) {
       setUuid(sessionStorage.getItem('player') as string)
@@ -114,24 +114,22 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
           }
         })
         .catch(function () {
-          showNotification({
-            id: 'player-data-loading',
-            color: 'red',
-            title: 'Error',
+          showError({
+            id: 'session-lost',
+            title: i18n.get('Error'),
             message: 'Your player session was not received from the server.',
-            autoClose: 3000,
           })
         })
     }
     setAskingUuid(false)
-  }, [session])
+  }, [session, usePlayerSse])
 
   useEffect(() => {
     if (handled || !uuid) {
       return
     }
     setHandled(true)
-    if (!inPlayer) {
+    if (!usePlayerSse) {
       main.setNavbarValue(undefined)
       return
     }
@@ -145,12 +143,9 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
         await player?.play()
       }
       catch {
-        showNotification({
-          id: 'player-play',
-          color: 'orange',
+        showWarning({
           title: i18n.get('RemoteControl'),
           message: i18n.get('RemotePlayOnlyAllowed'),
-          autoClose: true,
         })
       }
     }
@@ -274,16 +269,15 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
   }, [handled, uuid])
 
   useEffect(() => {
-    const toPlayer = location.pathname.startsWith('/player')
-    if (inPlayer != toPlayer) {
-      setInPlayer(toPlayer)
+    if (usePlayerSse != session.usePlayerSse) {
+      setUsePlayerSse(session.usePlayerSse)
       if (handled) {
         abortController.abort()
         setAbortController(new AbortController())
         setHandled(false)
       }
     }
-  }, [location])
+  }, [session.usePlayerSse])
 
   const { Provider } = PlayerEventContext
 

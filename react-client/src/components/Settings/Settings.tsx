@@ -17,7 +17,6 @@
 import { Box, Button, Group, Tabs, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
-import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
@@ -33,6 +32,7 @@ import GeneralSettings from './GeneralSettings';
 import NavigationSettings from './NavigationSettings';
 import RenderersSettings from './RenderersSettings';
 import TranscodingSettings from './TranscodingSettings';
+import { showError, showLoading, updateError, updateInfo, updateSuccess } from '../../utils/notifications';
 
 export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) {
   const [advancedSettings] = useLocalStorage<boolean>({
@@ -71,6 +71,8 @@ export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, s
   //set the document Title to Server Settings
   useEffect(() => {
     document.title="Universal Media Server - Server Settings";
+    session.useSseAs('Settings')
+    session.stopPlayerSse();
   }, []);
 
   useEffect(() => {
@@ -99,13 +101,11 @@ export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, s
           formSetValues(userConfig);
         })
         .catch(function() {
-          showNotification({
+          showError({
             id: 'data-loading',
-            color: 'red',
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
             onClick: () => { openGitHubNewIssue(); },
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -116,13 +116,10 @@ export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, s
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
-    showNotification({
+    showLoading({
       id: 'settings-save',
-      loading: true,
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
-      autoClose: false,
-      withCloseButton: false
     });
     try {
       const changedValues: Record<string, any> = {};
@@ -135,39 +132,30 @@ export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, s
       }
 
       if (_.isEmpty(changedValues)) {
-        updateNotification({
+        updateInfo({
           id: 'settings-save',
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationHasNoChanges'),
-          loading: false,
-          autoClose: 1000
         })
       } else {
         await axios.post(settingsApiUrl, changedValues)
           .then(function() {
             setConfiguration(values);
             setLoading(false);
-            updateNotification({
+            updateSuccess({
               id: 'settings-save',
-              color: 'teal',
               title: i18n.get('Saved'),
               message: i18n.get('ConfigurationSaved'),
               icon: <IconCheck size='1rem' />,
-              loading: false,
-              autoClose: 1000
             })
           })
           .catch(function(error) {
             if (!error.response && error.request) {
-              updateNotification({
+              updateError({
                 id: 'settings-save',
-                color: 'red',
                 title: i18n.get('Error'),
                 message: i18n.get('ConfigurationNotReceived'),
                 icon: <IconExclamationMark size='1rem' />,
-                withCloseButton: true,
-                loading: false,
-                autoClose: 1000
               })
             } else {
               throw new Error(error);
@@ -175,15 +163,11 @@ export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, s
           });
       }
     } catch (err) {
-      updateNotification({
+      updateError({
         id: 'settings-save',
-        color: 'red',
         title: i18n.get('Error'),
         message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },
-        withCloseButton: true,
-        loading: false,
-        autoClose: 2000
       })
     }
 

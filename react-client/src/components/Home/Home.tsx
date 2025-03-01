@@ -15,7 +15,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core';
-import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
@@ -29,6 +28,7 @@ import { NetworkDevicesFilter, Renderer, User } from '../../services/home-servic
 import { I18nInterface } from '../../services/i18n-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
+import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
 
 const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
   const [renderers, setRenderers] = useState([] as Renderer[]);
@@ -83,6 +83,11 @@ const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
     }
   }, [canView]);
 
+  useEffect(() => {
+    session.useSseAs('Home')
+    session.stopPlayerSse();
+  }, []);
+
   const refreshData = async () => {
     setLoading(true);
     axios.get(renderersApiUrl)
@@ -94,12 +99,10 @@ const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
         setCurrentTime(response.data.currentTime);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'renderers-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -117,12 +120,10 @@ const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
         setCurrentTime(response.data.currentTime);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'renderers-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -147,21 +148,15 @@ const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
   };
 
   const setSettings = async (endpoint: string, data: any, fromDevice: boolean) => {
-    showNotification({
+    showLoading({
       id: 'settings-save',
-      loading: true,
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
-      autoClose: false,
-      withCloseButton: false
     });
     await axios.post(renderersApiUrl + endpoint, data)
       .then(function() {
-        updateNotification({
+        updateSuccess({
           id: 'settings-save',
-          color: 'teal',
-          autoClose: true,
-          loading: false,
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
           icon: <IconCheck size='1rem' />
@@ -174,21 +169,15 @@ const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
       })
       .catch(function(error) {
         if (!error.response && error.request) {
-          updateNotification({
+          updateError({
             id: 'settings-save',
-            color: 'red',
-            autoClose: true,
-            loading: false,
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived'),
             icon: <IconExclamationMark size='1rem' />
           })
         } else {
-          updateNotification({
+          updateError({
             id: 'settings-save',
-            color: 'red',
-            autoClose: true,
-            loading: false,
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotSaved')
           })

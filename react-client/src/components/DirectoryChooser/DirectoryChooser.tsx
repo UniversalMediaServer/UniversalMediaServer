@@ -15,13 +15,13 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ActionIcon, Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea, Stack, TextInput, Tooltip } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useState, ReactNode } from 'react';
 import { IconCircleMinus, IconDevices2, IconFolder, IconFolders } from '@tabler/icons-react';
 
 import { I18nInterface } from '../../services/i18n-service';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
+import { showError } from '../../utils/notifications';
 
 export default function DirectoryChooser(props: {
   i18n: I18nInterface,
@@ -53,11 +53,9 @@ export default function DirectoryChooser(props: {
       }
       return setOpened(false);
     }
-    showNotification({
-      color: 'red',
+    showError({
       title: i18n.get('Error'),
       message: i18n.get('NoDirectorySelected'),
-      autoClose: 3000,
     });
   };
 
@@ -70,13 +68,11 @@ export default function DirectoryChooser(props: {
         setParents(directoriesResponse.parents.reverse());
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('SubdirectoriesNotReceived'),
           onClick: () => { openGitHubNewIssue(); },
-          autoClose: 3000,
         });
       })
       .then(function() {

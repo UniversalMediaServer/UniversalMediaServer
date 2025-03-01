@@ -77,6 +77,7 @@ export const logout = async () => {
     catch { /* server Forbidden or Unauthorized */ }
     sessionStorage.removeItem('player')
   }
+  sessionStorage.clear()
   axios.defaults.headers.common['Authorization'] = undefined
 }
 

@@ -15,7 +15,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ActionIcon, Box, Group, Table, Tabs, Text } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
@@ -27,8 +26,9 @@ import { I18nInterface } from '../../services/i18n-service';
 import { ServerEventInterface, UmsMemory } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { aboutApiUrl } from '../../utils';
+import { showError } from '../../utils/notifications';
 
-const About = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
+const About = ({ i18n, sse, session }: { i18n: I18nInterface, sse: ServerEventInterface, session: SessionInterface }) => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any);
   const [memory, setMemory] = useState<UmsMemory>();
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify);
@@ -52,10 +52,16 @@ const About = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventInter
       <Table.Td><Text ta='center' style={{ cursor: 'pointer' }} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></Table.Td>
     </Table.Tr>
   ));
-  
+
   //set the document Title to About
   useEffect(() => {
-    document.title="Universal Media Server - About";
+    document.title = "Universal Media Server - About";
+    if (canView && !session.player) {
+      session.useSseAs('About')
+    } else {
+      session.stopSse()
+    }
+    session.stopPlayerSse();
   }, []);
 
   useEffect(() => {
@@ -64,12 +70,10 @@ const About = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventInter
         setAboutDatas(response.data);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'about-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       });
   }, [i18n]);
@@ -149,7 +153,9 @@ const About = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventInter
         </Tabs.Panel>
         <Tabs.Panel value='relatedLinks'>
           <Table>
-            {linksRows}
+            <Table.Tbody>
+              {linksRows}
+            </Table.Tbody>
           </Table>
         </Tabs.Panel>
       </Tabs>

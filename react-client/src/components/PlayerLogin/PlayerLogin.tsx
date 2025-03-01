@@ -16,14 +16,23 @@
  */
 import { TextInput, Button, Group, Box, Text, Space } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import { IconUser, IconLock } from '@tabler/icons-react';
+import { useEffect } from 'react';
 
 import { login } from '../../services/auth-service';
 import { I18nInterface } from '../../services/i18n-service';
 import { SessionInterface } from '../../services/session-service';
+import { showError } from '../../utils/notifications';
 
 const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface }) => {
+
+  //set the document Title to Login
+  useEffect(() => {
+    document.title="Universal Media Server - Login";
+    session.stopSse()
+    session.stopPlayerSse();
+  }, []);
+
   const form = useForm({
     initialValues: {
       username: '',
@@ -38,12 +47,10 @@ const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface
         session.refresh();
       },
       () => {
-        showNotification({
+        showError({
           id: 'pwd-error',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('ErrorLoggingIn'),
-          autoClose: 3000,
         });
       }
     );

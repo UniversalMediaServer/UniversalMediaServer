@@ -19,12 +19,19 @@ import { Context, createContext } from 'react'
 import { SessionInterface } from '../services/session-service'
 
 const SessionContext: Context<SessionInterface> = createContext({
+  initialized: false,
   noAdminFound: false,
   account: undefined,
   authenticate: false,
-  initialized: false,
-  refresh: () => { },
   player: false,
+  refresh: () => { },
+  logout: async () => { },
+  sseAs: '',
+  useSseAs: (_name: string) => { },
+  stopSse: () => { },
+  usePlayerSse: false,
+  startPlayerSse: () => { },
+  stopPlayerSse: () => { },
 } as SessionInterface)
 
 export default SessionContext

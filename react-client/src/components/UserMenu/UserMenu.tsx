@@ -19,7 +19,6 @@ import { useNavigate } from 'react-router-dom';
 import { IconHome, IconInfoCircle, IconLogout, IconMenu2, IconPlayerPlay, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react';
 
 import { havePermission, Permissions } from '../../services/accounts-service';
-import { logout } from '../../services/auth-service';
 import { I18nInterface } from '../../services/i18n-service';
 import { SessionInterface } from '../../services/session-service';
 
@@ -99,9 +98,8 @@ export default function UserMenu({ i18n, session}: { i18n:I18nInterface, session
             color='rgba(255, 0, 0, 1)'
             leftSection={<IconLogout size={14} />}
             onClick={() => {
-              logout();
+              session.logout()
               navigate('/')
-              session.refresh();
             }}
           >
             {i18n.get('LogOut')}
