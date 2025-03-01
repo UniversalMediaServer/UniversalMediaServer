@@ -19,7 +19,7 @@ import { ReactNode, useState } from 'react'
 import NavbarContext from '../contexts/main-context'
 
 const MainProvider = ({ children }: { children?: ReactNode }) => {
-  const [navbarValue, setNavbarValue] = useState(undefined)
+  const [navbarValue, setNavbarValue] = useState<React.ReactNode>(undefined)
   const [navbarOpened, setNavbarOpened] = useState<boolean>(false)
   const [statusLine, setStatusLine] = useState(undefined)
   const { Provider } = NavbarContext

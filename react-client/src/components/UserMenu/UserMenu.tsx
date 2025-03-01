@@ -14,85 +14,34 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Menu, ActionIcon, VisuallyHidden } from '@mantine/core';
+import { Menu, Button, Avatar, useComputedColorScheme } from '@mantine/core';
+import { IconLogout, IconUser } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { IconHome, IconInfoCircle, IconLogout, IconMenu2, IconPlayerPlay, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react';
 
-import { havePermission, Permissions } from '../../services/accounts-service';
 import { I18nInterface } from '../../services/i18n-service';
 import { SessionInterface } from '../../services/session-service';
 
 export default function UserMenu({ i18n, session}: { i18n:I18nInterface, session:SessionInterface }) {
   const navigate = useNavigate();
+  const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true });
   return (
     <Menu>
       <Menu.Target>
-        <ActionIcon variant='default' size={30}>
-          <VisuallyHidden>{i18n.get('MainMenu')}</VisuallyHidden>
-          <IconMenu2 size={16} />
-        </ActionIcon>
+        {session.account && session.account.user &&
+          <Button
+            variant='transparent'
+            style={() => ({ cursor: 'default', color: computedColorScheme === 'dark' ? 'white' : 'black' })}
+            rightSection={
+              <Avatar radius='sm' size='sm' src={session.account.user.avatar !== '' ? session.account.user.avatar : null}>
+                {session.account.user.avatar === '' && <IconUser size={16} />}
+              </Avatar>
+            }
+          >
+            {session.account.user.displayName}
+          </Button>
+        }
       </Menu.Target>
       <Menu.Dropdown>
-        {!session.player && havePermission(session, Permissions.settings_view) &&
-          <Menu.Item
-            color='green'
-            leftSection={<IconHome size={14} />}
-            onClick={() => { navigate('/'); }}
-          >
-            {i18n.get('Home')}
-          </Menu.Item>
-        }
-        {havePermission(session, Permissions.web_player_browse) && (
-          <Menu.Item
-            color='blue'
-            leftSection={<IconPlayerPlay size={14} />}
-            onClick={() => { navigate('/player'); }}
-          >
-            {i18n.getI18nString('Player')}
-          </Menu.Item>
-        )}
-        {!session.player && <>
-          <Menu.Divider />
-          <Menu.Label>{i18n.get('Settings')}</Menu.Label>
-          {havePermission(session, Permissions.settings_view) && (
-            <Menu.Item
-              leftSection={<IconShare size={14} />}
-              onClick={() => { navigate('/shared'); }}
-            >
-              {i18n.get('SharedContent')}
-            </Menu.Item>
-          )}
-          {havePermission(session, (Permissions.server_restart | Permissions.computer_shutdown) | Permissions.settings_modify) && (
-            <Menu.Item
-              leftSection={<IconTool size={14} />}
-              onClick={() => { navigate('/actions'); }}
-            >
-              {i18n.get('Tools')}
-            </Menu.Item>
-          )}
-          {havePermission(session, Permissions.settings_view) && (
-            <Menu.Item
-              leftSection={<IconSettings size={14} />}
-              onClick={() => { navigate('/settings'); }}
-            >
-              {i18n.get('ServerSettings')}
-            </Menu.Item>
-          )}
-          <Menu.Item
-            leftSection={havePermission(session, Permissions.users_manage) ? <IconUsers size={14} /> : <IconUser size={14} />}
-            onClick={() => { navigate('/accounts'); }}
-          >
-            {havePermission(session, Permissions.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
-          </Menu.Item>
-        </>}
-        <Menu.Divider />
-        <Menu.Item
-          color='yellow'
-          leftSection={<IconInfoCircle size={14} />}
-          onClick={() => { navigate('/about'); }}
-        >
-          {i18n.get('About')}
-        </Menu.Item>
         {session.authenticate && session.account?.user.id !== 2147483647 && (
           <Menu.Item
             color='rgba(255, 0, 0, 1)'

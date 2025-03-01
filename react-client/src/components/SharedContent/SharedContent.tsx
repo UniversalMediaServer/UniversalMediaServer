@@ -19,15 +19,19 @@ import { useForm } from '@mantine/form';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
+
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import SharedContentSettings from './SharedContentSettings';
 import { showError, showInfo } from '../../utils/notifications';
+import { NavbarItems } from '../../services/navbar-items';
 
-export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) {
+export default function SharedContent({ i18n, main, sse, session }: { i18n:I18nInterface, main:MainInterface, sse:ServerEventInterface, session:SessionInterface }) {
   const [isLoading, setLoading] = useState(true);
   const [configuration, setConfiguration] = useState({} as any);
 
@@ -82,6 +86,10 @@ export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterfa
         });
     }
   }, [canView, formSetValues]);
+
+  useEffect(() => {
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.SharedContent }/>);
+  }, [i18n.get, main.setNavbarValue]);
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);

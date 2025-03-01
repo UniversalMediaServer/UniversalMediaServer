@@ -23,10 +23,13 @@ import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff 
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { ActionsValues, sendAction } from '../../services/actions-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { SessionInterface } from '../../services/session-service';
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils';
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
+import { NavbarItems } from '../../services/navbar-items';
 
-const Actions = ({ i18n, session}: { i18n:I18nInterface, session:SessionInterface }) => {
+const Actions = ({ i18n, main, session}: { i18n:I18nInterface, main:MainInterface, session:SessionInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify);
   const [actionsValues, setActionsValues] = useState<ActionsValues>({ canShutdownComputer: false });
   const navigate = useNavigate();
@@ -68,6 +71,10 @@ const Actions = ({ i18n, session}: { i18n:I18nInterface, session:SessionInterfac
         setActionsValues(response.data);
       });
   }, []);
+
+  useEffect(() => {
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Tools} />);
+  }, [i18n.get, main.setNavbarValue]);
 
   return (
     <Box style={{ maxWidth: 1024 }} mx='auto'>

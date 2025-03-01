@@ -15,10 +15,10 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 export interface MainInterface {
-  navbarValue: any
-  setNavbarValue: (navbarValue: any) => void
+  navbarValue: React.ReactNode
+  setNavbarValue: (navbarValue: React.ReactNode) => void
   navbarOpened: boolean
-  setNavbarOpened: (navbarOpened: any) => void
+  setNavbarOpened: (navbarOpened: boolean) => void
   statusLine: any
   setStatusLine: (statusLine: any) => void
 }

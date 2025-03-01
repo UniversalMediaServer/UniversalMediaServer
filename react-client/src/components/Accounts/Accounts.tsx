@@ -21,15 +21,18 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { IconExclamationMark, IconFolder, IconFolderPlus, IconPhotoUp, IconPhotoX, IconUser, IconUserPlus, IconX } from '@tabler/icons-react';
 
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { UmsAccounts } from '../../services/accounts-service';
 import { SessionInterface, UmsGroup, UmsUser } from '../../services/session-service';
 import { accountApiUrl, allowHtml } from '../../utils';
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
+import { NavbarItems } from '../../services/navbar-items';
 
-const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
+const Accounts = ({ i18n, main, sse, session}: { i18n:I18nInterface, main:MainInterface, sse:ServerEventInterface, session:SessionInterface }) => {
   const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get('None'));
   const canModifySettings = havePermission(session, Permissions.settings_modify);
@@ -88,6 +91,10 @@ const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventIn
         })
       })
   }
+
+  useEffect(() => {
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.ManageAccounts } />);
+  }, [i18n.get, main.setNavbarValue]);
 
   const UserAccordionLabel = (user: UmsUser, group: UmsGroup) => {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);
@@ -659,7 +666,7 @@ const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventIn
   return (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
       {canManageGroups ? (
-        <Tabs defaultValue={accounts.enabled ? 'users' : 'settings'}>
+        <Tabs defaultValue={accounts.enabled && session.authenticate ? 'users' : 'settings'}>
           <Tabs.List>
             {session.authenticate && (
               <Tabs.Tab value='users'>

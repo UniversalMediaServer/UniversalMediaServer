@@ -21,14 +21,17 @@ import ReactCountryFlag from 'react-country-flag';
 import { IconEdit, IconEditOff } from '@tabler/icons-react';
 
 import MemoryBar from '../MemoryBar/MemoryBar';
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface, UmsMemory } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { aboutApiUrl } from '../../utils';
 import { showError } from '../../utils/notifications';
+import { NavbarItems } from '../../services/navbar-items';
 
-const About = ({ i18n, sse, session }: { i18n: I18nInterface, sse: ServerEventInterface, session: SessionInterface }) => {
+const About = ({ i18n, main, sse, session }: { i18n: I18nInterface, main:MainInterface, sse: ServerEventInterface, session: SessionInterface }) => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any);
   const [memory, setMemory] = useState<UmsMemory>();
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify);
@@ -81,6 +84,10 @@ const About = ({ i18n, sse, session }: { i18n: I18nInterface, sse: ServerEventIn
   useEffect(() => {
     setMemory(sse.memory);
   }, [sse.memory]);
+
+  useEffect(() => {
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.About }/>);
+  }, [i18n.get, main.setNavbarValue]);
 
   return (
     <Box style={{ maxWidth: 1024 }} mx='auto'>

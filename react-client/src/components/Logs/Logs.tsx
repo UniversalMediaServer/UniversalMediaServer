@@ -25,12 +25,15 @@ import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSea
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils';
 import { showError } from '../../utils/notifications';
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
+import { NavbarItems } from '../../services/navbar-items';
 
-const Logs = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
+const Logs = ({ i18n, main, session, sse }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:ServerEventInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify);
   const [rootLogLevel, setRootLogLevel] = useState(0);
   const [guiLogLevel, setGuiLogLevel] = useState(0);
@@ -94,6 +97,7 @@ const Logs = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
     document.title="Universal Media Server - Logs";
     session.useSseAs('Logs')
     session.stopPlayerSse();
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Tools }/>);
   }, []);
 
   useEffect(() => {

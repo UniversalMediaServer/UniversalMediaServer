@@ -20,17 +20,20 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
 import Renderers from './Renderers';
 import NetworkDevices from './NetworkDevices';
 import { renderersApiUrl } from '../../utils';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
+import { NavbarItems } from '../../services/navbar-items';
 
-const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
+const Home = ({ i18n, main, sse, session }: { i18n:I18nInterface, main:MainInterface, sse:ServerEventInterface, session:SessionInterface }) => {
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
@@ -87,6 +90,10 @@ const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
     session.useSseAs('Home')
     session.stopPlayerSse();
   }, []);
+
+  useEffect(() => {
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Home} />);
+  }, [i18n.get, main.setNavbarValue]);
 
   const refreshData = async () => {
     setLoading(true);
