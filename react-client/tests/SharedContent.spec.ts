@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('should be able to navigate to Shared Content', async ({ page }) => {
   await page.goto('/')
 
-  await page.getByText('Main menu').click()
+  // await page.getByText('Main menu').click()
   await page.getByText('Shared Content').click()
 
   await expect(page).toHaveURL(/.*shared/)
