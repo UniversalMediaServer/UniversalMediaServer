@@ -6,6 +6,7 @@
 - Migrate to Yarn Modern (corepack)
 
 ### Dependencies
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.0 to 2.18.2 ([#5141](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5141))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.1 to 3.5.2 ([#5089](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5089))
 - Bump `Node.js` from 20.12.2 to 20.18.3
 - Bump `yarn` from 4.5.3 to 4.6.0
