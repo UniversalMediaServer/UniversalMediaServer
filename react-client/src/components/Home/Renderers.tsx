@@ -20,10 +20,10 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { IconCast, IconDevicesPc, IconDevicesPcOff, IconDots, IconLink, IconListDetails, IconPlayerPause, IconPlayerPlay, IconPlayerSkipBack, IconPlayerSkipForward, IconPlayerStop, IconPlayerTrackNext, IconPlayerTrackPrev, IconScreenShare, IconSettings, IconVolume, IconVolumeOff } from '@tabler/icons-react';
 
-import { I18nInterface } from '../../contexts/i18n-context';
+import MediaChooser from './MediaChooser';
+import { Media, Renderer, User } from '../../services/home-service';
+import { I18nInterface } from '../../services/i18n-service';
 import { renderersApiUrl } from '../../utils';
-import { Renderer, User } from './Home';
-import MediaChooser, { Media } from './MediaChooser';
 
 const Renderers = (
   { allowed, blockedByDefault, canControlRenderers, canModify, i18n, renderers, users, setAllowed, setUserId }:
@@ -267,6 +267,7 @@ const Renderers = (
         }
         {rendererControlled.isActive && (<Group justify='center'>
           <MediaChooser
+            i18n={i18n}
             disabled={!canModify}
             size='xs'
             id={rendererControlled.id}

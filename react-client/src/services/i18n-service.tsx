@@ -14,28 +14,22 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ReactNode, useState } from 'react'
+import { Direction } from '@mantine/core'
 
-import NavbarContext from '../contexts/main-context'
-
-const MainProvider = ({ children }: { children?: ReactNode }) => {
-  const [navbarValue, setNavbarValue] = useState(undefined)
-  const [navbarOpened, setNavbarOpened] = useState<boolean>(false)
-  const [statusLine, setStatusLine] = useState(undefined)
-  const { Provider } = NavbarContext
-  return (
-    <Provider value={{
-      navbarValue: navbarValue,
-      setNavbarValue: setNavbarValue,
-      navbarOpened: navbarOpened,
-      setNavbarOpened: setNavbarOpened,
-      statusLine: statusLine,
-      setStatusLine: setStatusLine,
-    }}
-    >
-      {children}
-    </Provider>
-  )
+export interface I18nInterface {
+  get: (value: string) => string
+  getI18nString: (value: string) => string
+  getI18nFormat: (value: string[]) => string
+  language: string
+  dir: Direction
+  languages: LanguageValue[]
+  setLanguage: (language: string) => void
 }
 
-export default MainProvider
+export interface LanguageValue {
+  id: string
+  name: string
+  defaultname: string
+  country: string
+  coverage: number
+}

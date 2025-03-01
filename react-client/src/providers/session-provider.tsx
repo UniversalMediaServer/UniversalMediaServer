@@ -14,47 +14,100 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { showNotification } from '@mantine/notifications';
-import axios from 'axios';
-import { ReactNode, useContext, useEffect, useState } from 'react';
+import axios from 'axios'
+import { ReactNode, useEffect, useState } from 'react'
 
-import I18nContext from '../contexts/i18n-context';
-import SessionContext, { UmsSession } from '../contexts/session-context';
-import { authApiUrl } from '../utils';
+import SessionContext from '../contexts/session-context'
+import { logout, refreshAuthTokenNearExpiry } from '../services/auth-service'
+import { I18nInterface } from '../services/i18n-service'
+import { UmsSession } from '../services/session-service'
+import { authApiUrl } from '../utils'
+import { showError } from '../utils/notifications'
 
-interface Props {
-  children?: ReactNode
-}
+const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nInterface }) => {
+  const [initialized, setInitialized] = useState(false)
+  const [session, setSession] = useState<UmsSession>({ noAdminFound: false, authenticate: true, player: false })
+  const [sse, setSse] = useState('')
+  const [playerSse, setPlayerSse] = useState(false)
 
-export const SessionProvider = ({ children }: Props) => {
-  const [session, setSession] = useState({ noAdminFound: false, authenticate: true, initialized: false, player: false } as UmsSession)
-  const i18n = useContext(I18nContext);
+  const refresh = () => {
+    axios.get(authApiUrl + 'session')
+      .then(function (response: any) {
+        setSession({ ...response.data })
+        setInitialized(true)
+      })
+      .catch(function () {
+        showError({
+          id: 'session_error',
+          title: i18n.get('Error'),
+          message: i18n.get('SessionNotReceived'),
+        })
+      })
+  }
+
+  const sessionLogout = async () => {
+    await logout()
+    refresh()
+  }
+
+  const useSseAs = (name: string) => {
+    setSse(name)
+  }
+
+  const stopSse = () => {
+    setSse('')
+  }
+
+  const startPlayerSse = () => {
+    setPlayerSse(true)
+  }
+
+  const stopPlayerSse = () => {
+    setPlayerSse(false)
+  }
 
   useEffect(() => {
-    const refresh = () => {
-      axios.get(authApiUrl + 'session')
-        .then(function(response: any) {
-          setSession({ ...response.data, initialized: true, refresh: refresh });
+    if (initialized) {
+      return
+    }
+    refresh()
+    refreshAuthTokenNearExpiry()
+    axios.interceptors.response.use(function (response) {
+      return response
+    }, function (error) {
+      if (error?.response?.status === 401 && error?.config?.url !== authApiUrl + 'login') {
+        showError({
+          id: 'authentication_error',
+          title: 'Authentication error',
+          message: 'You have been logged out from Universal Media Server.',
         })
-        .catch(function() {
-          showNotification({
-            id: 'data-loading',
-            color: 'red',
-            title: i18n.get('Error'),
-            message: i18n.get('SessionNotReceived'),
-            autoClose: 3000,
-          });
-        });
-    }
-    if (!session.initialized) {
-      refresh();
-    }
-  }, [session.initialized]);
+        refresh()
+      }
+      return Promise.reject(error)
+    })
+  }, [initialized])
 
-  const { Provider } = SessionContext;
+  const { Provider } = SessionContext
   return (
-    <Provider value={session}>
+    <Provider value={{
+      initialized: initialized,
+      authenticate: session.authenticate,
+      noAdminFound: session.noAdminFound,
+      account: session.account,
+      player: session.player,
+      refresh: refresh,
+      logout: sessionLogout,
+      sseAs: sse,
+      useSseAs: useSseAs,
+      stopSse: stopSse,
+      usePlayerSse: playerSse,
+      stopPlayerSse: stopPlayerSse,
+      startPlayerSse: startPlayerSse,
+    }}
+    >
       {children}
     </Provider>
   )
 }
+
+export default SessionProvider

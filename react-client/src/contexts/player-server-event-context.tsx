@@ -14,9 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react';
+import { Context, createContext } from 'react'
 
-export const PlayerEventContext: Context<PlayerEventInterface> = createContext({
+import { PlayerEventInterface } from '../services/player-server-event-service'
+
+const PlayerEventContext: Context<PlayerEventInterface> = createContext({
   uuid: '',
   connectionStatus: 0,
   reqId: '0',
@@ -25,17 +27,6 @@ export const PlayerEventContext: Context<PlayerEventInterface> = createContext({
   askBrowseId: (_id: string) => { },
   askPlayId: (_id: string) => { },
   askShowId: (_id: string) => { },
-});
+})
 
-export interface PlayerEventInterface {
-  uuid: string;
-  connectionStatus: number;
-  reqId: string;
-  reqType: string;
-  askReqId: (id: string, type: string) => void;
-  askBrowseId: (id: string) => void;
-  askPlayId: (id: string) => void;
-  askShowId: (id: string) => void;
-}
-
-export default PlayerEventContext;
+export default PlayerEventContext

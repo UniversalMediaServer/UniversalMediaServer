@@ -14,52 +14,24 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react';
+import { Context, createContext } from 'react'
 
-export const SessionContext: Context<UmsSession> = createContext({
+import { SessionInterface } from '../services/session-service'
+
+const SessionContext: Context<SessionInterface> = createContext({
+  initialized: false,
   noAdminFound: false,
   account: undefined,
   authenticate: false,
-  initialized: false,
+  player: false,
   refresh: () => { },
-  player: false
-} as UmsSession);
+  logout: async () => { },
+  sseAs: '',
+  useSseAs: (_name: string) => { },
+  stopSse: () => { },
+  usePlayerSse: false,
+  startPlayerSse: () => { },
+  stopPlayerSse: () => { },
+} as SessionInterface)
 
-export interface UmsUser {
-  id: number,
-  username: string,
-  displayName: string,
-  groupId: number,
-  avatar?: string,
-  pinCode?: string,
-  lastLoginTime: number,
-  loginFailedTime: number,
-  loginFailedCount: number,
-  libraryHidden: boolean,
-}
-
-export interface UmsGroupPermissions {
-  value: number,
-}
-
-export interface UmsGroup {
-  id: number,
-  displayName: string,
-  permissions?: UmsGroupPermissions,
-}
-
-export interface UmsAccount {
-  user: UmsUser,
-  group: UmsGroup,
-}
-
-export interface UmsSession {
-  noAdminFound: boolean;
-  account?: UmsAccount;
-  authenticate: boolean;
-  initialized: boolean;
-  refresh: () => void;
-  player: boolean;
-}
-
-export default SessionContext;
+export default SessionContext

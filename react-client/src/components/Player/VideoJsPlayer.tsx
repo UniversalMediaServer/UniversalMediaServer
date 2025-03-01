@@ -20,11 +20,11 @@ import videojs from 'video.js';
 import Player, { PlayerReadyCallback } from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.min.css';
 
+import { AudioMedia, BaseMedia, VideoMedia } from '../../services/player-service';
 import { playerApiUrl } from '../../utils';
-import { AudioMedia, BaseMedia, VideoMedia } from './Player';
 import './HlsQualitySelector/HlsQualitySelectorPlugin';
 
-export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
+const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     const videoElem = document.createElement('video');
     videoElem.id = 'player';
@@ -167,8 +167,10 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   );
 };
 
-export interface VideoPlayerOption {
+interface VideoPlayerOption {
   media: VideoMedia | AudioMedia,
   uuid: string,
   askPlayId: (id: string) => void;
 }
+
+export default VideoJsPlayer;

@@ -1,11 +1,11 @@
 /**
  * based on videojs-hls-quality-selector from Chris Boustead (chris@forgemotion.com)
  */
-import videojs from 'video.js';
-import { HlsQualitySelectorClass } from './HlsQualitySelector';
-import './HlsQualitySelector.css';
+import videojs from 'video.js'
+import { HlsQualitySelectorClass } from './HlsQualitySelector'
+import './HlsQualitySelector.css'
 
-const VERSION = "1.0.0";
+const VERSION = '1.0.0'
 
 /**
  * A video.js plugin.
@@ -18,9 +18,9 @@ const VERSION = "1.0.0";
  * @param {Object} options Plugin options object
  * @return {HlsQualitySelectorClass} a HlsQualitySelector
  */
-const hlsQualitySelector = function(this: any, options: any): HlsQualitySelectorClass {
-  return initPlugin(this, videojs.obj.merge({}, options));
-};
+const hlsQualitySelector = function (this: any, options: any): HlsQualitySelectorClass {
+  return initPlugin(this, videojs.obj.merge({}, options))
+}
 
 /**
  * Initialization function for the hlsQualitySelector plugin. Sets up the QualityLevelList and
@@ -30,14 +30,14 @@ const hlsQualitySelector = function(this: any, options: any): HlsQualitySelector
  * @param {Object} options Plugin options object.
  * @return {HlsQualitySelectorClass} a HlsQualitySelector
  */
-const initPlugin = function(player: any, options: any): HlsQualitySelectorClass {
-  const hlsQualitySelector = new HlsQualitySelectorClass(player, options);
-  player.hlsQualitySelector = () => hlsQualitySelector;
-  player.hlsQualitySelector.VERSION = VERSION;
-  return hlsQualitySelector;
-};
+const initPlugin = function (player: any, options: any): HlsQualitySelectorClass {
+  const hlsQualitySelector = new HlsQualitySelectorClass(player, options)
+  player.hlsQualitySelector = () => hlsQualitySelector
+  player.hlsQualitySelector.VERSION = VERSION
+  return hlsQualitySelector
+}
 
 // Register the plugin with video.js.
-videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
+videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector)
 
-export default hlsQualitySelector;
+export default hlsQualitySelector

@@ -74,16 +74,19 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
       - name: Cache compiled server binary
         id: cache-compiled-server-binary
         uses: actions/cache@v4
         with:
           path: ums-testserver.jar
           key: compiled-server-binary
+      - name: Enable corepack
+        working-directory: ./react-client
+        run: corepack enable
       - name: Install dependencies
         working-directory: ./react-client
-        run: yarn
+        run: yarn install
       - name: Install Playwright with dependencies
         working-directory: ./react-client
         run: yarn playwright install --with-deps
@@ -122,7 +125,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
       - name: Run Java tests
         run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
 
@@ -154,7 +157,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
       - name: Run Java tests
         run: DEVELOPER_DIR=/Applications/Xcode_latest.app/Contents/Developer && mvn verify -P testing-macos
 
@@ -186,7 +189,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
       - name: Run tests
         run: mvn verify -P testing-windows
 
@@ -218,7 +221,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
@@ -256,7 +259,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
