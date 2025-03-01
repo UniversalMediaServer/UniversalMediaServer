@@ -20,11 +20,11 @@ import videojs from 'video.js';
 import Player, { PlayerReadyCallback } from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.min.css';
 
+import { AudioMedia, BaseMedia, VideoMedia } from '../../services/player-service';
 import { playerApiUrl } from '../../utils';
-import { AudioMedia, BaseMedia, VideoMedia } from './Player';
 import './HlsQualitySelector/HlsQualitySelectorPlugin';
 
-export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
+const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     const videoElem = document.createElement('video');
     videoElem.id = 'player';
@@ -50,6 +50,17 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         if (event.which === 39) {
           const duration = this.liveTracker && this.liveTracker.isLive() ? this.liveTracker.seekableEnd() : this.duration();
           this.currentTime(Math.min(this.currentTime() + 15), duration);
+        }
+        if (event.which === 70) {
+          if (this.isFullscreen() === true) {
+            if (!this.isFullWindow) {
+              this.exitFullscreen();
+            } else {
+              this.exitFullWindow();
+            }
+          } else {
+            this.requestFullscreen(false);
+          }
         }
       }
     };
@@ -156,8 +167,10 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   );
 };
 
-export interface VideoPlayerOption {
+interface VideoPlayerOption {
   media: VideoMedia | AudioMedia,
   uuid: string,
   askPlayId: (id: string) => void;
 }
+
+export default VideoJsPlayer;

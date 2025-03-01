@@ -14,24 +14,24 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { showNotification } from '@mantine/notifications';
-import axios from 'axios';
+export interface UmsMemory {
+  max: number
+  used: number
+  dbcache: number
+  buffer: number
+}
 
-import { redirectToLogin } from './auth-service';
-import { authApiUrl } from '../utils';
-
-axios.interceptors.response.use(function(response) {
-  return response;
-}, function(error) {
-  if (error?.response?.status === 401 && error?.config?.url !== authApiUrl + 'login') {
-    showNotification({
-      id: 'authentication-error',
-      color: 'red',
-      title: 'Authentication error',
-      message: 'You have been logged out from Universal Media Server. Please click here to log in again.',
-      autoClose: false,
-      onClick: redirectToLogin,
-    });
-  }
-  return Promise.reject(error);
-});
+export interface ServerEventInterface {
+  connectionStatus: number
+  memory: UmsMemory
+  updateAccounts: boolean
+  setUpdateAccounts: (updateAccounts: boolean) => void
+  reloadable: boolean
+  userConfiguration: any
+  setUserConfiguration: (config: any) => void
+  mediaScan: boolean
+  hasRendererAction: boolean
+  getRendererAction: () => any
+  hasNewLogLine: boolean
+  getNewLogLine: () => any
+}

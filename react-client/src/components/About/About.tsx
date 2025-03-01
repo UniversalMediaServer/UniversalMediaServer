@@ -15,28 +15,25 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ActionIcon, Box, Group, Table, Tabs, Text } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { IconEdit, IconEditOff } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext, { UmsMemory } from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
-import { havePermission, Permissions } from '../../services/accounts-service';
-import { aboutApiUrl } from '../../utils';
 import MemoryBar from '../MemoryBar/MemoryBar';
-import MainContext from '../../contexts/main-context';
-import Navbar, { NavbarItems } from '../Navbar/Navbar';
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
+import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface, UmsMemory } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
+import { aboutApiUrl } from '../../utils';
+import { showError } from '../../utils/notifications';
+import { NavbarItems } from '../../services/navbar-items';
 
-const About = () => {
+const About = ({ i18n, main, sse, session }: { i18n: I18nInterface, main:MainInterface, sse: ServerEventInterface, session: SessionInterface }) => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any);
   const [memory, setMemory] = useState<UmsMemory>();
-  const i18n = useContext(I18nContext);
-  const main = useContext(MainContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify);
   const languagesRows = i18n.languages.map((language) => (
     <Table.Tr key={language.id}>
@@ -58,10 +55,16 @@ const About = () => {
       <Table.Td><Text ta='center' style={{ cursor: 'pointer' }} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></Table.Td>
     </Table.Tr>
   ));
-  
+
   //set the document Title to About
   useEffect(() => {
-    document.title="Universal Media Server - About";
+    document.title = "Universal Media Server - About";
+    if (canView && !session.player) {
+      session.useSseAs('About')
+    } else {
+      session.stopSse()
+    }
+    session.stopPlayerSse();
   }, []);
 
   useEffect(() => {
@@ -70,12 +73,10 @@ const About = () => {
         setAboutDatas(response.data);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'about-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       });
   }, [i18n]);
@@ -85,7 +86,7 @@ const About = () => {
   }, [sse.memory]);
 
   useEffect(() => {
-    main.setNavbarValue(Navbar({ i18n, session, selectedKey: NavbarItems.About }));
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.About }/>);
   }, [i18n.get, main.setNavbarValue]);
 
   return (
@@ -159,7 +160,9 @@ const About = () => {
         </Tabs.Panel>
         <Tabs.Panel value='relatedLinks'>
           <Table>
-            {linksRows}
+            <Table.Tbody>
+              {linksRows}
+            </Table.Tbody>
           </Table>
         </Tabs.Panel>
       </Tabs>

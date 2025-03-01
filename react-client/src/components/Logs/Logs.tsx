@@ -17,23 +17,23 @@
 import { Box, Button, Checkbox, Code, Divider, Group, Modal, MultiSelect, Pagination, ScrollArea, SegmentedControl, Select, Stack, Switch, Text, TextInput, Tooltip } from '@mantine/core';
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils';
+import { showError } from '../../utils/notifications';
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
+import { NavbarItems } from '../../services/navbar-items';
 
-const Logs = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
+const Logs = ({ i18n, main, session, sse }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:ServerEventInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify);
   const [rootLogLevel, setRootLogLevel] = useState(0);
   const [guiLogLevel, setGuiLogLevel] = useState(0);
@@ -95,6 +95,9 @@ const Logs = () => {
   //set the document Title to Logs
   useEffect(() => {
     document.title="Universal Media Server - Logs";
+    session.useSseAs('Logs')
+    session.stopPlayerSse();
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Tools }/>);
   }, []);
 
   useEffect(() => {
@@ -113,12 +116,10 @@ const Logs = () => {
         setTraceMode(response.data.traceMode);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'logs-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       });
   }, [i18n, canModify, fileMode]);

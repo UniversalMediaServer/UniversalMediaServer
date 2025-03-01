@@ -15,23 +15,22 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
-import { useContext } from 'react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
-import { mantineSelectData } from './Settings';
 
 export default function NavigationSettings(
+  i18n:I18nInterface,
+  session:SessionInterface,
   form: any,
   defaultConfiguration: any,
   selectionSettings: any,
 ) {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
 
   const getI18nSelectData = (values: mantineSelectData[]) => {
@@ -102,6 +101,7 @@ export default function NavigationSettings(
           />
           {(form.values['fully_played_action'] === '3' || form.values['fully_played_action'] === '5') && (
             <DirectoryChooser
+              i18n={i18n}
               disabled={!canModify}
               label={i18n.get('DestinationFolder')}
               path={form.getInputProps('fully_played_output_directory').value}
@@ -127,6 +127,7 @@ export default function NavigationSettings(
             {...form.getInputProps('thumbnail_seek_position')}
           />
           <DirectoryChooser
+            i18n={i18n}
             disabled={!canModify}
             path={form.getInputProps('alternate_thumb_folder').value}
             callback={form.setFieldValue}
