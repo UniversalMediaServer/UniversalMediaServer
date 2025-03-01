@@ -14,17 +14,13 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react'
-
-import { MainInterface } from '../services/main-service'
-
-const MainContext: Context<MainInterface> = createContext({
-  navbarValue: undefined as React.ReactNode,
-  setNavbarValue: (_navbarValue: React.ReactNode) => { },
-  navbarOpened: false as boolean,
-  setNavbarOpened: (_navbarOpened: boolean) => { },
-  statusLine: undefined,
-  setStatusLine: (_statusLine: any) => { },
-})
-
-export default MainContext
+export interface PlayerEventInterface {
+  uuid: string
+  connectionStatus: number
+  reqId: string
+  reqType: string
+  askReqId: (id: string, type: string) => void
+  askBrowseId: (id: string) => void
+  askPlayId: (id: string) => void
+  askShowId: (id: string) => void
+}

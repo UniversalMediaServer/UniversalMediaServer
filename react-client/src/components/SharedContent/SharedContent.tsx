@@ -16,27 +16,25 @@
  */
 import { Box, Button, Group, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
+import { useEffect, useState } from 'react';
+
+import ManageNavbar from '../ManageNavbar/ManageNavbar';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
 import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import SharedContentSettings from './SharedContentSettings';
-import Navbar, { NavbarItems } from '../Navbar/Navbar';
-import MainContext from '../../contexts/main-context';
+import { showError, showInfo } from '../../utils/notifications';
+import { NavbarItems } from '../../services/navbar-items';
 
-export default function SharedContent() {
+export default function SharedContent({ i18n, main, sse, session }: { i18n:I18nInterface, main:MainInterface, sse:ServerEventInterface, session:SessionInterface }) {
   const [isLoading, setLoading] = useState(true);
   const [configuration, setConfiguration] = useState({} as any);
 
-  const i18n = useContext(I18nContext);
-  const main = useContext(MainContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
   const form = useForm({ initialValues: {} as Record<string, unknown> });
   const formSetValues = form.setValues;
 
@@ -46,6 +44,8 @@ export default function SharedContent() {
   //set the document Title to Shared Content
   useEffect(() => {
     document.title="Universal Media Server - Shared Content";
+    session.useSseAs('SharedContent')
+    session.stopPlayerSse();
   }, []);
 
   useEffect(() => {
@@ -74,13 +74,11 @@ export default function SharedContent() {
           formSetValues(sharedResponse);
         })
         .catch(function() {
-          showNotification({
+          showError({
             id: 'data-loading',
-            color: 'red',
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
             onClick: () => { openGitHubNewIssue(); },
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -90,7 +88,7 @@ export default function SharedContent() {
   }, [canView, formSetValues]);
 
   useEffect(() => {
-    main.setNavbarValue(Navbar({ i18n, session, selectedKey: NavbarItems.SharedContent }));
+    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.SharedContent }/>);
   }, [i18n.get, main.setNavbarValue]);
 
   const handleSubmit = async (values: typeof form.values) => {
@@ -106,7 +104,7 @@ export default function SharedContent() {
       }
 
       if (_.isEmpty(changedValues)) {
-        showNotification({
+        showInfo({
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationHasNoChanges'),
         })
@@ -114,14 +112,13 @@ export default function SharedContent() {
         await axios.post(sharedApiUrl, changedValues);
         setConfiguration(values);
         setLoading(false);
-        showNotification({
+        showInfo({
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
         })
       }
     } catch (err) {
-      showNotification({
-        color: 'red',
+      showError({
         title: i18n.get('Error'),
         message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },
@@ -135,7 +132,7 @@ export default function SharedContent() {
     <Box style={{ maxWidth: 1024 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Text size="lg" mb="md">{i18n.get('SharedContent')}</Text>
-        {SharedContentSettings(form, configuration)}
+        {SharedContentSettings(i18n, sse, session, form, configuration)}
         {canModify && (
           <Group justify='flex-end' mt='md'>
             <Button type='submit' loading={isLoading}>

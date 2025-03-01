@@ -14,17 +14,22 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react'
+import { Direction } from '@mantine/core'
 
-import { MainInterface } from '../services/main-service'
+export interface I18nInterface {
+  get: (value: string) => string
+  getI18nString: (value: string) => string
+  getI18nFormat: (value: string[]) => string
+  language: string
+  dir: Direction
+  languages: LanguageValue[]
+  setLanguage: (language: string) => void
+}
 
-const MainContext: Context<MainInterface> = createContext({
-  navbarValue: undefined as React.ReactNode,
-  setNavbarValue: (_navbarValue: React.ReactNode) => { },
-  navbarOpened: false as boolean,
-  setNavbarOpened: (_navbarOpened: boolean) => { },
-  statusLine: undefined,
-  setStatusLine: (_statusLine: any) => { },
-})
-
-export default MainContext
+export interface LanguageValue {
+  id: string
+  name: string
+  defaultname: string
+  country: string
+  coverage: number
+}

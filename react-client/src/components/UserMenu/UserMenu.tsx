@@ -15,18 +15,15 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Menu, Button, Avatar, useComputedColorScheme } from '@mantine/core';
-import { useContext } from 'react';
 import { IconLogout, IconUser } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
-import { redirectToLogin } from '../../services/auth-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
 
-function UserMenu() {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
+export default function UserMenu({ i18n, session}: { i18n:I18nInterface, session:SessionInterface }) {
+  const navigate = useNavigate();
   const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true });
-
   return (
     <Menu>
       <Menu.Target>
@@ -50,7 +47,8 @@ function UserMenu() {
             color='rgba(255, 0, 0, 1)'
             leftSection={<IconLogout size={14} />}
             onClick={() => {
-              redirectToLogin();
+              session.logout()
+              navigate('/')
             }}
           >
             {i18n.get('LogOut')}
@@ -60,4 +58,3 @@ function UserMenu() {
     </Menu>
   );
 }
-export default UserMenu;
