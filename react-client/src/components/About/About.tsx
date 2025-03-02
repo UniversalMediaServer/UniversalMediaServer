@@ -76,7 +76,7 @@ const About = ({ i18n, sse, session }: { i18n: I18nInterface, sse: ServerEventIn
           message: i18n.get('DataNotReceived'),
         });
       });
-  }, [i18n]);
+  }, [i18n.language]);
 
   useEffect(() => {
     setMemory(sse.memory);
