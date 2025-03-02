@@ -104,6 +104,7 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
     setAskingUuid(true)
     if (sessionStorage.getItem('player')) {
       setUuid(sessionStorage.getItem('player') as string)
+      setAskingUuid(false)
     }
     else {
       axios.get(playerApiUrl)
@@ -120,8 +121,10 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
             message: 'Your player session was not received from the server.',
           })
         })
+        .then(function () {
+          setAskingUuid(false)
+        })
     }
-    setAskingUuid(false)
   }, [session, usePlayerSse])
 
   useEffect(() => {
