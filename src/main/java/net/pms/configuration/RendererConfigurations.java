@@ -185,7 +185,7 @@ public class RendererConfigurations {
 	}
 
 	public static File getProfileRenderersDir() {
-		File file = new File(PMS.getConfiguration().getProfileDirectory(), "renderers");
+		File file = new File(UmsConfiguration.getProfileDirectory(), "renderers");
 		if (file.isDirectory()) {
 			if (file.canRead()) {
 				return file;
@@ -211,7 +211,7 @@ public class RendererConfigurations {
 
 	public static File getWritableRenderersDir() {
 		//first test the profile directory
-		File file = new File(PMS.getConfiguration().getProfileDirectory(), "renderers");
+		File file = new File(UmsConfiguration.getProfileDirectory(), "renderers");
 		if (file.isDirectory()) {
 			if (file.canWrite()) {
 				return file;
