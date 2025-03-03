@@ -6,26 +6,27 @@
 - Migrate to Yarn Modern (corepack)
 
 ### Dependencies
-- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.0 to 2.18.2 ([#5141](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5141))
-- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.1 to 3.5.2 ([#5089](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5089))
-- Bump `Node.js` from 20.12.2 to 20.18.3
-- Bump `yarn` from 4.5.3 to 4.6.0
-- Bump `vite` from 5.4.12 to 6.2.0
-- Bump `react` from 18.3.1 to 19.0.0
-- Bump `react-dom` from 18.3.1 to 19.0.0
-- Bump `react-router-dom` from 6.28.0 to 7.2.0
 - Bump `@mantine/core` from 7.16.3 to 7.17.0
 - Bump `@mantine/dropzone` from 7.16.3 to 7.17.0
 - Bump `@mantine/form` from 7.16.3 to 7.17.0
 - Bump `@mantine/hooks` from 7.16.3 to 7.17.0
 - Bump `@mantine/modals` from 7.16.3 to 7.17.0
 - Bump `@mantine/notifications` from 7.16.3 to 7.17.0
-- Bump `eslint` from 9.16.0 to 9.21.0
-- Bump `eslint-plugin-react` from 7.37.3 to 7.37.4
-- Bump `eslint-plugin-react-refresh` from 0.4.16 to 0.4.19
-- Bump `typescript-eslint` from 8.18.1 to 8.25.0
-- Bump `@types/react` from 18.3.12 to 19.0.10
 - Bump `@types/react-dom` from 18.3.1 to 19.0.4
+- Bump `@types/react` from 18.3.12 to 19.0.10
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.0 to 2.18.2 ([#5141](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5141))
+- Bump `commons-logging:commons-logging` from 1.3.4 to 1.3.5 ([#5326](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5326))
+- Bump `eslint-plugin-react-refresh` from 0.4.16 to 0.4.19
+- Bump `eslint-plugin-react` from 7.37.3 to 7.37.4
+- Bump `eslint` from 9.16.0 to 9.21.0
+- Bump `Node.js` from 20.12.2 to 20.18.3
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.1 to 3.5.2 ([#5089](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5089))
+- Bump `react-dom` from 18.3.1 to 19.0.0
+- Bump `react-router-dom` from 6.28.0 to 7.2.0
+- Bump `react` from 18.3.1 to 19.0.0
+- Bump `typescript-eslint` from 8.18.1 to 8.25.0
+- Bump `vite` from 5.4.12 to 6.2.0
+- Bump `yarn` from 4.5.3 to 4.6.0
 
 ## [14.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.0...14.10.1) (2025-02-11)
 
