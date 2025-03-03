@@ -1159,7 +1159,7 @@
 						Plugin to add scripts for nullsoft scriptable install system (NSIS).
 						The filtered file "target/extra.nsh", contains the definitions for
 						project variables like "${PROJECT_JRE_VERSION}" that can be used in the
-						"ums.nsi" and "setup.nsi" files.
+						"ums.nsi" and "setup-*.nsi" files.
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1199,7 +1199,7 @@
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
-						"ums.nsi" and "setup.nsi" files.
+						"ums.nsi" and "setup-*.nsi" files.
 					-->
 					<plugin>
 						<groupId>org.digitalmediaserver</groupId>
@@ -1245,10 +1245,21 @@
 								</goals>
 							</execution>
 							<execution>
-								<id>build-setup-windows</id>
+								<id>build-setup-windows-x86_64</id>
 								<configuration>
-									<outputFile>${project.build.directory}/${project.name.short}-setup.exe</outputFile>
-									<scriptFile>${project.build.directory}/setup.nsi</scriptFile>
+									<outputFile>${project.build.directory}/${project.name.short}-x86_64.exe</outputFile>
+									<scriptFile>${project.build.directory}/setup-x86_64.nsi</scriptFile>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>make</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>build-setup-windows-x86</id>
+								<configuration>
+									<outputFile>${project.build.directory}/${project.name.short}-x86.exe</outputFile>
+									<scriptFile>${project.build.directory}/setup-x86.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
 								<goals>
