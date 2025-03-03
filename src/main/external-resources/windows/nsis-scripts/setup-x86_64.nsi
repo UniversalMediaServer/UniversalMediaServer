@@ -532,10 +532,10 @@ Section "Program Files"
 	${AndIf} $InstallType == "UPDATE"
 	${AndIf} ${FileExists} "$INSTDIR\jre${PROJECT_JRE_VERSION}\*.*"
 	${AndIf} ${FileExists} "$INSTDIR\bin\*.*"
-		StrCpy $9 1
+		StrCpy $9 "NOBIN"
 	${EndIf}
 
-	${If} $9 == ""
+	${IfNot} $9 == "NOBIN"
 		RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
 		File /r "${PROJECT_BUILD_DIR}\bin\windows\x86_64\jre${PROJECT_JRE_VERSION}"
 		SetOutPath "$INSTDIR\bin"
@@ -844,12 +844,13 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\icon.ico"
 	Delete /REBOOTOK "$INSTDIR\DummyInput.ass"
 	Delete /REBOOTOK "$INSTDIR\DummyInput.jpg"
-	RMDir /REBOOTOK "$INSTDIR"
-
 	Delete /REBOOTOK "$INSTDIR\UMS.conf"
 	Delete /REBOOTOK "$INSTDIR\WEB.conf"
 	Delete /REBOOTOK "$INSTDIR\ffmpeg.webfilters"
 	Delete /REBOOTOK "$INSTDIR\VirtualFolders.conf"
+	RMDir /REBOOTOK "$INSTDIR"
+
+	RMDir /r /REBOOTOK "$LOCALAPPDATA\UMS"
 
 	Call un.DeleteShortcuts
 	DeleteRegKey SHCTX "${REG_KEY_UNINSTALL}"
