@@ -21,6 +21,7 @@
 - Bump `ch.qos.logback:logback-classic` from 1.5.16 to 1.5.17 ([#5323](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5323))
 - Bump `ch.qos.logback:logback-core` from 1.5.16 to 1.5.17 ([#5323](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5323))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.0 to 2.18.2 ([#5141](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5141))
+- Bump `com.google.code.gson:gson` from 2.11.0 to 2.12.1 ([#5325](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5325))
 - Bump `commons-logging:commons-logging` from 1.3.4 to 1.3.5 ([#5326](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5326))
 - Bump `eslint-plugin-react-hooks` from 5.1.0 to 5.2.0 ([#5321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5321))
 - Bump `eslint-plugin-react-refresh` from 0.4.16 to 0.4.19
@@ -29,6 +30,8 @@
 - Bump `Node.js` from 20.12.2 to 20.18.3
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.13.0 to 3.14.0 ([#5324](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5324))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.1 to 3.5.2 ([#5089](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5089))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
 - Bump `react-dom` from 18.3.1 to 19.0.0
 - Bump `react-movable` from 3.4.0 to 3.4.1
 - Bump `react-router-dom` from 6.28.0 to 7.2.0
