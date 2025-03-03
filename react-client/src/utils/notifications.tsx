@@ -56,6 +56,7 @@ export const showInfo = ({ id, message, title }: { id?: string, message: React.R
     title: title,
     message: message,
     autoClose: duration === 0 ? false : duration,
+    withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
@@ -67,6 +68,7 @@ export const showSuccess = ({ id, message, title }: { id?: string, message: Reac
     title: title,
     message: message,
     autoClose: duration === 0 ? false : duration,
+    withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
@@ -79,6 +81,7 @@ export const showWarning = ({ id, message, title, onClick }: { id?: string, mess
     message: message,
     autoClose: duration === 0 ? false : duration,
     onClick: onClick,
+    withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
@@ -91,6 +94,7 @@ export const showError = ({ id, message, title, icon, onClick }: { id?: string, 
     message: message,
     icon: icon,
     autoClose: duration === 0 ? false : duration,
+    withCloseButton: duration === 0 || duration > 5000,
     onClick: onClick,
   })
 }
@@ -105,6 +109,7 @@ export const updateSuccess = ({ id, message, title, icon }: { id: string, messag
     message: message,
     icon: icon,
     autoClose: duration === 0 ? false : duration,
+    withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
@@ -118,6 +123,7 @@ export const updateInfo = ({ id, message, title, icon }: { id: string, message: 
     message: message,
     icon: icon,
     autoClose: duration === 0 ? false : duration,
+    withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
@@ -131,6 +137,7 @@ export const updateError = ({ id, message, title, icon, onClick }: { id: string,
     message: message,
     icon: icon,
     autoClose: duration === 0 ? false : duration,
+    withCloseButton: duration === 0 || duration > 5000,
     onClick: onClick,
   })
 }

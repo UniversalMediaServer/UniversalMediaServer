@@ -72,7 +72,7 @@ function UmsApp() {
                         <ServerEventProvider i18n={i18n} main={main} session={session}>
                           <ServerEventContext.Consumer>
                             {sse => (
-                              <PlayerEventProvider i18n={i18n} main={main} session={session}>
+                              <PlayerEventProvider i18n={i18n} session={session}>
                                 <PlayerEventContext.Consumer>
                                   {playersse => (
                                     <div dir={dir} className="bodyBackgroundImageScreen">
@@ -146,29 +146,29 @@ function UmsApp() {
                                                 (!session.authenticate || session.account)
                                                   ? (
                                                       <Routes>
-                                                        <Route path="about" element={<About i18n={i18n} sse={sse} session={session} />}></Route>
+                                                        <Route path="about" element={<About i18n={i18n} main={main} session={session} sse={sse} />}></Route>
                                                         <Route path="player" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
                                                         <Route path="player/:req/:id" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
                                                         <Route index element={<Player i18n={i18n} main={main} session={session} sse={playersse} />} />
                                                       </Routes>
                                                     )
                                                   : (
-                                                      <PlayerLogin i18n={i18n} session={session} />
+                                                      <PlayerLogin i18n={i18n} main={main} session={session} />
                                                     )
                                               )
                                             : session.account
                                               ? (
                                                   <Routes>
-                                                    <Route path="about" element={<About i18n={i18n} sse={sse} session={session} />}></Route>
-                                                    <Route path="accounts" element={<Accounts i18n={i18n} sse={sse} session={session} />}></Route>
-                                                    <Route path="actions" element={<Actions i18n={i18n} session={session} />}></Route>
-                                                    <Route path="logs" element={<Logs i18n={i18n} sse={sse} session={session} />}></Route>
+                                                    <Route path="about" element={<About i18n={i18n} main={main} session={session} sse={sse} />}></Route>
+                                                    <Route path="accounts" element={<Accounts i18n={i18n} main={main} session={session} sse={sse} />}></Route>
+                                                    <Route path="actions" element={<Actions i18n={i18n} main={main} session={session} />}></Route>
+                                                    <Route path="logs" element={<Logs i18n={i18n} main={main} session={session} sse={sse} />}></Route>
                                                     <Route path="player" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
                                                     <Route path="player/:req/:id" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
-                                                    <Route path="settings" element={<Settings i18n={i18n} sse={sse} session={session} />}></Route>
-                                                    <Route path="shared" element={<SharedContent i18n={i18n} sse={sse} session={session} />}></Route>
+                                                    <Route path="settings" element={<Settings i18n={i18n} main={main} session={session} sse={sse} />}></Route>
+                                                    <Route path="shared" element={<SharedContent i18n={i18n} main={main} session={session} sse={sse} />}></Route>
                                                     {havePermission(session, Permissions.settings_view)
-                                                      ? <Route index element={<Home i18n={i18n} sse={sse} session={session} />} />
+                                                      ? <Route index element={<Home i18n={i18n} main={main} session={session} sse={sse} />} />
                                                       : <Route index element={<Player i18n={i18n} main={main} session={session} sse={playersse} />} />}
                                                     <Route
                                                       path="/*"
@@ -178,7 +178,7 @@ function UmsApp() {
                                                 )
                                               : session.initialized
                                                 ? (
-                                                    <Login i18n={i18n} session={session} />
+                                                    <Login i18n={i18n} main={main} session={session} />
                                                   )
                                                 : (
                                                     <Center>

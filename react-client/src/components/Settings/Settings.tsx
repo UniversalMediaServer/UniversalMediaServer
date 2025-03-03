@@ -24,6 +24,7 @@ import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { mantineSelectData } from '../../services/settings-service';
@@ -34,7 +35,7 @@ import RenderersSettings from './RenderersSettings';
 import TranscodingSettings from './TranscodingSettings';
 import { showError, showLoading, updateError, updateInfo, updateSuccess } from '../../utils/notifications';
 
-export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) {
+export default function Settings({ i18n, main, sse, session }: { i18n: I18nInterface, main:MainInterface, sse: ServerEventInterface, session: SessionInterface }) {
   const [advancedSettings] = useLocalStorage<boolean>({
     key: 'mantine-advanced-settings',
     defaultValue: false,
@@ -72,7 +73,8 @@ export default function Settings({ i18n, sse, session }: { i18n:I18nInterface, s
   useEffect(() => {
     document.title="Universal Media Server - Server Settings";
     session.useSseAs('Settings')
-    session.stopPlayerSse();
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
   }, []);
 
   useEffect(() => {

@@ -23,13 +23,14 @@ import { IconExclamationMark, IconFolder, IconFolderPlus, IconPhotoUp, IconPhoto
 
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { UmsAccounts } from '../../services/accounts-service';
 import { SessionInterface, UmsGroup, UmsUser } from '../../services/session-service';
 import { accountApiUrl, allowHtml } from '../../utils';
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
 
-const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
+const Accounts = ({ i18n, main, session, sse }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:ServerEventInterface }) => {
   const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get('None'));
   const canModifySettings = havePermission(session, Permissions.settings_modify);
@@ -45,7 +46,8 @@ const Accounts = ({ i18n, sse, session}: { i18n:I18nInterface, sse:ServerEventIn
   useEffect(() => {
     document.title="Universal Media Server - Accounts"
     session.useSseAs('Accounts')
-    session.stopPlayerSse();
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
   }, []);
 
   useEffect(() => {

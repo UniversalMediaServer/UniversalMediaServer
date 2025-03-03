@@ -21,13 +21,14 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import SharedContentSettings from './SharedContentSettings';
 import { showError, showInfo } from '../../utils/notifications';
 
-export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) {
+export default function SharedContent({ i18n, main, sse, session }: { i18n: I18nInterface, main:MainInterface, sse: ServerEventInterface, session: SessionInterface }) {
   const [isLoading, setLoading] = useState(true);
   const [configuration, setConfiguration] = useState({} as any);
 
@@ -41,7 +42,8 @@ export default function SharedContent({ i18n, sse, session }: { i18n:I18nInterfa
   useEffect(() => {
     document.title="Universal Media Server - Shared Content";
     session.useSseAs('SharedContent')
-    session.stopPlayerSse();
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
   }, []);
 
   useEffect(() => {

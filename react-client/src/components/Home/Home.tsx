@@ -26,11 +26,12 @@ import { renderersApiUrl } from '../../utils';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { ServerEventInterface } from '../../services/server-event-service';
 import { SessionInterface } from '../../services/session-service';
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
 
-const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInterface, session:SessionInterface }) => {
+const Home = ({ i18n, main, session, sse }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:ServerEventInterface }) => {
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
@@ -85,7 +86,8 @@ const Home = ({ i18n, sse, session }: { i18n:I18nInterface, sse:ServerEventInter
 
   useEffect(() => {
     session.useSseAs('Home')
-    session.stopPlayerSse();
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
   }, []);
 
   const refreshData = async () => {

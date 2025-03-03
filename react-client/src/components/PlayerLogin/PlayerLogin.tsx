@@ -21,16 +21,18 @@ import { useEffect } from 'react';
 
 import { login } from '../../services/auth-service';
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { SessionInterface } from '../../services/session-service';
 import { showError } from '../../utils/notifications';
 
-const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface }) => {
+const Login = ({ i18n, main, session }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface }) => {
 
   //set the document Title to Login
   useEffect(() => {
     document.title="Universal Media Server - Login";
     session.stopSse()
-    session.stopPlayerSse();
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
   }, []);
 
   const form = useForm({

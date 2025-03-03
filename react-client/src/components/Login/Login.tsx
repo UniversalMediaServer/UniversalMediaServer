@@ -20,12 +20,13 @@ import { useEffect, useState } from 'react';
 import { IconUser, IconLock } from '@tabler/icons-react';
 
 import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
 import { SessionInterface } from '../../services/session-service';
 import { create, disable, login } from '../../services/auth-service';
 import { allowHtml } from '../../utils';
 import { showError } from '../../utils/notifications';
 
-const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface }) => {
+const Login = ({ i18n, main, session }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface }) => {
   const [opened, setOpened] = useState(false);
   const form = useForm({
     initialValues: {
@@ -85,7 +86,8 @@ const Login = ({ i18n, session }: { i18n:I18nInterface, session:SessionInterface
   useEffect(() => {
     document.title="Universal Media Server - Login";
     session.stopSse()
-    session.stopPlayerSse();
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
   }, []);
 
   return (

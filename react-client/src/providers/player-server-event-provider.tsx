@@ -24,12 +24,11 @@ import videojs from 'video.js'
 import PlayerEventContext from '../contexts/player-server-event-context'
 import { getJwt } from '../services/auth-service'
 import { I18nInterface } from '../services/i18n-service'
-import { MainInterface } from '../services/main-service'
 import { SessionInterface } from '../services/session-service'
 import { playerApiUrl } from '../utils'
 import { showError, showWarning } from '../utils/notifications'
 
-const PlayerEventProvider = ({ children, i18n, main, session }: { children?: ReactNode, i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
+const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode, i18n: I18nInterface, session: SessionInterface }) => {
   const navigate = useNavigate()
   const [usePlayerSse, setUsePlayerSse] = useState(false)
   const [handled, setHandled] = useState<boolean>(true)
@@ -104,6 +103,7 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
     setAskingUuid(true)
     if (sessionStorage.getItem('player')) {
       setUuid(sessionStorage.getItem('player') as string)
+      setAskingUuid(false)
     }
     else {
       axios.get(playerApiUrl)
@@ -120,8 +120,10 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
             message: 'Your player session was not received from the server.',
           })
         })
+        .then(function () {
+          setAskingUuid(false)
+        })
     }
-    setAskingUuid(false)
   }, [session, usePlayerSse])
 
   useEffect(() => {
@@ -130,7 +132,6 @@ const PlayerEventProvider = ({ children, i18n, main, session }: { children?: Rea
     }
     setHandled(true)
     if (!usePlayerSse) {
-      main.setNavbarValue(undefined)
       return
     }
 
