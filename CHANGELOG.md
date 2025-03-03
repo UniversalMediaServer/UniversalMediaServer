@@ -16,6 +16,7 @@
 - Bump `@types/react` from 18.3.12 to 19.0.10
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.0 to 2.18.2 ([#5141](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5141))
 - Bump `commons-logging:commons-logging` from 1.3.4 to 1.3.5 ([#5326](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5326))
+- Bump `eslint-plugin-react-hooks` from 5.1.0 to 5.2.0 ([#5321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5321))
 - Bump `eslint-plugin-react-refresh` from 0.4.16 to 0.4.19
 - Bump `eslint-plugin-react` from 7.37.3 to 7.37.4
 - Bump `eslint` from 9.16.0 to 9.21.0
