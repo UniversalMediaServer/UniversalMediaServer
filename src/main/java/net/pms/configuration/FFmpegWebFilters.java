@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.PMS;
 import net.pms.encoders.FFMpegVideo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -34,14 +33,13 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegWebFilters {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebFilters.class);
-	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	/**
 	 * Must be used to protect all access to {@link #excludes}, {@link #autoOptions} and {@link #replacements}
 	 */
 	private static final ReentrantReadWriteLock FILTERS_LOCK = new ReentrantReadWriteLock();
 
 	static {
-		readWebFilters(CONFIGURATION.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
+		readWebFilters(UmsConfiguration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 	}
 
 	private FFmpegWebFilters() { }
@@ -55,7 +53,7 @@ public class FFmpegWebFilters {
 	/**
 	 * All access must be protected with {@link #filtersLock}
 	 */
-	private static final PatternMap<ArrayList> AUTO_OPTIONS = new PatternMap<ArrayList>() {
+	private static final PatternMap<ArrayList> AUTO_OPTIONS = new PatternMap<>() {
 		private static final long serialVersionUID = 5225786297932747007L;
 
 		@Override

@@ -24,11 +24,11 @@ import java.util.concurrent.Executors;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
-import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.external.JavaHttpClient;
 import net.pms.external.ProgressCallback;
 import net.pms.util.Version;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoUpdater implements ProgressCallback {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final EventListenerList LISTENERS = new EventListenerList();
 	private static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 
@@ -152,7 +151,7 @@ public class AutoUpdater implements ProgressCallback {
 
 	private void launchExe() throws UpdateException {
 		try {
-			File exe = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
+			File exe = new File(UmsConfiguration.getProfileDirectory(), getTargetFilename());
 			Desktop desktop = Desktop.getDesktop();
 			desktop.open(exe);
 		} catch (IOException e) {
@@ -207,14 +206,13 @@ public class AutoUpdater implements ProgressCallback {
 	private void downloadUpdate() throws UpdateException {
 		String downloadUrl = SERVER_PROPERTIES.getDownloadUrl();
 
-		File target = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
-
+		File target = new File(UmsConfiguration.getProfileDirectory(), getTargetFilename());
 		try {
 			JavaHttpClient.getFile(target, downloadUrl, this);
 		} catch (IOException e) {
 			// when the file download is canceled by user or an error happens
 			// during downloading than delete the partially downloaded file
-			target.delete();
+			FileUtils.deleteQuietly(target);
 			wrapException("Cannot download update", e);
 		}
 	}

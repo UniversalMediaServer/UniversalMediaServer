@@ -18,7 +18,7 @@ package net.pms.util;
 
 import java.io.File;
 import java.util.regex.Pattern;
-import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.store.StoreResource;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,7 +28,7 @@ public class CodeDb implements DbHandler {
 	private final FileDb db;
 
 	public CodeDb() {
-		db = new FileDb(PMS.getConfiguration().getProfileDirectory() + File.separator + name(), this);
+		db = new FileDb(UmsConfiguration.getProfileDirectory() + File.separator + name(), this);
 		db.setMinCnt(2);
 		db.init();
 	}

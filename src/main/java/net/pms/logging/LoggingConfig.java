@@ -97,7 +97,7 @@ public class LoggingConfig {
 			fileName = fileName.trim();
 			if (fileName.length() > 0) {
 				if (fileName.matches("\\[PROFILE_DIR\\].*")) {
-					String s = PMS.getConfiguration().getProfileDirectory().replace("\\", "/");
+					String s = UmsConfiguration.getProfileDirectory().replace("\\", "/");
 					fileName = fileName.replaceAll("\\[PROFILE_DIR\\]", s);
 				}
 				File file = new File(fileName.trim());
@@ -300,10 +300,10 @@ public class LoggingConfig {
 					boolean createNew = true;
 					if (!ca.getCopyOfAttachedFiltersList().isEmpty()) {
 						for (Filter<ILoggingEvent> filter : ca.getCopyOfAttachedFiltersList()) {
-							if (filter instanceof ThresholdFilter) {
+							if (filter instanceof ThresholdFilter thresholdFilter) {
 								createNew = false;
-								((ThresholdFilter) filter).setLevel(consoleLevel.levelStr);
-								((ThresholdFilter) filter).start();
+								thresholdFilter.setLevel(consoleLevel.levelStr);
+								thresholdFilter.start();
 							}
 						}
 					}
@@ -320,10 +320,10 @@ public class LoggingConfig {
 					boolean createNew = true;
 					if (!ga.getCopyOfAttachedFiltersList().isEmpty()) {
 						for (Filter<ILoggingEvent> filter : ga.getCopyOfAttachedFiltersList()) {
-							if (filter instanceof ThresholdFilter) {
+							if (filter instanceof ThresholdFilter thresholdFilter) {
 								createNew = false;
-								((ThresholdFilter) filter).setLevel(tracesLevel.levelStr);
-								((ThresholdFilter) filter).start();
+								thresholdFilter.setLevel(tracesLevel.levelStr);
+								thresholdFilter.start();
 							}
 						}
 					}
@@ -582,9 +582,8 @@ public class LoggingConfig {
 			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
 				// Appender has Encoder property
 				Encoder<ILoggingEvent> encoder = ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
-				if (encoder instanceof PatternLayoutEncoder) {
+				if (encoder instanceof PatternLayoutEncoder patternEncoder) {
 					// Encoder has pattern
-					PatternLayoutEncoder patternEncoder = (PatternLayoutEncoder) encoder;
 					String logPattern = patternEncoder.getPattern();
 
 					// Set timestamp format

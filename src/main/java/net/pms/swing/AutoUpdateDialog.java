@@ -26,7 +26,6 @@ import java.io.FileNotFoundException;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.external.update.AutoUpdater;
@@ -36,7 +35,6 @@ import net.pms.util.FileUtil;
 
 public class AutoUpdateDialog extends JDialog {
 	private static final long serialVersionUID = 3809427933990495309L;
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static AutoUpdateDialog instance;
 
@@ -63,7 +61,7 @@ public class AutoUpdateDialog extends JDialog {
 
 		patreonDownloadButton = new PatreonDownloadButton(autoUpdater);
 		freeDownloadButton = new FreeDownloadButton(autoUpdater);
-
+		stateLabel.setText(getStateText());
 		AutoUpdater.addChangeListener((ChangeEvent e) -> {
 			if (SwingUtilities.isEventDispatchThread()) {
 				throw new RuntimeException("Work is probably happening on event thread. Bad.");
@@ -212,7 +210,7 @@ public class AutoUpdateDialog extends JDialog {
 
 				// See if we have write permission in the program folder. We don't necessarily
 				// need admin rights here.
-				File file = new File(CONFIGURATION.getProfileDirectory());
+				File file = new File(UmsConfiguration.getProfileDirectory());
 				try {
 					if (!FileUtil.getFilePermissions(file).isWritable()) {
 						permissionsReminder = Messages.getGuiString("ButCantWriteProfileFolder");
