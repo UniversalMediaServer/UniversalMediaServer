@@ -14,7 +14,7 @@
 - Bump `@mantine/modals` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
 - Bump `@mantine/notifications` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
 - Bump `@playwright/test` from 1.49.0 to 1.50.1 ([#5320](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5320))
-- Bump `@types/lodash` from 4.17.15 to 4.17.16
+- Bump `@types/lodash` from 4.17.15 to 4.17.16 ([#5318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5318))
 - Bump `@types/react-dom` from 18.3.1 to 19.0.4
 - Bump `@types/react` from 18.3.12 to 19.0.10
 - Bump `axios` from 1.7.9 to 1.8.1
