@@ -21,6 +21,8 @@
 - Bump `eslint` from 9.16.0 to 9.21.0
 - Bump `Node.js` from 20.12.2 to 20.18.3
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.1 to 3.5.2 ([#5089](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5089))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
 - Bump `react-dom` from 18.3.1 to 19.0.0
 - Bump `react-router-dom` from 6.28.0 to 7.2.0
 - Bump `react` from 18.3.1 to 19.0.0
