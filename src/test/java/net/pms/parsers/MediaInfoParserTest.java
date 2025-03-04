@@ -87,6 +87,7 @@ public class MediaInfoParserTest {
 		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)-32 (0x80)"), 32);
 		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)"), 189);
 		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)-"), 189);
+		assertEquals(MediaInfoParser.getSpecificID("1-CC1"), 331);
 	}
 
 	@Test
