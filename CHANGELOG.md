@@ -4,22 +4,26 @@
 
 ### General
 - Migrate to Yarn Modern (corepack)
+- Added dev to standalone web player
 
 ### Dependencies
-- Bump `@mantine/core` from 7.16.3 to 7.17.0
-- Bump `@mantine/dropzone` from 7.16.3 to 7.17.0
-- Bump `@mantine/form` from 7.16.3 to 7.17.0
-- Bump `@mantine/hooks` from 7.16.3 to 7.17.0
-- Bump `@mantine/modals` from 7.16.3 to 7.17.0
-- Bump `@mantine/notifications` from 7.16.3 to 7.17.0
+- Bump `@mantine/core` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/dropzone` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/form` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/hooks` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/modals` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/notifications` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
 - Bump `@playwright/test` from 1.49.0 to 1.50.1 ([#5320](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5320))
+- Bump `@types/lodash` from 4.17.15 to 4.17.16 ([#5318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5318))
 - Bump `@types/react-dom` from 18.3.1 to 19.0.4
 - Bump `@types/react` from 18.3.12 to 19.0.10
+- Bump `axios` from 1.7.9 to 1.8.1 ([#5319](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5319))
 - Bump `ch.qos.logback:logback-classic` from 1.5.16 to 1.5.17 ([#5323](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5323))
 - Bump `ch.qos.logback:logback-core` from 1.5.16 to 1.5.17 ([#5323](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5323))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.0 to 2.18.2 ([#5141](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5141))
 - Bump `com.google.code.gson:gson` from 2.11.0 to 2.12.1 ([#5325](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5325))
 - Bump `commons-logging:commons-logging` from 1.3.4 to 1.3.5 ([#5326](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5326))
+- Bump `eslint-plugin-react-hooks` from 5.1.0 to 5.2.0 ([#5321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5321))
 - Bump `eslint-plugin-react-refresh` from 0.4.16 to 0.4.19
 - Bump `eslint-plugin-react` from 7.37.3 to 7.37.4
 - Bump `eslint` from 9.16.0 to 9.21.0
@@ -29,6 +33,7 @@
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
 - Bump `react-dom` from 18.3.1 to 19.0.0
+- Bump `react-movable` from 3.4.0 to 3.4.1
 - Bump `react-router-dom` from 6.28.0 to 7.2.0
 - Bump `react` from 18.3.1 to 19.0.0
 - Bump `typescript-eslint` from 8.18.1 to 8.25.0

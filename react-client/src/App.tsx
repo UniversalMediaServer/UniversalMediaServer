@@ -35,7 +35,7 @@ function App() {
         }}
         defaultColorScheme="auto"
       >
-        <Notifications autoClose={3000} />
+        <Notifications />
         <UmsApp />
       </MantineProvider>
     </DirectionProvider>
