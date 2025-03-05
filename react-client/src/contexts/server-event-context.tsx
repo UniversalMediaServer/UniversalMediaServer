@@ -14,9 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react';
+import { Context, createContext } from 'react'
 
-export const ServerEventContext: Context<ServerEventInterface> = createContext({
+import { ServerEventInterface } from '../services/server-event-service'
+
+const ServerEventContext: Context<ServerEventInterface> = createContext({
   connectionStatus: 0,
   memory: { max: 0, used: 0, dbcache: 0, buffer: 0 },
   updateAccounts: false as boolean,
@@ -29,28 +31,6 @@ export const ServerEventContext: Context<ServerEventInterface> = createContext({
   getRendererAction: () => null,
   hasNewLogLine: false as boolean,
   getNewLogLine: () => null,
-});
+})
 
-export interface ServerEventInterface {
-  connectionStatus: number;
-  memory: UmsMemory;
-  updateAccounts: boolean;
-  setUpdateAccounts: (updateAccounts: boolean) => void;
-  reloadable: boolean;
-  userConfiguration: any;
-  setUserConfiguration: (config: any) => void;
-  mediaScan: boolean;
-  hasRendererAction: boolean;
-  getRendererAction: () => any;
-  hasNewLogLine: boolean;
-  getNewLogLine: () => any;
-}
-
-export interface UmsMemory {
-  max: number,
-  used: number,
-  dbcache: number,
-  buffer: number
-}
-
-export default ServerEventContext;
+export default ServerEventContext

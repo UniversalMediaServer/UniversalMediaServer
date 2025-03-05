@@ -207,7 +207,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	 */
 	@Override
 	public String getFileName() {
-		return ProcessUtil.getShortFileNameIfWideChars(getFile().getAbsolutePath());
+		return ProcessUtil.getSystemPathName(getFile().getAbsolutePath());
 	}
 
 	@Override

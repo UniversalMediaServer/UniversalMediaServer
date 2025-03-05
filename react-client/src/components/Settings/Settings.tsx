@@ -17,23 +17,25 @@
 import { Box, Button, Group, Tabs, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
-import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
 import GeneralSettings from './GeneralSettings';
 import NavigationSettings from './NavigationSettings';
 import RenderersSettings from './RenderersSettings';
 import TranscodingSettings from './TranscodingSettings';
+import { showError, showLoading, updateError, updateInfo, updateSuccess } from '../../utils/notifications';
 
-export default function Settings() {
+export default function Settings({ i18n, main, sse, session }: { i18n: I18nInterface, main:MainInterface, sse: ServerEventInterface, session: SessionInterface }) {
   const [advancedSettings] = useLocalStorage<boolean>({
     key: 'mantine-advanced-settings',
     defaultValue: false,
@@ -61,9 +63,6 @@ export default function Settings() {
     transcodingEnginesPurposes: [],
   });
 
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
   const form = useForm({ initialValues: {} as Record<string, unknown> });
   const formSetValues = form.setValues;
 
@@ -73,6 +72,9 @@ export default function Settings() {
   //set the document Title to Server Settings
   useEffect(() => {
     document.title="Universal Media Server - Server Settings";
+    session.useSseAs('Settings')
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
   }, []);
 
   useEffect(() => {
@@ -101,13 +103,11 @@ export default function Settings() {
           formSetValues(userConfig);
         })
         .catch(function() {
-          showNotification({
+          showError({
             id: 'data-loading',
-            color: 'red',
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
             onClick: () => { openGitHubNewIssue(); },
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -118,13 +118,10 @@ export default function Settings() {
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
-    showNotification({
+    showLoading({
       id: 'settings-save',
-      loading: true,
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
-      autoClose: false,
-      withCloseButton: false
     });
     try {
       const changedValues: Record<string, any> = {};
@@ -137,39 +134,30 @@ export default function Settings() {
       }
 
       if (_.isEmpty(changedValues)) {
-        updateNotification({
+        updateInfo({
           id: 'settings-save',
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationHasNoChanges'),
-          loading: false,
-          autoClose: 1000
         })
       } else {
         await axios.post(settingsApiUrl, changedValues)
           .then(function() {
             setConfiguration(values);
             setLoading(false);
-            updateNotification({
+            updateSuccess({
               id: 'settings-save',
-              color: 'teal',
               title: i18n.get('Saved'),
               message: i18n.get('ConfigurationSaved'),
               icon: <IconCheck size='1rem' />,
-              loading: false,
-              autoClose: 1000
             })
           })
           .catch(function(error) {
             if (!error.response && error.request) {
-              updateNotification({
+              updateError({
                 id: 'settings-save',
-                color: 'red',
                 title: i18n.get('Error'),
                 message: i18n.get('ConfigurationNotReceived'),
                 icon: <IconExclamationMark size='1rem' />,
-                withCloseButton: true,
-                loading: false,
-                autoClose: 1000
               })
             } else {
               throw new Error(error);
@@ -177,15 +165,11 @@ export default function Settings() {
           });
       }
     } catch (err) {
-      updateNotification({
+      updateError({
         id: 'settings-save',
-        color: 'red',
         title: i18n.get('Error'),
         message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },
-        withCloseButton: true,
-        loading: false,
-        autoClose: 2000
       })
     }
 
@@ -207,20 +191,20 @@ export default function Settings() {
             <Tabs.Tab value='TranscodingSettings'>{i18n.get('TranscodingSettings')}</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value='GeneralSettings'>
-            {GeneralSettings(form, defaultConfiguration, selectionSettings)}
+            {GeneralSettings(i18n, session, form, defaultConfiguration, selectionSettings)}
           </Tabs.Panel>
           {advancedSettings &&
             <Tabs.Panel value='RenderersSettings'>
-              {RenderersSettings(form, selectionSettings)}
+              {RenderersSettings(i18n, session, form, selectionSettings)}
             </Tabs.Panel>
           }
           {advancedSettings &&
             <Tabs.Panel value='NavigationSettings'>
-              {NavigationSettings(form, defaultConfiguration, selectionSettings)}
+              {NavigationSettings(i18n, session, form, defaultConfiguration, selectionSettings)}
             </Tabs.Panel>
           }
           <Tabs.Panel value='TranscodingSettings'>
-            {TranscodingSettings(form, defaultConfiguration, selectionSettings)}
+            {TranscodingSettings(i18n, session, form, defaultConfiguration, selectionSettings)}
           </Tabs.Panel>
         </Tabs>
         {canModify && (
@@ -237,9 +221,4 @@ export default function Settings() {
       <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
     </Box>
   );
-}
-
-export interface mantineSelectData {
-  value: string;
-  label: string;
 }

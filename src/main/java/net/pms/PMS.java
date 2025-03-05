@@ -243,7 +243,7 @@ public class PMS {
 		// Initialize splash screen
 		GuiConfiguration guiConfiguration = null;
 		if (!isHeadless()) {
-			guiConfiguration = GuiConfiguration.getConfiguration(umsConfiguration);
+			guiConfiguration = GuiConfiguration.getConfiguration();
 			Splash.create(umsConfiguration, guiConfiguration);
 			Splash.setStatusMessage("Loading");
 		}

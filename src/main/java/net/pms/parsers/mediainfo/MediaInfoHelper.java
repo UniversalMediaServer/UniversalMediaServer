@@ -19,6 +19,7 @@ package net.pms.parsers.mediainfo;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.WString;
+import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +86,8 @@ public class MediaInfoHelper implements AutoCloseable {
 	 * @return 1 if file was opened, 0 if file was not not opened
 	 */
 	public int openFile(String fileName) {
-		return MediaInfoLibrary.INSTANCE.Open(handle, new WString(fileName));
+		String path = ProcessUtil.getSystemPathName(fileName);
+		return MediaInfoLibrary.INSTANCE.Open(handle, new WString(path));
 	}
 
 	/**

@@ -15,20 +15,19 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Accordion, Checkbox, MultiSelect, Select, Stack, Tooltip } from '@mantine/core';
-import { useContext } from 'react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
-import { mantineSelectData } from './Settings';
 
 export default function RenderersSettings(
+  i18n:I18nInterface,
+  session:SessionInterface,
   form: any,
   selectionSettings: any,
 ) {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
 
   const getI18nSelectData = (values: mantineSelectData[]) => {

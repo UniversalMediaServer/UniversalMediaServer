@@ -138,7 +138,7 @@ public class FFmpegParser {
 
 		String input;
 		if (inputFile.getFile() != null) {
-			input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
+			input = ProcessUtil.getSystemPathName(inputFile.getFile().getAbsolutePath());
 		} else {
 			input = "-";
 		}
@@ -227,7 +227,7 @@ public class FFmpegParser {
 		args.add("-i");
 
 		if (inputFile.getFile() != null) {
-			args.add(ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath()));
+			args.add(ProcessUtil.getSystemPathName(inputFile.getFile().getAbsolutePath()));
 		} else {
 			args.add("-");
 		}

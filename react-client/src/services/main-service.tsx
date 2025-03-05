@@ -14,16 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react';
-import { UmsUser, UmsGroup } from '../contexts/session-context';
-
-export const AccountsContext: Context<UmsAccounts> = createContext({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts);
-
-export interface UmsAccounts {
-  users: UmsUser[],
-  groups: UmsGroup[],
-  enabled: boolean,
-  localhost: boolean,
+export interface MainInterface {
+  navbarValue: any
+  setNavbarValue: (navbarValue: any) => void
+  navbarOpened: boolean
+  setNavbarOpened: (navbarOpened: any) => void
+  statusLine: any
+  setStatusLine: (statusLine: any) => void
 }
-
-export default AccountsContext;

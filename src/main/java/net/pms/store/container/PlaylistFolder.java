@@ -87,7 +87,7 @@ public final class PlaylistFolder extends StoreContainer {
 
 	@Override
 	public String getSystemName() {
-		return isweb ? uri : ProcessUtil.getShortFileNameIfWideChars(uri);
+		return isweb ? uri : ProcessUtil.getSystemPathName(uri);
 	}
 
 	@Override

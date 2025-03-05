@@ -2,18 +2,73 @@
 
 ## [Unreleased]
 
+### General
+- Migrate to Yarn Modern (corepack)
+- Added dev to standalone web player
+
 ### Dependencies
-- Bump `@mantine/core` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/dropzone` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/form` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/hooks` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/modals` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/notifications` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
+- Bump `@mantine/core` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/dropzone` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/form` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/hooks` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/modals` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@mantine/notifications` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
+- Bump `@playwright/test` from 1.49.0 to 1.50.1 ([#5320](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5320))
+- Bump `@types/lodash` from 4.17.15 to 4.17.16 ([#5318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5318))
+- Bump `@types/react-dom` from 18.3.1 to 19.0.4
+- Bump `@types/react` from 18.3.12 to 19.0.10
+- Bump `axios` from 1.7.9 to 1.8.1 ([#5319](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5319))
+- Bump `ch.qos.logback:logback-classic` from 1.5.16 to 1.5.17 ([#5323](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5323))
+- Bump `ch.qos.logback:logback-core` from 1.5.16 to 1.5.17 ([#5323](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5323))
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.0 to 2.18.2 ([#5141](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5141))
+- Bump `com.google.code.gson:gson` from 2.11.0 to 2.12.1 ([#5325](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5325))
+- Bump `commons-logging:commons-logging` from 1.3.4 to 1.3.5 ([#5326](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5326))
+- Bump `eslint-plugin-react-hooks` from 5.1.0 to 5.2.0 ([#5321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5321))
+- Bump `eslint-plugin-react-refresh` from 0.4.16 to 0.4.19
+- Bump `eslint-plugin-react` from 7.37.3 to 7.37.4
+- Bump `eslint` from 9.16.0 to 9.21.0
+- Bump `Node.js` from 20.12.2 to 20.18.3
+- Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.13.0 to 3.14.0 ([#5324](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5324))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.1 to 3.5.2 ([#5089](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5089))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
+- Bump `react-dom` from 18.3.1 to 19.0.0
+- Bump `react-movable` from 3.4.0 to 3.4.1
+- Bump `react-router-dom` from 6.28.0 to 7.2.0
+- Bump `react` from 18.3.1 to 19.0.0
+- Bump `typescript-eslint` from 8.18.1 to 8.25.0
+- Bump `vite` from 5.4.12 to 6.2.0
+- Bump `yarn` from 4.5.3 to 4.6.0
+
+## [14.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.0...14.10.1) (2025-02-11)
+
+### General
+- Increased browsing and scanning speed
+- Fixed server crash while browsing and scanning
+- Fixed support for transcoding web streams
+- Fixed support for long file paths (above 255 characters) on Windows (again)
+
+### Translation updates via Crowdin
+- Bulgarian (41%) (thanks, Lyubomir Simeonov!)
+- German (88%) (thanks, roland.graf!)
+- Italian (57%) (thanks, Manuele Camilletti!)
+
+### Dependencies
+- Bump `@mantine/core` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/dropzone` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/form` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/hooks` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/modals` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/notifications` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
 - Bump `@types/lodash` from 4.17.14 to 4.17.15 ([#5271](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5271))
 - Bump `com.github.oshi:oshi-core` from 6.6.5 to 6.6.6 ([#5260](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5260))
+- Bump `com.google.guava` from 23.0 to 33.4.0
 - Bump `commons-codec:commons-codec` from 1.17.1 to 1.17.2 ([#5237](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5237))
+- Bump `Java Runtime Environment` from 17.0.13+12 to 17.0.14+10
+- Bump `react-movable` from 3.3.1 to 3.4.0 ([#5279](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5279))
 - Bump `typescript` from 5.7.2 to 5.7.3 ([#5239](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5239))
 - Bump `vite` from 5.4.11 to 5.4.12 ([#5254](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5254))
+- Removed `java-properties-to-json`
 
 ## [14.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.9.0...14.10.0) (2025-01-12)
 

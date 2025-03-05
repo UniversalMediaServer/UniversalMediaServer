@@ -530,13 +530,13 @@ public class VLCVideo extends Engine {
 							// Convert UTF-16 -> UTF-8
 							File convertedSubtitles = new File(CONFIGURATION.getTempFolder(), "utf8_" + params.getSid().getName());
 							FileUtil.convertFileFromUtf16ToUtf8(params.getSid().getExternalFile(), convertedSubtitles);
-							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+							externalSubtitlesFileName = ProcessUtil.getSystemPathName(convertedSubtitles.getAbsolutePath());
 						} catch (IOException e) {
 							LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
-							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile());
+							externalSubtitlesFileName = ProcessUtil.getSystemPathName(params.getSid().getExternalFile());
 						}
 					} else {
-						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile());
+						externalSubtitlesFileName = ProcessUtil.getSystemPathName(params.getSid().getExternalFile());
 					}
 
 					if (externalSubtitlesFileName != null) {

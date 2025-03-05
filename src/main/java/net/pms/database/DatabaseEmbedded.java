@@ -92,8 +92,8 @@ public class DatabaseEmbedded {
 	}
 
 	private static String getDbDir() {
-		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
-		return new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
+		File profileDirectory = new File(UmsConfiguration.getProfileDirectory());
+		return new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? UmsConfiguration.getProfileDirectory() : null, "database").getAbsolutePath();
 	}
 
 	public static String getDbUser() {
