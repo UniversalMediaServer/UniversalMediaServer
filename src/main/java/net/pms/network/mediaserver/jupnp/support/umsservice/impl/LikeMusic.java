@@ -31,7 +31,6 @@ import org.h2.tools.Script;
 import org.jupnp.model.types.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableMusicBrainzReleaseLike;
@@ -44,7 +43,6 @@ public class LikeMusic {
 	private final String backupFilename;
 
 	public LikeMusic() {
-		PMS.getConfiguration();
 		String dir = FilenameUtils.concat(UmsConfiguration.getProfileDirectory(), "database_backup");
 		backupFilename = FilenameUtils.concat(dir, "MUSIC_BRAINZ_RELEASE_LIKE");
 	}

@@ -177,7 +177,7 @@ public class MediaInfoStore {
 						}
 					}
 				}
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
 				LOGGER.trace("", e);
 			} finally {

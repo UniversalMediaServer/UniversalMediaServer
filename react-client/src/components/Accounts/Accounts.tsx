@@ -17,23 +17,26 @@
 import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { useContext, useEffect, useState } from 'react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import { IconExclamationMark, IconFolder, IconFolderPlus, IconPhotoUp, IconPhotoX, IconUser, IconUserPlus, IconX } from '@tabler/icons-react';
 
-import AccountsContext from '../../contexts/accounts-context';
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
-import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { allowHtml } from '../../utils';
+import { getUserGroup, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { UmsAccounts } from '../../services/accounts-service';
+import { SessionInterface, UmsGroup, UmsUser } from '../../services/session-service';
+import { accountApiUrl, allowHtml } from '../../utils';
+import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
 
-const Accounts = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const accounts = useContext(AccountsContext);
+const Accounts = ({ i18n, main, session, sse }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:ServerEventInterface }) => {
+  const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get('None'));
   const canModifySettings = havePermission(session, Permissions.settings_modify);
   const canManageUsers = havePermission(session, Permissions.users_manage);
   const canManageGroups = havePermission(session, Permissions.groups_manage);
+  const [filled, setFilled] = useState(false);
   const [localhostOpened, setLocalhostOpened] = useState(false);
   const [authOpened, setAuthOpened] = useState(false);
   const [userOpened, setUserOpened] = useState<string | null>(null);
@@ -41,8 +44,52 @@ const Accounts = () => {
 
   //set the document Title to Accounts
   useEffect(() => {
-    document.title="Universal Media Server - Accounts";
+    document.title="Universal Media Server - Accounts"
+    session.useSseAs('Accounts')
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
   }, []);
+
+  useEffect(() => {
+    if (filled && !sse.updateAccounts) {
+      return;
+    }
+    setFilled(true);
+    sse.setUpdateAccounts(false);
+    axios.get(accountApiUrl + 'accounts')
+      .then(function(response: any) {
+        setAccounts(response.data);
+      })
+      .catch(function() {
+        showError({
+          title: i18n.get('Error'),
+          message: i18n.get('AccountsNotReceived'),
+        });
+      });
+  }, [sse]);
+
+  const postAccountAction = (data: any, title: string, message: string, successmessage: string, errormessage: string) => {
+    showLoading({
+      id: 'account-action',
+      title: title,
+      message: message,
+    })
+    return axios.post(accountApiUrl + 'action', data)
+      .then(function () {
+        updateSuccess({
+          id: 'account-action',
+          title: title,
+          message: successmessage,
+        })
+      })
+      .catch(function () {
+        updateError({
+          id: 'account-action',
+          title: i18n.get('Error'),
+          message: errormessage,
+        })
+      })
+  }
 
   const UserAccordionLabel = (user: UmsUser, group: UmsGroup) => {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);
@@ -527,6 +574,18 @@ const Accounts = () => {
       </Accordion>
     );
   }
+
+  const postAccountAuthAction = async (data: any, errormessage: string) => {
+    try {
+          await axios.post(accountApiUrl + 'action', data);
+          await session.logout();
+      } catch {
+          showError({
+              title: 'Error',
+              message: errormessage,
+          });
+      }
+  };
 
   const handleAuthenticateLocalhostToggle = () => {
     const data = { operation: 'localhost', enabled: !accounts.localhost };

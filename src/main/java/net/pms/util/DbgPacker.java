@@ -74,10 +74,10 @@ public class DbgPacker {
 
 		// add core items with the default logfile last (LinkedHashMap preserves
 		// insertion order)
-		String profileDirectory = configuration.getProfileDirectory();
+		String profileDirectory = UmsConfiguration.getProfileDirectory();
 
 		add(new File(profileDirectory, "SHARED.conf"));
-		add(new File(configuration.getProfilePath()));
+		add(new File(UmsConfiguration.getProfilePath()));
 		if (defaultLogFile != null && !defaultLogFile.isEmpty()) {
 			add(new File(defaultLogFile + ".prev.zip"));
 			add(new File(defaultLogFile + ".zip"));

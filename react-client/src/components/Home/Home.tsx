@@ -15,23 +15,23 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core';
-import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
-import ServerEventContext from '../../contexts/server-event-context';
 import Renderers from './Renderers';
 import NetworkDevices from './NetworkDevices';
 import { renderersApiUrl } from '../../utils';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
+import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
 
-const Home = () => {
-  const i18n = useContext(I18nContext);
-  const sse = useContext(ServerEventContext);
+const Home = ({ i18n, main, session, sse }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:ServerEventInterface }) => {
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
@@ -39,7 +39,6 @@ const Home = () => {
   const [isLocalhost, setIsLocalhost] = useState(false);
   const [users, setUsers] = useState([] as User[]);
   const [currentTime, setCurrentTime] = useState(0);
-  const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
   const canView = canModify || havePermission(session, Permissions.settings_view);
   const canControlRenderers = havePermission(session, Permissions.devices_control);
@@ -85,6 +84,12 @@ const Home = () => {
     }
   }, [canView]);
 
+  useEffect(() => {
+    session.useSseAs('Home')
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
+  }, []);
+
   const refreshData = async () => {
     setLoading(true);
     axios.get(renderersApiUrl)
@@ -96,12 +101,10 @@ const Home = () => {
         setCurrentTime(response.data.currentTime);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'renderers-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -119,12 +122,10 @@ const Home = () => {
         setCurrentTime(response.data.currentTime);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'renderers-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -149,21 +150,15 @@ const Home = () => {
   };
 
   const setSettings = async (endpoint: string, data: any, fromDevice: boolean) => {
-    showNotification({
+    showLoading({
       id: 'settings-save',
-      loading: true,
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
-      autoClose: false,
-      withCloseButton: false
     });
     await axios.post(renderersApiUrl + endpoint, data)
       .then(function() {
-        updateNotification({
+        updateSuccess({
           id: 'settings-save',
-          color: 'teal',
-          autoClose: true,
-          loading: false,
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
           icon: <IconCheck size='1rem' />
@@ -176,21 +171,15 @@ const Home = () => {
       })
       .catch(function(error) {
         if (!error.response && error.request) {
-          updateNotification({
+          updateError({
             id: 'settings-save',
-            color: 'red',
-            autoClose: true,
-            loading: false,
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived'),
             icon: <IconExclamationMark size='1rem' />
           })
         } else {
-          updateNotification({
+          updateError({
             id: 'settings-save',
-            color: 'red',
-            autoClose: true,
-            loading: false,
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotSaved')
           })
@@ -257,53 +246,6 @@ const Home = () => {
 
 interface RendererAction extends Renderer {
   action: string,
-}
-
-export interface RendererState {
-  mute: boolean,
-  volume: number,
-  playback: number,
-  name: string,
-  uri: string,
-  metadata: string,
-  position: string,
-  duration: string,
-  buffer: number,
-}
-
-export interface Renderer {
-  id: number,
-  name: string,
-  address: string,
-  uuid: string,
-  icon: string,
-  playing: string,
-  time: string,
-  progressPercent: number,
-  isActive: boolean,
-  isAllowed: boolean,
-  isAuthenticated: boolean,
-  userId: number,
-  controls: number,
-  state: RendererState,
-}
-
-export interface NetworkDevice {
-  hostName: string,
-  ipAddress: string,
-  lastSeen: number
-}
-
-export interface NetworkDevicesFilter {
-  name: string,
-  isAllowed: boolean,
-  isDefault: boolean,
-  devices: NetworkDevice[]
-}
-
-export interface User {
-  value: number,
-  label: string
 }
 
 export default Home;
