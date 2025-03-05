@@ -165,7 +165,7 @@ public class WebSourcesConfiguration {
 	public static String getWebConfPath() {
 		String webConfPath = FileUtil.getFileLocation(
 				CONFIGURATION.getString(KEY_WEB_CONF_PATH, null),
-				CONFIGURATION.getProfileDirectory(),
+				UmsConfiguration.getProfileDirectory(),
 				DEFAULT_WEB_CONF_FILENAME
 			).getFilePath();
 		return CONFIGURATION.getString(KEY_WEB_CONF_PATH, webConfPath);

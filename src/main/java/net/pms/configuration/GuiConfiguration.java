@@ -157,9 +157,9 @@ public class GuiConfiguration implements Serializable {
 	 * @param path the {@link Path} used to read and write window
 	 *            properties.
 	 */
-	public static GuiConfiguration getConfiguration(UmsConfiguration umsConfiguration) {
+	public static GuiConfiguration getConfiguration() {
 		GuiConfiguration conf = null;
-		Path path = Paths.get(umsConfiguration.getProfileDirectory()).resolve("GUI.conf");
+		Path path = Paths.get(UmsConfiguration.getProfileDirectory()).resolve("GUI.conf");
 		try {
 			if (Files.exists(path)) {
 				LOGGER.info("Getting gui configuration file : " + path);
