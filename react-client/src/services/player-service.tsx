@@ -68,6 +68,7 @@ export interface BaseBrowse {
   mediasSelections?: MediasSelections
   metadata?: VideoMetadata
   useWebControl: boolean
+  fullyplayed?: boolean
 }
 
 export interface MediaRating {

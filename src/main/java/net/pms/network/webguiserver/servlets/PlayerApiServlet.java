@@ -51,6 +51,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.media.video.metadata.TvSeasonMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -67,6 +68,7 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.MediaLibraryFolder;
+import net.pms.store.container.MediaLibraryTvSeason;
 import net.pms.store.container.MediaLibraryTvSeries;
 import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.item.MediaLibraryTvEpisode;
@@ -546,7 +548,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 
 					if (addFolderToFoldersListOnLeft) {
-						// The HlsHelper is a folder
+						// The resource is a folder
 						JsonObject jFolder = new JsonObject();
 						jFolder.addProperty("id", resource.getResourceId());
 						String folderName = resource.getLocalizedDisplayName(lang);
@@ -556,7 +558,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 				}
 			} else {
-				// The HlsHelper is a media file
+				// The resource is a media file
 				hasFile = true;
 				jMedias.add(getMediaJsonObject(resource, lang));
 			}
@@ -569,9 +571,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					metadata.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
 					result.add("metadata", metadata);
 				}
+				if (folder.isFullyPlayedAware()) {
+					result.addProperty("fullyplayed", folder.isFullyPlayed());
+				}
+			} else if (folder.isTVSeason()) {
+				JsonObject metadata = getMetadataAsJsonObject(rootResource, renderer, lang);
+				if (metadata != null) {
+					result.add("metadata", metadata);
+				}
 			}
 
-			// Check whether this HlsHelper is expected to contain folders that display as big thumbnails
+			// Check whether this resource is expected to contain folders that display as big thumbnails
 			if (
 				folder.getSystemName().equals("TvShows") ||
 				folder.getSystemName().equals("Recommendations") ||
@@ -628,9 +638,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		JsonObject jBreadcrumb = new JsonObject();
 		jBreadcrumb.addProperty("id", "");
 		jBreadcrumb.addProperty("name", resource.getLocalizedDisplayName(lang));
-		if (resource.isFullyPlayedAware()) {
-			jBreadcrumb.addProperty("fullyplayed", resource.isFullyPlayed());
-		}
 
 		jBreadcrumbs.add(jBreadcrumb);
 		StoreResource thisResourceFromResources = resource;
@@ -750,6 +757,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 		media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
 		media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && CONFIGURATION.useWebPlayerDownload());
+		if (item.isFullyPlayedAware()) {
+			media.addProperty("fullyplayed", item.isFullyPlayed());
+		}
 
 		media.add("surroundMedias", getSurroundingByType(item, lang));
 
@@ -1336,11 +1346,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 	/**
 	 * Gets metadata from our database, which may be there from our API, for
-	 * this HlsHelper, which could be a TV series, TV episode, or movie.
+	 * this resource, which could be a TV series, TV episode, or movie.
 	 *
 	 * @param resource
-	 * @param isTVSeries whether this is a TV series, or an episode/movie
 	 * @param renderer the renderer, used for looking up IDs
+	 * @param lang the renderer language
 	 * @return a JsonObject to be used by a web browser which includes metadata
 	 * names and when applicable, associated IDs, or null when there is no
 	 * metadata
@@ -1350,6 +1360,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries) {
 			TvSeriesMetadata tvSeriesMetadata = mediaLibraryTvSeries.getTvSeriesMetadata();
 			result = tvSeriesMetadata.asJsonObject(lang);
+		} else if (resource instanceof MediaLibraryTvSeason mediaLibraryTvSeason) {
+			TvSeasonMetadata tvSeasonMetadata = mediaLibraryTvSeason.getTvSeasonMetadata();
+			if (tvSeasonMetadata != null) {
+				result = tvSeasonMetadata.asJsonObject(lang);
+			}
 		} else if (resource != null && resource.getMediaInfo() != null && resource.getMediaInfo().hasVideoMetadata()) {
 			result = resource.getMediaInfo().getVideoMetadata().asJsonObject(lang);
 		}

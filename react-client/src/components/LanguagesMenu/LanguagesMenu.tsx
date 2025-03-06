@@ -14,21 +14,21 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Group, Menu, ScrollArea, Text } from '@mantine/core';
-import ReactCountryFlag from 'react-country-flag';
-import { IconLanguage } from '@tabler/icons-react';
+import { ActionIcon, Group, Menu, ScrollArea, Text } from '@mantine/core'
+import ReactCountryFlag from 'react-country-flag'
+import { IconLanguage } from '@tabler/icons-react'
 
-import { I18nInterface } from '../../services/i18n-service';
-import { LanguageValue } from '../../services/i18n-service';
+import { I18nInterface } from '../../services/i18n-service'
+import { LanguageValue } from '../../services/i18n-service'
 
-function LanguagesMenu({ i18n }: { i18n:I18nInterface }) {
+function LanguagesMenu({ i18n }: { i18n: I18nInterface }) {
   const LanguageMenu = (language: LanguageValue) => {
     return (
       <Menu.Item
-        onClick={() => { i18n.setLanguage(language.id); }}
+        onClick={() => { i18n.setLanguage(language.id) }}
         key={language.id}
       >
-        <Group gap='xs'>
+        <Group gap="xs">
           <ReactCountryFlag countryCode={language.country} style={{ fontSize: '1.5em' }} />
           <Text>{language.name}</Text>
           {language.name !== language.defaultname && (
@@ -36,17 +36,17 @@ function LanguagesMenu({ i18n }: { i18n:I18nInterface }) {
           )}
         </Group>
       </Menu.Item>
-    );
+    )
   }
 
   const languagesMenus = i18n.languages.map((language) => {
-    return LanguageMenu(language);
-  });
+    return LanguageMenu(language)
+  })
 
   return (
     <Menu>
       <Menu.Target>
-        <ActionIcon variant='default' size={30}>
+        <ActionIcon variant="default" size={30}>
           <IconLanguage size={16} />
         </ActionIcon>
       </Menu.Target>
@@ -57,6 +57,6 @@ function LanguagesMenu({ i18n }: { i18n:I18nInterface }) {
         </ScrollArea>
       </Menu.Dropdown>
     </Menu>
-  );
+  )
 }
-export default LanguagesMenu;
+export default LanguagesMenu

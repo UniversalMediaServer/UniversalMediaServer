@@ -823,6 +823,10 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		return this instanceof MediaLibraryTvSeries;
 	}
 
+	public boolean isTVSeason() {
+		return this instanceof MediaLibraryTvSeason;
+	}
+
 	public boolean isMovieFolder() {
 		return this instanceof MediaLibraryMovieFolder;
 	}
