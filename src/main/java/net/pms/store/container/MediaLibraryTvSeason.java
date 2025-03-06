@@ -29,7 +29,6 @@ public class MediaLibraryTvSeason extends MediaLibraryFolder {
 	private final Integer tvSeasonId;
 	private TvSeriesMetadata tvSeriesMetadata;
 	private TvSeasonMetadata tvSeasonMetadata;
-	private String seasonName = "";
 
 	public MediaLibraryTvSeason(Renderer renderer, String i18nName, String tvSeason, String[] sql, int[] expectedOutput) {
 		super(renderer, i18nName, sql, expectedOutput, tvSeason);
@@ -38,7 +37,7 @@ public class MediaLibraryTvSeason extends MediaLibraryFolder {
 
 	@Override
 	public String getName() {
-		return super.getName().concat(getSeasonName());
+		return super.getName().concat(getSeasonName(null));
 	}
 
 	/**
@@ -71,21 +70,7 @@ public class MediaLibraryTvSeason extends MediaLibraryFolder {
 			!StringUtils.isBlank(tvSeasonMetadata.getName(lang))) {
 			return ": " + tvSeasonMetadata.getName(lang);
 		}
-		return getSeasonName();
-	}
-
-	/**
-	 * Get the season name.
-	 *
-	 * Will be possible to localize it when/if we store localized data.
-	 *
-	 * @return the season name or empty string.
-	 */
-	private synchronized String getSeasonName() {
-		if (seasonName.isEmpty()) {
-			seasonName = ": " + getSeasonName(null);
-		}
-		return seasonName;
+		return lang == null ? "" : getSeasonName(null);
 	}
 
 	public TvSeasonMetadata getTvSeasonMetadata() {
