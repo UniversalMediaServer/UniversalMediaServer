@@ -11,7 +11,11 @@ export default tseslint.config(
       'node/**',
       'node_modules/**',
       /* remove to check recommended stylistic rules */
-      'src/components/**',
+      'src/components/Home',
+      'src/components/Login',
+      'src/components/Settings',
+      'src/components/SharedContent/',
+      'src/components/UserMenu/',
     ],
   },
   {

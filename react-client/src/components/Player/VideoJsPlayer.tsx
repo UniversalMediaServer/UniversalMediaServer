@@ -14,163 +14,185 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import axios from 'axios';
-import { useEffect } from 'react';
-import videojs from 'video.js';
-import Player, { PlayerReadyCallback } from 'video.js/dist/types/player';
-import 'video.js/dist/video-js.min.css';
+import axios from 'axios'
+import { useEffect } from 'react'
+import videojs from 'video.js'
+import Player, { PlayerReadyCallback } from 'video.js/dist/types/player'
+import 'video.js/dist/video-js.min.css'
 
-import { AudioMedia, BaseMedia, VideoMedia } from '../../services/player-service';
-import { playerApiUrl } from '../../utils';
-import './HlsQualitySelector/HlsQualitySelectorPlugin';
+import { AudioMedia, BaseMedia, VideoMedia } from '../../services/player-service'
+import { playerApiUrl } from '../../utils'
+import './HlsQualitySelector/HlsQualitySelectorPlugin'
 
 const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
-    const videoElem = document.createElement('video');
-    videoElem.id = 'player';
-    videoElem.classList.add('video-js', 'vjs-default-skin', 'vjs-fill', 'vjs-big-play-centered', 'full-card', 'card');
-    document.getElementById('videodiv')?.appendChild(videoElem);
+    const videoElem = document.createElement('video')
+    videoElem.id = 'player'
+    videoElem.classList.add('video-js', 'vjs-default-skin', 'vjs-fill', 'vjs-big-play-centered', 'full-card', 'card')
+    document.getElementById('videodiv')?.appendChild(videoElem)
 
-    const videoMedia = (vpOptions.media.mediaType === 'video') ? (vpOptions.media as VideoMedia) : null;
-    const options = {} as any;
-    options.liveui = true;
-    options.controls = true;
+    const videoMedia = (vpOptions.media.mediaType === 'video') ? (vpOptions.media as VideoMedia) : null
+    const options = {} as any
+    options.liveui = true
+    options.controls = true
     options.userActions = {
-      hotkeys: function(event: any) {
+      hotkeys: function (event: any) {
         if (event.which === 32) {
           if (this.paused()) {
-            this.play();
-          } else {
-            this.pause();
+            this.play()
+          }
+          else {
+            this.pause()
           }
         }
         if (event.which === 37) {
-          this.currentTime(Math.max(0, this.currentTime() - 15));
+          this.currentTime(Math.max(0, this.currentTime() - 15))
         }
         if (event.which === 39) {
-          const duration = this.liveTracker && this.liveTracker.isLive() ? this.liveTracker.seekableEnd() : this.duration();
-          this.currentTime(Math.min(this.currentTime() + 15), duration);
+          const duration = this.liveTracker && this.liveTracker.isLive() ? this.liveTracker.seekableEnd() : this.duration()
+          this.currentTime(Math.min(this.currentTime() + 15), duration)
         }
         if (event.which === 70) {
           if (this.isFullscreen() === true) {
             if (!this.isFullWindow) {
-              this.exitFullscreen();
-            } else {
-              this.exitFullWindow();
+              this.exitFullscreen()
             }
-          } else {
-            this.requestFullscreen(false);
+            else {
+              this.exitFullWindow()
+            }
+          }
+          else {
+            this.requestFullscreen(false)
           }
         }
-      }
-    };
-    options.sources = [{ src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id, type: vpOptions.media.mime }];
-    options.poster = playerApiUrl + 'thumbnail/' + vpOptions.uuid + '/' + vpOptions.media.id;
+      },
+    }
+    options.sources = [{ src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id, type: vpOptions.media.mime }]
+    options.poster = playerApiUrl + 'thumbnail/' + vpOptions.uuid + '/' + vpOptions.media.id
     if (vpOptions.media.mediaType === 'audio') {
-      options.audioPosterMode = true;
+      options.audioPosterMode = true
     }
     if (videoMedia?.isVideoWithChapters) {
-      if (!options.tracks) { options.tracks = [] }
-      const sub = { kind: 'chapters', src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id + '/chapters.vtt', default: true };
-      options.tracks.push(sub);
+      if (!options.tracks) {
+        options.tracks = []
+      }
+      const sub = { kind: 'chapters', src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id + '/chapters.vtt', default: true }
+      options.tracks.push(sub)
     }
-    const status = { 'uuid': vpOptions.uuid, 'id': vpOptions.media.id } as { [key: string]: string };
+    const status = { uuid: vpOptions.uuid, id: vpOptions.media.id } as { [key: string]: string }
     const setStatus = (key: string, value: any, wait: boolean) => {
       if (status[key] !== value) {
-        status[key] = value;
+        status[key] = value
         if (!wait) {
-          axios.post(playerApiUrl + 'status', status);
+          axios.post(playerApiUrl + 'status', status)
         }
       }
     }
     const onready = (_player: Player) => {
       const volumeStatus = () => {
-        setStatus('mute', videoPlayer.muted() ? '1' : '0', true);
-        setStatus('volume', ((videoPlayer.volume() || 0) * 100).toFixed(0), false);
+        setStatus('mute', videoPlayer.muted() ? '1' : '0', true)
+        setStatus('volume', ((videoPlayer.volume() || 0) * 100).toFixed(0), false)
       }
-      videoPlayer.on(['play', 'playing'], () => { setStatus('playback', 'PLAYING', false) });
-      videoPlayer.on('pause', () => { setStatus('playback', 'PAUSED', false) });
-      videoPlayer.on(['dispose', 'abort', 'ended', 'error', 'beforeunload'], () => { setStatus('playback', 'STOPPED', false) });
-      videoPlayer.on('timeupdate', () => { setStatus('position', (videoPlayer.currentTime() || 0).toFixed(0), false) });
-      videoPlayer.on('volumechange', () => { volumeStatus() });
+      videoPlayer.on(['play', 'playing'], () => {
+        setStatus('playback', 'PLAYING', false)
+      })
+      videoPlayer.on('pause', () => {
+        setStatus('playback', 'PAUSED', false)
+      })
+      videoPlayer.on(['dispose', 'abort', 'ended', 'error', 'beforeunload'], () => {
+        setStatus('playback', 'STOPPED', false)
+      })
+      videoPlayer.on('timeupdate', () => {
+        setStatus('position', (videoPlayer.currentTime() || 0).toFixed(0), false)
+      })
+      videoPlayer.on('volumechange', () => {
+        volumeStatus()
+      })
       if (videoMedia?.resumePosition) {
-        videoPlayer.on('loadedmetadata', () => { videoPlayer.currentTime(videoMedia.resumePosition as number) });
-        videoPlayer.one('canplaythrough', () => { videoPlayer.currentTime(videoMedia.resumePosition as number) });
+        videoPlayer.on('loadedmetadata', () => {
+          videoPlayer.currentTime(videoMedia.resumePosition as number)
+        })
+        videoPlayer.one('canplaythrough', () => {
+          videoPlayer.currentTime(videoMedia.resumePosition as number)
+        })
       }
-      volumeStatus();
+      volumeStatus()
       if (vpOptions.media.isDownload) {
-        const controlBar = videoPlayer.getChild('ControlBar');
+        const controlBar = videoPlayer.getChild('ControlBar')
         if (controlBar) {
-          const indexopt = controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
+          const indexopt = controlBar.children().findIndex(e => e.hasClass('vjs-remaining-time')) + 1
           const downloadButton = controlBar.addChild('button',
-            { 'controlText': 'Download', 'className': 'vjs-menu-button', 'clickHandler': () => { window.open(playerApiUrl + 'download/' + vpOptions.uuid + '/' + vpOptions.media.id, '_blank'); } }
-            , indexopt);
-          const placeholder = downloadButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
+            { controlText: 'Download', className: 'vjs-menu-button', clickHandler: () => { window.open(playerApiUrl + 'download/' + vpOptions.uuid + '/' + vpOptions.media.id, '_blank') } },
+            indexopt)
+          const placeholder = downloadButton.el().getElementsByClassName('vjs-icon-placeholder').item(0)
           if (placeholder) {
-            placeholder.className = 'vjs-icon-placeholder vjs-icon-file-download';
+            placeholder.className = 'vjs-icon-placeholder vjs-icon-file-download'
           }
         }
       }
 
       if (vpOptions.media.surroundMedias.next !== undefined) {
-        const next = vpOptions.media.surroundMedias.next as BaseMedia;
-        const controlBar = videoPlayer.getChild('ControlBar');
+        const next = vpOptions.media.surroundMedias.next as BaseMedia
+        const controlBar = videoPlayer.getChild('ControlBar')
         if (controlBar) {
-          const indexopt = controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
+          const indexopt = controlBar.children().findIndex(e => e.hasClass('vjs-remaining-time')) + 1
           const nextButton = controlBar.addChild('button',
-            { 'controlText': next.name, 'className': 'vjs-menu-button', 'clickHandler': () => { vpOptions.askPlayId(next.id) } }
-            , indexopt);
-          const placeholder = nextButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
+            { controlText: next.name, className: 'vjs-menu-button', clickHandler: () => { vpOptions.askPlayId(next.id) } },
+            indexopt)
+          const placeholder = nextButton.el().getElementsByClassName('vjs-icon-placeholder').item(0)
           if (placeholder) {
-            placeholder.className = 'vjs-icon-placeholder vjs-icon-next-item';
+            placeholder.className = 'vjs-icon-placeholder vjs-icon-next-item'
           }
         }
         if (vpOptions.media.autoContinue) {
-          videoPlayer.on('ended', () => { vpOptions.askPlayId(next.id) });
+          videoPlayer.on('ended', () => {
+            vpOptions.askPlayId(next.id)
+          })
         }
       }
       if (vpOptions.media.surroundMedias.prev !== undefined) {
-        const prev = vpOptions.media.surroundMedias.prev as BaseMedia;
-        const controlBar = videoPlayer.getChild('ControlBar');
+        const prev = vpOptions.media.surroundMedias.prev as BaseMedia
+        const controlBar = videoPlayer.getChild('ControlBar')
         if (controlBar) {
-          const indexopt = controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
+          const indexopt = controlBar.children().findIndex(e => e.hasClass('vjs-remaining-time')) + 1
           const prevButton = controlBar.addChild('button',
-            { 'controlText': prev.name, 'className': 'vjs-menu-button', 'clickHandler': () => { vpOptions.askPlayId(prev.id) } }
-            , indexopt);
-          const placeholder = prevButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
+            { controlText: prev.name, className: 'vjs-menu-button', clickHandler: () => { vpOptions.askPlayId(prev.id) } },
+            indexopt)
+          const placeholder = prevButton.el().getElementsByClassName('vjs-icon-placeholder').item(0)
           if (placeholder) {
-            placeholder.className = 'vjs-icon-placeholder vjs-icon-previous-item';
+            placeholder.className = 'vjs-icon-placeholder vjs-icon-previous-item'
           }
         }
       }
       if (vpOptions.media.mime === 'application/x-mpegURL') {
         try {
-          (videoPlayer as any).hlsQualitySelector();
-        } catch (error) {
-          videojs.log(error);
+          (videoPlayer as any).hlsQualitySelector()
+        }
+        catch (error) {
+          videojs.log(error)
         }
       }
-    };
+    }
 
-    const videoPlayer = videojs(videoElem, options, onready as PlayerReadyCallback);
+    const videoPlayer = videojs(videoElem, options, onready as PlayerReadyCallback)
 
     return () => {
       if (!videoPlayer.isDisposed()) {
         videoPlayer.dispose()
       }
-    };
-  }, [vpOptions]);
+    }
+  }, [vpOptions])
 
   return (
-    <div id='videodiv'>
+    <div id="videodiv">
     </div>
-  );
-};
-
-interface VideoPlayerOption {
-  media: VideoMedia | AudioMedia,
-  uuid: string,
-  askPlayId: (id: string) => void;
+  )
 }
 
-export default VideoJsPlayer;
+interface VideoPlayerOption {
+  media: VideoMedia | AudioMedia
+  uuid: string
+  askPlayId: (id: string) => void
+}
+
+export default VideoJsPlayer
