@@ -20,14 +20,19 @@ import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.external.JavaHttpClient;
 
 public class ThumbnailStore {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailStore.class.getName());
 
 	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new HashMap<>();
 
@@ -57,6 +62,27 @@ public class ThumbnailStore {
 			}
 			return id;
 		}
+	}
+
+	public static Long updateThumbnailByURI(String uri, String filePath, ThumbnailSource thumbnailSource) {
+		DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(uri);
+		Long fileId = MediaTableFiles.getFileId(filePath);
+
+		Long id = getId(thumbnail);
+		if (id != null && fileId != null) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableFiles.updateThumbnailId(connection, fileId, id, thumbnailSource.toString());
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		} else {
+			LOGGER.debug("id : {} or fileId : {} is null", id, fileId);
+		}
+		return id;
 	}
 
 	public static Long getId(DLNAThumbnail thumbnail, Long fileId, ThumbnailSource thumbnailSource) {
