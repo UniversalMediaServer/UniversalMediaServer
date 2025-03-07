@@ -6,6 +6,10 @@
 - Migrate to Yarn Modern (corepack)
 - Added dev to standalone web player
 
+### Translation updates via Crowdin
+- Italian (59%) (thanks, bongio2!)
+- Polish (55%) (thanks, Karol Szastok!)
+
 ### Dependencies
 - Bump `@mantine/core` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
 - Bump `@mantine/dropzone` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
