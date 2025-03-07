@@ -1132,7 +1132,7 @@ public class APIUtils {
 					getParameters.add("imdbID=" + URLEncoder.encode(imdbId, StandardCharsets.UTF_8.toString()));
 				}
 				if (tmdbId != null && tmdbId > 0) {
-					getParameters.add("tmdbId=" + tmdbId);
+					getParameters.add("tmdbID=" + tmdbId);
 				}
 				if (season != null && isNotBlank(episode)) {
 					getParameters.add("season=" + URLEncoder.encode(season.toString(), StandardCharsets.UTF_8.toString()));
