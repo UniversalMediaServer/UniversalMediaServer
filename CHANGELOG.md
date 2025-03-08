@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `axios` from 1.8.1 to 1.8.2 ([#5337](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5337))
+
 ## [14.11.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.1...14.11.0) (2025-03-08)
 
 ### General
