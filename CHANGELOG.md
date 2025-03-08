@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.11.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.1...14.11.0) (2025-03-08)
+
 ### General
 - Made error notifications in the web settings and player stay open
 - Made informational notifications in the web settings and player autoclose more slowly
