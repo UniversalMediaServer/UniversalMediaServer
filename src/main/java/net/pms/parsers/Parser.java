@@ -61,7 +61,7 @@ public class Parser {
 			return;
 		}
 		media.resetParser();
-		if (file.getFile() != null) {
+		if (file.getFile() != null && ext != null) {
 			// Special parsing for RealAudio 1.0 and 2.0 which isn't handled by MediaInfo or JAudioTagger
 			if (ext.getIdentifier() == Format.Identifier.RA && RealAudioParser.parse(media, file, type)) {
 				return;
