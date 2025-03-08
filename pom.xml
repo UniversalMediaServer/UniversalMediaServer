@@ -448,11 +448,11 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>su.litvak.chromecast</groupId>
-			<artifactId>api-v2</artifactId>
+			<groupId>de.sfuhrm</groupId>
+			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
-			<version>0.11.3</version>
+			<version>0.12.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -729,7 +729,7 @@
 					<artifactId>crowdin-maven-plugin</artifactId>
 					<version>2.0.0</version>
 					<configuration>
-            			<projectId>123597</projectId>
+						<projectId>123597</projectId>
 						<projectName>Universal Media Server</projectName>
 						<downloadFolder>${project.basedir}/extras/crowdin</downloadFolder>
 						<crowdinServerId>crowdin-ums</crowdinServerId>
@@ -743,24 +743,60 @@
 								<targetFileName>messages_%crowdin_code_with_underscore%.properties</targetFileName>
 								<updateOption>keep_translations</updateOption>
 								<conversions>
-									<conversion><from>es-ES</from><to>es</to></conversion>
-									<conversion><from>he</from><to>iw</to></conversion>
-									<conversion><from>pt-PT</from><to>pt</to></conversion>
-									<conversion><from>sv-SE</from><to>sv</to></conversion>
-									<conversion><from>zh-CN</from><to>zh-Hans</to></conversion>
-									<conversion><from>zh-TW</from><to>zh-Hant</to></conversion>
+									<conversion>
+										<from>es-ES</from>
+										<to>es</to>
+									</conversion>
+									<conversion>
+										<from>he</from>
+										<to>iw</to>
+									</conversion>
+									<conversion>
+										<from>pt-PT</from>
+										<to>pt</to>
+									</conversion>
+									<conversion>
+										<from>sv-SE</from>
+										<to>sv</to>
+									</conversion>
+									<conversion>
+										<from>zh-CN</from>
+										<to>zh-Hans</to>
+									</conversion>
+									<conversion>
+										<from>zh-TW</from>
+										<to>zh-Hant</to>
+									</conversion>
 								</conversions>
 							</translationFileSet>
 						</translationFileSets>
 						<statusFiles>
 							<statusFile>
 								<conversions>
-									<conversion><from>es-ES</from><to>es</to></conversion>
-									<conversion><from>he</from><to>iw</to></conversion>
-									<conversion><from>pt-PT</from><to>pt</to></conversion>
-									<conversion><from>sv-SE</from><to>sv</to></conversion>
-									<conversion><from>zh-CN</from><to>zh-Hans</to></conversion>
-									<conversion><from>zh-TW</from><to>zh-Hant</to></conversion>
+									<conversion>
+										<from>es-ES</from>
+										<to>es</to>
+									</conversion>
+									<conversion>
+										<from>he</from>
+										<to>iw</to>
+									</conversion>
+									<conversion>
+										<from>pt-PT</from>
+										<to>pt</to>
+									</conversion>
+									<conversion>
+										<from>sv-SE</from>
+										<to>sv</to>
+									</conversion>
+									<conversion>
+										<from>zh-CN</from>
+										<to>zh-Hans</to>
+									</conversion>
+									<conversion>
+										<from>zh-TW</from>
+										<to>zh-Hant</to>
+									</conversion>
 								</conversions>
 								<targetFile>${project.basedir}/src/main/resources/languages.properties</targetFile>
 							</statusFile>
@@ -3478,6 +3514,139 @@
 								<goals>
 									<goal>check</goal>
 								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>docker</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>install node and corepack</id>
+								<goals>
+									<goal>install-node-and-corepack</goal>
+								</goals>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>prepare-docker</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<mkdir dir="${project.basedir}/target/docker" />
+										<mkdir dir="${project.basedir}/target/docker/app" />
+										<mkdir dir="${project.basedir}/target/docker/profile" />
+										<mkdir dir="${project.basedir}/target/docker/profile/data" />
+										<mkdir dir="${project.basedir}/target/docker/profile/database" />
+										<mkdir dir="${project.basedir}/target/docker/profile/renderers" />
+										<copy file="${project.external-resources}/docker/Dockerfile"
+											  tofile="${project.basedir}/target/docker/Dockerfile" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											  tofile="${project.basedir}/target/docker/app/${project.artifactId}.jar" overwrite="true" />
+										<copy todir="${project.basedir}/target/docker/app">
+											<fileset dir="${project.external-resources}">
+												<include name="UMS.conf"/>
+												<include name="logback.headless.xml"/>
+												<include name="renderers/*"/>
+												<include name="DummyInput.ass"/>
+												<include name="DummyInput.jpg"/>
+												<include name="web/**"/>
+											</fileset>
+										</copy>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>docker-build</id>
+								<phase>install</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<exec executable="docker" dir="${project.basedir}/target/docker">
+											<arg line="build . -t universalmediaserver/ums -t universalmediaserver/ums:${project.version}" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>docker-deploy</id>
+								<phase>deploy</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<exec executable="docker">
+											<arg line="push universalmediaserver/ums:${project.version}" />
+										</exec>
+									</target>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>
