@@ -263,11 +263,10 @@ public class RendererItem implements IRendererGuiListener {
 			//When the device is refreshed, only the renderer is updated, not the RendererItem.
 			// Therefore, the RendererItem returned to the front-end needs to be refreshed based on the renderer.
 			// Otherwise, the "control" button on the page will not be usable.
-			Renderer renderer = this.renderer;
-			result.addProperty("isActive", renderer.isActive());
-			result.addProperty("isAllowed", renderer.isAllowed());
-			result.addProperty("isAuthenticated", renderer.isAuthenticated());
-			result.addProperty("controls", renderer.getControls());
+			result.addProperty("isActive", this.renderer.isActive());
+			result.addProperty("isAllowed", this.renderer.isAllowed());
+			result.addProperty("isAuthenticated", this.renderer.isAuthenticated());
+			result.addProperty("controls", this.renderer.getControls());
 		} else {
 			result.addProperty("isActive", isActive);
 			result.addProperty("isAllowed", isAllowed);
