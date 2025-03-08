@@ -2,9 +2,31 @@
 
 ## [Unreleased]
 
+## [14.11.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.1...14.11.0) (2025-03-08)
+
 ### General
-- Migrate to Yarn Modern (corepack)
+- Made error notifications in the web settings and player stay open
+- Made informational notifications in the web settings and player autoclose more slowly
+- Migrated to Yarn Modern (corepack)
 - Added dev to standalone web player
+- Added full screen (F) keyboard shortcut to web player (#5308)
+- Restored x86 installer
+- Fixed binaries not always installing the first time on Windows (#5328)
+- Fixed program data not being uninstalled on Windows
+- Fixed auto updater content not fitting in window (#5194)
+- Fixed a crash while scanning and browsing videos with Closed Captions (#5158)
+- Fixed timer error when two players are playing at the same time (#664)
+- Fixed empty #-TRANSCODE-# folder (#5315)
+- Fixed downloading logs from web settings (#5316)
+- Fixed TMDB ID not sending to our API
+
+### Media players
+- Fixed transcoding support in Kodi (thanks, Dušan Kazik!)
+- Fixed supported H.264 level limit on Samsung C/D Series TVs (#5242)
+
+### Translation updates via Crowdin
+- Italian (59%) (thanks, bongio2!)
+- Polish (55%) (thanks, Karol Szastok!)
 
 ### Dependencies
 - Bump `@mantine/core` from 7.16.3 to 7.17.1 ([#5317](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5317))
@@ -32,6 +54,7 @@
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.1 to 3.5.2 ([#5089](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5089))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.11.4 to 5.12.0 ([#5322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5322))
+- Bump `org.jupnp:org.jupnp` from 3.0.2 to 3.0.3
 - Bump `react-dom` from 18.3.1 to 19.0.0
 - Bump `react-movable` from 3.4.0 to 3.4.1
 - Bump `react-router-dom` from 6.28.0 to 7.2.0

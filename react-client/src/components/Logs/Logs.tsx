@@ -251,7 +251,7 @@ const Logs = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
   const getPackerZip = () => {
     axios.post(logsApiUrl + 'packer', { items: packerFiles }, { responseType: 'blob' })
       .then(function (response: any) {
-        const fileName = response.headers['content-disposition'].split('filename=')[1]
+        const fileName = response.headers['content-disposition'].split('filename=')[1].replaceAll('"', '')
         const type = response.headers['content-type']
         const blob = new Blob([response.data], { type: type })
         const link = document.createElement('a')
