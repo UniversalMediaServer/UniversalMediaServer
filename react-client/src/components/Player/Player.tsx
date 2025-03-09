@@ -123,7 +123,7 @@ const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainI
             mb="xs"
             shadow="xs"
             p="sm"
-            style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
+            bg="transparentBg"
           >
             <Group>
               <Breadcrumbs
@@ -759,7 +759,7 @@ const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainI
                   {images.poster}
                 </Grid.Col>
                 <Grid.Col span={12}>
-                  <Card shadow="sm" p="lg" radius="md" style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}>
+                  <Card shadow="sm" p="lg" radius="md" bg="transparentBg">
                     {images.logo}
                     {getPlayControls()}
                     {getMetadataTagLine(metadata.tagline)}
@@ -796,7 +796,7 @@ const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainI
                   <Image style={{ maxHeight: 500 }} radius="md" fit="contain" src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} />
                 </Grid.Col>
                 <Grid.Col span={12}>
-                  <Card shadow="sm" p="lg" radius="md" style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}>
+                  <Card shadow="sm" p="lg" radius="md" bg="transparentBg">
                     <Text pb="xs">{getI18nName(media.name)}</Text>
                     {getPlayControls()}
                   </Card>

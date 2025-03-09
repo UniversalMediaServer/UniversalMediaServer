@@ -46,7 +46,7 @@ function LanguagesMenu({ i18n }: { i18n: I18nInterface }) {
   return (
     <Menu>
       <Menu.Target>
-        <ActionIcon variant="default" size={30}>
+        <ActionIcon variant="default" size="input-xs">
           <IconLanguage size={16} />
         </ActionIcon>
       </Menu.Target>

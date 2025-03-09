@@ -29,26 +29,25 @@ export default function MediaCard({ children, onClick, onLongPress }: { children
     }
   }, 50)
 
-  const onMouseDownButton = (_event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const startLongPress = (_event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     setProgressValue(0)
     interval.start()
   }
 
-  const onMouseUpButton = (_event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const stopLongPress = (_event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     interval.stop()
     if (progressValue >= 500 && onLongPress) {
       onLongPress()
     }
-    else if (progressValue > 0 && onClick) {
-      onClick()
-    }
-    else {
-      setProgressValue(0)
-    }
+    cancelLongPress()
   }
 
-  const onCancel = (_event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const cancelLongPress = (_event?: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     interval.stop()
+    setProgressValue(0)
+  }
+
+  const resetLongPress = (_event?: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     setProgressValue(0)
   }
 
@@ -56,14 +55,15 @@ export default function MediaCard({ children, onClick, onLongPress }: { children
     <Paper
       className="thumbnail-container"
       styles={{ root: { backgroundColor: '' } }}
-      onMouseDown={onMouseDownButton}
-      onMouseUp={onMouseUpButton}
-      onMouseLeave={onMouseUpButton}
-      onTouchStart={onMouseDownButton}
-      onTouchEnd={onMouseUpButton}
-      onTouchCancel={onMouseUpButton}
-      onDrag={onCancel}
-      onClick={onClick}
+      onMouseDown={onLongPress ? startLongPress : undefined}
+      onMouseUp={onLongPress ? stopLongPress : undefined}
+      onMouseLeave={onLongPress ? stopLongPress : undefined}
+      onTouchStart={onLongPress ? startLongPress : undefined}
+      onTouchEnd={onLongPress ? stopLongPress : undefined}
+      onTouchCancel={onLongPress ? cancelLongPress : undefined}
+      onTouchMove={onLongPress ? resetLongPress : undefined}
+      onDrag={onLongPress ? cancelLongPress : undefined}
+      onClick={onClick ? onClick : undefined}
     >
       {children}
     </Paper>

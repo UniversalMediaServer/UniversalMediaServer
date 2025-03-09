@@ -14,24 +14,25 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, Text, useComputedColorScheme, useDirection, useMantineColorScheme } from '@mantine/core'
+import { AppShell, Box, Burger, Center, Group, Loader, ScrollArea, Stack, Text, useDirection } from '@mantine/core'
 
 import { useEffect } from 'react'
-import { Route, Routes, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { IconMoonStars, IconPlayerPlay, IconSettings, IconSun } from '@tabler/icons-react'
+import { Route, Routes, Navigate } from 'react-router-dom'
 
 import About from './components/About/About'
 import Accounts from './components/Accounts/Accounts'
 import Actions from './components/Actions/Actions'
+import ColorSchemeButton from './components/UmsApp/ColorSchemeButton'
 import Home from './components/Home/Home'
-import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu'
+import LanguagesMenu from './components/UmsApp/LanguagesMenu'
 import Login from './components/Login/Login'
 import Logs from './components/Logs/Logs'
+import ModeButtons from './components/UmsApp/ModeButtons'
 import Player from './components/Player/Player'
 import PlayerLogin from './components/PlayerLogin/PlayerLogin'
 import Settings from './components/Settings/Settings'
 import SharedContent from './components/SharedContent/SharedContent'
-import UserMenu from './components/UserMenu/UserMenu'
+import UserMenu from './components/UmsApp/UserMenu'
 import I18nContext from './contexts/i18n-context'
 import MainContext from './contexts/main-context'
 import PlayerEventContext from './contexts/player-server-event-context'
@@ -47,15 +48,11 @@ import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/au
 
 function UmsApp() {
   const { dir } = useDirection()
-  const { toggleColorScheme } = useMantineColorScheme()
-  const navigate = useNavigate()
-  const location = useLocation()
   setAxiosAuthorization()
 
   useEffect(() => {
     refreshAuthTokenNearExpiry()
   })
-  const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true })
   return (
     <I18nProvider>
       <I18nContext.Consumer>
@@ -83,14 +80,12 @@ function UmsApp() {
                                           }
                                         : undefined}
                                       header={{ height: 60 }}
-                                      styles={theme => ({
-                                        main: { backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] },
-                                      })}
+                                      bg="transparentBg"
                                     >
                                       {main.navbarValue && (
                                         <AppShell.Navbar
                                           p="xs"
-                                          style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
+                                          bg="transparentBg"
                                         >
                                           <AppShell.Section grow my="md" component={ScrollArea}>
                                             <Stack gap={0}>{main.navbarValue}</Stack>
@@ -99,10 +94,10 @@ function UmsApp() {
                                       )}
                                       <AppShell.Header
                                         p="xs"
-                                        style={theme => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
+                                        bg="transparentBg"
                                       >
-                                        <Group justify="space-between">
-                                          <Group justify="left">
+                                        <Group grow preventGrowOverflow={false} gap="xs">
+                                          <Group justify="flex-start" gap="xs">
                                             {main.navbarValue
                                               && (
                                                 <Burger
@@ -110,36 +105,13 @@ function UmsApp() {
                                                   opened={main.navbarOpened}
                                                   onClick={() => main.setNavbarOpened(!main.navbarOpened)}
                                                   size="sm"
-                                                  mr="xl"
                                                 />
                                               )}
-                                            <Button.Group>
-                                              {!session.player && havePermission(session, Permissions.settings_view)
-                                                && (
-                                                  <Button
-                                                    leftSection={<IconPlayerPlay size={14} />}
-                                                    variant={!location.pathname.startsWith('/player') ? 'subtle' : 'light'}
-                                                    onClick={() => { navigate('/player') }}
-                                                  >
-                                                    Play
-                                                  </Button>
-                                                )}
-                                              {havePermission(session, Permissions.web_player_browse) && (
-                                                <Button
-                                                  rightSection={<IconSettings size={14} />}
-                                                  variant={location.pathname.startsWith('/player') ? 'subtle' : 'light'}
-                                                  onClick={() => { navigate('/') }}
-                                                >
-                                                  Manage
-                                                </Button>
-                                              )}
-                                            </Button.Group>
-                                            <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
-                                              {computedColorScheme === 'dark' ? <IconSun size={16} /> : <IconMoonStars size={16} />}
-                                            </ActionIcon>
+                                            <ModeButtons i18n={i18n} session={session} />
+                                            <ColorSchemeButton />
                                             <LanguagesMenu i18n={i18n} />
                                           </Group>
-                                          <Group justify="right">
+                                          <Group justify="flex-end">
                                             {session.account && session.account.user
                                               && <UserMenu i18n={i18n} session={session}></UserMenu>}
                                           </Group>
