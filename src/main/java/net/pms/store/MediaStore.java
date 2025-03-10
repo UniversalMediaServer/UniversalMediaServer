@@ -61,6 +61,7 @@ import net.pms.store.container.RealFolder;
 import net.pms.store.container.SearchFolder;
 import net.pms.store.container.ServerSettingsFolder;
 import net.pms.store.container.SevenZipFile;
+import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.container.UmsPlaylist;
 import net.pms.store.container.UnattachedFolder;
 import net.pms.store.container.UserVirtualFolder;
@@ -684,7 +685,9 @@ public class MediaStore extends StoreContainer {
 							for (int i = 0; i < storeContainer.getChildren().size(); i++) {
 								final StoreResource child = storeContainer.getChildren().get(i);
 								if (child != null) {
-									tpe.execute(child);
+									if (child instanceof TranscodeVirtualFolder) {
+										tpe.execute(child);
+									}
 									resources.add(child);
 								} else {
 									LOGGER.warn("null child at index {} in {}", i, systemName);
