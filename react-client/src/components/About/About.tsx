@@ -31,7 +31,7 @@ import { aboutApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 import { NavbarItems } from '../../services/navbar-items'
 
-const About = ({ i18n, main, sse, session }: { i18n: I18nInterface, main: MainInterface, sse: ServerEventInterface, session: SessionInterface }) => {
+const About = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any)
   const [memory, setMemory] = useState<UmsMemory>()
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify)

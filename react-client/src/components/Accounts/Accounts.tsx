@@ -32,7 +32,7 @@ import { accountApiUrl, allowHtml } from '../../utils'
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications'
 import { NavbarItems } from '../../services/navbar-items'
 
-const Accounts = ({ i18n, main, sse, session }: { i18n: I18nInterface, main: MainInterface, sse: ServerEventInterface, session: SessionInterface }) => {
+const Accounts = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get('None'))
   const canModifySettings = havePermission(session, Permissions.settings_modify)

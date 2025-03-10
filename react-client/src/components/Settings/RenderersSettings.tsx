@@ -14,31 +14,36 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Checkbox, MultiSelect, Select, Stack, Tooltip } from '@mantine/core';
+import { Accordion, Checkbox, MultiSelect, Select, Stack, Tooltip } from '@mantine/core'
 
-import { havePermission, Permissions } from '../../services/accounts-service';
-import { I18nInterface } from '../../services/i18n-service';
-import { SessionInterface } from '../../services/session-service';
-import { mantineSelectData } from '../../services/settings-service';
-import { allowHtml, defaultTooltipSettings } from '../../utils';
+import { havePermission, Permissions } from '../../services/accounts-service'
+import { I18nInterface } from '../../services/i18n-service'
+import { SessionInterface } from '../../services/session-service'
+import { mantineSelectData } from '../../services/settings-service'
+import { allowHtml, defaultTooltipSettings } from '../../utils'
 
-export default function RenderersSettings(
-  i18n:I18nInterface,
-  session:SessionInterface,
-  form: any,
-  selectionSettings: any,
-) {
-  const canModify = havePermission(session, Permissions.settings_modify);
+export default function RenderersSettings({
+  i18n,
+  session,
+  form,
+  selectionSettings,
+}: {
+  i18n: I18nInterface
+  session: SessionInterface
+  form: any
+  selectionSettings: any
+}) {
+  const canModify = havePermission(session, Permissions.settings_modify)
 
   const getI18nSelectData = (values: mantineSelectData[]) => {
     return values.map((value: mantineSelectData) => {
-      return { value: value.value, label: i18n.getI18nString(value.label) };
-    });
+      return { value: value.value, label: i18n.getI18nString(value.label) }
+    })
   }
 
   return (
     <Accordion>
-      <Accordion.Item value='Renderers'>
+      <Accordion.Item value="Renderers">
         <Accordion.Control>{i18n.get('Renderers')}</Accordion.Control>
         <Accordion.Panel>
           <Stack>
@@ -67,5 +72,5 @@ export default function RenderersSettings(
         </Accordion.Panel>
       </Accordion.Item>
     </Accordion>
-  );
+  )
 }
