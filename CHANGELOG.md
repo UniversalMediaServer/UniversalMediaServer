@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@tabler/icons-react` from 3.30.0 to 3.31.0 ([#5345](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5345))
 - Bump `axios` from 1.8.1 to 1.8.2 ([#5337](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5337))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.2 to 2.18.3 ([#5350](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5350))
 - Bump `com.github.oshi:oshi-core` from 6.6.6 to 6.7.0 ([#5351](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5351))
