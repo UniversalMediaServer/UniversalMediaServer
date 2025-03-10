@@ -26,12 +26,6 @@ portable/
 /src/main/java/net/pms/Test.java
 .recommenders/
 .metadata/
-docker/renderers
-docker/web
-docker/ums.jar
-docker/logback.headless.xml
-docker/linux*
-docker/jre*
 .yarn-integrity
 
 # react web client

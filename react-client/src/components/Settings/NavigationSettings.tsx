@@ -14,51 +14,59 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
+import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core'
 
-import { havePermission, Permissions } from '../../services/accounts-service';
-import { sendAction } from '../../services/actions-service';
-import { I18nInterface } from '../../services/i18n-service';
-import { SessionInterface } from '../../services/session-service';
-import { mantineSelectData } from '../../services/settings-service';
-import { allowHtml, defaultTooltipSettings } from '../../utils';
-import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
+import { havePermission, Permissions } from '../../services/accounts-service'
+import { sendAction } from '../../services/actions-service'
+import { I18nInterface } from '../../services/i18n-service'
+import { SessionInterface } from '../../services/session-service'
+import { mantineSelectData } from '../../services/settings-service'
+import { allowHtml, defaultTooltipSettings } from '../../utils'
+import DirectoryChooser from '../DirectoryChooser/DirectoryChooser'
 
-export default function NavigationSettings(
-  i18n:I18nInterface,
-  session:SessionInterface,
-  form: any,
-  defaultConfiguration: any,
-  selectionSettings: any,
-) {
-  const canModify = havePermission(session, Permissions.settings_modify);
+export default function NavigationSettings({
+  i18n,
+  session,
+  form,
+  defaultConfiguration,
+  selectionSettings,
+}: {
+  i18n: I18nInterface
+  session: SessionInterface
+  form: any
+  defaultConfiguration: any
+  selectionSettings: any
+}) {
+  const canModify = havePermission(session, Permissions.settings_modify)
 
   const getI18nSelectData = (values: mantineSelectData[]) => {
     return values.map((value: mantineSelectData) => {
-      return { value: value.value, label: i18n.getI18nString(value.label) };
-    });
+      return { value: value.value, label: i18n.getI18nString(value.label) }
+    })
   }
 
   const resetCache = async () => {
-    await sendAction('Server.ResetCache');
-  };
+    await sendAction('Server.ResetCache')
+  }
 
   return (
     <Accordion>
-      <Accordion.Item value='NavigationGeneralSettings'>
+      <Accordion.Item value="NavigationGeneralSettings">
         <Accordion.Control>{i18n.get('GeneralSettings')}</Accordion.Control>
         <Accordion.Panel>
-          <Group justify='space-between'>
-            {canModify && (<Tooltip label={allowHtml(i18n.get('CacheEmptiedExceptFullyPlayed'))} {...defaultTooltipSettings}>
-              <Button
-                size='xs'
-                onClick={() => resetCache()}
-              >
-                {i18n.get('ResetCache')}
-              </Button>
-            </Tooltip>)}
+          <Group justify="space-between">
+            {canModify && (
+              <Tooltip label={allowHtml(i18n.get('CacheEmptiedExceptFullyPlayed'))} {...defaultTooltipSettings}>
+                <Button
+                  size="xs"
+                  onClick={() => resetCache()}
+                >
+                  {i18n.get('ResetCache')}
+                </Button>
+              </Tooltip>
+            )}
           </Group>
-          <Stack align='flex-start' mt='xs'>
+          <Stack align="flex-start" mt="xs">
             <Tooltip label={allowHtml(i18n.get('WhenEnabledPartiallyWatchVideo'))} {...defaultTooltipSettings}>
               <Checkbox
                 disabled={!canModify}
@@ -106,12 +114,12 @@ export default function NavigationSettings(
               label={i18n.get('DestinationFolder')}
               path={form.getInputProps('fully_played_output_directory').value}
               callback={form.setFieldValue}
-              formKey='fully_played_output_directory'
+              formKey="fully_played_output_directory"
             />
           )}
         </Accordion.Panel>
       </Accordion.Item>
-      <Accordion.Item value='NavigationThumbnails'>
+      <Accordion.Item value="NavigationThumbnails">
         <Accordion.Control>{i18n.get('Thumbnails')}</Accordion.Control>
         <Accordion.Panel>
           <Checkbox
@@ -132,7 +140,7 @@ export default function NavigationSettings(
             path={form.getInputProps('alternate_thumb_folder').value}
             callback={form.setFieldValue}
             label={i18n.get('AlternateVideoCoverArtFolder')}
-            formKey='alternate_thumb_folder'
+            formKey="alternate_thumb_folder"
           />
           <Select
             disabled={!canModify}
@@ -142,10 +150,10 @@ export default function NavigationSettings(
           />
         </Accordion.Panel>
       </Accordion.Item>
-      <Accordion.Item value='NavigationFileSortingNaming'>
+      <Accordion.Item value="NavigationFileSortingNaming">
         <Accordion.Control>{i18n.get('FileSortingNaming')}</Accordion.Control>
         <Accordion.Panel>
-          <Stack align='flex-start'>
+          <Stack align="flex-start">
             <Select
               disabled={!canModify}
               label={i18n.get('FileOrder')}
@@ -183,14 +191,14 @@ export default function NavigationSettings(
                 label={i18n.get('AddEnginesNamesAfterFilenames')}
                 checked={!form.values['hide_enginenames']}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setFieldValue('hide_enginenames', !event.currentTarget.checked);
+                  form.setFieldValue('hide_enginenames', !event.currentTarget.checked)
                 }}
               />
             </Tooltip>
           </Stack>
         </Accordion.Panel>
       </Accordion.Item>
-      <Accordion.Item value='NavigationVirtualFoldersFiles'>
+      <Accordion.Item value="NavigationVirtualFoldersFiles">
         <Accordion.Control>{i18n.get('VirtualFoldersFiles')}</Accordion.Control>
         <Accordion.Panel>
           <Stack>
@@ -238,5 +246,5 @@ export default function NavigationSettings(
         </Accordion.Panel>
       </Accordion.Item>
     </Accordion>
-  );
+  )
 }

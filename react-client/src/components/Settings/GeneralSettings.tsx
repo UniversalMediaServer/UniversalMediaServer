@@ -14,32 +14,38 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Anchor, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
-import { useLocalStorage } from '@mantine/hooks';
+import { Accordion, Anchor, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core'
+import { useLocalStorage } from '@mantine/hooks'
 
-import { havePermission, Permissions } from '../../services/accounts-service';
-import { I18nInterface } from '../../services/i18n-service';
-import { SessionInterface } from '../../services/session-service';
-import { mantineSelectData } from '../../services/settings-service';
-import { allowHtml, defaultTooltipSettings } from '../../utils';
+import { havePermission, Permissions } from '../../services/accounts-service'
+import { I18nInterface } from '../../services/i18n-service'
+import { SessionInterface } from '../../services/session-service'
+import { mantineSelectData } from '../../services/settings-service'
+import { allowHtml, defaultTooltipSettings } from '../../utils'
 
-export default function GeneralSettings(
-  i18n:I18nInterface,
-  session:SessionInterface,
-  form: any,
-  defaultConfiguration: any,
-  selectionSettings: any,
-) {
-  const canModify = havePermission(session, Permissions.settings_modify);
+export default function GeneralSettings({
+  i18n,
+  session,
+  form,
+  defaultConfiguration,
+  selectionSettings,
+}: {
+  i18n: I18nInterface
+  session: SessionInterface
+  form: any
+  defaultConfiguration: any
+  selectionSettings: any
+}) {
+  const canModify = havePermission(session, Permissions.settings_modify)
   const [advancedSettings, setAdvancedSettings] = useLocalStorage<boolean>({
     key: 'mantine-advanced-settings',
     defaultValue: false,
-  });
+  })
 
   const getI18nSelectData = (values: mantineSelectData[]) => {
     return values.map((value: mantineSelectData) => {
-      return { value: value.value, label: i18n.getI18nString(value.label) };
-    });
+      return { value: value.value, label: i18n.getI18nString(value.label) }
+    })
   }
 
   const getLanguagesSelectData = () => {
@@ -48,14 +54,14 @@ export default function GeneralSettings(
         value: language.id,
         label: language.name
           + (language.name !== language.defaultname ? ' (' + language.defaultname + ')' : '')
-          + (!language.id.startsWith('en-') ? ' (' + language.coverage + '%)' : '')
-      };
-    });
+          + (!language.id.startsWith('en-') ? ' (' + language.coverage + '%)' : ''),
+      }
+    })
   }
 
   return (
     <Accordion>
-      <Accordion.Item value='Application'>
+      <Accordion.Item value="Application">
         <Accordion.Control>{i18n.get('Application')}</Accordion.Control>
         <Accordion.Panel>
           <Checkbox
@@ -69,7 +75,7 @@ export default function GeneralSettings(
             data={getLanguagesSelectData()}
             {...form.getInputProps('language')}
           />
-          <Stack align='flex-start' mt='sm'>
+          <Stack align="flex-start" mt="sm">
             <Checkbox
               disabled={!canModify}
               label={i18n.get('EnableSplashScreen')}
@@ -83,7 +89,7 @@ export default function GeneralSettings(
           </Stack>
         </Accordion.Panel>
       </Accordion.Item>
-      <Accordion.Item value='GUI'>
+      <Accordion.Item value="GUI">
         <Accordion.Control>{i18n.get('GraphicalUserInterface')}</Accordion.Control>
         <Accordion.Panel>
           <Checkbox
@@ -103,7 +109,7 @@ export default function GeneralSettings(
         </Accordion.Panel>
       </Accordion.Item>
       {advancedSettings && (
-        <Accordion.Item value='Services'>
+        <Accordion.Item value="Services">
           <Accordion.Control>{i18n.get('Services')}</Accordion.Control>
           <Accordion.Panel>
             <Group>
@@ -111,20 +117,20 @@ export default function GeneralSettings(
                 disabled={!canModify}
                 label={i18n.get('ServerName')}
                 placeholder={defaultConfiguration.server_name}
-                name='server_name'
+                name="server_name"
                 style={{ flex: 1 }}
                 {...form.getInputProps('server_name')}
               />
               <Tooltip label={allowHtml(i18n.get('WhenEnabledUmsProfileName'))} {...defaultTooltipSettings}>
                 <Checkbox
                   disabled={!canModify}
-                  mt='xl'
+                  mt="xl"
                   label={i18n.get('AppendProfileName')}
                   {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
                 />
               </Tooltip>
             </Group>
-            <Divider mt='md' label={<Text fz='md' c={'var(--mantine-color-text)'}>{i18n.get('MediaServer')}</Text>} />
+            <Divider mt="md" label={<Text fz="md" c="var(--mantine-color-text)">{i18n.get('MediaServer')}</Text>} />
             <NumberInput
               disabled={!canModify}
               placeholder={defaultConfiguration.port}
@@ -132,7 +138,7 @@ export default function GeneralSettings(
               hideControls
               {...form.getInputProps('port')}
             />
-            <Stack mt='sm'>
+            <Stack mt="sm">
               {/* removed until root user choice is implemented
               <Checkbox
                 disabled={!canModify}
@@ -145,29 +151,31 @@ export default function GeneralSettings(
                 label={i18n.get('UPnPDlnaService')}
                 {...form.getInputProps('upnp_enable', { type: 'checkbox' })}
               />
-              {advancedSettings &&
-                <Select
-                  disabled={!canModify}
-                  size='xs'
-                  label={i18n.get('LogLevelColon')}
-                  data={getI18nSelectData(selectionSettings.upnpLoglevels)}
-                  {...form.getInputProps('upnp_log_level')}
-                />
-              }
-              {advancedSettings &&
-                <Checkbox
-                  disabled={!canModify}
-                  label={i18n.get('JUPnPDIDLLite')}
-                  {...form.getInputProps('upnp_jupnp_didl', { type: 'checkbox' })}
-                />
-              }
+              {advancedSettings
+                && (
+                  <Select
+                    disabled={!canModify}
+                    size="xs"
+                    label={i18n.get('LogLevelColon')}
+                    data={getI18nSelectData(selectionSettings.upnpLoglevels)}
+                    {...form.getInputProps('upnp_log_level')}
+                  />
+                )}
+              {advancedSettings
+                && (
+                  <Checkbox
+                    disabled={!canModify}
+                    label={i18n.get('JUPnPDIDLLite')}
+                    {...form.getInputProps('upnp_jupnp_didl', { type: 'checkbox' })}
+                  />
+                )}
               <Checkbox
                 disabled={!canModify}
                 label={i18n.get('MDNSChromecastService')}
                 {...form.getInputProps('chromecast_extension', { type: 'checkbox' })}
               />
             </Stack>
-            <Divider mt='md' label={<Text fz='md' c={'var(--mantine-color-text)'}>{i18n.get('WebPlayer')}</Text>} />
+            <Divider mt="md" label={<Text fz="md" c="var(--mantine-color-text)">{i18n.get('WebPlayer')}</Text>} />
             <Checkbox
               disabled={!canModify}
               label={i18n.get('EnableWebPlayer')}
@@ -180,7 +188,7 @@ export default function GeneralSettings(
               hideControls
               {...form.getInputProps('web_player_port')}
             />
-            <Stack align='flex-start' mt='sm'>
+            <Stack align="flex-start" mt="sm">
               <Checkbox
                 disabled={!canModify || !form.values['web_player_enable']}
                 label={i18n.get('UseAuthenticationService')}
@@ -201,7 +209,7 @@ export default function GeneralSettings(
         </Accordion.Item>
       )}
       {advancedSettings && (
-        <Accordion.Item value='NetworkSettingsAdvanced'>
+        <Accordion.Item value="NetworkSettingsAdvanced">
           <Accordion.Control>{i18n.get('NetworkSettingsAdvanced')}</Accordion.Control>
           <Accordion.Panel>
             <Select
@@ -212,7 +220,7 @@ export default function GeneralSettings(
             />
             <TextInput
               disabled={!canModify}
-              mt='xs'
+              mt="xs"
               label={i18n.get('ForceIpServer')}
               {...form.getInputProps('hostname')}
             />
@@ -228,7 +236,7 @@ export default function GeneralSettings(
               <Tooltip label={allowHtml(i18n.get('ItSetsOptimalBandwidth'))} {...defaultTooltipSettings}>
                 <Checkbox
                   disabled={!canModify}
-                  mt='xl'
+                  mt="xl"
                   label={i18n.get('UseAutomaticMaximumBandwidth')}
                   {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
                 />
@@ -237,7 +245,7 @@ export default function GeneralSettings(
           </Accordion.Panel>
         </Accordion.Item>
       )}
-      <Accordion.Item value='ExternalOutgoingTraffic'>
+      <Accordion.Item value="ExternalOutgoingTraffic">
         <Accordion.Control>{i18n.get('ExternalOutgoingTraffic')}</Accordion.Control>
         <Accordion.Panel>
           <Stack>
@@ -264,22 +272,24 @@ export default function GeneralSettings(
             />
             <TextInput
               disabled={!canModify || !form.values['use_tmdb_info']}
-              mt='xs'
+              mt="xs"
               label={i18n.get('TMDBApiKey')}
-              description=<Anchor
-                href='https://www.themoviedb.org/settings/api'
-                target='_blank'
-                c='dimmed'
-                size='xs'
-                style={{ lineHeight: 1 }}
-              >
-                {i18n.get('ToRegisterTmdbApiKey')}
-              </Anchor>
+              description={(
+                <Anchor
+                  href="https://www.themoviedb.org/settings/api"
+                  target="_blank"
+                  c="dimmed"
+                  size="xs"
+                  style={{ lineHeight: 1 }}
+                >
+                  {i18n.get('ToRegisterTmdbApiKey')}
+                </Anchor>
+              )}
               {...form.getInputProps('tmdb_api_key')}
             />
           </Stack>
         </Accordion.Panel>
       </Accordion.Item>
     </Accordion>
-  );
+  )
 }

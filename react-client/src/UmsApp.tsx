@@ -14,25 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { AppShell, Box, Burger, Center, Group, Loader, ScrollArea, Stack, Text, useDirection } from '@mantine/core'
-
 import { useEffect } from 'react'
-import { Route, Routes, Navigate } from 'react-router-dom'
 
-import About from './components/About/About'
-import Accounts from './components/Accounts/Accounts'
-import Actions from './components/Actions/Actions'
-import ColorSchemeButton from './components/UmsApp/ColorSchemeButton'
-import Home from './components/Home/Home'
-import LanguagesMenu from './components/UmsApp/LanguagesMenu'
-import Login from './components/Login/Login'
-import Logs from './components/Logs/Logs'
-import ModeButtons from './components/UmsApp/ModeButtons'
-import Player from './components/Player/Player'
-import PlayerLogin from './components/PlayerLogin/PlayerLogin'
-import Settings from './components/Settings/Settings'
-import SharedContent from './components/SharedContent/SharedContent'
-import UserMenu from './components/UmsApp/UserMenu'
+import UmsAppShell from './components/UmsApp/UmsAppShell'
 import I18nContext from './contexts/i18n-context'
 import MainContext from './contexts/main-context'
 import PlayerEventContext from './contexts/player-server-event-context'
@@ -43,11 +27,9 @@ import MainProvider from './providers/main-provider'
 import PlayerEventProvider from './providers/player-server-event-provider'
 import ServerEventProvider from './providers/server-event-provider'
 import SessionProvider from './providers/session-provider'
-import { havePermission, Permissions } from './services/accounts-service'
 import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service'
 
 function UmsApp() {
-  const { dir } = useDirection()
   setAxiosAuthorization()
 
   useEffect(() => {
@@ -69,109 +51,7 @@ function UmsApp() {
                             <PlayerEventProvider i18n={i18n} session={session}>
                               <PlayerEventContext.Consumer>
                                 {playersse => (
-                                  <div dir={dir} className="bodyBackgroundImageScreen">
-                                    <AppShell
-                                      padding="md"
-                                      navbar={main.navbarValue
-                                        ? {
-                                            width: { sm: 200, lg: 300 },
-                                            breakpoint: 'sm',
-                                            collapsed: { mobile: !main.navbarOpened, desktop: false },
-                                          }
-                                        : undefined}
-                                      header={{ height: 60 }}
-                                      bg="transparentBg"
-                                    >
-                                      {main.navbarValue && (
-                                        <AppShell.Navbar
-                                          p="xs"
-                                          bg="transparentBg"
-                                        >
-                                          <AppShell.Section grow my="md" component={ScrollArea}>
-                                            <Stack gap={0}>{main.navbarValue}</Stack>
-                                          </AppShell.Section>
-                                        </AppShell.Navbar>
-                                      )}
-                                      <AppShell.Header
-                                        p="xs"
-                                        bg="transparentBg"
-                                      >
-                                        <Group grow preventGrowOverflow={false} gap="xs">
-                                          <Group justify="flex-start" gap="xs">
-                                            {main.navbarValue
-                                              && (
-                                                <Burger
-                                                  hiddenFrom="sm"
-                                                  opened={main.navbarOpened}
-                                                  onClick={() => main.setNavbarOpened(!main.navbarOpened)}
-                                                  size="sm"
-                                                />
-                                              )}
-                                            <ModeButtons i18n={i18n} session={session} />
-                                            <ColorSchemeButton />
-                                            <LanguagesMenu i18n={i18n} />
-                                          </Group>
-                                          <Group justify="flex-end">
-                                            {session.account && session.account.user
-                                              && <UserMenu i18n={i18n} session={session}></UserMenu>}
-                                          </Group>
-                                        </Group>
-                                      </AppShell.Header>
-                                      <AppShell.Main>
-                                        {(session.initialized && session.player)
-                                          ? (
-                                              (!session.authenticate || session.account)
-                                                ? (
-                                                    <Routes>
-                                                      <Route path="about" element={<About i18n={i18n} main={main} sse={sse} session={session} />}></Route>
-                                                      <Route path="player" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
-                                                      <Route path="player/:req/:id" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
-                                                      <Route index element={<Player i18n={i18n} main={main} session={session} sse={playersse} />} />
-                                                    </Routes>
-                                                  )
-                                                : (
-                                                    <PlayerLogin i18n={i18n} main={main} session={session} />
-                                                  )
-                                            )
-                                          : session.account
-                                            ? (
-                                                <Routes>
-                                                  <Route path="about" element={<About i18n={i18n} main={main} sse={sse} session={session} />}></Route>
-                                                  <Route path="accounts" element={<Accounts i18n={i18n} main={main} sse={sse} session={session} />}></Route>
-                                                  <Route path="actions" element={<Actions i18n={i18n} main={main} session={session} />}></Route>
-                                                  <Route path="logs" element={<Logs i18n={i18n} main={main} session={session} sse={sse} />}></Route>
-                                                  <Route path="player" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
-                                                  <Route path="player/:req/:id" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
-                                                  <Route path="settings" element={<Settings i18n={i18n} main={main} sse={sse} session={session} />}></Route>
-                                                  <Route path="shared" element={<SharedContent i18n={i18n} main={main} sse={sse} session={session} />}></Route>
-                                                  {havePermission(session, Permissions.settings_view)
-                                                    ? <Route index element={<Home i18n={i18n} main={main} sse={sse} session={session} />} />
-                                                    : <Route index element={<Player i18n={i18n} main={main} session={session} sse={playersse} />} />}
-                                                  <Route
-                                                    path="/*"
-                                                    element={<Navigate replace to="/" />}
-                                                  />
-                                                </Routes>
-                                              )
-                                            : session.initialized
-                                              ? (
-                                                  <Login i18n={i18n} main={main} session={session} />
-                                                )
-                                              : (
-                                                  <Center>
-                                                    <Box style={{ maxWidth: 1024 }} mx="auto">
-                                                      <Loader size="xl" variant="dots" style={{ marginTop: '150px' }} />
-                                                    </Box>
-                                                  </Center>
-                                                )}
-                                      </AppShell.Main>
-                                      {main.statusLine && (
-                                        <AppShell.Footer>
-                                          <Text>{main.statusLine}</Text>
-                                        </AppShell.Footer>
-                                      )}
-                                    </AppShell>
-                                  </div>
+                                  <UmsAppShell i18n={i18n} main={main} session={session} sse={sse} playersse={playersse} />
                                 )}
                               </PlayerEventContext.Consumer>
                             </PlayerEventProvider>

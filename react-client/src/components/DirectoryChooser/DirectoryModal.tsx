@@ -1,0 +1,104 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+import { Box, Button, Group, LoadingOverlay, Modal, Paper, ScrollArea, Stack } from '@mantine/core'
+import { IconFolder, IconFolders } from '@tabler/icons-react'
+import { directoryData } from '../../services/directory-service'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { openGitHubNewIssue, settingsApiUrl } from '../../utils'
+import DirectoryBreadcrumbs from './DirectoryBreadcrumbs'
+import { I18nInterface } from '../../services/i18n-service'
+import { showError } from '../../utils/notifications'
+
+export default function DirectoryModal({
+  i18n,
+  path,
+  opened,
+  onClose,
+  setSelectedDirectory,
+}: {
+  i18n: I18nInterface
+  path: string
+  opened: boolean
+  onClose: () => void
+  setSelectedDirectory: (value: string) => void
+}) {
+  const [directories, setDirectories] = useState<directoryData[]>([])
+  const [parents, setParents] = useState<directoryData[]>([])
+  const [separator, setSeparator] = useState('/')
+  const [isLoading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getSubdirectories(path)
+  }, [path])
+
+  const getSubdirectories = (path: string) => {
+    setLoading(true)
+    axios.post(settingsApiUrl + 'directories', { path: (path) ? path : '' })
+      .then(function (response: any) {
+        const directoriesResponse = response.data
+        setSeparator(directoriesResponse.separator)
+        setDirectories(directoriesResponse.children)
+        setParents(directoriesResponse.parents.reverse())
+      })
+      .catch(function () {
+        showError({
+          id: 'data-loading',
+          title: i18n.get('Error'),
+          message: i18n.get('SubdirectoriesNotReceived'),
+          onClick: () => { openGitHubNewIssue() },
+        })
+      })
+      .then(function () {
+        setLoading(false)
+      })
+  }
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={() => onClose()}
+      title={(
+        <Group>
+          <IconFolders />
+          {i18n.get('SelectedDirectory')}
+        </Group>
+      )}
+      scrollAreaComponent={ScrollArea.Autosize}
+      size="lg"
+    >
+      <Box mx="auto">
+        <LoadingOverlay visible={isLoading} />
+        <Paper shadow="md" p="xs" withBorder>
+          <DirectoryBreadcrumbs i18n={i18n} separator={separator} parents={parents} setCurrentPath={getSubdirectories} setSelectedDirectory={setSelectedDirectory} />
+        </Paper>
+        <Stack gap="xs" align="flex-start" justify="flex-start" mt="sm">
+          {directories.map(directory => (
+            <Button
+              leftSection={<IconFolder size={18} />}
+              variant="subtle"
+              onClick={() => getSubdirectories(directory.value)}
+              size="compact-md"
+            >
+              {directory.label}
+            </Button>
+          ))}
+        </Stack>
+      </Box>
+    </Modal>
+  )
+}
