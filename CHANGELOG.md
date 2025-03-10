@@ -8,6 +8,7 @@
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.2 to 2.18.3 ([#5350](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5350))
 - Bump `com.github.oshi:oshi-core` from 6.6.6 to 6.7.0 ([#5351](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5351))
 - Bump `org.jsoup:jsoup` from 1.18.3 to 1.19.1 ([#5349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5349))
+- Bump `typescript-eslint` from 8.25.0 to 8.26.0 ([#5344](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5344))
 
 ## [14.11.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.1...14.11.0) (2025-03-08)
 
