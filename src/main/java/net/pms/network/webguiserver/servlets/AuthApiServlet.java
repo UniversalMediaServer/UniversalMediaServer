@@ -49,16 +49,17 @@ public class AuthApiServlet extends GuiHttpServlet {
 				case "/session" -> {
 					JsonObject jObject = new JsonObject();
 					Account account = AuthService.getAccountLoggedIn(req);
-					jObject.add("authenticate", new JsonPrimitive(AuthService.isEnabled()));
-					jObject.add("player", new JsonPrimitive(false));
+					jObject.addProperty("authenticate", AuthService.isEnabled());
+					jObject.addProperty("player", false);
+					jObject.addProperty("serverName", CONFIGURATION.getServerName());
 					if (account != null) {
-						jObject.add("noAdminFound", new JsonPrimitive(false));
+						jObject.addProperty("noAdminFound", false);
 						jObject.add("account", AccountApiServlet.accountToJsonObject(account));
 					}
 					if (!jObject.has("noAdminFound")) {
 						Connection connection = UserDatabase.getConnectionIfAvailable();
 						if (connection != null) {
-							jObject.add("noAdminFound", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
+							jObject.addProperty("noAdminFound", AccountService.hasNoAdmin(connection));
 							UserDatabase.close(connection);
 						} else {
 							LOGGER.error("User database not available");
