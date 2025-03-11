@@ -22,6 +22,7 @@ import About from '../About/About'
 import Accounts from '../Accounts/Accounts'
 import Actions from '../Actions/Actions'
 import ColorSchemeButton from './ColorSchemeButton'
+import Customize from '../Customize/Customize'
 import Home from '../Home/Home'
 import LanguagesMenu from '../UmsApp/LanguagesMenu'
 import Login from '../Login/Login'
@@ -111,6 +112,7 @@ export default function UmsAppShell({ i18n, main, session, sse, playersse }: { i
                     <Route path="about" element={<About i18n={i18n} main={main} session={session} sse={sse} />}></Route>
                     <Route path="accounts" element={<Accounts i18n={i18n} main={main} session={session} sse={sse} />}></Route>
                     <Route path="actions" element={<Actions i18n={i18n} main={main} session={session} />}></Route>
+                    <Route path="customize" element={<Customize i18n={i18n} main={main} session={session} />}></Route>
                     <Route path="logs" element={<Logs i18n={i18n} main={main} session={session} sse={sse} />}></Route>
                     <Route path="player" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
                     <Route path="player/:req/:id" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>

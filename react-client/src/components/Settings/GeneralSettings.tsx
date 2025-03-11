@@ -20,7 +20,6 @@ import { useLocalStorage } from '@mantine/hooks'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
-import { mantineSelectData } from '../../services/settings-service'
 import { allowHtml, defaultTooltipSettings } from '../../utils'
 
 export default function GeneralSettings({
@@ -41,12 +40,6 @@ export default function GeneralSettings({
     key: 'mantine-advanced-settings',
     defaultValue: false,
   })
-
-  const getI18nSelectData = (values: mantineSelectData[]) => {
-    return values.map((value: mantineSelectData) => {
-      return { value: value.value, label: i18n.getI18nString(value.label) }
-    })
-  }
 
   const getLanguagesSelectData = () => {
     return i18n.languages.map((language) => {
@@ -157,7 +150,7 @@ export default function GeneralSettings({
                     disabled={!canModify}
                     size="xs"
                     label={i18n.get('LogLevelColon')}
-                    data={getI18nSelectData(selectionSettings.upnpLoglevels)}
+                    data={i18n.getValueLabelData(selectionSettings.upnpLoglevels)}
                     {...form.getInputProps('upnp_log_level')}
                   />
                 )}
@@ -215,7 +208,7 @@ export default function GeneralSettings({
             <Select
               disabled={!canModify}
               label={i18n.get('ForceNetworkingInterface')}
-              data={getI18nSelectData(selectionSettings.networkInterfaces)}
+              data={i18n.getValueLabelData(selectionSettings.networkInterfaces)}
               {...form.getInputProps('network_interface')}
             />
             <TextInput

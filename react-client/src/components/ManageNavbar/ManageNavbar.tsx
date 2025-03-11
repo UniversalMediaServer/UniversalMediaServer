@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Button } from '@mantine/core'
-import { IconHome, IconInfoCircle, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react'
+import { IconDeviceDesktopCog, IconHome, IconInfoCircle, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 
 import { havePermission, Permissions } from '../../services/accounts-service'
@@ -80,6 +80,15 @@ const ManageNavbar = ({ i18n, session, selectedKey }: { i18n: I18nInterface, ses
         onClick={() => { navigate('/accounts') }}
       >
         {havePermission(session, Permissions.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
+      </Button>
+      <Button
+        color="gray"
+        variant={selectedKey === NavbarItems.Customize ? undefined : 'subtle'}
+        size="compact-md"
+        leftSection={<IconDeviceDesktopCog size={14} />}
+        onClick={() => { navigate('/customize') }}
+      >
+        {i18n.get('Customize')}
       </Button>
       <Button
         color="gray"

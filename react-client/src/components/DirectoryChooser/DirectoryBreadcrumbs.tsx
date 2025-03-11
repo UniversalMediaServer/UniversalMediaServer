@@ -16,8 +16,7 @@
  */
 import { Button, Group, Tooltip } from '@mantine/core'
 import { IconDevices2, IconFolderCheck } from '@tabler/icons-react'
-import { directoryData } from '../../services/directory-service'
-import { I18nInterface } from '../../services/i18n-service'
+import { I18nInterface, ValueLabelData } from '../../services/i18n-service'
 import { ReactNode } from 'react'
 
 export default function DirectoryBreadcrumbs({
@@ -28,12 +27,12 @@ export default function DirectoryBreadcrumbs({
   setSelectedDirectory,
 }: {
   i18n: I18nInterface
-  parents: directoryData[]
+  parents: ValueLabelData[]
   separator?: string
   setCurrentPath: (path: string) => void
   setSelectedDirectory: (path: string) => void
 }) {
-  const getParentButton = (parent: directoryData): ReactNode => {
+  const getParentButton = (parent: ValueLabelData): ReactNode => {
     return (
       <Button
         onClick={() => setCurrentPath(parent.value)}
@@ -45,7 +44,7 @@ export default function DirectoryBreadcrumbs({
     )
   }
 
-  const getLastParentButton = (parent: directoryData): ReactNode => {
+  const getLastParentButton = (parent: ValueLabelData): ReactNode => {
     return (
       <Tooltip label={i18n.get('Select')} color="blue" multiline withArrow={true}>
         <Button

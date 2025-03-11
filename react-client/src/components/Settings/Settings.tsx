@@ -29,7 +29,7 @@ import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { mantineSelectData } from '../../services/settings-service'
-import { openGitHubNewIssue, settingsApiUrl } from '../../utils'
+import { settingsApiUrl } from '../../utils'
 import GeneralSettings from './GeneralSettings'
 import NavigationSettings from './NavigationSettings'
 import RenderersSettings from './RenderersSettings'
@@ -106,8 +106,8 @@ export default function Settings({ i18n, main, session, sse }: { i18n: I18nInter
           showError({
             id: 'data-loading',
             title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
-            onClick: () => { openGitHubNewIssue() },
+            message: i18n.get('ConfigurationNotReceived'),
+            message2: i18n.getReportLink(),
           })
         })
         .then(function () {
@@ -175,8 +175,8 @@ export default function Settings({ i18n, main, session, sse }: { i18n: I18nInter
       updateError({
         id: 'settings-save',
         title: i18n.get('Error'),
-        message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
-        onClick: () => { openGitHubNewIssue() },
+        message: i18n.get('ConfigurationNotSaved'),
+        message2: i18n.getReportLink(),
       })
     }
 

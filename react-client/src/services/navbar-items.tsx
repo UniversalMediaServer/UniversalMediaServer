@@ -20,6 +20,7 @@ export enum NavbarItems {
   SharedContent = 'sharedcontent',
   Tools = 'tools',
   ServerSettings = 'serversettings',
+  Customize = 'customize',
   ManageAccounts = 'manageaccounts',
   About = 'about',
 }

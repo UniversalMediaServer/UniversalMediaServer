@@ -27,7 +27,7 @@ import { sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
-import { openGitHubNewIssue, sharedApiUrl } from '../../utils'
+import { sharedApiUrl } from '../../utils'
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser'
 import { showError, showInfo, showWarning } from '../../utils/notifications'
 import SharedContentText from './SharedContentText'
@@ -91,8 +91,8 @@ export default function SharedContentSettings({
     catch (err) {
       showError({
         title: i18n.get('Error'),
-        message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
-        onClick: () => { openGitHubNewIssue() },
+        message: i18n.get('ConfigurationNotSaved'),
+        message2: i18n.getReportLink(),
       })
     }
     setLoading(false)

@@ -16,12 +16,12 @@
  */
 import { Box, Button, Group, LoadingOverlay, Modal, Paper, ScrollArea, Stack } from '@mantine/core'
 import { IconFolder, IconFolders } from '@tabler/icons-react'
-import { directoryData } from '../../services/directory-service'
-import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { openGitHubNewIssue, settingsApiUrl } from '../../utils'
+import { useEffect, useState } from 'react'
+
 import DirectoryBreadcrumbs from './DirectoryBreadcrumbs'
-import { I18nInterface } from '../../services/i18n-service'
+import { I18nInterface, ValueLabelData } from '../../services/i18n-service'
+import { settingsApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
 export default function DirectoryModal({
@@ -37,8 +37,8 @@ export default function DirectoryModal({
   onClose: () => void
   setSelectedDirectory: (value: string) => void
 }) {
-  const [directories, setDirectories] = useState<directoryData[]>([])
-  const [parents, setParents] = useState<directoryData[]>([])
+  const [directories, setDirectories] = useState<ValueLabelData[]>([])
+  const [parents, setParents] = useState<ValueLabelData[]>([])
   const [separator, setSeparator] = useState('/')
   const [isLoading, setLoading] = useState(true)
 
@@ -60,7 +60,7 @@ export default function DirectoryModal({
           id: 'data-loading',
           title: i18n.get('Error'),
           message: i18n.get('SubdirectoriesNotReceived'),
-          onClick: () => { openGitHubNewIssue() },
+          message2: i18n.getReportLink(),
         })
       })
       .then(function () {

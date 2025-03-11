@@ -23,7 +23,6 @@ import { arrayMove, List } from 'react-movable'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
-import { mantineSelectData } from '../../services/settings-service'
 import { allowHtml, defaultTooltipSettings } from '../../utils'
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser'
 
@@ -49,12 +48,6 @@ export default function TranscodingSettings({
     key: 'mantine-advanced-settings',
     defaultValue: false,
   })
-
-  const getI18nSelectData = (values: mantineSelectData[]) => {
-    return values.map((value: mantineSelectData) => {
-      return { value: value.value, label: i18n.getI18nString(value.label) }
-    })
-  }
 
   const getTranscodingEnginesPriority = (purpose: number) => {
     return form.getInputProps('engines_priority').value !== undefined
@@ -205,7 +198,7 @@ export default function TranscodingSettings({
     return selectionSettings.transcodingEnginesPurposes.map((value: string, index: number) => {
       return (
         <Accordion.Item value={'Transcoding' + index.toString()} key={index}>
-          <Accordion.Control>{i18n.getI18nString(value)}</Accordion.Control>
+          <Accordion.Control>{i18n.getString(value)}</Accordion.Control>
           <Accordion.Panel>{getTranscodingEnginesList(index)}</Accordion.Panel>
         </Accordion.Item>
       )
@@ -428,7 +421,7 @@ export default function TranscodingSettings({
                   disabled={!canModify}
                   size="xs"
                   label={i18n.get('NonUnicodeSubtitleEncoding')}
-                  data={getI18nSelectData(selectionSettings.subtitlesCodepages)}
+                  data={i18n.getValueLabelData(selectionSettings.subtitlesCodepages)}
                   {...form.getInputProps('subtitles_codepage')}
                 />
                 <Checkbox
@@ -622,7 +615,7 @@ export default function TranscodingSettings({
               {' '}
               {i18n.get('ThisEngineNotLoaded')}
             </Text>
-            <Text size="xs">{i18n.getI18nFormat(currentEngine.statusText)}</Text>
+            <Text size="xs">{i18n.getFormat(currentEngine.statusText)}</Text>
           </Stack>
         </>
       )

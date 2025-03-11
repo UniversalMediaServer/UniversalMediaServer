@@ -22,10 +22,9 @@ const MainProvider = ({ children }: { children?: ReactNode }) => {
   const [navbarValue, setNavbarValue] = useState<React.ReactNode>(undefined)
   const [navbarOpened, setNavbarOpened] = useState<boolean>(false)
   const [statusLine, setStatusLine] = useState(undefined)
-  const { Provider } = MainContext
 
   return (
-    <Provider value={{
+    <MainContext.Provider value={{
       navbarValue: navbarValue,
       setNavbarValue: setNavbarValue,
       navbarOpened: navbarOpened,
@@ -35,7 +34,7 @@ const MainProvider = ({ children }: { children?: ReactNode }) => {
     }}
     >
       {children}
-    </Provider>
+    </MainContext.Provider>
   )
 }
 

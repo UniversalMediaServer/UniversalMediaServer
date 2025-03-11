@@ -56,7 +56,7 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
         id: datas.id ? datas.id : 'sse-notification',
         color: datas.color,
         title: datas.title,
-        message: datas.message ? i18n.getI18nString(datas.message) : '',
+        message: datas.message ? i18n.getString(datas.message) : '',
         autoClose: datas.autoClose ? datas.autoClose : true,
       })
     }
@@ -201,9 +201,8 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
     return result
   }
 
-  const { Provider } = ServerEventContext
   return (
-    <Provider value={{
+    <ServerEventContext.Provider value={{
       connectionStatus: connectionStatus,
       memory: memory,
       updateAccounts: updateAccounts,
@@ -219,7 +218,7 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
     }}
     >
       {children}
-    </Provider>
+    </ServerEventContext.Provider>
   )
 }
 

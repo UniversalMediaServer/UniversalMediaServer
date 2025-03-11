@@ -19,7 +19,6 @@ import { Accordion, Checkbox, MultiSelect, Select, Stack, Tooltip } from '@manti
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
-import { mantineSelectData } from '../../services/settings-service'
 import { allowHtml, defaultTooltipSettings } from '../../utils'
 
 export default function RenderersSettings({
@@ -35,12 +34,6 @@ export default function RenderersSettings({
 }) {
   const canModify = havePermission(session, Permissions.settings_modify)
 
-  const getI18nSelectData = (values: mantineSelectData[]) => {
-    return values.map((value: mantineSelectData) => {
-      return { value: value.value, label: i18n.getI18nString(value.label) }
-    })
-  }
-
   return (
     <Accordion>
       <Accordion.Item value="Renderers">
@@ -49,7 +42,7 @@ export default function RenderersSettings({
           <Stack>
             <MultiSelect
               disabled={!canModify}
-              data={getI18nSelectData(selectionSettings.allRendererNames)}
+              data={i18n.getValueLabelData(selectionSettings.allRendererNames)}
               label={i18n.get('EnabledRenderers')}
               {...form.getInputProps('selected_renderers')}
             />
@@ -57,7 +50,7 @@ export default function RenderersSettings({
               disabled={!canModify}
               style={{ flex: 1 }}
               label={i18n.get('DefaultRendererWhenAutoFails')}
-              data={getI18nSelectData(selectionSettings.enabledRendererNames)}
+              data={i18n.getValueLabelData(selectionSettings.enabledRendererNames)}
               {...form.getInputProps('renderer_default')}
               searchable
             />

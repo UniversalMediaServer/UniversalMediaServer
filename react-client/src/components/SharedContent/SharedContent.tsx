@@ -26,7 +26,7 @@ import { I18nInterface } from '../../services/i18n-service'
 import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
-import { openGitHubNewIssue, sharedApiUrl } from '../../utils'
+import { sharedApiUrl } from '../../utils'
 import SharedContentSettings from './SharedContentSettings'
 import { showError, showInfo } from '../../utils/notifications'
 import { NavbarItems } from '../../services/navbar-items'
@@ -76,8 +76,8 @@ export default function SharedContent({ i18n, main, session, sse }: { i18n: I18n
           showError({
             id: 'data-loading',
             title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
-            onClick: () => { openGitHubNewIssue() },
+            message: i18n.get('ConfigurationNotReceived'),
+            message2: i18n.getReportLink(),
           })
         })
         .then(function () {
@@ -121,11 +121,10 @@ export default function SharedContent({ i18n, main, session, sse }: { i18n: I18n
     catch (err) {
       showError({
         title: i18n.get('Error'),
-        message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
-        onClick: () => { openGitHubNewIssue() },
+        message: i18n.get('ConfigurationNotSaved'),
+        message2: i18n.getReportLink(),
       })
     }
-
     setLoading(false)
   }
 
