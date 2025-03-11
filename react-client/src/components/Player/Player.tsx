@@ -772,7 +772,7 @@ const Player = ({ i18n, main, session, sse}: { i18n:I18nInterface, main:MainInte
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box>
-      <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} />
+      <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} loaderProps={{style: {position: 'fixed'}}} />
       {getVideoMetadataEditModal()}
       {getBreadcrumbs()}
       <ScrollArea offsetScrollbars>
