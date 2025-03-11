@@ -97,6 +97,7 @@ export default function DirectoryChooser(props: {
         size={props.size}
         label={props.label}
         disabled={props.disabled}
+        styles={{ input: { cursor: 'pointer' } }}
         style={{ flex: 1 }}
         value={props.path}
         placeholder={props.placeholder}

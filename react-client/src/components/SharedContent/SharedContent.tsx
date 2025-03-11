@@ -41,9 +41,8 @@ export default function SharedContent({ i18n, main, session, sse }: { i18n: I18n
   const canModify = havePermission(session, Permissions.settings_modify)
   const canView = canModify || havePermission(session, Permissions.settings_view)
 
-  // set the document Title to Shared Content
   useEffect(() => {
-    document.title = 'Universal Media Server - Shared Content'
+    session.setDocumentTitle('Shared Content')
     session.useSseAs('SharedContent')
     session.stopPlayerSse()
   }, [])

@@ -57,12 +57,14 @@ const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainI
 
   // set the document title to last breadCrumbs Name else default
   useEffect(() => {
-    let subTitle = ''
     if (hasBreadcrumbs()) {
       const lastBreadCrumb = data.breadcrumbs[data.breadcrumbs.length - 1]
-      subTitle = getI18nName(lastBreadCrumb.name)
+      const documentTitle = getI18nName(lastBreadCrumb.name)
+      session.setDocumentTitle(documentTitle)
     }
-    document.title = `Universal Media Server${(subTitle ? ' - ' : '') + subTitle}`
+    else {
+      session.setDocumentTitle('')
+    }
   }, [data.breadcrumbs])
 
   const refreshPage = () => {

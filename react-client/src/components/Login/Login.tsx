@@ -82,9 +82,8 @@ const Login = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInterfa
     )
   }
 
-  // set the document Title to Login
   useEffect(() => {
-    document.title = 'Universal Media Server - Login'
+    session.setDocumentTitle('Login')
     session.stopSse()
     session.stopPlayerSse()
     main.setNavbarValue(undefined)

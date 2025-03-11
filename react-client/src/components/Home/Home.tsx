@@ -87,6 +87,7 @@ const Home = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
   }, [canView])
 
   useEffect(() => {
+    session.setDocumentTitle('')
     session.useSseAs('Home')
     session.stopPlayerSse()
   }, [])

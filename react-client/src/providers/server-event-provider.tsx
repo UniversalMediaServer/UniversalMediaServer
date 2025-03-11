@@ -109,6 +109,9 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
             setReloadable(datas.value)
             break
           case 'set_configuration_changed':
+            if (datas.value && datas.value.server_name) {
+              session.setServerName(datas.value.server_name)
+            }
             setUserConfiguration(datas.value)
             break
           case 'set_media_scan_status':
