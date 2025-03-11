@@ -59,4 +59,7 @@ export interface SessionInterface extends UmsSession {
   usePlayerSse: boolean
   startPlayerSse: () => void
   stopPlayerSse: () => void
+  serverName: string
+  setServerName: (serverName: string) => void
+  setDocumentTitle: (documentTitle: string) => void
 }

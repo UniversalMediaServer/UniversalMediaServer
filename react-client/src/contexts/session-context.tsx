@@ -32,6 +32,9 @@ const SessionContext: Context<SessionInterface> = createContext({
   usePlayerSse: false,
   startPlayerSse: () => { },
   stopPlayerSse: () => { },
+  serverName: 'Universal Media Server',
+  setServerName: (_serverName: string) => { },
+  setDocumentTitle: (_documentTitle: string) => { },
 } as SessionInterface)
 
 export default SessionContext

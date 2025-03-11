@@ -71,9 +71,8 @@ export default function Settings({ i18n, main, session, sse }: { i18n: I18nInter
   const canModify = havePermission(session, Permissions.settings_modify)
   const canView = canModify || havePermission(session, Permissions.settings_view)
 
-  // set the document Title to Server Settings
   useEffect(() => {
-    document.title = 'Universal Media Server - Server Settings'
+    session.setDocumentTitle('Server Settings')
     session.useSseAs('Settings')
     session.stopPlayerSse()
   }, [])

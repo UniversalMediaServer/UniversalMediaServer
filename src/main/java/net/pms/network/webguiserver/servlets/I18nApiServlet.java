@@ -48,7 +48,6 @@ public class I18nApiServlet extends GuiHttpServlet {
 			switch (path) {
 				case "/" -> {
 					String language = req.getParameter(LANGUAGE_MEMBER_NAME);
-					String version = req.getParameter(VERSION_MEMBER_NAME);
 					if (language != null) {
 						Locale locale = Languages.toLocale(language);
 						if (locale == null) {
@@ -85,9 +84,9 @@ public class I18nApiServlet extends GuiHttpServlet {
 			var path = req.getPathInfo();
 			switch (path) {
 				case "/" -> {
-					JsonObject version = new JsonObject();
-					version.addProperty(VERSION_MEMBER_NAME, PropertiesUtil.getProjectProperties().get("git.commit.id"));
-					respond(req, resp, version.toString(), 200, "application/json");
+					JsonObject app = new JsonObject();
+					app.addProperty(VERSION_MEMBER_NAME, PropertiesUtil.getProjectProperties().get("git.commit.id"));
+					respond(req, resp, app.toString(), 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("I18nApiServlet request not available : {}", path);

@@ -44,9 +44,8 @@ const Accounts = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: Mai
   const [userOpened, setUserOpened] = useState<string | null>(null)
   const [groupOpened, setGroupOpened] = useState<string | null>(null)
 
-  // set the document Title to Accounts
   useEffect(() => {
-    document.title = 'Universal Media Server - Accounts'
+    session.setDocumentTitle('Accounts')
     session.useSseAs('Accounts')
     session.stopPlayerSse()
   }, [])

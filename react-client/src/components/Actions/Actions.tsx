@@ -58,9 +58,8 @@ const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInter
     await sendAction('Process.Exit')
   }
 
-  // set the document Title to Tools
   useEffect(() => {
-    document.title = 'Universal Media Server - Tools'
+    session.setDocumentTitle('Tools')
     session.stopSse()
     session.stopPlayerSse()
   }, [])

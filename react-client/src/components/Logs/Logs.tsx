@@ -92,9 +92,8 @@ const Logs = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
     return 0
   }
 
-  // set the document Title to Logs
   useEffect(() => {
-    document.title = 'Universal Media Server - Logs'
+    session.setDocumentTitle('Logs')
     session.useSseAs('Logs')
     session.stopPlayerSse()
     main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Tools} />)

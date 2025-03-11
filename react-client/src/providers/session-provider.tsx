@@ -29,11 +29,14 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const [session, setSession] = useState<UmsSession>({ noAdminFound: false, authenticate: true, player: false })
   const [sse, setSse] = useState('')
   const [playerSse, setPlayerSse] = useState(false)
+  const [serverName, setServerName] = useState<string>('Universal Media Server')
+  const [documentTitle, setDocumentTitle] = useState<string>('')
 
   const refresh = () => {
     axios.get(authApiUrl + 'session')
       .then(function (response: any) {
         setSession({ ...response.data })
+        setServerName(response.data.serverName ? response.data.serverName : 'Universal Media Server')
         setInitialized(true)
       })
       .catch(function () {
@@ -65,6 +68,15 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const stopPlayerSse = () => {
     setPlayerSse(false)
   }
+
+  useEffect(() => {
+    if (documentTitle) {
+      document.title = serverName + ' - ' + documentTitle
+    }
+    else {
+      document.title = serverName
+    }
+  }, [serverName, documentTitle])
 
   useEffect(() => {
     if (initialized) {
@@ -103,6 +115,9 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       usePlayerSse: playerSse,
       stopPlayerSse: stopPlayerSse,
       startPlayerSse: startPlayerSse,
+      serverName: serverName,
+      setServerName: setServerName,
+      setDocumentTitle: setDocumentTitle,
     }}
     >
       {children}

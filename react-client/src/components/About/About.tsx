@@ -70,9 +70,8 @@ const About = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainIn
     </Table.Tr>
   ))
 
-  // set the document Title to About
   useEffect(() => {
-    document.title = 'Universal Media Server - About'
+    session.setDocumentTitle('About')
     if (canView && !session.player) {
       session.useSseAs('About')
     }

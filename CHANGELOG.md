@@ -3,11 +3,19 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@playwright/test` from 1.50.1 to 1.51.0 ([#5343](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5343))
 - Bump `@tabler/icons-react` from 3.30.0 to 3.31.0 ([#5345](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5345))
 - Bump `axios` from 1.8.1 to 1.8.2 ([#5337](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5337))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.2 to 2.18.3 ([#5350](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5350))
 - Bump `com.github.oshi:oshi-core` from 6.6.6 to 6.7.0 ([#5351](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5351))
+- Bump `com.puppycrawl.tools:checkstyle` from 10.21.1 to 10.21.4 ([#5348](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5348))
+- Bump `eslint` from 9.21.0 to 9.22.0
 - Bump `org.jsoup:jsoup` from 1.18.3 to 1.19.1 ([#5349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5349))
+- Bump `react-router-dom` from 7.2.0 to 7.3.0 ([#5342](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5342))
+- Bump `typescript-eslint` from 8.25.0 to 8.26.0 ([#5344](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5344))
+- Bump `typescript` from 5.7.3 to 5.8.2 ([#5346](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5346))
+- Bump `vite` from 6.2.0 to 6.2.1
+- Bump `yarn` from 4.6.0 to 4.7.0
 
 ## [14.11.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.1...14.11.0) (2025-03-08)
 
