@@ -183,7 +183,6 @@ export default function TranscodingSettings({
                 variant="subtle"
                 color="gray"
                 size="compact-xs"
-                key={value}
                 leftSection={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
                 onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
               >
@@ -197,7 +196,7 @@ export default function TranscodingSettings({
   const getTranscodingEnginesAccordionItems = () => {
     return selectionSettings.transcodingEnginesPurposes.map((value: string, index: number) => {
       return (
-        <Accordion.Item value={'Transcoding' + index.toString()} key={index}>
+        <Accordion.Item value={'Transcoding' + index.toString()}>
           <Accordion.Control>{i18n.getString(value)}</Accordion.Control>
           <Accordion.Panel>{getTranscodingEnginesList(index)}</Accordion.Panel>
         </Accordion.Item>
