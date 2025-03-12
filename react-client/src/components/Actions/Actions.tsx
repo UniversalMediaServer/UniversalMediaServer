@@ -57,18 +57,18 @@ const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInter
   }
 
   useEffect(() => {
-    session.setDocumentTitle('Tools')
     session.stopSse()
     session.stopPlayerSse()
-    main.setNavbarItem(i18n, session, Actions.name)
-  }, [])
-
-  useEffect(() => {
     axios.get(actionsApiUrl)
       .then((response) => {
         setActionsValues(response.data)
       })
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('Tools'))
+    main.setNavbarItem(i18n, session, Actions.name)
+  }, [i18n, session.account])
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">

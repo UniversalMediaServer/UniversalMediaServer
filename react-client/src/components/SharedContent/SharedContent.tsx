@@ -40,11 +40,14 @@ export default function SharedContent({ i18n, main, session, sse }: { i18n: I18n
   const canView = canModify || havePermission(session, Permissions.settings_view)
 
   useEffect(() => {
-    session.setDocumentTitle('Shared Content')
-    session.useSseAs('SharedContent')
+    session.useSseAs(SharedContent.name)
     session.stopPlayerSse()
-    main.setNavbarItem(i18n, session, SharedContent.name)
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('SharedContent'))
+    main.setNavbarItem(i18n, session, SharedContent.name)
+  }, [i18n, session.account])
 
   useEffect(() => {
     if (sse.userConfiguration === null) {

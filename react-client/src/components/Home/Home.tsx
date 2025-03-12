@@ -86,10 +86,13 @@ const Home = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
 
   useEffect(() => {
     session.setDocumentTitle('')
-    session.useSseAs('Home')
+    session.useSseAs(Home.name)
     session.stopPlayerSse()
-    main.setNavbarItem(i18n, session, Home.name)
   }, [])
+
+  useEffect(() => {
+    main.setNavbarItem(i18n, session, Home.name)
+  }, [i18n, session.account])
 
   const refreshData = async () => {
     setLoading(true)

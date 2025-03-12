@@ -69,16 +69,19 @@ const About = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainIn
   ))
 
   useEffect(() => {
-    session.setDocumentTitle('About')
     if (canView && !session.player) {
-      session.useSseAs('About')
+      session.useSseAs(About.name)
     }
     else {
       session.stopSse()
     }
     session.stopPlayerSse()
-    main.setNavbarItem(i18n, session, About.name)
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('About'))
+    main.setNavbarItem(i18n, session, About.name)
+  }, [i18n, session.account])
 
   useEffect(() => {
     axios.get(aboutApiUrl)

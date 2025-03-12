@@ -37,11 +37,14 @@ const Accounts = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: Mai
   const [filled, setFilled] = useState(false)
 
   useEffect(() => {
-    session.setDocumentTitle('Accounts')
-    session.useSseAs('Accounts')
+    session.useSseAs(Accounts.name)
     session.stopPlayerSse()
-    main.setNavbarItem(i18n, session, Accounts.name)
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('ManageAccounts'))
+    main.setNavbarItem(i18n, session, Accounts.name)
+  }, [i18n, session.account])
 
   useEffect(() => {
     if (filled && !sse.updateAccounts) {

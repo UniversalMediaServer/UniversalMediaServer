@@ -70,11 +70,14 @@ export default function Settings({ i18n, main, session, sse }: { i18n: I18nInter
   const canView = canModify || havePermission(session, Permissions.settings_view)
 
   useEffect(() => {
-    session.setDocumentTitle('Server Settings')
-    session.useSseAs('Settings')
+    session.useSseAs(Settings.name)
     session.stopPlayerSse()
-    main.setNavbarItem(i18n, session, Settings.name)
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('ServerSettings'))
+    main.setNavbarItem(i18n, session, Settings.name)
+  }, [i18n, session.account])
 
   useEffect(() => {
     if (sse.userConfiguration === null) {

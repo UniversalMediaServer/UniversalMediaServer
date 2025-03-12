@@ -28,11 +28,14 @@ import ScrollbarSize from './ScrollbarSize'
 
 const Customize = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
   useEffect(() => {
-    session.setDocumentTitle('Customize')
     session.stopSse()
     session.stopPlayerSse()
-    main.setNavbarItem(i18n, session, Customize.name)
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('Customize'))
+    main.setNavbarItem(i18n, session, Customize.name)
+  }, [i18n, session.account])
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">

@@ -30,7 +30,7 @@ import Accounts from '../Accounts/Accounts'
 import Customize from '../Customize/Customize'
 import About from '../About/About'
 
-const ManageNavbar = ({ i18n, session, from }: { i18n: I18nInterface, session: SessionInterface, from: string }) => {
+export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterface, session: SessionInterface, from: string }) {
   const navigate = useNavigate()
   return (
     <>
@@ -111,5 +111,3 @@ const ManageNavbar = ({ i18n, session, from }: { i18n: I18nInterface, session: S
     </>
   )
 }
-
-export default ManageNavbar

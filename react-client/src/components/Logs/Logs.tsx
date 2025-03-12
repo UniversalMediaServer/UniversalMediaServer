@@ -91,11 +91,14 @@ const Logs = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
   }
 
   useEffect(() => {
-    session.setDocumentTitle('Logs')
-    session.useSseAs('Logs')
+    session.useSseAs(Logs.name)
     session.stopPlayerSse()
-    main.setNavbarItem(i18n, session, Logs.name)
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('Logs'))
+    main.setNavbarItem(i18n, session, Logs.name)
+  }, [i18n, session.account])
 
   useEffect(() => {
     if (!canModify || fileMode) {
