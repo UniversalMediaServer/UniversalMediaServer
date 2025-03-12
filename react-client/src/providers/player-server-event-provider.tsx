@@ -156,7 +156,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
         id: datas.id ? datas.id : 'sse-notification',
         color: datas.color,
         title: datas.title,
-        message: datas.message ? i18n.getI18nString(datas.message) : '',
+        message: datas.message ? i18n.getString(datas.message) : '',
         autoClose: datas.autoClose ? datas.autoClose : true,
       })
     }
@@ -280,10 +280,8 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     }
   }, [session.usePlayerSse])
 
-  const { Provider } = PlayerEventContext
-
   return (
-    <Provider value={{
+    <PlayerEventContext.Provider value={{
       uuid: uuid,
       connectionStatus: connectionStatus,
       reqId: reqId,
@@ -295,7 +293,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     }}
     >
       {children}
-    </Provider>
+    </PlayerEventContext.Provider>
   )
 }
 

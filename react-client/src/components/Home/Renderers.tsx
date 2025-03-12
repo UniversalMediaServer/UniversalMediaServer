@@ -80,7 +80,7 @@ const Renderers = (
         <tbody>
           {infos?.details.map((detail: RendererDetail) => (
             <Table.Tr key={detail.key}>
-              <Table.Td>{i18n.getI18nString(detail.key)}</Table.Td>
+              <Table.Td>{i18n.getString(detail.key)}</Table.Td>
               <Table.Td>{detail.value}</Table.Td>
             </Table.Tr>
           ))}

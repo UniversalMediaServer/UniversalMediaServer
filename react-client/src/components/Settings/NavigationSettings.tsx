@@ -20,7 +20,6 @@ import { havePermission, Permissions } from '../../services/accounts-service'
 import { sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
-import { mantineSelectData } from '../../services/settings-service'
 import { allowHtml, defaultTooltipSettings } from '../../utils'
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser'
 
@@ -38,12 +37,6 @@ export default function NavigationSettings({
   selectionSettings: any
 }) {
   const canModify = havePermission(session, Permissions.settings_modify)
-
-  const getI18nSelectData = (values: mantineSelectData[]) => {
-    return values.map((value: mantineSelectData) => {
-      return { value: value.value, label: i18n.getI18nString(value.label) }
-    })
-  }
 
   const resetCache = async () => {
     await sendAction('Server.ResetCache')
@@ -104,7 +97,7 @@ export default function NavigationSettings({
           <Select
             disabled={!canModify}
             label={i18n.get('FullyPlayedAction')}
-            data={getI18nSelectData(selectionSettings.fullyPlayedActions)}
+            data={i18n.getValueLabelData(selectionSettings.fullyPlayedActions)}
             {...form.getInputProps('fully_played_action')}
           />
           {(form.values['fully_played_action'] === '3' || form.values['fully_played_action'] === '5') && (
@@ -145,7 +138,7 @@ export default function NavigationSettings({
           <Select
             disabled={!canModify}
             label={i18n.get('AudioThumbnailsImport')}
-            data={getI18nSelectData(selectionSettings.audioCoverSuppliers)}
+            data={i18n.getValueLabelData(selectionSettings.audioCoverSuppliers)}
             {...form.getInputProps('audio_thumbnails_method')}
           />
         </Accordion.Panel>
@@ -157,7 +150,7 @@ export default function NavigationSettings({
             <Select
               disabled={!canModify}
               label={i18n.get('FileOrder')}
-              data={getI18nSelectData(selectionSettings.sortMethods)}
+              data={i18n.getValueLabelData(selectionSettings.sortMethods)}
               {...form.getInputProps('sort_method')}
             />
             <Checkbox
@@ -181,7 +174,7 @@ export default function NavigationSettings({
               <Select
                 disabled={!canModify}
                 label={i18n.get('AddSubtitlesInformationVideoNames')}
-                data={getI18nSelectData(selectionSettings.subtitlesInfoLevels)}
+                data={i18n.getValueLabelData(selectionSettings.subtitlesInfoLevels)}
                 {...form.getInputProps('subs_info_level')}
               />
             </Tooltip>

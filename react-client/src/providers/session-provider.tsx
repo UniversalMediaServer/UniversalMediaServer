@@ -99,9 +99,8 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     })
   }, [initialized])
 
-  const { Provider } = SessionContext
   return (
-    <Provider value={{
+    <SessionContext.Provider value={{
       initialized: initialized,
       authenticate: session.authenticate,
       noAdminFound: session.noAdminFound,
@@ -121,7 +120,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     }}
     >
       {children}
-    </Provider>
+    </SessionContext.Provider>
   )
 }
 

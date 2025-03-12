@@ -22,20 +22,18 @@ import _ from 'lodash'
 import { useEffect, useState } from 'react'
 import { IconCheck, IconExclamationMark } from '@tabler/icons-react'
 
-import ManageNavbar from '../ManageNavbar/ManageNavbar'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { mantineSelectData } from '../../services/settings-service'
-import { openGitHubNewIssue, settingsApiUrl } from '../../utils'
+import { settingsApiUrl } from '../../utils'
 import GeneralSettings from './GeneralSettings'
 import NavigationSettings from './NavigationSettings'
 import RenderersSettings from './RenderersSettings'
 import TranscodingSettings from './TranscodingSettings'
 import { showError, showLoading, updateError, updateInfo, updateSuccess } from '../../utils/notifications'
-import { NavbarItems } from '../../services/navbar-items'
 
 export default function Settings({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) {
   const [advancedSettings] = useLocalStorage<boolean>({
@@ -72,10 +70,14 @@ export default function Settings({ i18n, main, session, sse }: { i18n: I18nInter
   const canView = canModify || havePermission(session, Permissions.settings_view)
 
   useEffect(() => {
-    session.setDocumentTitle('Server Settings')
-    session.useSseAs('Settings')
+    session.useSseAs(Settings.name)
     session.stopPlayerSse()
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('ServerSettings'))
+    main.setNavbarItem(i18n, session, Settings.name)
+  }, [i18n, session.account])
 
   useEffect(() => {
     if (sse.userConfiguration === null) {
@@ -106,8 +108,8 @@ export default function Settings({ i18n, main, session, sse }: { i18n: I18nInter
           showError({
             id: 'data-loading',
             title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
-            onClick: () => { openGitHubNewIssue() },
+            message: i18n.get('ConfigurationNotReceived'),
+            message2: i18n.getReportLink(),
           })
         })
         .then(function () {
@@ -115,10 +117,6 @@ export default function Settings({ i18n, main, session, sse }: { i18n: I18nInter
         })
     }
   }, [canView, formSetValues])
-
-  useEffect(() => {
-    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.ServerSettings} />)
-  }, [i18n.get, main.setNavbarValue])
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true)
@@ -175,8 +173,8 @@ export default function Settings({ i18n, main, session, sse }: { i18n: I18nInter
       updateError({
         id: 'settings-save',
         title: i18n.get('Error'),
-        message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
-        onClick: () => { openGitHubNewIssue() },
+        message: i18n.get('ConfigurationNotSaved'),
+        message2: i18n.getReportLink(),
       })
     }
 

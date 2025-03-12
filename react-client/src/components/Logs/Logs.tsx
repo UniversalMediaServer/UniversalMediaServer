@@ -30,8 +30,6 @@ import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
-import ManageNavbar from '../ManageNavbar/ManageNavbar'
-import { NavbarItems } from '../../services/navbar-items'
 
 const Logs = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify)
@@ -93,11 +91,14 @@ const Logs = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
   }
 
   useEffect(() => {
-    session.setDocumentTitle('Logs')
-    session.useSseAs('Logs')
+    session.useSseAs(Logs.name)
     session.stopPlayerSse()
-    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Tools} />)
   }, [])
+
+  useEffect(() => {
+    session.setDocumentTitle(i18n.get('Logs'))
+    main.setNavbarItem(i18n, session, Logs.name)
+  }, [i18n, session.account])
 
   useEffect(() => {
     if (!canModify || fileMode) {

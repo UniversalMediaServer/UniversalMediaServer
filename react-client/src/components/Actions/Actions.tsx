@@ -26,8 +26,6 @@ import { I18nInterface } from '../../services/i18n-service'
 import { MainInterface } from '../../services/main-service'
 import { SessionInterface } from '../../services/session-service'
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils'
-import ManageNavbar from '../ManageNavbar/ManageNavbar'
-import { NavbarItems } from '../../services/navbar-items'
 
 const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify)
@@ -59,12 +57,8 @@ const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInter
   }
 
   useEffect(() => {
-    session.setDocumentTitle('Tools')
     session.stopSse()
     session.stopPlayerSse()
-  }, [])
-
-  useEffect(() => {
     axios.get(actionsApiUrl)
       .then((response) => {
         setActionsValues(response.data)
@@ -72,8 +66,9 @@ const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInter
   }, [])
 
   useEffect(() => {
-    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Tools} />)
-  }, [i18n.get, main.setNavbarValue])
+    session.setDocumentTitle(i18n.get('Tools'))
+    main.setNavbarItem(i18n, session, Actions.name)
+  }, [i18n, session.account])
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">

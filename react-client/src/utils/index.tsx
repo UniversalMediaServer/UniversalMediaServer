@@ -18,10 +18,6 @@ export function allowHtml(content: string) {
   return (<span dangerouslySetInnerHTML={{ __html: content }}></span>)
 }
 
-export const openGitHubNewIssue = () => {
-  window.open('https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new', '_blank')
-}
-
 export const defaultTooltipSettings = {
   width: 350,
   color: 'blue',
@@ -29,6 +25,7 @@ export const defaultTooltipSettings = {
   withArrow: true,
 }
 
+export const gitHubNewIssueUrl = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new'
 export const aboutApiUrl = '/v1/api/about/'
 export const actionsApiUrl = '/v1/api/actions/'
 export const accountApiUrl = '/v1/api/account/'

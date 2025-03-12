@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ColorSchemeScript, DirectionProvider, MantineProvider, virtualColor } from '@mantine/core'
+import { ColorSchemeScript, DirectionProvider, MantineProvider, MultiSelect, ScrollArea, ScrollAreaAutosize, Select, virtualColor } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/core/styles.css'
 import '@mantine/dropzone/styles.css'
@@ -22,8 +22,13 @@ import '@mantine/notifications/styles.css'
 import { BrowserRouter } from 'react-router-dom'
 
 import UmsApp from './UmsApp'
+import { useLocalStorage } from '@mantine/hooks'
 
 function App() {
+  const [scrollbarSize] = useLocalStorage<number>({
+    key: 'mantine-scrollbar-size',
+    defaultValue: 10,
+  })
   return (
     <DirectionProvider>
       <ColorSchemeScript defaultColorScheme="auto" localStorageKey="mantine-color-scheme" />
@@ -36,6 +41,36 @@ function App() {
               name: 'transparentBg',
               dark: 'darkTransparent',
               light: 'lightTransparent',
+            }),
+          },
+          components: {
+            ScrollArea: ScrollArea.extend({
+              defaultProps: {
+                scrollbarSize: scrollbarSize,
+                offsetScrollbars: true,
+              },
+            }),
+            ScrollAreaAutosize: ScrollAreaAutosize.extend({
+              defaultProps: {
+                scrollbarSize: scrollbarSize,
+                offsetScrollbars: true,
+              },
+            }),
+            Select: Select.extend({
+              defaultProps: {
+                scrollAreaProps: {
+                  scrollbarSize: scrollbarSize,
+                  offsetScrollbars: true,
+                },
+              },
+            }),
+            MultiSelect: MultiSelect.extend({
+              defaultProps: {
+                scrollAreaProps: {
+                  scrollbarSize: scrollbarSize,
+                  offsetScrollbars: true,
+                },
+              },
             }),
           },
         }}

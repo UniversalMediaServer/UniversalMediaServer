@@ -16,7 +16,9 @@
  */
 import { Context, createContext } from 'react'
 
+import { I18nInterface } from '../services/i18n-service'
 import { MainInterface } from '../services/main-service'
+import { SessionInterface } from '../services/session-service'
 
 const MainContext: Context<MainInterface> = createContext({
   navbarValue: undefined as React.ReactNode,
@@ -25,6 +27,7 @@ const MainContext: Context<MainInterface> = createContext({
   setNavbarOpened: (_navbarOpened: boolean) => { },
   statusLine: undefined,
   setStatusLine: (_statusLine: any) => { },
+  setNavbarItem: (_i18n: I18nInterface, _session: SessionInterface, _navbarItem: string) => { },
 })
 
 export default MainContext

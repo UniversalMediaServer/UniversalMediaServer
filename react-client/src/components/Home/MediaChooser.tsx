@@ -21,7 +21,7 @@ import { useState, ReactNode } from 'react'
 
 import { Media } from '../../services/home-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { openGitHubNewIssue, renderersApiUrl } from '../../utils'
+import { renderersApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
 export default function MediaChooser(props: {
@@ -71,7 +71,7 @@ export default function MediaChooser(props: {
           id: 'data-loading',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          onClick: () => { openGitHubNewIssue() },
+          message2: i18n.getReportLink(),
         })
       })
       .then(function () {

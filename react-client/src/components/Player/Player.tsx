@@ -43,10 +43,10 @@ const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainI
   const getI18nName = (name: string | undefined) => {
     const nameData = name ? name.split('|') : ['']
     if (nameData.length > 1) {
-      return i18n.getI18nFormat(nameData)
+      return i18n.getFormat(nameData)
     }
     else {
-      return i18n.getI18nString(nameData[0])
+      return i18n.getString(nameData[0])
     }
   }
 
@@ -897,7 +897,7 @@ const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainI
           <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} loaderProps={{ style: { position: 'fixed' } }} />
           {getVideoMetadataEditModal()}
           {getBreadcrumbs()}
-          <ScrollArea offsetScrollbars>
+          <ScrollArea>
             {
               data.goal === 'play'
                 ? (

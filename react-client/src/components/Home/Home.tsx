@@ -20,7 +20,6 @@ import _ from 'lodash'
 import { useEffect, useState } from 'react'
 import { IconCheck, IconExclamationMark } from '@tabler/icons-react'
 
-import ManageNavbar from '../ManageNavbar/ManageNavbar'
 import Renderers from './Renderers'
 import NetworkDevices from './NetworkDevices'
 import { renderersApiUrl } from '../../utils'
@@ -31,7 +30,6 @@ import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications'
-import { NavbarItems } from '../../services/navbar-items'
 
 const Home = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const [renderers, setRenderers] = useState([] as Renderer[])
@@ -88,13 +86,13 @@ const Home = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
 
   useEffect(() => {
     session.setDocumentTitle('')
-    session.useSseAs('Home')
+    session.useSseAs(Home.name)
     session.stopPlayerSse()
   }, [])
 
   useEffect(() => {
-    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Home} />)
-  }, [i18n.get, main.setNavbarValue])
+    main.setNavbarItem(i18n, session, Home.name)
+  }, [i18n, session.account])
 
   const refreshData = async () => {
     setLoading(true)

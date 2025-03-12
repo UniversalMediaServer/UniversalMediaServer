@@ -14,6 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { I18nInterface } from './i18n-service'
+import { SessionInterface } from './session-service'
+
 export interface MainInterface {
   navbarValue: React.ReactNode
   setNavbarValue: (navbarValue: React.ReactNode) => void
@@ -21,4 +24,5 @@ export interface MainInterface {
   setNavbarOpened: (navbarOpened: boolean) => void
   statusLine: any
   setStatusLine: (statusLine: any) => void
+  setNavbarItem: (i18n: I18nInterface, session: SessionInterface, navbarItem: string) => void
 }
