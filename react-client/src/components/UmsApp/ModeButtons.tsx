@@ -36,27 +36,46 @@ export default function ModeButtons({ i18n, session }: { i18n: I18nInterface, se
   })
 
   return isNeeded
-    ? (
-        <Button.Group>
-          <Button
-            size="compact-md"
-            leftSection={playerSection}
-            variant={!inPlayer ? 'default' : 'filled'}
-            onClick={() => { navigate('/player') }}
-          >
-            <Box visibleFrom="sm">{i18n.get('Play')}</Box>
-            <Box hiddenFrom="sm"><IconPlayerPlay size={16} /></Box>
-          </Button>
-          <Button
-            size="compact-md"
-            rightSection={manageSection}
-            variant={inPlayer ? 'default' : 'filled'}
-            onClick={() => { navigate('/') }}
-          >
-            <Box visibleFrom="sm">{i18n.get('Manage')}</Box>
-            <Box hiddenFrom="sm"><IconSettings size={16} /></Box>
-          </Button>
-        </Button.Group>
-      )
+    ? !session.player
+        ? (
+            <Button.Group>
+              <Button
+                size="compact-md"
+                leftSection={playerSection}
+                variant={!inPlayer ? 'default' : 'filled'}
+                onClick={() => { navigate('/player') }}
+              >
+                <Box visibleFrom="sm">{i18n.get('Play')}</Box>
+                <Box hiddenFrom="sm"><IconPlayerPlay size={16} /></Box>
+              </Button>
+              <Button
+                size="compact-md"
+                rightSection={manageSection}
+                variant={inPlayer ? 'default' : 'filled'}
+                onClick={() => { navigate('/') }}
+              >
+                <Box visibleFrom="sm">{i18n.get('Manage')}</Box>
+                <Box hiddenFrom="sm"><IconSettings size={16} /></Box>
+              </Button>
+            </Button.Group>
+          )
+        : (
+            <Button.Group>
+              <Button
+                size="compact-md"
+                variant={!inPlayer ? 'default' : 'filled'}
+                onClick={() => { navigate('/player') }}
+              >
+                <IconPlayerPlay size={16} />
+              </Button>
+              <Button
+                size="compact-md"
+                variant={inPlayer ? 'default' : 'filled'}
+                onClick={() => { navigate('/customize') }}
+              >
+                <IconSettings size={16} />
+              </Button>
+            </Button.Group>
+          )
     : undefined
 }

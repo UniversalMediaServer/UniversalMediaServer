@@ -39,16 +39,29 @@ import { MainInterface } from '../../services/main-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { ServerEventInterface } from '../../services/server-event-service'
+import { useLocalStorage } from '@mantine/hooks'
 
 export default function UmsAppShell({ i18n, main, session, sse, playersse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface, playersse: PlayerEventInterface }) {
   const { dir } = useDirection()
+  const [navbarWidthSmall] = useLocalStorage<number>({
+    key: 'mantine-navbar-width-sm',
+    defaultValue: 250,
+  })
+  const [navbarWidthMedium] = useLocalStorage<number>({
+    key: 'mantine-navbar-width-md',
+    defaultValue: 300,
+  })
+  const [navbarWidthLarge] = useLocalStorage<number>({
+    key: 'mantine-navbar-width-lg',
+    defaultValue: 400,
+  })
   return (
     <div dir={dir} className="bodyBackgroundImageScreen">
       <AppShell
         padding="md"
         navbar={main.navbarValue
           ? {
-              width: { sm: 200, lg: 300 },
+              width: { sm: navbarWidthSmall, md: navbarWidthMedium, lg: navbarWidthLarge },
               breakpoint: 'sm',
               collapsed: { mobile: !main.navbarOpened, desktop: false },
             }
@@ -59,7 +72,7 @@ export default function UmsAppShell({ i18n, main, session, sse, playersse }: { i
         {main.navbarValue && (
           <AppShell.Navbar
             p="xs"
-            bg="transparentBg"
+            bg={{ xs: 'default', sm: 'transparentBg' }}
           >
             <AppShell.Section grow my="md" component={ScrollArea}>
               <Stack gap={0}>{main.navbarValue}</Stack>
@@ -97,6 +110,7 @@ export default function UmsAppShell({ i18n, main, session, sse, playersse }: { i
                   ? (
                       <Routes>
                         <Route path="about" element={<About i18n={i18n} main={main} session={session} sse={sse} />}></Route>
+                        <Route path="customize" element={<Customize i18n={i18n} main={main} session={session} />}></Route>
                         <Route path="player" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
                         <Route path="player/:req/:id" element={<Player i18n={i18n} main={main} session={session} sse={playersse} />}></Route>
                         <Route index element={<Player i18n={i18n} main={main} session={session} sse={playersse} />} />

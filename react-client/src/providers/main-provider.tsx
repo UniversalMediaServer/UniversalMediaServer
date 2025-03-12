@@ -16,12 +16,23 @@
  */
 import { ReactNode, useState } from 'react'
 
+import ManageNavbar from '../components/UmsApp/ManageNavbar'
 import MainContext from '../contexts/main-context'
+import { I18nInterface } from '../services/i18n-service'
+import { SessionInterface } from '../services/session-service'
 
 const MainProvider = ({ children }: { children?: ReactNode }) => {
   const [navbarValue, setNavbarValue] = useState<React.ReactNode>(undefined)
   const [navbarOpened, setNavbarOpened] = useState<boolean>(false)
   const [statusLine, setStatusLine] = useState(undefined)
+  const setNavbarItem = (i18n: I18nInterface, session: SessionInterface, from: string) => {
+    if (i18n && session && from) {
+      setNavbarValue(<ManageNavbar i18n={i18n} session={session} from={from} />)
+    }
+    else {
+      setNavbarValue('')
+    }
+  }
 
   return (
     <MainContext.Provider value={{
@@ -31,6 +42,7 @@ const MainProvider = ({ children }: { children?: ReactNode }) => {
       setNavbarOpened: setNavbarOpened,
       statusLine: statusLine,
       setStatusLine: setStatusLine,
+      setNavbarItem: setNavbarItem,
     }}
     >
       {children}

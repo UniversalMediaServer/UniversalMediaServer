@@ -897,7 +897,7 @@ const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainI
           <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} loaderProps={{ style: { position: 'fixed' } }} />
           {getVideoMetadataEditModal()}
           {getBreadcrumbs()}
-          <ScrollArea offsetScrollbars>
+          <ScrollArea>
             {
               data.goal === 'play'
                 ? (

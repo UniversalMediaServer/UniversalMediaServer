@@ -21,9 +21,16 @@ import { useNavigate } from 'react-router-dom'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
-import { NavbarItems } from '../../services/navbar-items'
+import Settings from '../Settings/Settings'
+import Home from '../Home/Home'
+import SharedContent from '../SharedContent/SharedContent'
+import Actions from '../Actions/Actions'
+import Logs from '../Logs/Logs'
+import Accounts from '../Accounts/Accounts'
+import Customize from '../Customize/Customize'
+import About from '../About/About'
 
-const ManageNavbar = ({ i18n, session, selectedKey }: { i18n: I18nInterface, session: SessionInterface, selectedKey: NavbarItems }) => {
+const ManageNavbar = ({ i18n, session, from }: { i18n: I18nInterface, session: SessionInterface, from: string }) => {
   const navigate = useNavigate()
   return (
     <>
@@ -31,7 +38,7 @@ const ManageNavbar = ({ i18n, session, selectedKey }: { i18n: I18nInterface, ses
         && (
           <Button
             color="gray"
-            variant={selectedKey === NavbarItems.Home ? undefined : 'subtle'}
+            variant={from === Home.name ? undefined : 'subtle'}
             size="compact-md"
             leftSection={<IconHome size={14} />}
             onClick={() => { navigate('/') }}
@@ -39,10 +46,10 @@ const ManageNavbar = ({ i18n, session, selectedKey }: { i18n: I18nInterface, ses
             {i18n.get('Home')}
           </Button>
         )}
-      {havePermission(session, Permissions.settings_view) && (
+      {!session.player && havePermission(session, Permissions.settings_view) && (
         <Button
           color="gray"
-          variant={selectedKey === NavbarItems.SharedContent ? undefined : 'subtle'}
+          variant={from === SharedContent.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconShare size={14} />}
           onClick={() => { navigate('/shared') }}
@@ -50,10 +57,10 @@ const ManageNavbar = ({ i18n, session, selectedKey }: { i18n: I18nInterface, ses
           {i18n.get('SharedContent')}
         </Button>
       )}
-      {havePermission(session, (Permissions.server_restart | Permissions.computer_shutdown) | Permissions.settings_modify) && (
+      {!session.player && havePermission(session, (Permissions.server_restart | Permissions.computer_shutdown) | Permissions.settings_modify) && (
         <Button
           color="gray"
-          variant={selectedKey === NavbarItems.Tools ? undefined : 'subtle'}
+          variant={from === Actions.name || from === Logs.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconTool size={14} />}
           onClick={() => { navigate('/actions') }}
@@ -61,10 +68,10 @@ const ManageNavbar = ({ i18n, session, selectedKey }: { i18n: I18nInterface, ses
           {i18n.get('Tools')}
         </Button>
       )}
-      {havePermission(session, Permissions.settings_view) && (
+      {!session.player && havePermission(session, Permissions.settings_view) && (
         <Button
           color="gray"
-          variant={selectedKey === NavbarItems.ServerSettings ? undefined : 'subtle'}
+          variant={from === Settings.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconSettings size={14} />}
           onClick={() => { navigate('/settings') }}
@@ -72,18 +79,20 @@ const ManageNavbar = ({ i18n, session, selectedKey }: { i18n: I18nInterface, ses
           {i18n.get('ServerSettings')}
         </Button>
       )}
+      {!session.player && (
+        <Button
+          color="gray"
+          variant={from === Accounts.name ? undefined : 'subtle'}
+          size="compact-md"
+          leftSection={havePermission(session, Permissions.users_manage) ? <IconUsers size={14} /> : <IconUser size={14} />}
+          onClick={() => { navigate('/accounts') }}
+        >
+          {havePermission(session, Permissions.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
+        </Button>
+      )}
       <Button
         color="gray"
-        variant={selectedKey === NavbarItems.ManageAccounts ? undefined : 'subtle'}
-        size="compact-md"
-        leftSection={havePermission(session, Permissions.users_manage) ? <IconUsers size={14} /> : <IconUser size={14} />}
-        onClick={() => { navigate('/accounts') }}
-      >
-        {havePermission(session, Permissions.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
-      </Button>
-      <Button
-        color="gray"
-        variant={selectedKey === NavbarItems.Customize ? undefined : 'subtle'}
+        variant={from === Customize.name ? undefined : 'subtle'}
         size="compact-md"
         leftSection={<IconDeviceDesktopCog size={14} />}
         onClick={() => { navigate('/customize') }}
@@ -92,7 +101,7 @@ const ManageNavbar = ({ i18n, session, selectedKey }: { i18n: I18nInterface, ses
       </Button>
       <Button
         color="gray"
-        variant={selectedKey === NavbarItems.About ? undefined : 'subtle'}
+        variant={from === About.name ? undefined : 'subtle'}
         size="compact-md"
         leftSection={<IconInfoCircle size={14} />}
         onClick={() => { navigate('/about') }}

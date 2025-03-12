@@ -26,8 +26,6 @@ import { I18nInterface } from '../../services/i18n-service'
 import { MainInterface } from '../../services/main-service'
 import { SessionInterface } from '../../services/session-service'
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils'
-import ManageNavbar from '../ManageNavbar/ManageNavbar'
-import { NavbarItems } from '../../services/navbar-items'
 
 const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify)
@@ -62,6 +60,7 @@ const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInter
     session.setDocumentTitle('Tools')
     session.stopSse()
     session.stopPlayerSse()
+    main.setNavbarItem(i18n, session, Actions.name)
   }, [])
 
   useEffect(() => {
@@ -70,10 +69,6 @@ const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInter
         setActionsValues(response.data)
       })
   }, [])
-
-  useEffect(() => {
-    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.Tools} />)
-  }, [i18n.get, main.setNavbarValue])
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">

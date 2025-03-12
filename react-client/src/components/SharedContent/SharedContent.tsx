@@ -20,7 +20,6 @@ import axios from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
-import ManageNavbar from '../ManageNavbar/ManageNavbar'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { MainInterface } from '../../services/main-service'
@@ -29,7 +28,6 @@ import { SessionInterface } from '../../services/session-service'
 import { sharedApiUrl } from '../../utils'
 import SharedContentSettings from './SharedContentSettings'
 import { showError, showInfo } from '../../utils/notifications'
-import { NavbarItems } from '../../services/navbar-items'
 
 export default function SharedContent({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) {
   const [isLoading, setLoading] = useState(true)
@@ -45,6 +43,7 @@ export default function SharedContent({ i18n, main, session, sse }: { i18n: I18n
     session.setDocumentTitle('Shared Content')
     session.useSseAs('SharedContent')
     session.stopPlayerSse()
+    main.setNavbarItem(i18n, session, SharedContent.name)
   }, [])
 
   useEffect(() => {
@@ -85,10 +84,6 @@ export default function SharedContent({ i18n, main, session, sse }: { i18n: I18n
         })
     }
   }, [canView, formSetValues])
-
-  useEffect(() => {
-    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.SharedContent} />)
-  }, [i18n.get, main.setNavbarValue])
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true)

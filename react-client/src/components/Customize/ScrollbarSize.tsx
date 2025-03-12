@@ -14,13 +14,29 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-export enum NavbarItems {
-  Home = 'home',
-  Player = 'player',
-  SharedContent = 'sharedcontent',
-  Tools = 'tools',
-  ServerSettings = 'serversettings',
-  Customize = 'customize',
-  ManageAccounts = 'manageaccounts',
-  About = 'about',
+import { Box, Paper, ScrollArea, Slider } from '@mantine/core'
+import { useLocalStorage } from '@mantine/hooks'
+
+export default function ScrollbarSize() {
+  const [scrollbarSize, setScrollbarSize] = useLocalStorage<number>({
+    key: 'mantine-scrollbar-size',
+    defaultValue: 10,
+  })
+
+  return (
+    <Paper shadow="xs" py="xs" px="xl" m="10">
+      <Slider
+        value={scrollbarSize}
+        min={1}
+        max={20}
+        mb="xl"
+        onChange={setScrollbarSize}
+      />
+      <Paper shadow="xs" withBorder>
+        <ScrollArea h={100} type="always" scrollbars="y">
+          <Box h={600} c="blue"></Box>
+        </ScrollArea>
+      </Paper>
+    </Paper>
+  )
 }

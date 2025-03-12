@@ -14,18 +14,20 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Button, Group, Paper, Slider, Text } from '@mantine/core'
+import { Button, Group, MantineColor, Paper, Slider, Text } from '@mantine/core'
 import { I18nInterface } from '../../services/i18n-service'
 
 export default function NotificationDuration({
   i18n,
   title,
+  color,
   duration,
   setDuration,
   test,
 }: {
   i18n: I18nInterface
   title: string
+  color?: MantineColor
   duration: number
   setDuration: (duration: number) => void
   test?: ({ message, message2, title }: { message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode }) => void
@@ -64,6 +66,7 @@ export default function NotificationDuration({
         max={10000}
         step={1000}
         mb="xl"
+        color={color}
         onChangeEnd={setDuration}
       />
     </Paper>

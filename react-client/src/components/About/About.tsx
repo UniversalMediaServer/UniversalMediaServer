@@ -15,13 +15,12 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ActionIcon, Box, Group, Table, Tabs, Text } from '@mantine/core'
+import { IconEdit, IconEditOff } from '@tabler/icons-react'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import ReactCountryFlag from 'react-country-flag'
-import { IconEdit, IconEditOff } from '@tabler/icons-react'
 
 import MemoryBar from '../MemoryBar/MemoryBar'
-import ManageNavbar from '../ManageNavbar/ManageNavbar'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { MainInterface } from '../../services/main-service'
@@ -29,7 +28,6 @@ import { ServerEventInterface, UmsMemory } from '../../services/server-event-ser
 import { SessionInterface } from '../../services/session-service'
 import { aboutApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
-import { NavbarItems } from '../../services/navbar-items'
 
 const About = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any)
@@ -79,6 +77,7 @@ const About = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainIn
       session.stopSse()
     }
     session.stopPlayerSse()
+    main.setNavbarItem(i18n, session, About.name)
   }, [])
 
   useEffect(() => {
@@ -98,10 +97,6 @@ const About = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainIn
   useEffect(() => {
     setMemory(sse.memory)
   }, [sse.memory])
-
-  useEffect(() => {
-    main.setNavbarValue(<ManageNavbar i18n={i18n} session={session} selectedKey={NavbarItems.About} />)
-  }, [i18n.get, main.setNavbarValue])
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">
