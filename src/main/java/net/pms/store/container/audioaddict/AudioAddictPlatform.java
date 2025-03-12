@@ -13,7 +13,7 @@ public class AudioAddictPlatform extends StoreContainer {
 		super(renderer, name, "/images/audioaddict/audioAddict.png");
 
 		for (Platform network : Platform.values()) {
-			addChild(new AudioAddictNetwork(renderer, network.displayName, null, network));
+			addChild(new AudioAddictNetwork(renderer, network.displayName, network));
 		}
 	}
 }

@@ -10,8 +10,8 @@ public class AudioAddictNetwork extends StoreContainer {
 
 	private Platform network = null;
 
-	public AudioAddictNetwork(Renderer renderer, String name, String thumbnailIcon, Platform network) {
-		super(renderer, name, thumbnailIcon);
+	public AudioAddictNetwork(Renderer renderer, String name, Platform network) {
+		super(renderer, name, network.albumArt);
 		this.network = network;
 		List<String> filterList = AudioAddictService.get().getFiltersForNetwork(this.network);
 		for (String filter : filterList) {
