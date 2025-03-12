@@ -21,8 +21,7 @@ public class AudioAddictNetworkFilter extends StoreContainer {
 		for (AudioAddictChannelDto c : filterList) {
 			MediaInfo mi = new MediaInfo();
 			mi.setMimeType("audio/mpeg");
-			addChild(new FeedItem(renderer, c.name, c.streamUrl, c.albumArt, mi, 1));
+			addChild(new FeedItem(renderer, c.name, c.streamUrl, "http:" + c.albumArt, mi, 1));
 		}
 	}
-
 }
