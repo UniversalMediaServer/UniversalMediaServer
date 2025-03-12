@@ -108,6 +108,7 @@ public class MediaDatabase extends Database {
 				MediaTableVideoMetadataGenres.checkTable(connection);
 				MediaTableVideoMetadataRatings.checkTable(connection);
 				MediaTableVideoMetadataLocalized.checkTable(connection);
+				MediaTableTvSeasonMetadataLocalized.checkTable(connection);
 
 				// Audio Metadata
 				MediaTableAudioMetadata.checkTable(connection);

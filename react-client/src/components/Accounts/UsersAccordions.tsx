@@ -68,7 +68,7 @@ export default function UsersAccordions({
   }
 
   const NewUserForm = () => {
-    const newUserForm = useForm({ initialValues: { username: null, password: null, groupid: '0', displayname: null } })
+    const newUserForm = useForm({ initialValues: { username: '', password: '', groupid: '0', displayname: '' } })
     const handleNewUserSubmit = (values: typeof newUserForm.values) => {
       const data = { operation: 'createuser', username: values.username, password: values.password, groupid: values.groupid, displayname: values.displayname }
       postAccountAction(data, i18n.get('UserCreation'), i18n.get('NewUserCreating'), i18n.get('NewUserCreated'), i18n.get('NewUserNotCreated'))
@@ -315,12 +315,11 @@ export default function UsersAccordions({
   const NewUserAccordion = () => {
     const user = { id: 0, username: i18n.get('NewUser') } as UmsUser
     const userGroup = { id: 0, displayName: '' } as UmsGroup
-    const newUserForm = NewUserForm()
     return canManageUsers
       ? (
-          <Accordion.Item value={user.id.toString()} key={user.id}>
+          <Accordion.Item value={user.id.toString()}>
             <Accordion.Control><UserAccordionLabel user={user} group={userGroup} /></Accordion.Control>
-            <Accordion.Panel>{newUserForm}</Accordion.Panel>
+            <Accordion.Panel><NewUserForm /></Accordion.Panel>
           </Accordion.Item>
         )
       : null
@@ -329,7 +328,7 @@ export default function UsersAccordions({
   const UserAccordion = ({ user }: { user: UmsUser }) => {
     const userGroup = getUserGroup(user, accounts)
     return (
-      <Accordion.Item value={user.id.toString()} key={user.id}>
+      <Accordion.Item value={user.id.toString()}>
         <Accordion.Control><UserAccordionLabel user={user} group={userGroup} /></Accordion.Control>
         <Accordion.Panel>
           <UserIdentityForm user={user} />

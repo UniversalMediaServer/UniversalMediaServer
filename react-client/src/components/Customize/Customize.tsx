@@ -56,6 +56,7 @@ const Customize = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInt
               duration={getWarningDuration()}
               setDuration={setWarningDuration}
               test={showWarning}
+              color="orange"
             />
             <NotificationDuration
               i18n={i18n}
