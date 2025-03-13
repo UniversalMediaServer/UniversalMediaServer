@@ -226,6 +226,10 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
+	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
+	private static final String KEY_AUDIO_ADDICT_TOKEN = "audio_addict_token";
+	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
@@ -1002,6 +1006,30 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean isCustomProgramPathsSupported() {
 		return programPaths instanceof ConfigurableProgramPaths;
+	}
+
+	public String getAudioAddictUser() {
+		return getString(KEY_AUDIO_ADDICT_USER, null);
+	}
+
+	public void setAudioAddictUser(String userName) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_USER, userName);
+	}
+
+	public String getAudioAddictPassword() {
+		return getString(KEY_AUDIO_ADDICT_PASS, null);
+	}
+
+	public void setAudioAddictPassword(String password) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_PASS, password);
+	}
+
+	public boolean isAudioAddictEuropeanServer() {
+		return getBoolean(KEY_AUDIO_ADDICT_EUROPE, true);
+	}
+
+	public void setAudioAddictEuropeanServer(boolean europeServer) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_EUROPE, europeServer);
 	}
 
 	public boolean isAudioUpdateTag() {

@@ -16,6 +16,10 @@
  */
 package net.pms.store.container;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import net.pms.PMS;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -24,6 +28,7 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.database.MediaTableVideotracks;
 import net.pms.renderers.Renderer;
+import net.pms.store.container.audioaddict.AudioAddictPlatform;
 import net.pms.util.FullyPlayedAction;
 
 /**
@@ -32,6 +37,8 @@ import net.pms.util.FullyPlayedAction;
  */
 public class MediaLibrary extends MediaLibraryAbstract {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibrary.class);
+
 	private MediaLibraryFolder allFolder;
 	private MediaLibraryFolder albumFolder;
 	private MediaLibraryFolder artistFolder;
@@ -39,11 +46,24 @@ public class MediaLibrary extends MediaLibraryAbstract {
 	private MediaLibraryFolder playlistFolder;
 	private LocalizedStoreContainer vfAudio = null;
 
+	public AudioAddictPlatform audioAddictPlatform = null;
+
 	public MediaLibrary(Renderer renderer) {
 		super(renderer, "MediaLibrary", "/images/store/media-library.png");
 		addVideoFolder();
 		addAudioFolder();
 		addImageFolder();
+		addAudioAddictNetwork(renderer);
+	}
+
+	private void addAudioAddictNetwork(Renderer renderer) {
+		if (!StringUtils.isAllBlank(PMS.getConfiguration().getAudioAddictUser())) {
+			LOGGER.trace("{} : Audio Addict user set. Adding Audio Addict folder to media store ...", renderer.getSimpleName());
+			this.audioAddictPlatform = new AudioAddictPlatform(renderer, "Audio Addict Radio Network");
+			addChild(this.audioAddictPlatform);
+		} else {
+			LOGGER.trace("{} : no audio addict user set. Radio network is unavailable.", renderer.getSimpleName());
+		}
 	}
 
 	private void addVideoFolder() {
