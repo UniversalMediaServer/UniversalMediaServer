@@ -57,12 +57,12 @@ public class MediaLibrary extends MediaLibraryAbstract {
 	}
 
 	private void addAudioAddictNetwork(Renderer renderer) {
-		if (!StringUtils.isAllBlank(PMS.getConfiguration().getAudioAddictToken())) {
-			LOGGER.trace("{} : Audio Addict token set. Adding Audio Addict folder to media store ...", renderer.getSimpleName());
+		if (!StringUtils.isAllBlank(PMS.getConfiguration().getAudioAddictUser())) {
+			LOGGER.trace("{} : Audio Addict user set. Adding Audio Addict folder to media store ...", renderer.getSimpleName());
 			this.audioAddictPlatform = new AudioAddictPlatform(renderer, "Audio Addict Radio Network");
 			addChild(this.audioAddictPlatform);
 		} else {
-			LOGGER.trace("{} : no audio addict token provided.ot added.", renderer.getSimpleName());
+			LOGGER.trace("{} : no audio addict user set. Radio network is unavailable.", renderer.getSimpleName());
 		}
 	}
 

@@ -5,18 +5,15 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,10 +22,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import net.pms.external.audioaddict.mapper.ChannelFilter;
 import net.pms.external.audioaddict.mapper.ChannelJson;
+import net.pms.external.audioaddict.mapper.Favorite;
 import net.pms.external.audioaddict.mapper.Root;
 import okhttp3.Call;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class RadioNetwork {
@@ -39,27 +39,33 @@ public class RadioNetwork {
 	private final static String FAV = "Favorites";
 
 	private final static ExecutorService EXEC_SERVICE = Executors.newSingleThreadExecutor();
-	private static final Pattern FAV_CHANNEL_SHORT = Pattern.compile(".*/(.*)\\?");
+	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
+	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
+	private static String apiKey = null;
+	private static String listenKey = null;
 
-	private volatile Root networkBatchRoot = null;
-	private volatile OkHttpClient okClientBatch = new OkHttpClient.Builder()
+	private static OkHttpClient okClient = new OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build();;
+	private static OkHttpClient okClientBatch = new OkHttpClient.Builder()
 		.addInterceptor(new BasicAuthInterceptor("ephemeron", "dayeiph0ne@pp")).readTimeout(30, TimeUnit.SECONDS).build();
 
+	private volatile Root networkBatchRoot = null;
+	private volatile LinkedList<String> filters = null;
+
 	private ObjectMapper om = null;
-	private OkHttpClient okClient = null;
 	private List<AudioAddictChannelDto> channels = null;
 	private StreamListQuality quality = StreamListQuality.MP3_320;
-	private LinkedList<String> filters = null;
 	private LinkedHashMap<String, List<Integer>> channelsFilterMap = new LinkedHashMap<>();
 	private AudioAddictServiceConfig config = null;
 	private Platform network = null;
-	private boolean userPassProvided = false;;
 
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
 		this.network = network;
 
 		om = JsonMapper.builder().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build();
+		if (apiKey == null) {
+			authenticate();
+		}
 		initRoot();
 	}
 
@@ -68,8 +74,6 @@ public class RadioNetwork {
 
 			@Override
 			public void run() {
-				LOGGER.info("{} : init http client for network ...", network.name());
-				initHttpClient(config);
 				LOGGER.info("{} : reading batch update for network ...", network.name());
 				networkBatchRoot = readNetworkBatch();
 				LOGGER.info("{} : reading filters of network ... ", network.name());
@@ -79,15 +83,31 @@ public class RadioNetwork {
 		EXEC_SERVICE.execute(r);
 	}
 
-	private void initHttpClient(AudioAddictServiceConfig config) {
-		if (StringUtils.isAllBlank(config.pass) && StringUtils.isAllBlank(config.user)) {
-			userPassProvided = false;
-			okClient = new OkHttpClient.Builder().build();
-		} else {
-			userPassProvided = true;
-			LOGGER.info("{} : channel 'favorites' enabled.", this.network.displayName);
-			okClient = new OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS)
-				.addInterceptor(new BasicAuthInterceptor(config.user, config.pass)).build();
+	private void authenticate() {
+		String url = "https://api.audioaddict.com/v1/di/members/authenticate";
+		RequestBody formBody = new FormBody.Builder().add("username", config.user).add("password", config.pass).build();
+		Request request = new Request.Builder().url(url).post(formBody).build();
+		Call call = okClient.newCall(request);
+		try (Response response = call.execute()) {
+			String resp = response.body().string();
+			if (response.code() != 200) {
+				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.code(), resp);
+			} else {
+				Matcher m = API_KEY_PATTERN.matcher(resp);
+				if (m.find()) {
+					apiKey = m.group(1);
+				} else {
+					LOGGER.warn("api-key not found!");
+				}
+				m = LISTEN_KEY_PATTERN.matcher(resp);
+				if (m.find()) {
+					listenKey = m.group(1);
+				} else {
+					LOGGER.warn("listen-key not found!");
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("http call failed.", e);
 		}
 	}
 
@@ -140,10 +160,8 @@ public class RadioNetwork {
 					LOGGER.debug("{} : added channel id {} to filterlist {} ", this.network.displayName, c.id, filter.name);
 				}
 				channelsFilterMap.put(filter.name, filterChannelId);
-				if ("all".equalsIgnoreCase(filter.name) && this.userPassProvided) {
+				if ("all".equalsIgnoreCase(filter.name)) {
 					favList = getFavorites(filter);
-				} else {
-					LOGGER.trace("{} - getFilter : User/Pass not provided. Favorites filter is unavailable.", this.network.displayName);
 				}
 			}
 			if (favList != null) {
@@ -163,30 +181,25 @@ public class RadioNetwork {
 
 	private List<Integer> getFavorites(ChannelFilter filter) {
 		List<Integer> filterChannelId = new ArrayList<>();
-
-		String url = String.format("%s/public3/favorites.pls?%s", network.listenUrl, config.token);
-		String body = responseBody(url);
+		String url = String.format("https://api.audioaddict.com/v1/%s/members/1/favorites/channels?api_key=%s", network.shortName, apiKey);
+		String body = responseBodyUserPass(url);
 		LOGGER.debug("response to my favorites request : " + body);
-		Matcher m = FAV_CHANNEL_SHORT.matcher(body);
-		Set<String> favList = new HashSet<>();
-		while (m.find()) {
-			String fav = m.group(1);
-			fav = fav.substring(network.shortName.length() + 1);
-			LOGGER.info("favorite channel : {}", fav);
-			favList.add(fav);
+
+		Favorite[] favChannels;
+		try {
+			favChannels = om.readValue(body, Favorite[].class);
+			for (Favorite favorite : favChannels) {
+				LOGGER.debug("{} : favorite channel id {} added.", network.displayName, favorite.getChannelId());
+				filterChannelId.add(favorite.getChannelId());
+			}
+		} catch (JsonProcessingException e) {
+			LOGGER.warn("failed processing favorites", e);
 		}
 
-		int prefixLength = network.favPrefix.length();
-		for (net.pms.external.audioaddict.mapper.Channel c : filter.channels) {
-			String mappedChannelName = c.adDfpUnitId.substring(prefixLength);
-			if (favList.contains(mappedChannelName)) {
-				filterChannelId.add(c.id);
-				LOGGER.debug("{} : added channel favorite channel id {} ", this.network.displayName, c.id);
-			}
-		}
 		if (filterChannelId.size() > 0) {
 			return filterChannelId;
 		}
+		LOGGER.info("{} : has no favorite channels");
 		return null;
 	}
 
@@ -245,7 +258,7 @@ public class RadioNetwork {
 	private Channel[] getChannels() {
 		LOGGER.debug("get channels ... ");
 		String url = String.format("%s/%s", network.listenUrl, quality.path);
-		String channelsJson = responseBody(url);
+		String channelsJson = responseBodyUserPass(url);
 		try {
 			ChannelJson[] allChannels = om.readValue(channelsJson, ChannelJson[].class);
 			return convertPlsToUrl(allChannels);
@@ -266,7 +279,7 @@ public class RadioNetwork {
 		Channel[] preferredChannels = new Channel[allChannels.length];
 		int i = 0;
 		for (ChannelJson channelJson : allChannels) {
-			String url = String.format("%s?%s", getBestUrlFromPlaylist(channelJson), config.token);
+			String url = String.format("%s?%s", getBestUrlFromPlaylist(channelJson), listenKey);
 			preferredChannels[i] = new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url);
 			i++;
 		}
@@ -280,7 +293,7 @@ public class RadioNetwork {
 	 * @return
 	 */
 	private String getBestUrlFromPlaylist(ChannelJson channelJson) {
-		String body = responseBody(channelJson.getPlaylist());
+		String body = responseBodyUserPass(channelJson.getPlaylist());
 		BufferedReader sr = new BufferedReader(new StringReader(body));
 		String streamUrl = "";
 		String line = "";
@@ -306,7 +319,7 @@ public class RadioNetwork {
 		return streamUrl;
 	}
 
-	private String responseBody(String url) {
+	private String responseBodyUserPass(String url) {
 		Request request = new Request.Builder().url(url).build();
 
 		Call call = okClient.newCall(request);

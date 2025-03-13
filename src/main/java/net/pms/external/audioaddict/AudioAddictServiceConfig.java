@@ -9,6 +9,5 @@ public class AudioAddictServiceConfig {
 
 	public String user = "";
 	public String pass = "";
-	public String token = "";
 	public boolean preferEuropeanServer = true;
 }

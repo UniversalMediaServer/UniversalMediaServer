@@ -1024,14 +1024,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_AUDIO_ADDICT_PASS, password);
 	}
 
-	public String getAudioAddictToken() {
-		return getString(KEY_AUDIO_ADDICT_TOKEN, null);
-	}
-
-	public void setAudioAddictToken(String password) {
-		configuration.setProperty(KEY_AUDIO_ADDICT_TOKEN, password);
-	}
-
 	public boolean isAudioAddictEuropeanServer() {
 		return getBoolean(KEY_AUDIO_ADDICT_EUROPE, true);
 	}

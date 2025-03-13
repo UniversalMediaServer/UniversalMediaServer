@@ -33,7 +33,6 @@ public class AudioAddictService implements ConfigurationListener {
 
 		conf.user = ums.getAudioAddictUser();
 		conf.pass = ums.getAudioAddictPassword();
-		conf.token = ums.getAudioAddictToken();
 		conf.preferEuropeanServer = ums.isAudioAddictEuropeanServer();
 
 		networkSettings.clear();
@@ -72,8 +71,8 @@ public class AudioAddictService implements ConfigurationListener {
 	public void configurationChanged(ConfigurationEvent event) {
 		UmsConfiguration ums = PMS.getConfiguration();
 
-		if (conf.user != ums.getAudioAddictUser() || conf.pass != ums.getAudioAddictPassword() || conf.token != ums.getAudioAddictToken() ||
-			conf.preferEuropeanServer != ums.isPrettifyFilenames()) {
+		if (conf.user != ums.getAudioAddictUser() || conf.pass != ums.getAudioAddictPassword() ||
+			conf.preferEuropeanServer != ums.isAudioAddictEuropeanServer()) {
 			LOGGER.info("AudioAddicNetwork : applying new config values ...");
 			initService();
 		}
