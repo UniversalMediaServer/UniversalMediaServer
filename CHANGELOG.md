@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@babel/runtime` from 7.26.9 to 7.26.10 ([#5365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5365))
 - Bump `@playwright/test` from 1.50.1 to 1.51.0 ([#5343](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5343))
 - Bump `@tabler/icons-react` from 3.30.0 to 3.31.0 ([#5345](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5345))
 - Bump `axios` from 1.8.1 to 1.8.2 ([#5337](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5337))
