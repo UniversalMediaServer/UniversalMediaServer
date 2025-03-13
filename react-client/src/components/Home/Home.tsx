@@ -26,12 +26,11 @@ import { renderersApiUrl } from '../../utils'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications'
 
-const Home = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
+const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const [renderers, setRenderers] = useState([] as Renderer[])
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false)
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[])
@@ -88,11 +87,8 @@ const Home = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
     session.setDocumentTitle('')
     session.useSseAs(Home.name)
     session.stopPlayerSse()
+    session.setNavbarManage(Home.name)
   }, [])
-
-  useEffect(() => {
-    main.setNavbarItem(i18n, session, Home.name)
-  }, [i18n, session.account])
 
   const refreshData = async () => {
     setLoading(true)

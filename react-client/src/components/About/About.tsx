@@ -23,13 +23,12 @@ import ReactCountryFlag from 'react-country-flag'
 import MemoryBar from '../MemoryBar/MemoryBar'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface, UmsMemory } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { aboutApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
-const About = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
+const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any)
   const [memory, setMemory] = useState<UmsMemory>()
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify)
@@ -76,12 +75,9 @@ const About = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainIn
       session.stopSse()
     }
     session.stopPlayerSse()
+    session.setDocumentI18nTitle('About')
+    session.setNavbarManage(About.name)
   }, [])
-
-  useEffect(() => {
-    session.setDocumentTitle(i18n.get('About'))
-    main.setNavbarItem(i18n, session, About.name)
-  }, [i18n, session.account])
 
   useEffect(() => {
     axios.get(aboutApiUrl)

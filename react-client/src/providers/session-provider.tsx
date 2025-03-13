@@ -14,6 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { useLocalStorage } from '@mantine/hooks'
 import axios from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
 
@@ -30,7 +31,17 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const [sse, setSse] = useState('')
   const [playerSse, setPlayerSse] = useState(false)
   const [serverName, setServerName] = useState<string>('Universal Media Server')
-  const [documentTitle, setDocumentTitle] = useState<string>('')
+  const [documentTitle, setDocumentTitleInternal] = useState<string>('')
+  const [documentI18nTitle, setDocumentI18nTitle] = useState<string>('')
+  const [navbarOpened, setNavbarOpened] = useState<boolean>(false)
+  const [hasNavbar, setHasNavbar] = useState<boolean>(false)
+  const [navbarValue, setNavbarValueInternal] = useState<React.ReactNode>(undefined)
+  const [navbarManage, setNavbarManageInternal] = useState<string>('')
+  const [statusLine, setStatusLine] = useState(undefined)
+  const [playerNavbar, setPlayerNavbar] = useLocalStorage<boolean>({
+    key: 'player-navbar',
+    defaultValue: true,
+  })
 
   const refresh = () => {
     axios.get(authApiUrl + 'session')
@@ -68,6 +79,35 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const stopPlayerSse = () => {
     setPlayerSse(false)
   }
+
+  const setNavbarValue = (navbarValue: React.ReactNode) => {
+    if (navbarManage) {
+      setNavbarManageInternal('')
+    }
+    setNavbarValueInternal(navbarValue)
+  }
+
+  const setNavbarManage = (navbarManage: string) => {
+    if (navbarValue) {
+      setNavbarValueInternal(undefined)
+    }
+    setNavbarManageInternal(navbarManage)
+  }
+
+  const setDocumentTitle = (documentTitle: string) => {
+    setDocumentI18nTitle('')
+    setDocumentTitleInternal(documentTitle)
+  }
+
+  useEffect(() => {
+    setHasNavbar((navbarManage || navbarValue) ? true : false)
+  }, [navbarManage, navbarValue])
+
+  useEffect(() => {
+    if (documentI18nTitle) {
+      setDocumentTitleInternal(i18n.get(documentI18nTitle))
+    }
+  }, [i18n.get, documentI18nTitle])
 
   useEffect(() => {
     if (documentTitle) {
@@ -117,6 +157,18 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       serverName: serverName,
       setServerName: setServerName,
       setDocumentTitle: setDocumentTitle,
+      setDocumentI18nTitle: setDocumentI18nTitle,
+      hasNavbar: hasNavbar,
+      navbarOpened: navbarOpened,
+      setNavbarOpened: setNavbarOpened,
+      playerNavbar: playerNavbar,
+      setPlayerNavbar: setPlayerNavbar,
+      navbarValue: navbarValue,
+      setNavbarValue: setNavbarValue,
+      navbarManage: navbarManage,
+      setNavbarManage: setNavbarManage,
+      statusLine: statusLine,
+      setStatusLine: setStatusLine,
     }}
     >
       {children}

@@ -23,7 +23,6 @@ import { IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, Ic
 
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { MainInterface } from '../../services/main-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { AudioMedia, BaseBrowse, BaseMedia, ImageMedia, MediaRating, PlayMedia, VideoMedia, VideoMetadata } from '../../services/player-service'
@@ -33,7 +32,7 @@ import VideoMetadataEditModal from './VideoMetadataEditModal'
 import { showError } from '../../utils/notifications'
 import MediaCard from './MediaCard'
 
-const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: PlayerEventInterface }) => {
+const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: PlayerEventInterface }) => {
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse)
   const [loading, setLoading] = useState(false)
   const { req, id } = useParams()
@@ -888,8 +887,8 @@ const Player = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainI
         return getFoldersButtons()
       }
     }
-    main.setNavbarValue(getNavFolders())
-  }, [data, i18n.get, main.setNavbarValue])
+    session.setNavbarValue(getNavFolders())
+  }, [data, i18n.get])
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse))
     ? (

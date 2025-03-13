@@ -25,13 +25,12 @@ import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSea
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
-const Logs = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
+const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify)
   const [rootLogLevel, setRootLogLevel] = useState(0)
   const [guiLogLevel, setGuiLogLevel] = useState(0)
@@ -93,12 +92,9 @@ const Logs = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInt
   useEffect(() => {
     session.useSseAs(Logs.name)
     session.stopPlayerSse()
+    session.setDocumentI18nTitle('Logs')
+    session.setNavbarManage(Logs.name)
   }, [])
-
-  useEffect(() => {
-    session.setDocumentTitle(i18n.get('Logs'))
-    main.setNavbarItem(i18n, session, Logs.name)
-  }, [i18n, session.account])
 
   useEffect(() => {
     if (!canModify || fileMode) {

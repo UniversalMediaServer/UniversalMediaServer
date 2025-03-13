@@ -14,28 +14,24 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Box } from '@mantine/core'
+import { Accordion, Box, Checkbox, Paper, Text } from '@mantine/core'
 import { IconBoxAlignLeft, IconClockExclamation, IconDimensions } from '@tabler/icons-react'
 import { useEffect } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { MainInterface } from '../../services/main-service'
 import { SessionInterface } from '../../services/session-service'
 import NotificationDuration from './NotificationDuration'
 import { getErrorDuration, getInfoDuration, getWarningDuration, setErrorDuration, setInfoDuration, setWarningDuration, showError, showInfo, showWarning } from '../../utils/notifications'
 import NavbarWidth from './NavbarWidth'
 import ScrollbarSize from './ScrollbarSize'
 
-const Customize = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
+const Customize = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   useEffect(() => {
     session.stopSse()
     session.stopPlayerSse()
+    session.setDocumentI18nTitle('Customize')
+    session.setNavbarManage(Customize.name)
   }, [])
-
-  useEffect(() => {
-    session.setDocumentTitle(i18n.get('Customize'))
-    main.setNavbarItem(i18n, session, Customize.name)
-  }, [i18n, session.account])
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">
@@ -97,6 +93,14 @@ const Customize = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInt
               storageKey="mantine-navbar-width-sm"
               defaultValue={250}
             />
+            <Paper shadow="xs" py="xs" px="xl" m="10">
+              <Text>Player Navbar</Text>
+              <Checkbox
+                label="Use Navbar on player"
+                checked={session.playerNavbar}
+                onChange={event => session.setPlayerNavbar(event.currentTarget.checked)}
+              />
+            </Paper>
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>
