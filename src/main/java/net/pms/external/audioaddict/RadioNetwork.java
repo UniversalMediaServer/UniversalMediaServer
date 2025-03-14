@@ -56,9 +56,7 @@ public class RadioNetwork {
 	private StreamListQuality quality = StreamListQuality.MP3_320;
 	private LinkedHashMap<String, List<Integer>> channelsFilterMap = new LinkedHashMap<>();
 	private AudioAddictServiceConfig config = null;
-
 	private Platform network = null;
-	private boolean authenticated = false;
 
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
@@ -85,10 +83,6 @@ public class RadioNetwork {
 		EXEC_SERVICE.execute(r);
 	}
 
-	public boolean isAuthenticated() {
-		return authenticated;
-	}
-
 	private void authenticate() {
 		String url = "https://api.audioaddict.com/v1/di/members/authenticate";
 		RequestBody formBody = new FormBody.Builder().add("username", config.user).add("password", config.pass).build();
@@ -97,10 +91,8 @@ public class RadioNetwork {
 		try (Response response = call.execute()) {
 			String resp = response.body().string();
 			if (response.code() != 200) {
-				authenticated = false;
 				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.code(), resp);
 			} else {
-				authenticated = true;
 				Matcher m = API_KEY_PATTERN.matcher(resp);
 				if (m.find()) {
 					apiKey = m.group(1);
