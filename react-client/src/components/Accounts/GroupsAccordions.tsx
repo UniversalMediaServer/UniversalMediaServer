@@ -185,10 +185,10 @@ export default function GroupsAccordions({
   }
 
   const GroupsAccordions = accounts.groups.map((group) => {
-    return <GroupAccordion group={group} />
+    return <GroupAccordion group={group} key={group.id} />
   })
 
-  const NewGroupAccordion = () => {
+  const NewGroupAccordion = ({ i18n }: { i18n: I18nInterface }) => {
     const group = { id: 0, displayName: i18n.get('NewGroup') } as UmsGroup
     return (
       <Accordion.Item value={group.id.toString()} key={group.id}>
@@ -200,7 +200,7 @@ export default function GroupsAccordions({
 
   return (
     <Accordion value={groupOpened} onChange={setGroupOpened}>
-      <NewGroupAccordion />
+      <NewGroupAccordion i18n={i18n} />
       {GroupsAccordions}
     </Accordion>
   )

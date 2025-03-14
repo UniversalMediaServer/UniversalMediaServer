@@ -38,6 +38,8 @@ const SessionContext: Context<SessionInterface> = createContext({
   setDocumentI18nTitle: (_documentTitle: string) => { },
   playerNavbar: true,
   setPlayerNavbar: (_playerNavbar: boolean) => { },
+  playerDirectPlay: false,
+  setPlayerDirectPlay: (_playerDirectPlay: boolean) => { },
   hasNavbar: false,
   navbarOpened: false as boolean,
   setNavbarOpened: (_navbarOpened: boolean) => { },

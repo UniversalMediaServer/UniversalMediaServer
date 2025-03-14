@@ -21,8 +21,8 @@ import { Route, Routes, Navigate } from 'react-router-dom'
 import About from '../About/About'
 import Accounts from '../Accounts/Accounts'
 import Actions from '../Actions/Actions'
+import BrowserSettings from '../BrowserSettings/BrowserSettings'
 import ColorSchemeButton from './ColorSchemeButton'
-import Customize from '../Customize/Customize'
 import Home from '../Home/Home'
 import LanguagesMenu from '../UmsApp/LanguagesMenu'
 import Login from '../Login/Login'
@@ -101,7 +101,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
                   ? (
                       <Routes>
                         <Route path="about" element={<About i18n={i18n} session={session} sse={sse} />}></Route>
-                        <Route path="customize" element={<Customize i18n={i18n} session={session} />}></Route>
+                        <Route path="customize" element={<BrowserSettings i18n={i18n} session={session} />}></Route>
                         <Route path="player" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
                         <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
                         <Route index element={<Player i18n={i18n} session={session} sse={playersse} />} />
@@ -117,7 +117,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
                     <Route path="about" element={<About i18n={i18n} session={session} sse={sse} />}></Route>
                     <Route path="accounts" element={<Accounts i18n={i18n} session={session} sse={sse} />}></Route>
                     <Route path="actions" element={<Actions i18n={i18n} session={session} />}></Route>
-                    <Route path="customize" element={<Customize i18n={i18n} session={session} />}></Route>
+                    <Route path="customize" element={<BrowserSettings i18n={i18n} session={session} />}></Route>
                     <Route path="logs" element={<Logs i18n={i18n} session={session} sse={sse} />}></Route>
                     <Route path="player" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
                     <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>

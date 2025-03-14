@@ -14,30 +14,18 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Direction } from '@mantine/core'
+import { Menu } from '@mantine/core'
+import { IconPencilSearch } from '@tabler/icons-react'
 
-export interface I18nInterface {
-  get: (value: string) => string
-  getString: (value: string) => string
-  getFormat: (value: string[]) => string
-  getValueLabelData: (values: ValueLabelData[]) => ValueLabelData[]
-  getLocalizedName: (value: string | undefined) => string
-  language: string
-  dir: Direction
-  languages: LanguageValue[]
-  setLanguage: (language: string) => void
-  getReportLink: () => React.ReactNode
-}
+import { I18nInterface } from '../../services/i18n-service'
 
-export interface LanguageValue {
-  id: string
-  name: string
-  defaultname: string
-  country: string
-  coverage: number
-}
-
-export interface ValueLabelData {
-  value: string
-  label: string
+export default function VideoMetadataEditButton({ i18n, setShowVideoMetadataEdit }: { i18n: I18nInterface, setShowVideoMetadataEdit: (value: boolean) => void }) {
+  return (
+    <Menu.Item
+      leftSection={<IconPencilSearch />}
+      onClick={() => setShowVideoMetadataEdit(true)}
+    >
+      {i18n.get('Edit')}
+    </Menu.Item>
+  )
 }

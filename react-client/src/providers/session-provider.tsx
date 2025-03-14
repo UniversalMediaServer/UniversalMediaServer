@@ -42,6 +42,10 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     key: 'player-navbar',
     defaultValue: true,
   })
+  const [playerDirectPlay, setPlayerDirectPlay] = useLocalStorage<boolean>({
+    key: 'player-navbar',
+    defaultValue: false,
+  })
 
   const refresh = () => {
     axios.get(authApiUrl + 'session')
@@ -158,11 +162,13 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       setServerName: setServerName,
       setDocumentTitle: setDocumentTitle,
       setDocumentI18nTitle: setDocumentI18nTitle,
+      playerNavbar: playerNavbar,
+      setPlayerNavbar: setPlayerNavbar,
+      playerDirectPlay: playerDirectPlay,
+      setPlayerDirectPlay: setPlayerDirectPlay,
       hasNavbar: hasNavbar,
       navbarOpened: navbarOpened,
       setNavbarOpened: setNavbarOpened,
-      playerNavbar: playerNavbar,
-      setPlayerNavbar: setPlayerNavbar,
       navbarValue: navbarValue,
       setNavbarValue: setNavbarValue,
       navbarManage: navbarManage,

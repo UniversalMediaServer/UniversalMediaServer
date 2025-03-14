@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Accordion, Box, Checkbox, Paper, Text } from '@mantine/core'
-import { IconBoxAlignLeft, IconClockExclamation, IconDimensions } from '@tabler/icons-react'
+import { IconBoxAlignLeft, IconClockExclamation, IconDimensions, IconPlayerPlay } from '@tabler/icons-react'
 import { useEffect } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
@@ -35,7 +35,7 @@ const Customize = ({ i18n, session }: { i18n: I18nInterface, session: SessionInt
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">
-      <Accordion defaultValue="NavbarWidth">
+      <Accordion defaultValue="NotificationDuration">
         <Accordion.Item value="NotificationDuration">
           <Accordion.Control icon={<IconClockExclamation />}>Notification duration</Accordion.Control>
           <Accordion.Panel>
@@ -93,12 +93,25 @@ const Customize = ({ i18n, session }: { i18n: I18nInterface, session: SessionInt
               storageKey="mantine-navbar-width-sm"
               defaultValue={250}
             />
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item value="PlayerSettings">
+          <Accordion.Control icon={<IconPlayerPlay />}>Player Settings</Accordion.Control>
+          <Accordion.Panel>
             <Paper shadow="xs" py="xs" px="xl" m="10">
               <Text>Player Navbar</Text>
               <Checkbox
                 label="Use Navbar on player"
                 checked={session.playerNavbar}
                 onChange={event => session.setPlayerNavbar(event.currentTarget.checked)}
+              />
+            </Paper>
+            <Paper shadow="xs" py="xs" px="xl" m="10">
+              <Text>Player show metadata</Text>
+              <Checkbox
+                label="Direct play on playable content"
+                checked={session.playerDirectPlay}
+                onChange={event => session.setPlayerDirectPlay(event.currentTarget.checked)}
               />
             </Paper>
           </Accordion.Panel>

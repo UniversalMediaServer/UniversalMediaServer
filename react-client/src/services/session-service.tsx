@@ -65,6 +65,8 @@ export interface SessionInterface extends UmsSession {
   setDocumentI18nTitle: (documentTitle: string) => void
   playerNavbar: boolean
   setPlayerNavbar: (playerNavbar: boolean) => void
+  playerDirectPlay: boolean
+  setPlayerDirectPlay: (playerDirectPlay: boolean) => void
   hasNavbar: boolean
   navbarValue: React.ReactNode
   setNavbarValue: (navbarValue: React.ReactNode) => void

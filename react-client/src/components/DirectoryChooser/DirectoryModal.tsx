@@ -89,6 +89,7 @@ export default function DirectoryModal({
         <Stack gap="xs" align="flex-start" justify="flex-start" mt="sm">
           {directories.map(directory => (
             <Button
+              key={directory.value}
               leftSection={<IconFolder size={18} />}
               variant="subtle"
               onClick={() => getSubdirectories(directory.value)}

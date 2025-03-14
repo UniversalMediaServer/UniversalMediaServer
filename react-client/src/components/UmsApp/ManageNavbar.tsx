@@ -24,7 +24,7 @@ import { SessionInterface } from '../../services/session-service'
 import About from '../About/About'
 import Actions from '../Actions/Actions'
 import Accounts from '../Accounts/Accounts'
-import Customize from '../Customize/Customize'
+import BrowserSettings from '../BrowserSettings/BrowserSettings'
 import Home from '../Home/Home'
 import Logs from '../Logs/Logs'
 import ServerSettings from '../ServerSettings/ServerSettings'
@@ -92,7 +92,7 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
       )}
       <Button
         color="gray"
-        variant={from === Customize.name ? undefined : 'subtle'}
+        variant={from === BrowserSettings.name ? undefined : 'subtle'}
         size="compact-md"
         leftSection={<IconDeviceDesktopCog size={14} />}
         onClick={() => { navigate('/customize') }}

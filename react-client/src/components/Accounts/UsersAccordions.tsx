@@ -67,7 +67,7 @@ export default function UsersAccordions({
     )
   }
 
-  const NewUserForm = () => {
+  const NewUserForm = ({ i18n }: { i18n: I18nInterface }) => {
     const newUserForm = useForm({ initialValues: { username: '', password: '', groupid: '0', displayname: '' } })
     const handleNewUserSubmit = (values: typeof newUserForm.values) => {
       const data = { operation: 'createuser', username: values.username, password: values.password, groupid: values.groupid, displayname: values.displayname }
@@ -312,14 +312,14 @@ export default function UsersAccordions({
     )
   }
 
-  const NewUserAccordion = () => {
+  const NewUserAccordion = ({ i18n }: { i18n: I18nInterface }) => {
     const user = { id: 0, username: i18n.get('NewUser') } as UmsUser
     const userGroup = { id: 0, displayName: '' } as UmsGroup
     return canManageUsers
       ? (
           <Accordion.Item value={user.id.toString()}>
             <Accordion.Control><UserAccordionLabel user={user} group={userGroup} /></Accordion.Control>
-            <Accordion.Panel><NewUserForm /></Accordion.Panel>
+            <Accordion.Panel><NewUserForm i18n={i18n} /></Accordion.Panel>
           </Accordion.Item>
         )
       : null
@@ -341,12 +341,12 @@ export default function UsersAccordions({
   }
 
   const UserAccordions = accounts.users.map((user) => {
-    return <UserAccordion user={user} />
+    return <UserAccordion user={user} key={user.id} />
   })
 
   return (
     <Accordion value={userOpened} onChange={setUserOpened}>
-      <NewUserAccordion />
+      <NewUserAccordion i18n={i18n} />
       {UserAccordions}
     </Accordion>
   )

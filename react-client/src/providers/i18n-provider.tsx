@@ -78,6 +78,16 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
     })
   }
 
+  const getLocalizedName = (name: string | undefined) => {
+    const nameData = name ? name.split('|') : ['']
+    if (nameData.length > 1) {
+      return getFormat(nameData)
+    }
+    else {
+      return getString(nameData[0])
+    }
+  }
+
   const getI18nLanguage = (language: string, version: string) => {
     axios.get(i18nApiUrl, { params: { language, version } })
       .then(function (response: any) {
@@ -148,6 +158,7 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
       getString: getString,
       getFormat: getFormat,
       getValueLabelData: getValueLabelData,
+      getLocalizedName: getLocalizedName,
       language: language || 'en-US',
       dir: dir,
       languages: languages,

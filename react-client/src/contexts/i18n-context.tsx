@@ -24,6 +24,7 @@ const I18nContext: Context<I18nInterface> = createContext({
   getString: (value: string) => { return value },
   getFormat: (values: string[]) => { return values.length ? values[0] : '' },
   getValueLabelData: (values: ValueLabelData[]) => { return values },
+  getLocalizedName: (value: string | undefined) => { return value ? value : '' },
   language: 'en-US',
   dir: 'ltr' as Direction,
   languages: [] as LanguageValue[],
