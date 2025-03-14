@@ -41,6 +41,7 @@ Page Custom LockedListShow LockedListLeave
 ShowUninstDetails show
 
 Function .onInit
+	SetRegView 64
 	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
 	${If} $0 != "${PROJECT_BINARY_REVISION}"
 		MessageBox MB_OK|MB_ICONSTOP "Can't update this version, use the full installer" 0 0
