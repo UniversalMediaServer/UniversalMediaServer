@@ -35,7 +35,7 @@ public class OutputBufferConsumer extends OutputConsumer {
 	 * {@link java.io.InputStream#read(byte[]) read(byte[])}, but it will never be more than
 	 * the buffer size that we define here. Tests show varying numbers between 2048 and 450560
 	 * being copied, with 8192 being most commonly used, probably because that is the default
-	 * size for {@link org.jboss.netty.channel.Channel Channel} packets.
+	 * size for {@link net.net.pms.external.audioaddict.mapper.jboss.netty.channel.Channel Channel} packets.
 	 */
 	private static final int PIPE_BUFFER_SIZE = 500000;
 

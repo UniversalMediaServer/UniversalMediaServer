@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import net.pms.renderers.Renderer;
+import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.MusicBrainzPersonFolder;
@@ -151,6 +152,9 @@ public class DbIdResourceLocator {
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		LOGGER.debug("getLibraryResourceByDbTypeIdent : {}", typeIdent.toString());
 		switch (typeIdent.type) {
+			case TYPE_AUDIOADDICT -> {
+				return renderer.getMediaStore().getMediaLibrary().getAudioAddictPlatformFolder();
+			}
 			case TYPE_MUSICBRAINZ_RECORDID -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
 					return null;
