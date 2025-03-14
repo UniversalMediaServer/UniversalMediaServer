@@ -42,6 +42,10 @@ public class AudioAddictService implements ConfigurationListener {
 		}
 	}
 
+	public RadioNetwork getRadioNetwork(Platform platform) {
+		return networkSettings.get(platform);
+	}
+
 	public List<AudioAddictChannelDto> getChannelFor(Platform platform) {
 		RadioNetwork network = getNetwork(platform);
 		return network.getChannel();
