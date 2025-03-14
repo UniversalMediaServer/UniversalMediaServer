@@ -18,12 +18,10 @@ import { useEffect } from 'react'
 
 import UmsAppShell from './components/UmsApp/UmsAppShell'
 import I18nContext from './contexts/i18n-context'
-import MainContext from './contexts/main-context'
 import PlayerEventContext from './contexts/player-server-event-context'
 import ServerEventContext from './contexts/server-event-context'
 import SessionContext from './contexts/session-context'
 import I18nProvider from './providers/i18n-provider'
-import MainProvider from './providers/main-provider'
 import PlayerEventProvider from './providers/player-server-event-provider'
 import ServerEventProvider from './providers/server-event-provider'
 import SessionProvider from './providers/session-provider'
@@ -39,31 +37,25 @@ function UmsApp() {
     <I18nProvider>
       <I18nContext.Consumer>
         {i18n => (
-          <MainProvider>
-            <MainContext.Consumer>
-              {main => (
-                <SessionProvider i18n={i18n}>
-                  <SessionContext.Consumer>
-                    {session => (
-                      <ServerEventProvider i18n={i18n} main={main} session={session}>
-                        <ServerEventContext.Consumer>
-                          {sse => (
-                            <PlayerEventProvider i18n={i18n} session={session}>
-                              <PlayerEventContext.Consumer>
-                                {playersse => (
-                                  <UmsAppShell i18n={i18n} main={main} session={session} sse={sse} playersse={playersse} />
-                                )}
-                              </PlayerEventContext.Consumer>
-                            </PlayerEventProvider>
+          <SessionProvider i18n={i18n}>
+            <SessionContext.Consumer>
+              {session => (
+                <ServerEventProvider i18n={i18n} session={session}>
+                  <ServerEventContext.Consumer>
+                    {sse => (
+                      <PlayerEventProvider i18n={i18n} session={session}>
+                        <PlayerEventContext.Consumer>
+                          {playersse => (
+                            <UmsAppShell i18n={i18n} session={session} sse={sse} playersse={playersse} />
                           )}
-                        </ServerEventContext.Consumer>
-                      </ServerEventProvider>
+                        </PlayerEventContext.Consumer>
+                      </PlayerEventProvider>
                     )}
-                  </SessionContext.Consumer>
-                </SessionProvider>
+                  </ServerEventContext.Consumer>
+                </ServerEventProvider>
               )}
-            </MainContext.Consumer>
-          </MainProvider>
+            </SessionContext.Consumer>
+          </SessionProvider>
         )}
       </I18nContext.Consumer>
     </I18nProvider>

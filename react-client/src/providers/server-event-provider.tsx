@@ -21,12 +21,11 @@ import { ReactNode, useEffect, useState } from 'react'
 import ServerEventContext from '../contexts/server-event-context'
 import { getJwt } from '../services/auth-service'
 import { I18nInterface } from '../services/i18n-service'
-import { MainInterface } from '../services/main-service'
 import { UmsMemory } from '../services/server-event-service'
 import { SessionInterface } from '../services/session-service'
 import { sseApiUrl } from '../utils'
 
-const ServerEventProvider = ({ children, i18n, main, session }: { children?: ReactNode, i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
+const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode, i18n: I18nInterface, session: SessionInterface }) => {
   const [prevLocation, setPrevLocation] = useState('')
   const [handled, setHandled] = useState<boolean>(true)
   const [abortController, setAbortController] = useState(new AbortController())
@@ -134,7 +133,7 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
             setNewLogLine(true)
             break
           case 'set_status_line':
-            main.setStatusLine(datas.value)
+            session.setStatusLine(datas.value)
             break
         }
       }

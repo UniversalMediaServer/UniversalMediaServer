@@ -24,7 +24,14 @@ import { I18nInterface } from '../../services/i18n-service'
 import { playerApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
-export default function VideoMetadataEditModal(props: {
+export default function VideoMetadataEditModal({
+  i18n,
+  uuid,
+  id,
+  start,
+  started,
+  callback,
+}: {
   i18n: I18nInterface
   uuid: string
   id: string
@@ -34,14 +41,13 @@ export default function VideoMetadataEditModal(props: {
 }) {
   const [isLoading, setLoading] = useState(true)
   const [opened, setOpened] = useState(false)
-  const i18n = props.i18n
   const [editResults, setEditResults] = useState<TmdbResult[]>([])
   const [editData, setEditData] = useState<BaseEdit | null>(null)
   const searchForm = useForm()
 
   const getEditData = () => {
     setLoading(true)
-    axios.post(playerApiUrl + 'edit', { uuid: props.uuid, id: props.id })
+    axios.post(playerApiUrl + 'edit', { uuid: uuid, id: id })
       .then(function (response: any) {
         setEditData(response.data)
         searchForm.setValues(response.data)
@@ -61,7 +67,7 @@ export default function VideoMetadataEditModal(props: {
 
   const getMetadataResults = (media_type: string, search: string, year: string) => {
     setLoading(true)
-    axios.post(playerApiUrl + 'findMetadata', { uuid: props.uuid, id: props.id, media_type: media_type, search: search, year: year, lang: i18n.language })
+    axios.post(playerApiUrl + 'findMetadata', { uuid: uuid, id: id, media_type: media_type, search: search, year: year, lang: i18n.language })
       .then(function (response: any) {
         setEditResults(response.data)
       })
@@ -79,10 +85,10 @@ export default function VideoMetadataEditModal(props: {
 
   const setMetadataChange = (tmdb_id: number) => {
     setLoading(true)
-    axios.post(playerApiUrl + 'setMetadata', { uuid: props.uuid, id: props.id, media_type: editData?.media_type, tmdb_id })
+    axios.post(playerApiUrl + 'setMetadata', { uuid: uuid, id: id, media_type: editData?.media_type, tmdb_id })
       .then(function () {
         setOpened(false)
-        props.callback()
+        callback()
       })
       .catch(function () {
         showError({
@@ -100,21 +106,7 @@ export default function VideoMetadataEditModal(props: {
     getMetadataResults(values.media_type, values.search, values.year)
   }
 
-  const getMetadataResultsForm = () => {
-    const metadataResultCards = editResults && editResults.map((tmdbResult) => {
-      return getMetadataResultCard(tmdbResult)
-    })
-    return editResults && editResults.length > 0
-      ? (
-          <Stack>
-            <Divider size="md" my="xs" label="↧" labelPosition="center" fz="md" c="var(--mantine-color-text)" />
-            {metadataResultCards}
-          </Stack>
-        )
-      : (null)
-  }
-
-  const getMetadataResultCard = (tmdbResult: TmdbResult) => {
+  const MetadataResultCard = ({ i18n, tmdbResult, editData }: { i18n: I18nInterface, tmdbResult: TmdbResult, editData?: BaseEdit | null }) => {
     const buttonText = tmdbResult.selected ? i18n.get('SelectedMedia') : editData?.media_type == 'tv_episode' ? i18n.get('UpdateEpisode') : editData?.media_type == 'tv' ? i18n.get('UpdateTvSeries') : i18n.get('UpdateMovie')
     return (
       <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -139,15 +131,18 @@ export default function VideoMetadataEditModal(props: {
             direction="column"
             wrap="wrap"
           >
-            <Text size="md">
-              {tmdbResult.title}
-              {tmdbResult.year && (<Badge variant="default" mx="sm">{tmdbResult.year.substring(0, 4)}</Badge>)}
-            </Text>
+            <Group gap="0">
+              <Text size="md">{tmdbResult.title}</Text>
+              {tmdbResult.year && (
+                <Badge variant="default" mx="sm">{tmdbResult.year.substring(0, 4)}</Badge>
+              )}
+            </Group>
             {tmdbResult.title !== tmdbResult.original_title && (
-              <Text size="sm" fs="italic">
-                {tmdbResult.original_title}
-                {tmdbResult.original_language && (<Badge variant="default" mx="sm" size="sm">{tmdbResult.original_language}</Badge>)}
-              </Text>
+              <Group gap="0">
+                <Text size="sm" fs="italic">{tmdbResult.original_title}</Text>
+                {tmdbResult.original_language && (
+                  <Badge variant="default" mx="sm" size="sm" fs="italic">{tmdbResult.original_language}</Badge>)}
+              </Group>
             )}
             <Spoiler maxHeight={120} showLabel="..." hideLabel="↥">
               <Text size="sm" c="dimmed">{tmdbResult.overview}</Text>
@@ -169,12 +164,25 @@ export default function VideoMetadataEditModal(props: {
     )
   }
 
+  const MetadataResultsForm = ({ i18n, editResults, editData }: { i18n: I18nInterface, editResults: TmdbResult[], editData?: BaseEdit | null }) => {
+    return editResults && editResults.length > 0
+      ? (
+          <Stack>
+            <Divider size="md" my="xs" label="↧" labelPosition="center" fz="md" c="var(--mantine-color-text)" />
+            {editResults.map((tmdbResult) => {
+              return (<MetadataResultCard key={tmdbResult.id} i18n={i18n} tmdbResult={tmdbResult} editData={editData} />)
+            })}
+          </Stack>
+        )
+      : undefined
+  }
+
   useEffect(() => {
-    if (props.start) {
+    if (start) {
       getEditData()
-      props.started()
+      started()
     }
-  }, [props.start])
+  }, [start])
 
   return (
     <Modal
@@ -218,7 +226,7 @@ export default function VideoMetadataEditModal(props: {
           {i18n.get('Search')}
         </Button>
       </form>
-      {getMetadataResultsForm()}
+      <MetadataResultsForm i18n={i18n} editResults={editResults} editData={editData} />
     </Modal>
   )
 }

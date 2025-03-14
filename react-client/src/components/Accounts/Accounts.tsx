@@ -20,7 +20,6 @@ import { useEffect, useState } from 'react'
 
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { UmsAccounts } from '../../services/accounts-service'
 import { SessionInterface } from '../../services/session-service'
@@ -30,7 +29,7 @@ import AuthenticationSettings from './AuthenticationSettings'
 import GroupsAccordions from './GroupsAccordions'
 import UsersAccordions from './UsersAccordions'
 
-const Accounts = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) => {
+const Accounts = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const canModifySettings = havePermission(session, Permissions.settings_modify)
   const canManageGroups = havePermission(session, Permissions.groups_manage)
@@ -39,12 +38,9 @@ const Accounts = ({ i18n, main, session, sse }: { i18n: I18nInterface, main: Mai
   useEffect(() => {
     session.useSseAs(Accounts.name)
     session.stopPlayerSse()
+    session.setDocumentI18nTitle('ManageAccounts')
+    session.setNavbarManage(Accounts.name)
   }, [])
-
-  useEffect(() => {
-    session.setDocumentTitle(i18n.get('ManageAccounts'))
-    main.setNavbarItem(i18n, session, Accounts.name)
-  }, [i18n, session.account])
 
   useEffect(() => {
     if (filled && !sse.updateAccounts) {

@@ -35,6 +35,20 @@ const SessionContext: Context<SessionInterface> = createContext({
   serverName: 'Universal Media Server',
   setServerName: (_serverName: string) => { },
   setDocumentTitle: (_documentTitle: string) => { },
+  setDocumentI18nTitle: (_documentTitle: string) => { },
+  playerNavbar: true,
+  setPlayerNavbar: (_playerNavbar: boolean) => { },
+  playerDirectPlay: false,
+  setPlayerDirectPlay: (_playerDirectPlay: boolean) => { },
+  hasNavbar: false,
+  navbarOpened: false as boolean,
+  setNavbarOpened: (_navbarOpened: boolean) => { },
+  navbarValue: undefined as React.ReactNode,
+  setNavbarValue: (_navbarValue: React.ReactNode) => { },
+  navbarManage: '',
+  setNavbarManage: (_navbarManage: string) => { },
+  statusLine: undefined,
+  setStatusLine: (_statusLine: any) => { },
 } as SessionInterface)
 
 export default SessionContext

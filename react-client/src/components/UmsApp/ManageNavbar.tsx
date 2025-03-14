@@ -21,14 +21,14 @@ import { useNavigate } from 'react-router-dom'
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
-import Settings from '../Settings/Settings'
-import Home from '../Home/Home'
-import SharedContent from '../SharedContent/SharedContent'
-import Actions from '../Actions/Actions'
-import Logs from '../Logs/Logs'
-import Accounts from '../Accounts/Accounts'
-import Customize from '../Customize/Customize'
 import About from '../About/About'
+import Actions from '../Actions/Actions'
+import Accounts from '../Accounts/Accounts'
+import BrowserSettings from '../BrowserSettings/BrowserSettings'
+import Home from '../Home/Home'
+import Logs from '../Logs/Logs'
+import ServerSettings from '../ServerSettings/ServerSettings'
+import SharedContent from '../SharedContent/SharedContent'
 
 export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterface, session: SessionInterface, from: string }) {
   const navigate = useNavigate()
@@ -71,7 +71,7 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
       {!session.player && havePermission(session, Permissions.settings_view) && (
         <Button
           color="gray"
-          variant={from === Settings.name ? undefined : 'subtle'}
+          variant={from === ServerSettings.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconSettings size={14} />}
           onClick={() => { navigate('/settings') }}
@@ -92,7 +92,7 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
       )}
       <Button
         color="gray"
-        variant={from === Customize.name ? undefined : 'subtle'}
+        variant={from === BrowserSettings.name ? undefined : 'subtle'}
         size="compact-md"
         leftSection={<IconDeviceDesktopCog size={14} />}
         onClick={() => { navigate('/customize') }}

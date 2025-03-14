@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, ActionIcon, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core'
+import { Accordion, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
 import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, IconExclamationMark, IconPlayerPlay } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -95,18 +95,16 @@ export default function TranscodingSettings({
     if (!engine.isAvailable) {
       return (
         <Tooltip label={allowHtml(i18n.get('ThereIsProblemTranscodingEngineX')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ActionIcon variant="transparent" size={20}>
+          <Box>
             <IconExclamationMark color="orange" strokeWidth={3} size={14} />
-          </ActionIcon>
+          </Box>
         </Tooltip>
       )
     }
     else if (items.includes(engine.id)) {
       return (
         <Tooltip label={allowHtml(i18n.get('TranscodingEngineXEnabled')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ActionIcon
-            variant="transparent"
-            size={20}
+          <Box
             style={{ cursor: 'copy' }}
             onClick={(e: any) => {
               if (canModify) {
@@ -116,14 +114,13 @@ export default function TranscodingSettings({
             }}
           >
             <IconPlayerPlay strokeWidth={2} color="green" size={14} />
-          </ActionIcon>
+          </Box>
         </Tooltip>
       )
     }
     return (
       <Tooltip label={allowHtml(i18n.get('TranscodingEngineXDisabled')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-        <ActionIcon
-          size={20}
+        <Box
           style={{ cursor: 'copy' }}
           onClick={(e: any) => {
             if (canModify) {
@@ -133,7 +130,7 @@ export default function TranscodingSettings({
           }}
         >
           <IconBan color="red" size={14} />
-        </ActionIcon>
+        </Box>
       </Tooltip>
     )
   }
@@ -163,9 +160,19 @@ export default function TranscodingSettings({
                 variant={isDragged || isSelected ? 'outline' : 'subtle'}
                 leftSection={(
                   <>
-                    <ActionIcon variant="transparent" data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab' }}>
-                      {engines.indexOf(value) === 0 ? (<IconArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<IconArrowNarrowUp />) : (<IconArrowsVertical />)}
-                    </ActionIcon>
+                    <Box c="gray" me={5} data-movable-handle style={{ cursor: isDragged ? 'grabbing' : 'grab' }}>
+                      {engines.indexOf(value) === 0
+                        ? (
+                            <IconArrowNarrowDown size={14} />
+                          )
+                        : engines.indexOf(value) === engines.length - 1
+                          ? (
+                              <IconArrowNarrowUp size={14} />
+                            )
+                          : (
+                              <IconArrowsVertical size={14} />
+                            )}
+                    </Box>
                     {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
                   </>
                 )}

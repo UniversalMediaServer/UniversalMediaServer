@@ -23,11 +23,10 @@ import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff 
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { ActionsValues, sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { MainInterface } from '../../services/main-service'
 import { SessionInterface } from '../../services/session-service'
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils'
 
-const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
+const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify)
   const [actionsValues, setActionsValues] = useState<ActionsValues>({ canShutdownComputer: false })
   const navigate = useNavigate()
@@ -59,16 +58,13 @@ const Actions = ({ i18n, main, session }: { i18n: I18nInterface, main: MainInter
   useEffect(() => {
     session.stopSse()
     session.stopPlayerSse()
+    session.setDocumentI18nTitle('Tools')
+    session.setNavbarManage(Actions.name)
     axios.get(actionsApiUrl)
       .then((response) => {
         setActionsValues(response.data)
       })
   }, [])
-
-  useEffect(() => {
-    session.setDocumentTitle(i18n.get('Tools'))
-    main.setNavbarItem(i18n, session, Actions.name)
-  }, [i18n, session.account])
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">

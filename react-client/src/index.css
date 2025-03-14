@@ -71,6 +71,14 @@ code {
   color: var(--mantine-color-bright);
 }
 
+.color-bright-hover {
+  color: var(--mantine-color-dimmed);
+}
+
+.color-bright-hover:hover {
+  color: var(--mantine-color-bright);
+}
+
 nav button .mantine-Button-inner {
   justify-content: normal;
   font-weight: 400;

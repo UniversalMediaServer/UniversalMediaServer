@@ -22,14 +22,13 @@ import { useEffect, useState } from 'react'
 
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { MainInterface } from '../../services/main-service'
 import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface } from '../../services/session-service'
 import { sharedApiUrl } from '../../utils'
 import SharedContentSettings from './SharedContentSettings'
 import { showError, showInfo } from '../../utils/notifications'
 
-export default function SharedContent({ i18n, main, session, sse }: { i18n: I18nInterface, main: MainInterface, session: SessionInterface, sse: ServerEventInterface }) {
+export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) {
   const [isLoading, setLoading] = useState(true)
   const [configuration, setConfiguration] = useState({} as any)
 
@@ -42,12 +41,9 @@ export default function SharedContent({ i18n, main, session, sse }: { i18n: I18n
   useEffect(() => {
     session.useSseAs(SharedContent.name)
     session.stopPlayerSse()
+    session.setDocumentI18nTitle('SharedContent')
+    session.setNavbarManage(SharedContent.name)
   }, [])
-
-  useEffect(() => {
-    session.setDocumentTitle(i18n.get('SharedContent'))
-    main.setNavbarItem(i18n, session, SharedContent.name)
-  }, [i18n, session.account])
 
   useEffect(() => {
     if (sse.userConfiguration === null) {

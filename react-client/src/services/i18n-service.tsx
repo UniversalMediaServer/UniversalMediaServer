@@ -21,6 +21,7 @@ export interface I18nInterface {
   getString: (value: string) => string
   getFormat: (value: string[]) => string
   getValueLabelData: (values: ValueLabelData[]) => ValueLabelData[]
+  getLocalizedName: (value: string | undefined) => string
   language: string
   dir: Direction
   languages: LanguageValue[]

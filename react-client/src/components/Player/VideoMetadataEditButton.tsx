@@ -14,20 +14,18 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react'
+import { Menu } from '@mantine/core'
+import { IconPencilSearch } from '@tabler/icons-react'
 
-import { I18nInterface } from '../services/i18n-service'
-import { MainInterface } from '../services/main-service'
-import { SessionInterface } from '../services/session-service'
+import { I18nInterface } from '../../services/i18n-service'
 
-const MainContext: Context<MainInterface> = createContext({
-  navbarValue: undefined as React.ReactNode,
-  setNavbarValue: (_navbarValue: React.ReactNode) => { },
-  navbarOpened: false as boolean,
-  setNavbarOpened: (_navbarOpened: boolean) => { },
-  statusLine: undefined,
-  setStatusLine: (_statusLine: any) => { },
-  setNavbarItem: (_i18n: I18nInterface, _session: SessionInterface, _navbarItem: string) => { },
-})
-
-export default MainContext
+export default function VideoMetadataEditButton({ i18n, setShowVideoMetadataEdit }: { i18n: I18nInterface, setShowVideoMetadataEdit: (value: boolean) => void }) {
+  return (
+    <Menu.Item
+      leftSection={<IconPencilSearch />}
+      onClick={() => setShowVideoMetadataEdit(true)}
+    >
+      {i18n.get('Edit')}
+    </Menu.Item>
+  )
+}

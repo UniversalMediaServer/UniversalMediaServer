@@ -62,4 +62,18 @@ export interface SessionInterface extends UmsSession {
   serverName: string
   setServerName: (serverName: string) => void
   setDocumentTitle: (documentTitle: string) => void
+  setDocumentI18nTitle: (documentTitle: string) => void
+  playerNavbar: boolean
+  setPlayerNavbar: (playerNavbar: boolean) => void
+  playerDirectPlay: boolean
+  setPlayerDirectPlay: (playerDirectPlay: boolean) => void
+  hasNavbar: boolean
+  navbarValue: React.ReactNode
+  setNavbarValue: (navbarValue: React.ReactNode) => void
+  navbarOpened: boolean
+  setNavbarOpened: (navbarOpened: boolean) => void
+  statusLine: any
+  setStatusLine: (statusLine: any) => void
+  navbarManage: string
+  setNavbarManage: (_navbarManage: string) => void
 }
