@@ -208,7 +208,7 @@ public class RadioNetwork {
 		if (filterChannelId.size() > 0) {
 			return filterChannelId;
 		}
-		LOGGER.info("{} : has no favorite channels");
+		LOGGER.info("{} : has no favorite channels", network.displayName);
 		return null;
 	}
 
@@ -278,7 +278,7 @@ public class RadioNetwork {
 	}
 
 	/**
-	 * Converts playlist to url Extracts one URL from the channel.
+	 * Converts playlist to url. Extracts one URL from the channel.
 	 *
 	 * @param channels
 	 * @return
