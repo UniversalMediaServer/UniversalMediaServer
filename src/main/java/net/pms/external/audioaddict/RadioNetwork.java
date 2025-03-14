@@ -41,8 +41,10 @@ public class RadioNetwork {
 	private final static ExecutorService EXEC_SERVICE = Executors.newSingleThreadExecutor();
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
+
 	private static String apiKey = null;
 	private static String listenKey = null;
+	private static boolean authenticated = false;
 
 	private static OkHttpClient okClient = new OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build();;
 	private static OkHttpClient okClientBatch = new OkHttpClient.Builder()
@@ -58,7 +60,6 @@ public class RadioNetwork {
 	private AudioAddictServiceConfig config = null;
 
 	private Platform network = null;
-	private boolean authenticated = false;
 
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
