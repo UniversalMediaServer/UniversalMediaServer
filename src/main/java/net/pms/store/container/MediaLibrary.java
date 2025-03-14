@@ -66,6 +66,10 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		}
 	}
 
+	public AudioAddictPlatform getAudioAddictPlatformFolder() {
+		return audioAddictPlatform;
+	}
+
 	private void addVideoFolder() {
 		// Videos folder
 		LocalizedStoreContainer vfVideo = new LocalizedStoreContainer(renderer, "Video");
