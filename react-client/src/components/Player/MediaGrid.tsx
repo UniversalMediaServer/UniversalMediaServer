@@ -19,6 +19,7 @@ import { CSSProperties, Title } from '@mantine/core'
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
 import { BaseMedia } from '../../services/player-service'
+import { SessionInterface } from '../../services/session-service'
 import MediaCard from './MediaCard'
 
 export default function MediaGrid({ i18n, session, sse, mediaArray, title, fixed }: { i18n: I18nInterface, session: SessionInterface, sse: PlayerEventInterface, mediaArray: BaseMedia[], title?: string, fixed?: boolean }) {
