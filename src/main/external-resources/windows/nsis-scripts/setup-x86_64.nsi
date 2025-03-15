@@ -12,6 +12,15 @@
 !define SERVICE_NAME "UniversalMediaServer"
 !define OLD_SERVICE_NAME "Universal Media Server"
 
+VIAddVersionKey "ProductName" "${PROJECT_NAME}"
+VIAddVersionKey "Comments" ""
+VIAddVersionKey "CompanyName" "${PROJECT_ORGANIZATION_NAME}"
+VIAddVersionKey "LegalTrademarks" ""
+VIAddVersionKey "LegalCopyright" ""
+VIAddVersionKey "FileDescription" "${PROJECT_NAME} Setup x64"
+VIAddVersionKey "FileVersion" "${PROJECT_VERSION}"
+VIProductVersion "${PROJECT_VERSION_SHORT}.0"
+
 ManifestDPIAware true
 RequestExecutionLevel admin
 
@@ -37,7 +46,6 @@ Page Custom InstallTypeShow InstallTypeLeave
 !define MUI_PAGE_CUSTOMFUNCTION_PRE DirectoryPre
 !insertmacro MUI_PAGE_DIRECTORY
 Page Custom LockedListShow LockedListLeave
-Page Custom AdvancedSettings AdvancedSettingsAfterwards ; Custom page
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -228,86 +236,6 @@ Function LockedListLeave
 	StrCpy $R1 1
 FunctionEnd
 
-Var Dialog
-Var TextMemoryLimit
-Var LabelMemoryLimit
-Var DescMemoryLimit
-Var DefaultMemoryLimit
-Var SelectedMemoryLimit
-Function AdvancedSettings
-	!insertmacro MUI_HEADER_TEXT "Advanced Settings" "If you don't understand them, don't change them."
-	nsDialogs::Create 1018
-	Pop $Dialog
-
-	${If} $Dialog == error
-		Abort
-	${EndIf}
-
-	; Choose maximum memory limit based on java type installed
-	ClearErrors
-
-	${If} $InstallType == "PORTABLE"
-		; first check portable heapmem value.
-		ClearErrors
-		FileOpen $1 "$EXEDIR\portable\data\heapmem.conf" r
-		IfErrors filenotfound
-		FileRead $1 $DefaultMemoryLimit
-		FileClose $1
-		filenotfound:
-	${Else}
-		ReadRegStr $DefaultMemoryLimit SHCTX "${REG_KEY_SOFTWARE}" "HeapMem"
-	${EndIf}
-	; sanitize number.
-	IntOp $DefaultMemoryLimit $DefaultMemoryLimit + 1
-	IntOp $DefaultMemoryLimit $DefaultMemoryLimit - 1
-	${If} $DefaultMemoryLimit == "0"  ; wrong value found
-		StrCpy $DefaultMemoryLimit ""
-	${EndIf}
-	${If} $DefaultMemoryLimit == ""
-		; Get the amount of RAM on the computer
-		System::Alloc 64
-		Pop $1
-		System::Call "*$1(i64)"
-		System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
-		System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
-		System::Free $1
-		System::Int64Op $4 / 1048576
-		Pop $4
-
-		; Choose the maximum amount of RAM we want to use based on installed RAM
-		${If} $4 > 16000
-			StrCpy $DefaultMemoryLimit "4096"
-		${ElseIf} $4 > 8000
-			StrCpy $DefaultMemoryLimit "2048"
-		${ElseIf} $4 > 4000
-			StrCpy $DefaultMemoryLimit "1280"
-		${Else}
-			StrCpy $DefaultMemoryLimit "768"
-		${EndIf}
-	${EndIf}
-
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended."
-	Pop $DescMemoryLimit
-
-	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
-	Pop $LabelMemoryLimit
-
-	${NSD_CreateText} 3% 30% 10% 12u $DefaultMemoryLimit
-	Pop $TextMemoryLimit
-
-	nsDialogs::Show
-FunctionEnd
-
-Function AdvancedSettingsAfterwards
-	${NSD_GetText} $TextMemoryLimit $SelectedMemoryLimit
-	; sanitize number.
-	IntOp $SelectedMemoryLimit $SelectedMemoryLimit + 1
-	IntOp $SelectedMemoryLimit $SelectedMemoryLimit - 1
-	${If} $SelectedMemoryLimit == "0"  ; wrong value found
-		StrCpy $SelectedMemoryLimit $DefaultMemoryLimit
-	${EndIf}
-FunctionEnd
-
 Function RunUMS
 	SimpleSC::ExistsService "${SERVICE_NAME}"
 	Pop $0
@@ -486,6 +414,9 @@ Function DeleteOldFiles
 	Delete /REBOOTOK "$INSTDIR\new-version.exe"
 	Delete /REBOOTOK "$INSTDIR\pms.pid"
 
+	; Delete old maximum memory limit
+	DeleteRegKey SHCTX "${REG_KEY_SOFTWARE}\HeapMem"
+
 	; remove old service
 	SimpleSC::ExistsService "${OLD_SERVICE_NAME}"
 	Pop $0
@@ -547,21 +478,14 @@ Section "Program Files"
 		SetOutPath "$INSTDIR\portable"
 		CreateDirectory "$INSTDIR\portable\data"
 		CreateDirectory "$INSTDIR\portable\renderers"
-		; Store maximum memory limit
-		ClearErrors
-		FileOpen $1 "$INSTDIR\portable\data\heapmem.conf" w
-		IfErrors filenotfound
-		FileWrite $4 "$SelectedMemoryLimit"
-		FileClose $4
-		filenotfound:
 	${Else}
-		; Store maximum memory limit
-		WriteRegStr SHCTX "${REG_KEY_SOFTWARE}" "HeapMem" "$SelectedMemoryLimit"
 		; Store install folder
 		WriteRegStr SHCTX "${REG_KEY_SOFTWARE}" "" $INSTDIR
 		WriteRegStr SHCTX "${REG_KEY_SOFTWARE}" "BinaryRevision" "${PROJECT_BINARY_REVISION}"
 		; Uninstaller and registry
+		DetailPrint "Creating uninstaller..."
 		WriteUninstaller "$INSTDIR\uninst.exe"
+		DetailPrint "Uninstaller created"
 		WriteRegStr SHCTX "${REG_KEY_UNINSTALL}" "DisplayName" "${PROJECT_NAME}"
 		WriteRegStr SHCTX "${REG_KEY_UNINSTALL}" "DisplayIcon" "$INSTDIR\icon.ico"
 		WriteRegStr SHCTX "${REG_KEY_UNINSTALL}" "DisplayVersion" "${PROJECT_VERSION}"
@@ -865,15 +789,13 @@ Function FixRegistryWow64
 	SetRegView 32
 	; Check if wrong registry was set on HKCU (WOW64)
 	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
-	ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
-	ReadRegStr $2 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
+	ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
 	${IfNot} $0 == ""
 		DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 		;move it
 		SetRegView 64
 		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" "$0"
-		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$1"
-		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "$2"
+		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "$1"
 	${EndIf}
 	SetRegView 64
 FunctionEnd
@@ -881,13 +803,11 @@ FunctionEnd
 Function FixRegistryCurrentUser
 	; Move registry set on HKCU instead of HKLM (all users)
 	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
-	ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
-	ReadRegStr $2 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
+	ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
 	${IfNot} $0 == ""
 		DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "" "$0"
-		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "HeapMem" "$1"
-		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "BinaryRevision" "$2"
+		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "BinaryRevision" "$1"
 	${EndIf}
 FunctionEnd
 
