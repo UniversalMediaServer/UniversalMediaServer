@@ -25,9 +25,7 @@ import { SessionInterface } from '../../services/session-service'
 export default function ModeButtons({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
   const navigate = useNavigate()
   const canPlay = havePermission(session, Permissions.web_player_browse)
-  const canManage = !session.player && havePermission(session, Permissions.settings_view)
   const inPlayer = location.pathname.startsWith('/player')
-  const isNeeded = !session.player && canPlay && canManage
   const playerSection = useMatches({
     sm: <IconPlayerPlay size={16} />,
   })
@@ -35,7 +33,7 @@ export default function ModeButtons({ i18n, session }: { i18n: I18nInterface, se
     sm: <IconSettings size={16} />,
   })
 
-  return isNeeded
+  return canPlay
     ? !session.player
         ? (
             <Button.Group>
