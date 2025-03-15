@@ -43,7 +43,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     defaultValue: true,
   })
   const [playerDirectPlay, setPlayerDirectPlay] = useLocalStorage<boolean>({
-    key: 'player-navbar',
+    key: 'player-direct-play',
     defaultValue: false,
   })
 

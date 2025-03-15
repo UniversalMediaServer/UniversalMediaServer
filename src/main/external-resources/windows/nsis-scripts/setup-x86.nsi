@@ -13,6 +13,15 @@
 !define SERVICE_NAME "UniversalMediaServer"
 !define OLD_SERVICE_NAME "Universal Media Server"
 
+VIAddVersionKey "ProductName" "${PROJECT_NAME}"
+VIAddVersionKey "Comments" ""
+VIAddVersionKey "CompanyName" "${PROJECT_ORGANIZATION_NAME}"
+VIAddVersionKey "LegalTrademarks" ""
+VIAddVersionKey "LegalCopyright" ""
+VIAddVersionKey "FileDescription" "${PROJECT_NAME} Setup"
+VIAddVersionKey "FileVersion" "${PROJECT_VERSION}"
+VIProductVersion "${PROJECT_VERSION_SHORT}.0"
+
 ManifestDPIAware true
 RequestExecutionLevel admin
 
@@ -36,7 +45,6 @@ SetCompressorDictSize 32
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 Page Custom LockedListShow LockedListLeave
-Page Custom AdvancedSettings AdvancedSettingsAfterwards ; Custom page
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -66,7 +74,7 @@ Function LockedListShow
 	${EndIf}
 	LockedList::AddModule "$INSTDIR\bin\MediaInfo.dll"
 
-	LockedList::Dialog /autonext /autoclosesilent
+	LockedList::Dialog /autonext /autoclosesilent "" ""
 	Pop $R0
 
 	SimpleSC::ServiceIsRunning "${OLD_SERVICE_NAME}"
@@ -102,94 +110,6 @@ FunctionEnd
 
 Function LockedListLeave
 	StrCpy $R1 1
-FunctionEnd
-
-Var Dialog
-Var TextMemoryLimit
-Var LabelMemoryLimit
-Var DescMemoryLimit
-Var CheckboxCleanInstall
-Var CheckboxCleanInstallState
-Var DescCleanInstall
-Var DefaultMemoryLimit
-Var SelectedMemoryLimit
-Function AdvancedSettings
-	!insertmacro MUI_HEADER_TEXT "Advanced Settings" "If you don't understand them, don't change them."
-	nsDialogs::Create 1018
-	Pop $Dialog
-
-	${If} $Dialog == error
-		Abort
-	${EndIf}
-
-	; Choose maximum memory limit based on java type installed
-	ClearErrors
-
-	ReadRegStr $DefaultMemoryLimit SHCTX "${REG_KEY_SOFTWARE}" "HeapMem"
-	; sanitize number.
-	IntOp $DefaultMemoryLimit $DefaultMemoryLimit + 1
-	IntOp $DefaultMemoryLimit $DefaultMemoryLimit - 1
-	${If} $DefaultMemoryLimit == "0"  ; wrong value found
-		StrCpy $DefaultMemoryLimit ""
-	${EndIf}
-	${If} $DefaultMemoryLimit == ""
-		; Get the amount of RAM on the computer
-		System::Alloc 64
-		Pop $1
-		System::Call "*$1(i64)"
-		System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
-		System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
-		System::Free $1
-		System::Int64Op $4 / 1048576
-		Pop $4
-
-		; Choose the maximum amount of RAM we want to use based on installed RAM
-		${If} $4 > 16000 
-			StrCpy $DefaultMemoryLimit "4096"
-		${ElseIf} $4 > 8000 
-			StrCpy $DefaultMemoryLimit "2048"
-		${ElseIf} $4 > 4000 
-			StrCpy $DefaultMemoryLimit "1280"
-		${Else}
-			StrCpy $DefaultMemoryLimit "768"
-		${EndIf}
-	${EndIf}
-
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 
-	Pop $DescMemoryLimit
-
-	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
-	Pop $LabelMemoryLimit
-
-	${NSD_CreateText} 3% 30% 10% 12u $DefaultMemoryLimit
-	Pop $TextMemoryLimit
-
-	${NSD_CreateLabel} 0 50% 100% 20u "This allows you to take advantage of improved defaults. It deletes the UMS configuration directory, the UMS program directory and font cache."
-	Pop $DescCleanInstall
-
-	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
-	Pop $CheckboxCleanInstall
-
-	nsDialogs::Show
-FunctionEnd
-
-Function AdvancedSettingsAfterwards
-	${NSD_GetText} $TextMemoryLimit $SelectedMemoryLimit
-	; sanitize number.
-	IntOp $SelectedMemoryLimit $SelectedMemoryLimit + 1
-	IntOp $SelectedMemoryLimit $SelectedMemoryLimit - 1
-	${If} $SelectedMemoryLimit == "0"  ; wrong value found
-		StrCpy $SelectedMemoryLimit DefaultMemoryLimit
-	${EndIf}
-	${NSD_GetState} $CheckboxCleanInstall $CheckboxCleanInstallState
-	${If} $CheckboxCleanInstallState == ${BST_CHECKED}
-		ReadENVStr $R1 ALLUSERSPROFILE
-		RMDir /r $R1\UMS
-		RMDir /r $TEMP\fontconfig
-		RMDir /r $LOCALAPPDATA\fontconfig
-		RMDir /r $INSTDIR
-		DeleteRegValue HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
-	${EndIf}
 FunctionEnd
 
 ;Run program through explorer.exe to de-evaluate user from admin to regular one.
@@ -257,7 +177,6 @@ Section "Program Files"
 		File /r "${PROJECT_BUILD_DIR}\bin\windows\winxp"
 	${EndIf}
 	WriteRegStr SHCTX "${REG_KEY_SOFTWARE}" "BinaryRevision" "${PROJECT_BINARY_REVISION}"
-	WriteRegStr SHCTX "${REG_KEY_SOFTWARE}" "HeapMem" "$SelectedMemoryLimit"
 
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
 	SetOutPath "$INSTDIR"
@@ -362,9 +281,13 @@ Section "Program Files"
 	; Store install folder
 	WriteRegStr SHCTX "${REG_KEY_SOFTWARE}" "" $INSTDIR
 
-	; Create uninstaller
-	WriteUninstaller "$INSTDIR\uninst.exe"
+	; Delete old maximum memory limit
+	DeleteRegKey SHCTX "${REG_KEY_SOFTWARE}\HeapMem"
 
+	; Create uninstaller
+	DetailPrint "Creating uninstaller..."
+	WriteUninstaller "$INSTDIR\uninst.exe"
+	DetailPrint "Uninstaller created"
 	WriteRegStr SHCTX "${REG_KEY_UNINSTALL}" "DisplayName" "${PROJECT_NAME}"
 	WriteRegStr SHCTX "${REG_KEY_UNINSTALL}" "DisplayIcon" "$INSTDIR\icon.ico"
 	WriteRegStr SHCTX "${REG_KEY_UNINSTALL}" "DisplayVersion" "${PROJECT_VERSION}"
@@ -375,8 +298,6 @@ Section "Program Files"
 	${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
 	IntFmt $0 "0x%08X" $0
 	WriteRegDWORD HKLM "${REG_KEY_UNINSTALL}" "EstimatedSize" "$0"
-
-	WriteUnInstaller "uninst.exe"
 
 	SetOutPath "$LOCALAPPDATA\UMS"
 
@@ -734,15 +655,13 @@ Function FixRegistryWow64
 SetRegView 32
 ; Check if wrong registry was set on HKCU (WOW64)
 ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
-ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
-ReadRegStr $2 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
+ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
 ${IfNot} $0 == ""
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 	;move it
 	SetRegView 64
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" "$0"
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$1"
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "$2"
+	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "$1"
 ${EndIf}
 SetRegView 64
 FunctionEnd
@@ -750,13 +669,11 @@ FunctionEnd
 Function FixRegistryCurrentUser
 	; Move registry set on HKCU instead of HKLM (all users)
 	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
-	ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
-	ReadRegStr $2 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
+	ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
 	${IfNot} $0 == ""
 		DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "" "$0"
-		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "HeapMem" "$1"
-		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "BinaryRevision" "$2"
+		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "BinaryRevision" "$1"
 	${EndIf}
 FunctionEnd
 
