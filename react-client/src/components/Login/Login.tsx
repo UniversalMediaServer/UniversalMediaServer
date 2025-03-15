@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@mantine/core';
+import { Avatar, Paper, TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import { useContext, useEffect, useState } from 'react';
@@ -22,7 +22,7 @@ import { IconUser, IconLock } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
-import { clearJwt, create, disable, login } from '../../services/auth-service';
+import { clearJwt, create, disable, getUserSwitcherState, login } from '../../services/auth-service';
 import { allowHtml } from '../../utils';
 
 const Login = () => {
@@ -95,10 +95,34 @@ const Login = () => {
     document.title="Universal Media Server - Login";
   }, []);
 
+  const userSwitcherState = getUserSwitcherState();
+
   return (
-    <Box style={{ maxWidth: 300 }} mx='auto'>
+    <Box style={{ maxWidth: 300 }} mx="auto">
       <form onSubmit={form.onSubmit(session.noAdminFound ? handleUserCreation : handleLogin)}>
         <Text size='xl'>Universal Media Server</Text>
+        {
+          // from https://ui.mantine.dev/component/user-info-action/
+          userSwitcherState && Object.entries(userSwitcherState).forEach(([id, user]) => {
+            <Paper radius="md" withBorder p="lg" bg="var(--mantine-color-body)">
+              <Avatar
+                src={user.avatar}
+                size={120}
+                radius={120}
+                mx="auto"
+              />
+              <Text ta="center" fz="lg" fw={500} mt="md">
+                {user.displayName}
+              </Text>
+              <Button variant="default" fullWidth mt="md">
+                {i18n.get('SelectUser')}
+              </Button>
+              <Button variant="default" fullWidth mt="md">
+                {i18n.get('ForgetUser')}
+              </Button>
+            </Paper>
+          })
+        }
         <Text size='lg'>{session.noAdminFound ? i18n.get('CreateFirstAdmin') : i18n.get('LogIn')}</Text>
         <Space h='md' />
         <TextInput

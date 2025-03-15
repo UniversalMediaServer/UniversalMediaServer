@@ -153,6 +153,7 @@ function UmsApp() {
                             <Route path='about' element={<ServerEventProvider><About /></ServerEventProvider>}></Route>
                             <Route path='accounts' element={<ServerEventProvider><AccountsProvider><Accounts /></AccountsProvider></ServerEventProvider>}></Route>
                             <Route path='actions' element={<Actions />}></Route>
+                            <Route path='login' element={<Login />}></Route>
                             <Route path='logs' element={<ServerEventProvider><Logs /></ServerEventProvider>}></Route>
                             <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
                             <Route path='player/:req/:id' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>

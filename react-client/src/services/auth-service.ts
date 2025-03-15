@@ -19,6 +19,9 @@ import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 import { authApiUrl, playerApiUrl } from '../utils';
 
+interface IndividualUserSwitcher { avatar: string; displayName: string; }
+export interface UserSwitcherState { [key: number]: IndividualUserSwitcher };
+
 const storeJwtInLocalStorage = (jwt: string) => {
   axios.defaults.headers.common['Authorization'] = 'Bearer ' + jwt;
   localStorage.setItem('user', jwt);
@@ -26,6 +29,24 @@ const storeJwtInLocalStorage = (jwt: string) => {
   if (decoded.exp) {
     localStorage.setItem('tokenExpiry', decoded.exp.toString());
   }
+}
+
+export const getUserSwitcherState = (): UserSwitcherState | null => {
+  const userSwitcherObjectAsString = localStorage.getItem('userSwitcher');
+  if (!userSwitcherObjectAsString) {
+    return null;
+  }
+  return JSON.parse(userSwitcherObjectAsString);
+}
+
+const storeUserSwitcherInLocalStorage = (user: { avatar: string, displayName: string, groupId: number, id: number, lastLoginTime: number, libraryHidden: boolean, loginFailedCount: number, loginFailedTime: number, username: string }) => {
+  const userSwitcher = getUserSwitcherState();
+  console.log('userSwitcher',userSwitcher);
+
+  const currentUser: IndividualUserSwitcher = { avatar: user.avatar, displayName: user.displayName };
+  userSwitcher[user.id] = currentUser;
+
+  localStorage.setItem('userSwitcher', JSON.stringify(userSwitcher));
 }
 
 export const login = async (username: string, password: string) => {
@@ -36,6 +57,8 @@ export const login = async (username: string, password: string) => {
     });
   if (response.data.token) {
     storeJwtInLocalStorage(response.data.token);
+    console.log(111,response.data);
+    storeUserSwitcherInLocalStorage(response.data.account.user);
   }
   if (response.data.account) {
     //refresh session.account 
@@ -109,7 +132,12 @@ export const setAxiosAuthorization = () => {
   axios.defaults.headers.common['Authorization'] = localStorage.getItem('user') ? 'Bearer ' + localStorage.getItem('user') : undefined;
 }
 
-export const redirectToLogin = async () => {
+export const logOutThenRedirectToLogin = async () => {
   await clearJwt();
   window.location.reload();
+}
+
+export const redirectToLogin = async () => {
+  // todo: save current username and avatar to local storage for switcher
+  window.location.href = '/login';
 }
