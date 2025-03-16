@@ -17,25 +17,26 @@
 package net.pms.util;
 
 public class FileNameMetadata {
-
 	private final String movieOrShowName;
 	private final Integer year;
 	private final String extraInformation;
 	private final Integer tvSeasonNumber;
 	private final String tvEpisodeName;
 	private final String tvEpisodeNumber;
+	private final boolean isSample;
 
 	public FileNameMetadata() {
-		this(null, null, null, null, null, null);
+		this(null, null, null, null, null, null, false);
 	}
 
-	public FileNameMetadata(String movieOrShowName, String year, String extraInformation, String tvSeason, String tvEpisodeNumbers, String tvEpisodeName) {
+	public FileNameMetadata(String movieOrShowName, String year, String extraInformation, String tvSeason, String tvEpisodeNumbers, String tvEpisodeName, boolean isSample) {
 		this.movieOrShowName = movieOrShowName;
 		this.year = FileUtil.getYearFromYearString(year);
 		this.extraInformation = extraInformation;
 		this.tvSeasonNumber = FileUtil.getIntegerFromString(tvSeason);
 		this.tvEpisodeNumber = tvEpisodeNumbers;
 		this.tvEpisodeName = tvEpisodeName;
+		this.isSample = isSample;
 	}
 
 	public String getMovieOrShowName() {
@@ -66,4 +67,7 @@ public class FileNameMetadata {
 		return tvEpisodeName;
 	}
 
+	public boolean isSample() {
+		return isSample;
+	}
 }
