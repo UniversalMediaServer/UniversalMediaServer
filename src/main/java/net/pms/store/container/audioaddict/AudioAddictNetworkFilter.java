@@ -7,7 +7,8 @@ import net.pms.external.audioaddict.Platform;
 import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
-import net.pms.store.item.FeedItem;
+import net.pms.store.StoreResource;
+import net.pms.store.item.WebAudioStream;
 
 public class AudioAddictNetworkFilter extends StoreContainer {
 
@@ -21,7 +22,8 @@ public class AudioAddictNetworkFilter extends StoreContainer {
 		for (AudioAddictChannelDto c : filterList) {
 			MediaInfo mi = new MediaInfo();
 			mi.setMimeType("audio/mpeg");
-			addChild(new FeedItem(renderer, c.name, c.streamUrl, "http:" + c.albumArt, mi, 1));
+			StoreResource sr = new WebAudioStream(renderer, c.name, c.streamUrl, "http:" + c.albumArt);
+			addChild(sr);
 		}
 	}
 }
