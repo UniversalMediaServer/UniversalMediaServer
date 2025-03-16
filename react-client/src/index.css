@@ -112,10 +112,3 @@ nav button .mantine-Button-inner:hover {
 .mantine-Breadcrumbs-root .mantine-Button-inner:hover {
   color: var(--mantine-color-bright);
 }
-
-/*fix for Mantine 7.17.1*/
-@supports (-moz-appearance: none) {
-  input[readonly][aria-haspopup] {
-    pointer-events: auto !important;
-  }
-}

@@ -29,7 +29,6 @@ import net.pms.database.UserDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
-import net.pms.iam.Permissions;
 import net.pms.iam.User;
 import net.pms.iam.UsernamePassword;
 import net.pms.network.webguiserver.GuiHttpServlet;
