@@ -167,8 +167,24 @@ public class AuthService {
 		return CONFIGURATION.isAuthenticationEnabled();
 	}
 
+	public static boolean isShowUserChoice() {
+		return isEnabled() && CONFIGURATION.isWebGuiShowUserChoice();
+	}
+
+	public static boolean isAllowEmptyPin() {
+		return isShowUserChoice() && CONFIGURATION.isWebGuiAllowEmptyPin();
+	}
+
 	public static boolean isPlayerEnabled() {
 		return isEnabled() && (!CONFIGURATION.useWebPlayerServer() || CONFIGURATION.isWebPlayerAuthenticationEnabled());
+	}
+
+	public static boolean isPlayerShowUserChoice() {
+		return isEnabled() && CONFIGURATION.useWebPlayerServer() && CONFIGURATION.isWebPlayerAuthenticationEnabled() && CONFIGURATION.isWebPlayerShowUserChoice();
+	}
+
+	public static boolean isPlayerAllowEmptyPin() {
+		return isPlayerShowUserChoice() && CONFIGURATION.isWebPlayerAllowEmptyPin();
 	}
 
 	public static void setEnabled(boolean value) {
@@ -182,4 +198,5 @@ public class AuthService {
 	public static void setLocalhostAsAdmin(boolean value) {
 		CONFIGURATION.setAuthenticateLocalhostAsAdmin(value);
 	}
+
 }

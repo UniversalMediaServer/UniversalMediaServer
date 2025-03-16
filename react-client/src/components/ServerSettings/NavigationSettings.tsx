@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core'
+import { UseFormReturnType } from '@mantine/form'
 
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { sendAction } from '../../services/actions-service'
@@ -32,7 +33,7 @@ export default function NavigationSettings({
 }: {
   i18n: I18nInterface
   session: SessionInterface
-  form: any
+  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
   defaultConfiguration: any
   selectionSettings: any
 }) {
@@ -167,7 +168,7 @@ export default function NavigationSettings({
             </Tooltip>
             <Checkbox
               label={i18n.get('HideFileExtensions')}
-              disabled={!canModify || form.values['prettify_filenames']}
+              disabled={!canModify || form.values['prettify_filenames'] === true}
               {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
             />
             <Tooltip label={allowHtml(i18n.get('AddsInformationAboutSelectedSubtitles'))} {...defaultTooltipSettings}>

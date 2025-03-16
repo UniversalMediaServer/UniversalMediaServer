@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Accordion, Checkbox, MultiSelect, Select, Stack, Tooltip } from '@mantine/core'
+import { UseFormReturnType } from '@mantine/form'
 
 import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
@@ -29,7 +30,7 @@ export default function RenderersSettings({
 }: {
   i18n: I18nInterface
   session: SessionInterface
-  form: any
+  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
   selectionSettings: any
 }) {
   const canModify = havePermission(session, Permissions.settings_modify)

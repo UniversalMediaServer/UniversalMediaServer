@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Accordion, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core'
+import { UseFormReturnType } from '@mantine/form'
 import { useLocalStorage } from '@mantine/hooks'
 import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, IconExclamationMark, IconPlayerPlay } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -35,7 +36,7 @@ export default function TranscodingSettings({
 }: {
   i18n: I18nInterface
   session: SessionInterface
-  form: any
+  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
   defaultConfiguration: any
   selectionSettings: any
 }) {
@@ -251,14 +252,14 @@ export default function TranscodingSettings({
             />
           </Tooltip>
           <TextInput
-            disabled={!canModify || form.values['disable_transcoding']}
+            disabled={!canModify || form.values['disable_transcoding'] === true}
             label={i18n.get('SkipTranscodingFollowingExtensions')}
             size="xs"
             style={{ flex: 1 }}
             {...form.getInputProps('disable_transcode_for_extensions')}
           />
           <TextInput
-            disabled={!canModify || form.values['disable_transcoding']}
+            disabled={!canModify || form.values['disable_transcoding'] === true}
             size="xs"
             label={i18n.get('ForceTranscodingFollowingExtensions')}
             style={{ flex: 1 }}
@@ -308,7 +309,7 @@ export default function TranscodingSettings({
                     label={i18n.get('TranscodingQualityMpeg2')}
                     size="xs"
                     style={{ flex: 1 }}
-                    disabled={!canModify || form.values['automatic_maximum_bitrate']}
+                    disabled={!canModify || form.values['automatic_maximum_bitrate'] === true}
                     {...form.getInputProps('mpeg2_main_settings')}
                   />
                 </Tooltip>
@@ -317,7 +318,7 @@ export default function TranscodingSettings({
                     label={i18n.get('TranscodingQualityH264')}
                     size="xs"
                     style={{ flex: 1 }}
-                    disabled={!canModify || form.values['automatic_maximum_bitrate']}
+                    disabled={!canModify || form.values['automatic_maximum_bitrate'] === true}
                     {...form.getInputProps('x264_constant_rate_factor')}
                   />
                 </Tooltip>

@@ -17,6 +17,7 @@
 import { ColorSchemeScript, DirectionProvider, MantineProvider, MultiSelect, ScrollArea, ScrollAreaAutosize, Select, virtualColor } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/core/styles.css'
+import '@mantine/carousel/styles.css'
 import '@mantine/dropzone/styles.css'
 import '@mantine/notifications/styles.css'
 import { BrowserRouter } from 'react-router-dom'

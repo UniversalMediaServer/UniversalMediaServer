@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Accordion, Anchor, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core'
+import { UseFormReturnType } from '@mantine/form'
 import { useLocalStorage } from '@mantine/hooks'
 
 import { havePermission, Permissions } from '../../services/accounts-service'
@@ -31,7 +32,7 @@ export default function GeneralSettings({
 }: {
   i18n: I18nInterface
   session: SessionInterface
-  form: any
+  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
   defaultConfiguration: any
   selectionSettings: any
 }) {
@@ -99,6 +100,30 @@ export default function GeneralSettings({
               {...form.getInputProps('web_gui_port')}
             />
           )}
+          <Stack align="flex-start" mt="sm">
+            <Checkbox
+              disabled={!canModify}
+              label={i18n.get('UseAuthenticationService')}
+              {...form.getInputProps('authentication_enabled', { type: 'checkbox' })}
+            />
+            <Tooltip label={allowHtml(i18n.get('EnablingAuthenticateLocalhost'))} {...defaultTooltipSettings}>
+              <Checkbox
+                disabled={!canModify || !form.values['authentication_enabled']}
+                label={i18n.get('AuthenticateLocalhostAdmin')}
+                {...form.getInputProps('authenticate_localhost_as_admin', { type: 'checkbox' })}
+              />
+            </Tooltip>
+            <Checkbox
+              disabled={!canModify || !form.values['authentication_enabled']}
+              label={i18n.get('ShowUserChoice')}
+              {...form.getInputProps('web_gui_show_users', { type: 'checkbox' })}
+            />
+            <Checkbox
+              disabled={!canModify || !form.values['authentication_enabled'] || !form.values['web_gui_show_users']}
+              label={i18n.get('AllowEmptyPinLogin')}
+              {...form.getInputProps('web_gui_allow_empty_pin', { type: 'checkbox' })}
+            />
+          </Stack>
         </Accordion.Panel>
       </Accordion.Item>
       {advancedSettings && (
@@ -132,13 +157,6 @@ export default function GeneralSettings({
               {...form.getInputProps('port')}
             />
             <Stack mt="sm">
-              {/* removed until root user choice is implemented
-              <Checkbox
-                disabled={!canModify}
-                label={i18n.get('ShowUserChoice')}
-                {...form.getInputProps('show_user_choice', { type: 'checkbox' })}
-              />
-              */}
               <Checkbox
                 disabled={!canModify}
                 label={i18n.get('UPnPDlnaService')}
@@ -183,17 +201,29 @@ export default function GeneralSettings({
             />
             <Stack align="flex-start" mt="sm">
               <Checkbox
-                disabled={!canModify || !form.values['web_player_enable']}
+                disabled={!canModify || !form.values['web_player_enable'] || !form.values['authentication_enabled']}
                 label={i18n.get('UseAuthenticationService')}
-                {...form.getInputProps('web_player_auth', { type: 'checkbox' })}
+                checked={!form.values['authentication_enabled'] ? false : undefined}
+                description={!form.values['authentication_enabled'] ? i18n.get('AuthenticationServiceDisabled') : undefined}
+                {...form.getInputProps('web_player_auth', { type: form.values['authentication_enabled'] ? 'checkbox' : 'input' })}
               />
               <Checkbox
-                disabled={!canModify}
+                disabled={!canModify || !form.values['web_player_auth'] || !form.values['authentication_enabled']}
+                label={i18n.get('ShowUserChoice')}
+                {...form.getInputProps('web_player_show_users', { type: 'checkbox' })}
+              />
+              <Checkbox
+                disabled={!canModify || !form.values['web_player_show_users'] || !form.values['web_player_auth'] || !form.values['authentication_enabled']}
+                label={i18n.get('AllowEmptyPinLogin')}
+                {...form.getInputProps('web_player_allow_empty_pin', { type: 'checkbox' })}
+              />
+              <Checkbox
+                disabled={!canModify || !form.values['web_player_enable'] || form.values['web_player_auth'] === true || !form.values['authentication_enabled']}
                 label={i18n.get('AllowMediaDownload')}
                 {...form.getInputProps('web_player_download', { type: 'checkbox' })}
               />
               <Checkbox
-                disabled={!canModify || !form.values['web_player_enable']}
+                disabled={!canModify || !form.values['web_player_enable'] || form.values['web_player_auth'] === true || !form.values['authentication_enabled']}
                 label={i18n.get('CanControlOtherDevices')}
                 {...form.getInputProps('web_player_controls', { type: 'checkbox' })}
               />
@@ -220,7 +250,7 @@ export default function GeneralSettings({
             <Group>
               <NumberInput
                 label={i18n.get('MaximumBandwidthMbs')}
-                disabled={!canModify || form.values['automatic_maximum_bitrate']}
+                disabled={!canModify || form.values['automatic_maximum_bitrate'] == true}
                 style={{ flex: 1 }}
                 placeholder={i18n.get('Mbs')}
                 hideControls

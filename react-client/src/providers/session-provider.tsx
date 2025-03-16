@@ -150,6 +150,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       noAdminFound: session.noAdminFound,
       account: session.account,
       player: session.player,
+      users: session.users,
       refresh: refresh,
       logout: sessionLogout,
       sseAs: sse,

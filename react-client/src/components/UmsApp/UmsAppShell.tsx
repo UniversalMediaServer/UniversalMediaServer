@@ -29,7 +29,6 @@ import Login from '../Login/Login'
 import Logs from '../Logs/Logs'
 import ModeButtons from './ModeButtons'
 import Player from '../Player/Player'
-import PlayerLogin from '../PlayerLogin/PlayerLogin'
 import ServerSettings from '../ServerSettings/ServerSettings'
 import SharedContent from '../SharedContent/SharedContent'
 import UserMenu from './UserMenu'
@@ -67,6 +66,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
             }
           : undefined}
         header={{ height: 60 }}
+        footer={session.statusLine ? { height: 30 } : undefined}
         bg="transparentBg"
       >
         <SessionNavbar i18n={i18n} session={session} />
@@ -108,7 +108,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
                       </Routes>
                     )
                   : (
-                      <PlayerLogin i18n={i18n} session={session} />
+                      <Login i18n={i18n} session={session} />
                     )
               )
             : session.account

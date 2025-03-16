@@ -637,6 +637,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mantine/carousel@npm:7.17.1":
+  version: 7.17.1
+  resolution: "@mantine/carousel@npm:7.17.1"
+  peerDependencies:
+    "@mantine/core": 7.17.1
+    "@mantine/hooks": 7.17.1
+    embla-carousel-react: ">=7.0.0"
+    react: ^18.x || ^19.x
+    react-dom: ^18.x || ^19.x
+  checksum: 10c0/b0f4b65f71e04bb6be3978bfa4f95e5bb5996f9ee391737843c9d9024a1c55348872cff7bac3022968becebab58942a94930a4421fd6dccfa54f1a2f67301312
+  languageName: node
+  linkType: hard
+
 "@mantine/core@npm:7.17.1":
   version: 7.17.1
   resolution: "@mantine/core@npm:7.17.1"
@@ -1782,6 +1795,34 @@ __metadata:
   version: 1.5.114
   resolution: "electron-to-chromium@npm:1.5.114"
   checksum: 10c0/cb86057d78f1aeb53ab6550dedacfd9496bcc6676bab7b48466c3958ba9ce0ed78c7213b1eab99ba38542cbaaa176eb7f8ea8b0274c0688b8ce3058291549430
+  languageName: node
+  linkType: hard
+
+"embla-carousel-react@npm:8.5.2":
+  version: 8.5.2
+  resolution: "embla-carousel-react@npm:8.5.2"
+  dependencies:
+    embla-carousel: "npm:8.5.2"
+    embla-carousel-reactive-utils: "npm:8.5.2"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.1 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+  checksum: 10c0/8e55a2bc562aed2c55d9debf2523dbd4f2524b0ecea62cf51f8f096ed993af608890084b5f35e1694a8aada087602a12cc4b8a68aeee12b4a33cc8361636c63d
+  languageName: node
+  linkType: hard
+
+"embla-carousel-reactive-utils@npm:8.5.2":
+  version: 8.5.2
+  resolution: "embla-carousel-reactive-utils@npm:8.5.2"
+  peerDependencies:
+    embla-carousel: 8.5.2
+  checksum: 10c0/aa4870539d9090f9ac02338c3ca3e1710a6f0e6890cd2f6fbf6afcc1eeac48192406f92bf042fe9429cc61709338124baf1514c75227a7a16b19b83e9f376274
+  languageName: node
+  linkType: hard
+
+"embla-carousel@npm:8.5.2":
+  version: 8.5.2
+  resolution: "embla-carousel@npm:8.5.2"
+  checksum: 10c0/4bbb04c08616d560a7b47b1897794a077baa5aa27642420b35b3be58ab7b0dc000ef073b6e47d0029b0791c046e0cd39d295704faecb1957d2c315df51be58e6
   languageName: node
   linkType: hard
 
@@ -4622,6 +4663,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ums-gui@workspace:."
   dependencies:
+    "@mantine/carousel": "npm:7.17.1"
     "@mantine/core": "npm:7.17.1"
     "@mantine/dropzone": "npm:7.17.1"
     "@mantine/form": "npm:7.17.1"
@@ -4637,6 +4679,7 @@ __metadata:
     "@types/react-dom": "npm:19.0.4"
     "@vitejs/plugin-react": "npm:4.3.4"
     axios: "npm:1.8.2"
+    embla-carousel-react: "npm:8.5.2"
     eslint: "npm:9.22.0"
     eslint-plugin-react: "npm:7.37.4"
     eslint-plugin-react-hooks: "npm:5.2.0"

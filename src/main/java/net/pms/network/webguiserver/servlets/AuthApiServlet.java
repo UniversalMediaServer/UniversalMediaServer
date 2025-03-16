@@ -16,6 +16,7 @@
  */
 package net.pms.network.webguiserver.servlets;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -28,8 +29,11 @@ import net.pms.database.UserDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
+import net.pms.iam.Permissions;
+import net.pms.iam.User;
 import net.pms.iam.UsernamePassword;
 import net.pms.network.webguiserver.GuiHttpServlet;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +70,13 @@ public class AuthApiServlet extends GuiHttpServlet {
 							respondInternalServerError(req, resp, "User database not available");
 							return;
 						}
+					}
+					if (AuthService.isShowUserChoice()) {
+						JsonArray jUsers = new JsonArray();
+						for (User user : AccountService.getAllUsers()) {
+							jUsers.add(userToJsonObject(user));
+						}
+						jObject.add("users", jUsers);
 					}
 					respond(req, resp, jObject.toString(), 200, "application/json");
 				}
@@ -120,6 +131,7 @@ public class AuthApiServlet extends GuiHttpServlet {
 								JsonElement jElement = GSON.toJsonTree(account);
 								JsonObject jAccount = jElement.getAsJsonObject();
 								jAccount.getAsJsonObject("user").remove("password");
+								jAccount.getAsJsonObject("user").remove("pinCode");
 								jObject.add("account", jAccount);
 								respond(req, resp, jObject.toString(), 200, "application/json");
 							} else {
@@ -133,6 +145,52 @@ public class AuthApiServlet extends GuiHttpServlet {
 					} else {
 						LOGGER.error("User database not available");
 						respondInternalServerError(req, resp);
+					}
+				}
+				case "/loginpin" -> {
+					if (AuthService.isShowUserChoice()) {
+						JsonObject post = getJsonObjectFromBody(req);
+						if (post != null && post.has("id") && post.has("pin")) {
+							Connection connection = UserDatabase.getConnectionIfAvailable();
+							if (connection != null) {
+								int id = post.get("id").getAsInt();
+								String pin = post.get("pin").getAsString();
+								Account account = AccountService.getAccountByUserId(id);
+								if (account != null) {
+									AccountService.checkUserUnlock(connection, account.getUser());
+									if (AccountService.isUserLocked(account.getUser())) {
+										respond(req, resp, "{\"retrycount\": \"0\", \"lockeduntil\": \"" + (account.getUser().getLoginFailedTime() + AccountService.LOGIN_FAIL_LOCK_TIME) + "\"}", 401, "application/json");
+									} else if (
+											!(AuthService.isAllowEmptyPin() && StringUtils.isBlank(account.getUser().getPinCode()) && StringUtils.isBlank(pin)) &&
+											(account.getUser().getPinCode() == null || !account.getUser().getPinCode().equals(pin))
+											) {
+										AccountService.setUserLoginFailed(connection, account.getUser());
+										respond(req, resp, "{\"retrycount\": \"" + (AccountService.MAX_LOGIN_FAIL_BEFORE_LOCK - account.getUser().getLoginFailedCount()) + "\", \"lockeduntil\": \"0\"}", 401, "application/json");
+									} else {
+										AccountService.setUserLogged(connection, account.getUser());
+										String token = AuthService.signJwt(account.getUser().getId(), req.getRemoteAddr());
+										JsonObject jObject = new JsonObject();
+										jObject.add("token", new JsonPrimitive(token));
+										JsonElement jElement = GSON.toJsonTree(account);
+										JsonObject jAccount = jElement.getAsJsonObject();
+										jAccount.getAsJsonObject("user").remove("password");
+										jAccount.getAsJsonObject("user").remove("pinCode");
+										jObject.add("account", jAccount);
+										respond(req, resp, jObject.toString(), 200, "application/json");
+									}
+								} else {
+									respondUnauthorized(req, resp);
+								}
+								UserDatabase.close(connection);
+							} else {
+								LOGGER.error("User database not available");
+								respondInternalServerError(req, resp);
+							}
+						} else {
+							respondBadRequest(req, resp);
+						}
+					} else {
+						respondForbidden(req, resp);
 					}
 				}
 				case "/refresh" -> {
@@ -187,6 +245,22 @@ public class AuthApiServlet extends GuiHttpServlet {
 			LOGGER.error("RuntimeException in AccountApiServlet: {}", e.getMessage());
 			respondInternalServerError(req, resp);
 		}
+	}
+
+	private static JsonObject userToJsonObject(User user) {
+		JsonObject jUser = new JsonObject();
+		jUser.add("id", new JsonPrimitive(user.getId()));
+		jUser.add("username", new JsonPrimitive(user.getUsername()));
+		jUser.add("displayName", new JsonPrimitive(user.getDisplayName()));
+		jUser.add("avatar", GSON.toJsonTree(user.getAvatar()));
+		if (!StringUtils.isBlank(user.getPinCode())) {
+			jUser.add("login", new JsonPrimitive("pin"));
+		} else if (AuthService.isAllowEmptyPin()) {
+			jUser.add("login", new JsonPrimitive("none"));
+		} else {
+			jUser.add("login", new JsonPrimitive("pass"));
+		}
+		return jUser;
 	}
 
 }

@@ -43,8 +43,10 @@ export default function DirectoryModal({
   const [isLoading, setLoading] = useState(true)
 
   useEffect(() => {
-    getSubdirectories(path)
-  }, [path])
+    if (opened) {
+      getSubdirectories(path)
+    }
+  }, [opened, path])
 
   const getSubdirectories = (path: string) => {
     setLoading(true)

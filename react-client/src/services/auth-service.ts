@@ -39,6 +39,18 @@ export const login = async (username: string, password: string) => {
   return response.data
 }
 
+export const loginPin = async (id: number, pin: string) => {
+  const response = await axios
+    .post(authApiUrl + 'loginpin', {
+      id,
+      pin,
+    })
+  if (response.data.token) {
+    storeJwtInLocalStorage(response.data.token)
+  }
+  return response.data
+}
+
 export const create = async (username: string, password: string) => {
   const response = await axios
     .post(authApiUrl + 'create', {

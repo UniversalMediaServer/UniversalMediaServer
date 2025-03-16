@@ -42,11 +42,20 @@ export interface UmsAccount {
   group: UmsGroup
 }
 
+export interface UmsUserLogin {
+  id: number
+  username: string
+  displayName: string
+  avatar?: string
+  login: string
+}
+
 export interface UmsSession {
   noAdminFound: boolean
   account?: UmsAccount
   authenticate: boolean
   player: boolean
+  users?: UmsUserLogin[]
 }
 
 export interface SessionInterface extends UmsSession {

@@ -14,24 +14,16 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { TextInput, Button, Group, Box, Text, Space } from '@mantine/core'
+import { Button, Group, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { IconUser, IconLock } from '@tabler/icons-react'
-import { useEffect } from 'react'
+import { IconLock, IconUser } from '@tabler/icons-react'
 
 import { login } from '../../services/auth-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
 import { showError } from '../../utils/notifications'
 
-const Login = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
-  useEffect(() => {
-    session.setDocumentI18nTitle('Login')
-    session.stopSse()
-    session.stopPlayerSse()
-    session.setNavbarValue(undefined)
-  }, [])
-
+export default function PassLogin({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
   const form = useForm({
     initialValues: {
       username: '',
@@ -56,30 +48,23 @@ const Login = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterfa
   }
 
   return (
-    <Box style={{ maxWidth: 300 }} mx="auto">
-      <form onSubmit={form.onSubmit(handleLogin)}>
-        <Text size="xl">Universal Media Server</Text>
-        <Text size="lg">{i18n.get('LogIn')}</Text>
-        <Space h="md" />
-        <TextInput
-          required
-          label={i18n.get('Username')}
-          leftSection={<IconUser size={14} />}
-          {...form.getInputProps('username')}
-        />
-        <TextInput
-          required
-          label={i18n.get('Password')}
-          type="password"
-          leftSection={<IconLock size={14} />}
-          {...form.getInputProps('password')}
-        />
-        <Group justify="flex-end" mt="md">
-          <Button type="submit">{i18n.get('LogIn')}</Button>
-        </Group>
-      </form>
-    </Box>
+    <form onSubmit={form.onSubmit(handleLogin)}>
+      <TextInput
+        required
+        label={i18n.get('Username')}
+        leftSection={<IconUser size={14} />}
+        {...form.getInputProps('username')}
+      />
+      <TextInput
+        required
+        label={i18n.get('Password')}
+        type="password"
+        leftSection={<IconLock size={14} />}
+        {...form.getInputProps('password')}
+      />
+      <Group justify="flex-end" mt="md">
+        <Button type="submit">{i18n.get('LogIn')}</Button>
+      </Group>
+    </form>
   )
 }
-
-export default Login

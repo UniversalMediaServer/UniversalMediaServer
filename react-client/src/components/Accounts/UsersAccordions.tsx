@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Avatar, Button, Divider, Group, HoverCard, Input, PasswordInput, Select, Text, TextInput } from '@mantine/core'
+import { Accordion, Avatar, Button, Checkbox, Divider, Group, HoverCard, Input, PasswordInput, PinInput, Select, Text, TextInput, Tooltip } from '@mantine/core'
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone'
 import { useForm } from '@mantine/form'
 import { IconExclamationMark, IconPhotoUp, IconPhotoX, IconUser, IconUserPlus, IconX } from '@tabler/icons-react'
@@ -23,6 +23,7 @@ import { useState } from 'react'
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, UmsAccounts } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsGroup, UmsUser } from '../../services/session-service'
+import { allowHtml } from '../../utils'
 
 export default function UsersAccordions({
   i18n,
@@ -223,23 +224,21 @@ export default function UsersAccordions({
             </Group>
           </Dropzone>
         </Input.Wrapper>
-        {/* removed until root user choice is implemented
         <Input.Wrapper label={i18n.get('PinCode')}>
           <PinInput
-            name='pincode'
-            type='number'
+            name="pincode"
+            type="number"
             oneTimeCode
             {...userProfileForm.getInputProps('pinCode')}
           />
         </Input.Wrapper>
-        <Tooltip label={allowHtml(i18n.get('HideUserChoiceLibrary'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get('HideUserChoiceLibrary'))}>
           <Checkbox
-            mt='xl'
+            mt="xl"
             label={i18n.get('HideUserLibrary')}
             {...userProfileForm.getInputProps('library_hidden', { type: 'checkbox' })}
           />
         </Tooltip>
-        */}
         {userProfileForm.isDirty() && (
           <Group justify="flex-end" mt="md">
             <Button type="submit">
