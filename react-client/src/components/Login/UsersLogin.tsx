@@ -72,6 +72,7 @@ export default function UsersLogin({ i18n, session }: { i18n: I18nInterface, ses
           <PinInput
             oneTimeCode
             mask
+            type="number"
             onComplete={(value: string) => {
               handlePinLogin(selected.id, value)
             }}
