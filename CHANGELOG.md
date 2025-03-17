@@ -18,6 +18,8 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 10.21.1 to 10.21.4 ([#5348](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5348))
 - Bump `eslint` from 9.21.0 to 9.22.0 ([#5384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5384))
 - Bump `org.jsoup:jsoup` from 1.18.3 to 1.19.1 ([#5349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5349))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.0 to 5.12.1 ([#5378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5378))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.12.0 to 5.12.1 ([#5378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5378))
 - Bump `react-router-dom` from 7.2.0 to 7.3.0 ([#5342](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5342))
 - Bump `typescript-eslint` from 8.25.0 to 8.26.0 ([#5344](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5344))
 - Bump `typescript` from 5.7.3 to 5.8.2 ([#5346](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5346))
