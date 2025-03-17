@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import net.pms.renderers.Renderer;
-import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.MusicBrainzPersonFolder;
