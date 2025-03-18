@@ -25,6 +25,7 @@ const SessionContext: Context<SessionInterface> = createContext({
   authenticate: false,
   player: false,
   users: undefined,
+  havePermission: (_permission: number) => false,
   refresh: () => { },
   logout: async () => { },
   sseAs: '',

@@ -14,30 +14,20 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Direction } from '@mantine/core'
+import { UmsAccounts } from '../../services/accounts-service'
+import { I18nInterface } from '../../services/i18n-service'
+import GroupAccordionItem from './GroupAccordionItem'
 
-export interface I18nInterface {
-  get: (value: string) => string
-  getString: (value: string) => string
-  getFormat: (value: string[]) => string
-  getValueLabelData: (values: ValueLabelData[] | undefined) => ValueLabelData[] | undefined
-  getLocalizedName: (value: string | undefined) => string
-  language: string
-  dir: Direction
-  languages: LanguageValue[]
-  setLanguage: (language: string) => void
-  getReportLink: () => React.ReactNode
-}
-
-export interface LanguageValue {
-  id: string
-  name: string
-  defaultname: string
-  country: string
-  coverage: number
-}
-
-export interface ValueLabelData {
-  value: string
-  label: string
+export default function UserAccordionItems({
+  i18n,
+  accounts,
+  postAccountAction,
+}: {
+  i18n: I18nInterface
+  accounts: UmsAccounts
+  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+}) {
+  return accounts.groups.map((group) => {
+    return <GroupAccordionItem key={group.id} i18n={i18n} group={group} postAccountAction={postAccountAction} />
+  })
 }

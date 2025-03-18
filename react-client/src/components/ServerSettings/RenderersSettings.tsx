@@ -17,24 +17,19 @@
 import { Accordion, Checkbox, MultiSelect, Select, Stack, Tooltip } from '@mantine/core'
 import { UseFormReturnType } from '@mantine/form'
 
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { SessionInterface } from '../../services/session-service'
+import { SelectionSettingsData } from '../../services/settings-service'
 import { allowHtml, defaultTooltipSettings } from '../../utils'
 
 export default function RenderersSettings({
   i18n,
-  session,
   form,
   selectionSettings,
 }: {
   i18n: I18nInterface
-  session: SessionInterface
   form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
-  selectionSettings: any
+  selectionSettings: SelectionSettingsData | undefined
 }) {
-  const canModify = havePermission(session, Permissions.settings_modify)
-
   return (
     <Accordion>
       <Accordion.Item value="Renderers">
@@ -42,22 +37,19 @@ export default function RenderersSettings({
         <Accordion.Panel>
           <Stack>
             <MultiSelect
-              disabled={!canModify}
-              data={i18n.getValueLabelData(selectionSettings.allRendererNames)}
+              data={i18n.getValueLabelData(selectionSettings?.allRendererNames)}
               label={i18n.get('EnabledRenderers')}
               {...form.getInputProps('selected_renderers')}
             />
             <Select
-              disabled={!canModify}
               style={{ flex: 1 }}
               label={i18n.get('DefaultRendererWhenAutoFails')}
-              data={i18n.getValueLabelData(selectionSettings.enabledRendererNames)}
+              data={i18n.getValueLabelData(selectionSettings?.enabledRendererNames)}
               {...form.getInputProps('renderer_default')}
               searchable
             />
             <Tooltip label={allowHtml(i18n.get('DisablesAutomaticDetection'))} {...defaultTooltipSettings}>
               <Checkbox
-                disabled={!canModify}
                 label={i18n.get('ForceDefaultRenderer')}
                 {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
               />

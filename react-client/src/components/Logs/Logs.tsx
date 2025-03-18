@@ -17,21 +17,20 @@
 import { Box, Button, Checkbox, Code, Divider, Group, Modal, MultiSelect, Pagination, ScrollArea, SegmentedControl, Select, Stack, Switch, Text, TextInput, Tooltip } from '@mantine/core'
 import { Dropzone, FileWithPath } from '@mantine/dropzone'
 import { useForm } from '@mantine/form'
+import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react'
 import axios from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
-import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react'
 
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
 const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
-  const canModify = havePermission(session, Permissions.settings_modify)
+  const canModify = session.havePermission(UmsPermission.settings_modify)
   const [rootLogLevel, setRootLogLevel] = useState(0)
   const [guiLogLevel, setGuiLogLevel] = useState(0)
   const [logLevel, setLogLevel] = useState(0)

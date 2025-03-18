@@ -21,26 +21,24 @@ import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, Ic
 import { useState } from 'react'
 import { arrayMove, List } from 'react-movable'
 
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { SessionInterface } from '../../services/session-service'
+import { SelectionSettingsData, TranscodingEngineData } from '../../services/settings-service'
 import { allowHtml, defaultTooltipSettings } from '../../utils'
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser'
 
 export default function TranscodingSettings({
   i18n,
-  session,
+  canModify,
   form,
   defaultConfiguration,
   selectionSettings,
 }: {
   i18n: I18nInterface
-  session: SessionInterface
+  canModify: boolean
   form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
-  defaultConfiguration: any
-  selectionSettings: any
+  defaultConfiguration: Record<string, unknown>
+  selectionSettings: SelectionSettingsData | undefined
 }) {
-  const canModify = havePermission(session, Permissions.settings_modify)
   const [transcodingContent, setTranscodingContent] = useState('common')
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)')
   const [subColorModalOpened, setSubColorModalOpened] = useState(false)
@@ -49,11 +47,12 @@ export default function TranscodingSettings({
     key: 'mantine-advanced-settings',
     defaultValue: false,
   })
+  const transcodingEngines = selectionSettings ? selectionSettings.transcodingEngines : {}
 
   const getTranscodingEnginesPriority = (purpose: number) => {
     return form.getInputProps('engines_priority').value !== undefined
       ? form.getInputProps('engines_priority').value.filter((value: string) =>
-          selectionSettings.transcodingEngines[value] && selectionSettings.transcodingEngines[value].purpose === purpose,
+          transcodingEngines[value] && transcodingEngines[value].purpose === purpose,
         )
       : []
   }
@@ -88,11 +87,11 @@ export default function TranscodingSettings({
       form.setFieldValue('engines', updated)
     }
   }
+  const items = isStringArray(form.getInputProps('engines').value)
+    ? form.getInputProps('engines').value as Array<string>
+    : [form.getInputProps('engines').value]
 
-  const getTranscodingEngineStatus = (engine: { id: string, name: string, isAvailable: boolean, purpose: number, statusText: string[] }) => {
-    const items = isStringArray(form.getInputProps('engines').value)
-      ? form.getInputProps('engines').value as Array<string>
-      : [form.getInputProps('engines').value]
+  const TranscodingEngineStatus = ({ engine }: { engine: TranscodingEngineData }) => {
     if (!engine.isAvailable) {
       return (
         <Tooltip label={allowHtml(i18n.get('ThereIsProblemTranscodingEngineX')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
@@ -136,7 +135,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const getTranscodingEnginesList = (purpose: number) => {
+  const TranscodingEnginesList = ({ purpose }: { purpose: number }) => {
     const engines = getTranscodingEnginesPriority(purpose)
     return engines.length > 1
       ? (
@@ -153,60 +152,66 @@ export default function TranscodingSettings({
                 {children}
               </Stack>
             )}
-            renderItem={({ value, props, isDragged, isSelected }) => (
-              <Button
-                {...props}
-                color="gray"
-                size="compact-xs"
-                variant={isDragged || isSelected ? 'outline' : 'subtle'}
-                leftSection={(
-                  <>
-                    <Box c="gray" me={5} data-movable-handle style={{ cursor: isDragged ? 'grabbing' : 'grab' }}>
-                      {engines.indexOf(value) === 0
-                        ? (
-                            <IconArrowNarrowDown size={14} />
-                          )
-                        : engines.indexOf(value) === engines.length - 1
+            renderItem={({ value, props, isDragged, isSelected }) => {
+              const transcodingEngine = transcodingEngines[value]
+              return (
+                <Button
+                  {...props}
+                  color="gray"
+                  size="compact-xs"
+                  variant={isDragged || isSelected ? 'outline' : 'subtle'}
+                  leftSection={(
+                    <>
+                      <Box c="gray" me={5} data-movable-handle style={{ cursor: isDragged ? 'grabbing' : 'grab' }}>
+                        {engines.indexOf(value) === 0
                           ? (
-                              <IconArrowNarrowUp size={14} />
+                              <IconArrowNarrowDown size={14} />
                             )
-                          : (
-                              <IconArrowsVertical size={14} />
-                            )}
-                    </Box>
-                    {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
-                  </>
-                )}
-                onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
-              >
-                {selectionSettings.transcodingEngines[value].name}
-              </Button>
-            )}
+                          : engines.indexOf(value) === engines.length - 1
+                            ? (
+                                <IconArrowNarrowUp size={14} />
+                              )
+                            : (
+                                <IconArrowsVertical size={14} />
+                              )}
+                      </Box>
+                      <TranscodingEngineStatus engine={transcodingEngine} />
+                    </>
+                  )}
+                  onClick={() => setTranscodingContent(transcodingEngine.id)}
+                >
+                  {transcodingEngine.name}
+                </Button>
+              )
+            }}
           />
         )
       : (
           <Stack justify="flex-start" align="flex-start" gap="xs">
-            {engines.map((value: string) => (
-              <Button
-                variant="subtle"
-                color="gray"
-                size="compact-xs"
-                leftSection={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
-                onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
-              >
-                {selectionSettings.transcodingEngines[value].name}
-              </Button>
-            ))}
+            {engines.map((value: string) => {
+              const transcodingEngine = transcodingEngines[value]
+              return (
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  size="compact-xs"
+                  leftSection={<TranscodingEngineStatus engine={transcodingEngine} />}
+                  onClick={() => setTranscodingContent(transcodingEngine.id)}
+                >
+                  {transcodingEngine.name}
+                </Button>
+              )
+            })}
           </Stack>
         )
   }
 
-  const getTranscodingEnginesAccordionItems = () => {
-    return selectionSettings.transcodingEnginesPurposes.map((value: string, index: number) => {
+  const TranscodingEnginesAccordionItems = () => {
+    return selectionSettings?.transcodingEnginesPurposes.map((value: string, index: number) => {
       return (
         <Accordion.Item value={'Transcoding' + index.toString()}>
           <Accordion.Control>{i18n.getString(value)}</Accordion.Control>
-          <Accordion.Panel>{getTranscodingEnginesList(index)}</Accordion.Panel>
+          <Accordion.Panel><TranscodingEnginesList purpose={index} /></Accordion.Panel>
         </Accordion.Item>
       )
     })
@@ -237,7 +242,7 @@ export default function TranscodingSettings({
     return 'rgba(' + red.toString() + ', ' + green.toString() + ', ' + blue.toString() + ', ' + alpha.toString() + ')'
   }
 
-  const getTranscodingCommon = () => {
+  const TranscodingCommon = () => {
     return (
       <>
         <Title mt="sm" order={5}>{i18n.get('CommonTranscodeSettings')}</Title>
@@ -274,9 +279,9 @@ export default function TranscodingSettings({
             {...form.getInputProps('maximum_video_buffer_size')}
           />
           <NumberInput
-            label={i18n.get('CpuThreadsToUse')?.replace('%d', defaultConfiguration.number_of_cpu_cores)}
+            label={i18n.get('CpuThreadsToUse')?.replace('%d', String(defaultConfiguration.number_of_cpu_cores))}
             size="xs"
-            max={defaultConfiguration.number_of_cpu_cores}
+            max={defaultConfiguration.number_of_cpu_cores ? Number(defaultConfiguration.number_of_cpu_cores) : 1}
             min={1}
             disabled={!canModify}
             {...form.getInputProps('number_of_cpu_cores')}
@@ -428,7 +433,7 @@ export default function TranscodingSettings({
                   disabled={!canModify}
                   size="xs"
                   label={i18n.get('NonUnicodeSubtitleEncoding')}
-                  data={i18n.getValueLabelData(selectionSettings.subtitlesCodepages)}
+                  data={i18n.getValueLabelData(selectionSettings?.subtitlesCodepages)}
                   {...form.getInputProps('subtitles_codepage')}
                 />
                 <Checkbox
@@ -579,7 +584,7 @@ export default function TranscodingSettings({
                   disabled={!canModify}
                   size="xs"
                   label={i18n.get('3dSubtitlesDepth')}
-                  data={selectionSettings.subtitlesDepth}
+                  data={selectionSettings?.subtitlesDepth}
                   {...form.getInputProps('3d_subtitles_depth')}
                   value={String(form.values['3d_subtitles_depth'])}
                   onChange={(val) => {
@@ -594,14 +599,13 @@ export default function TranscodingSettings({
     )
   }
 
-  const getSimpleTranscodingCommon = () => {
+  const SimpleTranscodingCommon = () => {
     return (
       <>
         <Title mt="sm" order={5}>{i18n.get('CommonTranscodeSettings')}</Title>
         <Stack gap="xs">
           <Checkbox
             size="xs"
-            disabled={!canModify}
             label={i18n.get('DisableSubtitles')}
             {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
           />
@@ -611,7 +615,7 @@ export default function TranscodingSettings({
   }
 
   const getEngineStatus = () => {
-    const currentEngine = selectionSettings.transcodingEngines[transcodingContent]
+    const currentEngine = transcodingEngines[transcodingContent]
     if (!currentEngine.isAvailable) {
       return (
         <>
@@ -630,14 +634,14 @@ export default function TranscodingSettings({
     return
   }
 
-  const getVLCWebVideo = () => {
+  const VLCWebVideo = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
     }
     return (
       <>
-        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title my="sm" order={5}>{transcodingEngines[transcodingContent].name}</Title>
         <Stack justify="flex-start" align="flex-start" gap="xs">
           <Checkbox
             disabled={!canModify}
@@ -656,14 +660,14 @@ export default function TranscodingSettings({
     )
   }
 
-  const getFFMPEGAudio = () => {
+  const FFMPEGAudio = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
     }
     return (
       <>
-        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title my="sm" order={5}>{transcodingEngines[transcodingContent].name}</Title>
         <Stack gap="xs">
           <Checkbox
             disabled={!canModify}
@@ -676,14 +680,14 @@ export default function TranscodingSettings({
     )
   }
 
-  const getTsMuxerVideo = () => {
+  const TsMuxerVideo = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
     }
     return (
       <>
-        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title my="sm" order={5}>{transcodingEngines[transcodingContent].name}</Title>
         <Stack gap="xs">
           <Checkbox
             disabled={!canModify}
@@ -702,14 +706,14 @@ export default function TranscodingSettings({
     )
   }
 
-  const getMEncoderVideo = () => {
+  const MEncoderVideo = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
     }
     return (
       <>
-        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title my="sm" order={5}>{transcodingEngines[transcodingContent].name}</Title>
         <Title mb="sm" order={6}>{i18n.get('GeneralSettings')}</Title>
         <Stack gap="xs">
           <Checkbox
@@ -868,14 +872,14 @@ export default function TranscodingSettings({
     )
   }
 
-  const getAviSynthFFMPEG = () => {
+  const AviSynthFFMPEG = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
     }
     return (
       <>
-        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title my="sm" order={5}>{transcodingEngines[transcodingContent].name}</Title>
         <Stack gap="xs">
           <Checkbox
             disabled={!canModify}
@@ -1003,20 +1007,20 @@ export default function TranscodingSettings({
     )
   }
 
-  const getFFMPEGVideo = () => {
+  const FFMPEGVideo = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
     }
     return (
       <>
-        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title my="sm" order={5}>{transcodingEngines[transcodingContent].name}</Title>
         <Stack gap="xs">
           <Select
             disabled={!canModify}
             size="xs"
             label={i18n.get('LogLevelColon')}
-            data={selectionSettings.ffmpegLoglevels}
+            data={selectionSettings?.ffmpegLoglevels}
             {...form.getInputProps('ffmpeg_logging_level')}
           />
           <Checkbox
@@ -1062,7 +1066,7 @@ export default function TranscodingSettings({
               disabled={!canModify}
               size="xs"
               label={i18n.get('AVCH264GPUEncodingAccelerationMethod')}
-              data={selectionSettings.gpuEncodingH264AccelerationMethods}
+              data={selectionSettings?.gpuEncodingH264AccelerationMethods}
               {...form.getInputProps('ffmpeg_gpu_encoding_H264_acceleration_method')}
             />
           </Tooltip>
@@ -1071,7 +1075,7 @@ export default function TranscodingSettings({
               disabled={!canModify}
               size="xs"
               label={i18n.get('HEVCH265GPUEncodingAccelerationMethod')}
-              data={selectionSettings.gpuEncodingH265AccelerationMethods}
+              data={selectionSettings?.gpuEncodingH265AccelerationMethods}
               {...form.getInputProps('ffmpeg_gpu_encoding_H265_acceleration_method')}
             />
           </Tooltip>
@@ -1080,68 +1084,68 @@ export default function TranscodingSettings({
     )
   }
 
-  const noSettingsForNow = () => {
+  const NoSettingsForNow = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
     }
     return (
       <>
-        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title my="sm" order={5}>{transcodingEngines[transcodingContent].name}</Title>
         <Text size="xs">{i18n.get('NoSettingsForNow')}</Text>
       </>
     )
   }
 
-  const engineNotKnown = () => {
+  const EngineNotKnown = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
     }
     return (
       <>
-        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title my="sm" order={5}>{transcodingEngines[transcodingContent].name}</Title>
         <Text size="xs">This engine is not known yet.</Text>
       </>
     )
   }
 
-  const getTranscodingContent = () => {
+  const TranscodingContent = () => {
     switch (transcodingContent) {
       case 'common':
-        return getTranscodingCommon()
+        return <TranscodingCommon />
       case 'DCRaw':
-        return noSettingsForNow()
+        return <NoSettingsForNow />
       case 'FFmpegAudio':
-        return getFFMPEGAudio()
+        return <FFMPEGAudio />
       case 'FFmpegVideo':
-        return getFFMPEGVideo()
+        return <FFMPEGVideo />
       case 'AviSynthFFmpeg':
-        return getAviSynthFFMPEG()
+        return <AviSynthFFMPEG />
       case 'FFmpegHlsVideo':
-        return noSettingsForNow()
+        return <NoSettingsForNow />
       case 'FFmpegWebVideo':
-        return noSettingsForNow()
+        return <NoSettingsForNow />
       case 'MEncoderVideo':
-        return getMEncoderVideo()
+        return <MEncoderVideo />
       case 'MEncoderWebVideo':
-        return noSettingsForNow()
+        return <NoSettingsForNow />
       case 'tsMuxeRAudio':
-        return noSettingsForNow()
+        return <NoSettingsForNow />
       case 'tsMuxeRVideo':
-        return getTsMuxerVideo()
+        return <TsMuxerVideo />
       case 'VLCAudioStreaming':
-        return noSettingsForNow()
+        return <NoSettingsForNow />
       case 'VLCVideo':
-        return getVLCWebVideo()
+        return <VLCWebVideo />
       case 'VLCWebVideo':
-        return getVLCWebVideo()
+        return <VLCWebVideo />
       case 'VLCVideoStreaming':
-        return noSettingsForNow()
+        return <NoSettingsForNow />
       case 'youtubeDl':
-        return noSettingsForNow()
+        return <NoSettingsForNow />
       default:
-        return engineNotKnown()
+        return <EngineNotKnown />
     }
   }
 
@@ -1150,17 +1154,22 @@ export default function TranscodingSettings({
         <Grid>
           <Grid.Col span={5}>
             <Box p="xs">
-              <NavLink variant="subtle" color="gray" label={i18n.get('CommonTranscodeSettings')} onClick={() => setTranscodingContent('common')} />
+              <NavLink
+                variant="subtle"
+                color="gray"
+                label={i18n.get('CommonTranscodeSettings')}
+                onClick={() => setTranscodingContent('common')}
+              />
               <Accordion>
-                {getTranscodingEnginesAccordionItems()}
+                <TranscodingEnginesAccordionItems />
               </Accordion>
               <Text size="xs">{i18n.get('EnginesAreInDescending') + ' ' + i18n.get('OrderTheHighestIsFirst')}</Text>
             </Box>
           </Grid.Col>
           <Grid.Col span={7}>
-            {getTranscodingContent()}
+            <TranscodingContent />
           </Grid.Col>
         </Grid>
       )
-    : getSimpleTranscodingCommon()
+    : <SimpleTranscodingCommon />
 }

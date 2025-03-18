@@ -72,8 +72,8 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
     return result
   }
 
-  const getValueLabelData = (values: ValueLabelData[]) => {
-    return values.map((value: ValueLabelData) => {
+  const getValueLabelData = (values: ValueLabelData[] | undefined) => {
+    return values?.map((value: ValueLabelData) => {
       return { value: value.value, label: getString(value.label) } as ValueLabelData
     })
   }

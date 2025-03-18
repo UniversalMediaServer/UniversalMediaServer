@@ -20,10 +20,9 @@ import axios from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { sharedApiUrl } from '../../utils'
 import SharedContentSettings from './SharedContentSettings'
 import { showError, showInfo } from '../../utils/notifications'
@@ -35,8 +34,8 @@ export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterf
   const form = useForm({ initialValues: {} as Record<string, unknown> })
   const formSetValues = form.setValues
 
-  const canModify = havePermission(session, Permissions.settings_modify)
-  const canView = canModify || havePermission(session, Permissions.settings_view)
+  const canModify = session.havePermission(UmsPermission.settings_modify)
+  const canView = canModify || session.havePermission(UmsPermission.settings_view)
 
   useEffect(() => {
     session.useSseAs(SharedContent.name)

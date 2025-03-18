@@ -19,6 +19,7 @@ import axios from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
 
 import SessionContext from '../contexts/session-context'
+import { accountHavePermission } from '../services/accounts-service'
 import { logout, refreshAuthTokenNearExpiry } from '../services/auth-service'
 import { I18nInterface } from '../services/i18n-service'
 import { UmsSession } from '../services/session-service'
@@ -37,7 +38,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const [hasNavbar, setHasNavbar] = useState<boolean>(false)
   const [navbarValue, setNavbarValueInternal] = useState<React.ReactNode>(undefined)
   const [navbarManage, setNavbarManageInternal] = useState<string>('')
-  const [statusLine, setStatusLine] = useState(undefined)
+  const [statusLine, setStatusLine] = useState<string>('')
   const [playerNavbar, setPlayerNavbar] = useLocalStorage<boolean>({
     key: 'player-navbar',
     defaultValue: true,
@@ -103,6 +104,12 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     setDocumentTitleInternal(documentTitle)
   }
 
+  const havePermission = (permission: number) => {
+    return (typeof session.account !== 'undefined'
+      && accountHavePermission(session.account, permission)
+    )
+  }
+
   useEffect(() => {
     setHasNavbar((navbarManage || navbarValue) ? true : false)
   }, [navbarManage, navbarValue])
@@ -151,6 +158,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       account: session.account,
       player: session.player,
       users: session.users,
+      havePermission: havePermission,
       refresh: refresh,
       logout: sessionLogout,
       sseAs: sse,

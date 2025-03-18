@@ -21,17 +21,16 @@ import { useEffect, useState } from 'react'
 import ReactCountryFlag from 'react-country-flag'
 
 import MemoryBar from '../MemoryBar/MemoryBar'
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface, UmsMemory } from '../../services/server-event-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { aboutApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
 const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any)
   const [memory, setMemory] = useState<UmsMemory>()
-  const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify)
+  const canView = session.havePermission(UmsPermission.settings_view | UmsPermission.settings_modify)
   const languagesRows = i18n.languages.map(language => (
     <Table.Tr key={language.id}>
       <Table.Td>

@@ -30,7 +30,7 @@ export default function UsersLogin({ i18n, session }: { i18n: I18nInterface, ses
   const [selected, setSelected] = useState<UmsUserLogin | undefined>((session.users && session.users.length > 0) ? session.users[0] : undefined)
 
   const UserSlides = session.users?.map((user) => {
-    return <Carousel.Slide><LoginUserCard user={user} /></Carousel.Slide>
+    return <Carousel.Slide key={user.id}><LoginUserCard user={user} /></Carousel.Slide>
   })
 
   const onSlideChange = (index: number) => {

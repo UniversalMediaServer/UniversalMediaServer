@@ -22,11 +22,11 @@ import _ from 'lodash'
 import { CSSProperties, useEffect, useState } from 'react'
 import { arrayMove, List } from 'react-movable'
 
-import { getGroupName, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service'
+import { getGroupName, getUserGroupsSelection } from '../../services/accounts-service'
 import { sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { sharedApiUrl } from '../../utils'
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser'
 import { showError, showInfo, showWarning } from '../../utils/notifications'
@@ -45,7 +45,7 @@ export default function SharedContentSettings({
   form: any
   configuration: any
 }) {
-  const canModify = havePermission(session, Permissions.settings_modify)
+  const canModify = session.havePermission(UmsPermission.settings_modify)
   const [sharedContents, setSharedContents] = useState([] as SharedContentInterface[])
   const [isLoading, setLoading] = useState(false)
   const [newOpened, setNewOpened] = useState(false)

@@ -14,8 +14,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { AppShell, Box, Burger, Center, Group, Loader, Text, useDirection } from '@mantine/core'
-
+import { AppShell, Box, Burger, Center, Group, Loader, useDirection } from '@mantine/core'
+import { useLocalStorage } from '@mantine/hooks'
 import { Route, Routes, Navigate } from 'react-router-dom'
 
 import About from '../About/About'
@@ -30,15 +30,14 @@ import Logs from '../Logs/Logs'
 import ModeButtons from './ModeButtons'
 import Player from '../Player/Player'
 import ServerSettings from '../ServerSettings/ServerSettings'
+import SessionNavbar from './SessionNavbar'
 import SharedContent from '../SharedContent/SharedContent'
+import StatusLine from './StatusLine'
 import UserMenu from './UserMenu'
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { ServerEventInterface } from '../../services/server-event-service'
-import { useLocalStorage } from '@mantine/hooks'
-import SessionNavbar from './SessionNavbar'
 
 export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface, playersse: PlayerEventInterface }) {
   const { dir } = useDirection()
@@ -123,7 +122,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
                     <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
                     <Route path="settings" element={<ServerSettings i18n={i18n} session={session} sse={sse} />}></Route>
                     <Route path="shared" element={<SharedContent i18n={i18n} session={session} sse={sse} />}></Route>
-                    {havePermission(session, Permissions.settings_view)
+                    {session.havePermission(UmsPermission.settings_view)
                       ? <Route index element={<Home i18n={i18n} session={session} sse={sse} />} />
                       : <Route index element={<Player i18n={i18n} session={session} sse={playersse} />} />}
                     <Route
@@ -144,11 +143,9 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
                     </Center>
                   )}
         </AppShell.Main>
-        {session.statusLine && (
-          <AppShell.Footer>
-            <Text>{session.statusLine}</Text>
-          </AppShell.Footer>
-        )}
+        <AppShell.Footer>
+          <StatusLine session={session} />
+        </AppShell.Footer>
       </AppShell>
     </div>
   )

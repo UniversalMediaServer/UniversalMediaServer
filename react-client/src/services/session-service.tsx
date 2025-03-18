@@ -58,8 +58,25 @@ export interface UmsSession {
   users?: UmsUserLogin[]
 }
 
+export const UmsPermission = {
+  users_manage: 1,
+  groups_manage: 1 << 1,
+  settings_view: 1 << 10,
+  settings_modify: 1 << 11,
+  devices_control: 1 << 12,
+  server_restart: 1 << 20,
+  application_restart: 1 << 21,
+  application_shutdown: 1 << 22,
+  computer_shutdown: 1 << 23,
+  web_player_browse: 1 << 25,
+  web_player_download: 1 << 26,
+  web_player_edit: 1 << 27,
+  all: -1,
+}
+
 export interface SessionInterface extends UmsSession {
   initialized: boolean
+  havePermission(permission: number): boolean
   refresh: () => void
   logout: () => Promise<void>
   sseAs: string

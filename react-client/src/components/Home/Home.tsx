@@ -23,11 +23,10 @@ import { IconCheck, IconExclamationMark } from '@tabler/icons-react'
 import Renderers from './Renderers'
 import NetworkDevices from './NetworkDevices'
 import { renderersApiUrl } from '../../utils'
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications'
 
 const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
@@ -38,9 +37,9 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
   const [isLocalhost, setIsLocalhost] = useState(false)
   const [users, setUsers] = useState([] as User[])
   const [currentTime, setCurrentTime] = useState(0)
-  const canModify = havePermission(session, Permissions.settings_modify)
-  const canView = canModify || havePermission(session, Permissions.settings_view)
-  const canControlRenderers = havePermission(session, Permissions.devices_control)
+  const canModify = session.havePermission(UmsPermission.settings_modify)
+  const canView = canModify || session.havePermission(UmsPermission.settings_view)
+  const canControlRenderers = session.havePermission(UmsPermission.devices_control)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {

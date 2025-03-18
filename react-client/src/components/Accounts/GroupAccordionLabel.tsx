@@ -14,30 +14,24 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Direction } from '@mantine/core'
+import { Avatar, Group, Text } from '@mantine/core'
+import { IconFolder, IconFolderPlus } from '@tabler/icons-react'
 
-export interface I18nInterface {
-  get: (value: string) => string
-  getString: (value: string) => string
-  getFormat: (value: string[]) => string
-  getValueLabelData: (values: ValueLabelData[] | undefined) => ValueLabelData[] | undefined
-  getLocalizedName: (value: string | undefined) => string
-  language: string
-  dir: Direction
-  languages: LanguageValue[]
-  setLanguage: (language: string) => void
-  getReportLink: () => React.ReactNode
-}
+import { UmsGroup } from '../../services/session-service'
 
-export interface LanguageValue {
-  id: string
-  name: string
-  defaultname: string
-  country: string
-  coverage: number
-}
-
-export interface ValueLabelData {
-  value: string
-  label: string
+export default function GroupAccordionLabel({ group }: { group: UmsGroup }) {
+  return (
+    <Group wrap="nowrap">
+      <Avatar radius="xl" size="lg">
+        {group.id === 0
+          ? (
+              <IconFolderPlus size={24} />
+            )
+          : (
+              <IconFolder size={24} />
+            )}
+      </Avatar>
+      <Text>{group.displayName}</Text>
+    </Group>
+  )
 }
