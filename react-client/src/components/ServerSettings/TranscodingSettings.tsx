@@ -154,9 +154,11 @@ export default function TranscodingSettings({
             )}
             renderItem={({ value, props, isDragged, isSelected }) => {
               const transcodingEngine = transcodingEngines[value]
+              props.key = undefined
               return (
                 <Button
                   {...props}
+                  key={transcodingEngine.id}
                   color="gray"
                   size="compact-xs"
                   variant={isDragged || isSelected ? 'outline' : 'subtle'}
@@ -192,6 +194,7 @@ export default function TranscodingSettings({
               const transcodingEngine = transcodingEngines[value]
               return (
                 <Button
+                  key={transcodingEngine.id}
                   variant="subtle"
                   color="gray"
                   size="compact-xs"
@@ -209,7 +212,7 @@ export default function TranscodingSettings({
   const TranscodingEnginesAccordionItems = () => {
     return selectionSettings?.transcodingEnginesPurposes.map((value: string, index: number) => {
       return (
-        <Accordion.Item value={'Transcoding' + index.toString()}>
+        <Accordion.Item value={'Transcoding' + index.toString()} key={'Transcoding' + index.toString()}>
           <Accordion.Control>{i18n.getString(value)}</Accordion.Control>
           <Accordion.Panel><TranscodingEnginesList purpose={index} /></Accordion.Panel>
         </Accordion.Item>
