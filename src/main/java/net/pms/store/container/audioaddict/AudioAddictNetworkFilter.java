@@ -22,7 +22,9 @@ public class AudioAddictNetworkFilter extends StoreContainer {
 		for (AudioAddictChannelDto c : filterList) {
 			MediaInfo mi = new MediaInfo();
 			mi.setMimeType("audio/mpeg");
+			mi.setMediaParser("STATIC");
 			StoreResource sr = new WebAudioStream(renderer, c.name, c.streamUrl, "http:" + c.albumArt);
+			sr.setMediaInfo(mi);
 			addChild(sr);
 		}
 	}
