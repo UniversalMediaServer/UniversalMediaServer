@@ -455,8 +455,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 	private static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
 	private static final String KEY_WEB_GUI_PORT = "web_gui_port";
-	private static final String KEY_WEB_GUI_SHOW_USERS = "web_gui_show_users";
 	private static final String KEY_WEB_GUI_ALLOW_EMPTY_PIN = "web_gui_allow_empty_pin";
+	private static final String KEY_WEB_GUI_SHOW_USERS = "web_gui_show_users";
 	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_WEB_PLAYER_ALLOW_EMPTY_PIN = "web_player_allow_empty_pin";
 	private static final String KEY_WEB_PLAYER_AUTH = "web_player_auth";
@@ -5149,9 +5149,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Whether to show user choice on web gui.
+	 * Whether to allow empty pin login on web gui.
 	 *
-	 * @return whether the user choice is shown
+	 * @return whether the empty pin login is allowed
 	 */
 	public boolean isWebGuiAllowEmptyPin() {
 		return getBoolean(KEY_WEB_GUI_ALLOW_EMPTY_PIN, false);
