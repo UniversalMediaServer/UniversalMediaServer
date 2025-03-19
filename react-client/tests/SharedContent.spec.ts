@@ -26,7 +26,7 @@ test('should be able to add a YouTube channel as a video feed', async ({ page })
 
   await page.getByText('Add', { exact: true }).click()
 
-  // await expect(page.getByText('Kurzgesagt – In a Nutshell')).toBeVisible()
+  await expect(page.getByText('Kurzgesagt – In a Nutshell')).toBeVisible()
 
   // await expect(page).toHaveScreenshot()
 })
