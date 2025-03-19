@@ -14,11 +14,27 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Text, Paper } from '@mantine/core'
-import { ReactNode } from 'react'
+import { Button } from '@mantine/core'
+import { IconPlus } from '@tabler/icons-react'
 
-export default function SharedContentText({ children, color }: { children?: ReactNode, color: string }) {
+import { I18nInterface } from '../../services/i18n-service'
+
+export default function NewSharedContentButton({
+  i18n,
+  openEditModal,
+}: {
+  i18n: I18nInterface
+  openEditModal: (index: number) => void
+}) {
   return (
-    <Paper flex="flex-start" bg={color} radius="sm" px="4" py="1"><Text size="xs" c="white" truncate="end">{ children }</Text></Paper>
+    <Button
+      leftSection={<IconPlus />}
+      variant="outline"
+      onClick={() => {
+        openEditModal(-1)
+      }}
+    >
+      {i18n.get('AddNewSharedContent')}
+    </Button>
   )
 }

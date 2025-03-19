@@ -254,6 +254,10 @@ public class Feed extends StoreContainer {
 	 * @throws Exception
 	 */
 	public static String getFeedTitle(String url) throws Exception {
+		if (StringUtils.isBlank(url)) {
+			return "";
+		}
+
 		// Check cache first
 		String feedTitle = FEED_TITLES_CACHE.get(url);
 		if (feedTitle != null) {
@@ -271,7 +275,7 @@ public class Feed extends StoreContainer {
 			}
 		}
 
-		return null;
+		return "";
 	}
 
 	/**
@@ -287,8 +291,11 @@ public class Feed extends StoreContainer {
 		}
 
 		Document doc = Jsoup.connect(url).get();
-		feedUrl = doc.select("link[type=application/rss+xml]").first().attr("href");
-		LOGGER.trace("Parsed feed URL {} from webpage {}", feedUrl, url);
+		org.jsoup.nodes.Element element = doc.select("link[type=application/rss+xml]").first();
+		if (element != null) {
+			feedUrl = element.attr("href");
+			LOGGER.trace("Parsed feed URL {} from webpage {}", feedUrl, url);
+		}
 
 		if (StringUtils.isNotBlank(feedUrl)) {
 			FEED_URLS_CACHE.put(url, feedUrl);

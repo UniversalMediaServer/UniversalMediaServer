@@ -14,11 +14,29 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Text, Paper } from '@mantine/core'
-import { ReactNode } from 'react'
+import { I18nInterface } from '../../services/i18n-service'
+import { Folder } from '../../services/shared-service'
+import DirectoryChooser from '../DirectoryChooser/DirectoryChooser'
 
-export default function SharedContentText({ children, color }: { children?: ReactNode, color: string }) {
-  return (
-    <Paper flex="flex-start" bg={color} radius="sm" px="4" py="1"><Text size="xs" c="white" truncate="end">{ children }</Text></Paper>
-  )
+export default function SharedContentText({
+  i18n,
+  childs,
+  canModify,
+  setSharedContentChild,
+}: {
+  i18n: I18nInterface
+  childs?: Folder[]
+  canModify: boolean
+  setSharedContentChild: (file: string, index: number) => void
+}) {
+  return childs?.map((child: Folder, index) => (
+    <DirectoryChooser
+      i18n={i18n}
+      disabled={!canModify}
+      size="xs"
+      path={child.file}
+      callback={(directory: string) => setSharedContentChild(directory, index)}
+    >
+    </DirectoryChooser>
+  ))
 }

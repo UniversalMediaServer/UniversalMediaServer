@@ -14,11 +14,30 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Text, Paper } from '@mantine/core'
-import { ReactNode } from 'react'
+import { Button, Tooltip } from '@mantine/core'
+import { IconFolderCheck } from '@tabler/icons-react'
 
-export default function SharedContentText({ children, color }: { children?: ReactNode, color: string }) {
+import { I18nInterface, ValueLabelData } from '../../services/i18n-service'
+
+export default function DirectoryBreadcrumbsButton({
+  i18n,
+  path,
+  setSelectedDirectory,
+}: {
+  i18n: I18nInterface
+  path: ValueLabelData
+  setSelectedDirectory: (path: string) => void
+}) {
   return (
-    <Paper flex="flex-start" bg={color} radius="sm" px="4" py="1"><Text size="xs" c="white" truncate="end">{ children }</Text></Paper>
+    <Tooltip label={i18n.get('Select')} color="blue" multiline withArrow={true}>
+      <Button
+        onClick={() => setSelectedDirectory(path.value)}
+        variant="outline"
+        size="compact-md"
+        rightSection={<IconFolderCheck />}
+      >
+        {path.label}
+      </Button>
+    </Tooltip>
   )
 }

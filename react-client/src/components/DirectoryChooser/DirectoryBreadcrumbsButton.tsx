@@ -14,11 +14,26 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Text, Paper } from '@mantine/core'
-import { ReactNode } from 'react'
+import { Button } from '@mantine/core'
 
-export default function SharedContentText({ children, color }: { children?: ReactNode, color: string }) {
+import { ValueLabelData } from '../../services/i18n-service'
+
+export default function DirectoryBreadcrumbsButton({
+  path,
+  separator,
+  setCurrentPath,
+}: {
+  path: ValueLabelData
+  separator?: string
+  setCurrentPath: (path: string) => void
+}) {
   return (
-    <Paper flex="flex-start" bg={color} radius="sm" px="4" py="1"><Text size="xs" c="white" truncate="end">{ children }</Text></Paper>
+    <Button
+      onClick={() => setCurrentPath(path.value)}
+      variant="default"
+      size="compact-md"
+    >
+      {path.label + separator}
+    </Button>
   )
 }

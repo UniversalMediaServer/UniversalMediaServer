@@ -14,6 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import axios from 'axios'
+import { UmsGroup } from './session-service'
+import { sharedApiUrl } from '../utils'
+
 export interface SharedContentInterface {
   type: string
   active: boolean
@@ -45,4 +49,27 @@ export interface Stream extends Feed {
 
 export interface ITunes extends SharedContentInterface {
   path: string
+}
+
+export interface SharedContentConfiguration {
+  shared_content: SharedContentInterface[]
+  show_itunes_library: boolean
+  show_iphoto_library: boolean
+  show_aperture_library: boolean
+  groups: UmsGroup[]
+}
+
+export interface SharedContentData extends Record<string, unknown> {
+  index: number
+  type: string
+  groups: string[]
+  name: string
+  parent: string
+  source: string
+  childs: SharedContentInterface[]
+}
+
+export const getFeedName = async (uri: string): Promise<string> => {
+  const response: { data: { name: string } } = await axios.post(sharedApiUrl + 'web-content-name', { source: uri })
+  return response.data.name
 }

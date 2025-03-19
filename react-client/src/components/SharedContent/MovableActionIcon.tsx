@@ -14,11 +14,34 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Text, Paper } from '@mantine/core'
-import { ReactNode } from 'react'
+import { ActionIcon } from '@mantine/core'
+import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical } from '@tabler/icons-react'
 
-export default function SharedContentText({ children, color }: { children?: ReactNode, color: string }) {
+export default function MovableActionIcon({
+  isDragged,
+  isSelected,
+  isFirst,
+  isLast,
+}: {
+  isDragged?: boolean
+  isSelected?: boolean
+  isFirst?: boolean
+  isLast?: boolean
+}) {
   return (
-    <Paper flex="flex-start" bg={color} radius="sm" px="4" py="1"><Text size="xs" c="white" truncate="end">{ children }</Text></Paper>
+    <ActionIcon
+      data-movable-handle
+      size={24}
+      style={{ cursor: isDragged ? 'grabbing' : 'grab' }}
+      variant={isDragged || isSelected ? 'outline' : 'subtle'}
+    >
+      {
+        isFirst
+          ? (<IconArrowNarrowDown />)
+          : isLast
+            ? (<IconArrowNarrowUp />)
+            : (<IconArrowsVertical />)
+      }
+    </ActionIcon>
   )
 }
