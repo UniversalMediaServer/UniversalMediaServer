@@ -55,14 +55,14 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			renderer,
 			"TvShows",
 			new String[]{
-				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_STATUS_VIDEO_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
-				SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
+				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_STATUS_VIDEO_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
+				SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
 			},
 			new int[]{TVSERIES_WITH_FILTERS, EPISODES}
 		);
 
-		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(renderer, "Movies", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
-		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(renderer, "3dMovies", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + IS_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
+		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(renderer, "Movies", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
+		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(renderer, "3dMovies", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + IS_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(renderer, "Unsorted", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + UNSORTED_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(renderer, "RecentlyAdded", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100, FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(renderer, "AllVideos", SELECT_FILES_STATUS_WHERE  + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
@@ -85,21 +85,21 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			renderer,
 			"TvShows",
 			new String[]{
-				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
-				SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
+				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
+				SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
 			},
 			new int[]{TVSERIES_WITH_FILTERS, EPISODES}
 		);
 		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(
 			renderer,
 			"Movies",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_3D_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(
 			renderer,
 			"3dMovies",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_3D_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder unsortedFolder = new MediaLibraryFolder(
