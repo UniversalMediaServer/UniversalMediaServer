@@ -562,7 +562,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (FileUtil.isUrl(thumbnailIcon)) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.downloadAndSend(thumbnailIcon, false));
+			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.downloadAndSend(thumbnailIcon, true));
 		} else {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.getResourceInputStream(thumbnailIcon));
 		}
