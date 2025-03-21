@@ -49,6 +49,7 @@ export default function LoginUserCard({ i18n, user, selectedUser, selectUser }: 
   return (
     <Paper
       ref={viewport}
+      style={{ cursor: 'pointer' }}
       radius="md"
       withBorder
       p="xs"
