@@ -17,10 +17,11 @@
 import { Box, Button, Group, Tabs, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useLocalStorage } from '@mantine/hooks'
-import axios from 'axios'
+import { hideNotification } from '@mantine/notifications'
+import axios, { AxiosError } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
-import { IconCheck, IconExclamationMark } from '@tabler/icons-react'
+import { IconCheck } from '@tabler/icons-react'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
@@ -92,13 +93,18 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
           setConfiguration(userConfig)
           form.initialize(userConfig)
         })
-        .catch(function () {
-          showError({
-            id: 'data-loading',
-            title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotReceived'),
-            message2: i18n.getReportLink(),
-          })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            i18n.showServerUnreachable()
+          }
+          else {
+            showError({
+              id: 'data-loading',
+              title: i18n.get('Error'),
+              message: i18n.get('ConfigurationNotReceived'),
+              message2: i18n.getReportLink(),
+            })
+          }
         })
         .then(function () {
           setLoading(false)
@@ -113,59 +119,49 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
     })
-    try {
-      const changedValues: Record<string, any> = {}
+    const changedValues: Record<string, any> = {}
 
-      // construct an object of only changed values to send
-      for (const key in values) {
-        if (!_.isEqual(configuration[key], values[key])) {
-          changedValues[key] = values[key] !== undefined && values[key] !== null ? values[key] : null
-        }
-      }
-
-      if (_.isEmpty(changedValues)) {
-        updateInfo({
-          id: 'settings-save',
-          title: i18n.get('Saved'),
-          message: i18n.get('ConfigurationHasNoChanges'),
-        })
-      }
-      else {
-        await axios.post(settingsApiUrl, changedValues)
-          .then(function () {
-            setConfiguration(values)
-            setLoading(false)
-            updateSuccess({
-              id: 'settings-save',
-              title: i18n.get('Saved'),
-              message: i18n.get('ConfigurationSaved'),
-              icon: <IconCheck size="1rem" />,
-            })
-          })
-          .catch(function (error) {
-            if (!error.response && error.request) {
-              updateError({
-                id: 'settings-save',
-                title: i18n.get('Error'),
-                message: i18n.get('ConfigurationNotReceived'),
-                icon: <IconExclamationMark size="1rem" />,
-              })
-            }
-            else {
-              throw new Error(error)
-            }
-          })
+    // construct an object of only changed values to send
+    for (const key in values) {
+      if (!_.isEqual(configuration[key], values[key])) {
+        changedValues[key] = values[key] !== undefined && values[key] !== null ? values[key] : null
       }
     }
-    catch (err) {
-      updateError({
+
+    if (_.isEmpty(changedValues)) {
+      updateInfo({
         id: 'settings-save',
-        title: i18n.get('Error'),
-        message: i18n.get('ConfigurationNotSaved'),
-        message2: i18n.getReportLink(),
+        title: i18n.get('Saved'),
+        message: i18n.get('ConfigurationHasNoChanges'),
       })
     }
-
+    else {
+      await axios.post(settingsApiUrl, changedValues)
+        .then(function () {
+          setConfiguration(values)
+          setLoading(false)
+          updateSuccess({
+            id: 'settings-save',
+            title: i18n.get('Saved'),
+            message: i18n.get('ConfigurationSaved'),
+            icon: <IconCheck size="1rem" />,
+          })
+        })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            hideNotification('settings-save')
+            i18n.showServerUnreachable()
+          }
+          else {
+            updateError({
+              id: 'settings-save',
+              title: i18n.get('Error'),
+              message: i18n.get('ConfigurationNotSaved'),
+              message2: i18n.getReportLink(),
+            })
+          }
+        })
+    }
     setLoading(false)
   }
 

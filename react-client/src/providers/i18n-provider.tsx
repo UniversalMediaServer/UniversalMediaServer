@@ -16,9 +16,10 @@
  */
 import { Anchor, useDirection } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
+import { showNotification } from '@mantine/notifications'
 import axios from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
-import { IconExclamationMark } from '@tabler/icons-react'
+import { IconServerOff } from '@tabler/icons-react'
 
 import I18nContext from '../contexts/i18n-context'
 import { LanguageValue, ValueLabelData } from '../services/i18n-service'
@@ -97,11 +98,7 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
       })
       .catch(function (error) {
         if (!error.response && error.request) {
-          showError({
-            title: i18n['Warning'],
-            message: i18n['UniversalMediaServerUnreachable'],
-            icon: <IconExclamationMark size="1rem" />,
-          })
+          showServerUnreachable()
         }
         else {
           showError({
@@ -120,11 +117,7 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
       })
       .catch(function (error) {
         if (!error.response && error.request) {
-          showError({
-            title: i18n['Warning'],
-            message: i18n['UniversalMediaServerUnreachable'],
-            icon: <IconExclamationMark size="1rem" />,
-          })
+          showServerUnreachable()
         }
         else {
           showError({
@@ -141,6 +134,17 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
         {get('ClickHereReportBug')}
       </Anchor>
     )
+  }
+
+  const showServerUnreachable = () => {
+    showNotification({
+      id: 'connection-lost',
+      color: 'orange',
+      title: get('Warning'),
+      message: get('UniversalMediaServerUnreachable'),
+      icon: <IconServerOff size="1rem" />,
+      autoClose: false,
+    })
   }
 
   useEffect(() => {
@@ -164,6 +168,7 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
       languages: languages,
       setLanguage: setLanguage,
       getReportLink: getReportLink,
+      showServerUnreachable: showServerUnreachable,
     }}
     >
       {children}

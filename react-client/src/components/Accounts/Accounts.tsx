@@ -15,7 +15,8 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Box, Tabs, Text } from '@mantine/core'
-import axios from 'axios'
+import { hideNotification } from '@mantine/notifications'
+import axios, { AxiosError } from 'axios'
 import { useEffect, useState } from 'react'
 
 import { UmsAccounts } from '../../services/accounts-service'
@@ -51,11 +52,16 @@ const Accounts = ({ i18n, session, sse }: { i18n: I18nInterface, session: Sessio
       .then(function (response: any) {
         setAccounts(response.data)
       })
-      .catch(function () {
-        showError({
-          title: i18n.get('Error'),
-          message: i18n.get('AccountsNotReceived'),
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            title: i18n.get('Error'),
+            message: i18n.get('AccountsNotReceived'),
+          })
+        }
       })
   }, [sse.updateAccounts, sse.setUpdateAccounts])
 
@@ -73,12 +79,18 @@ const Accounts = ({ i18n, session, sse }: { i18n: I18nInterface, session: Sessio
           message: successmessage,
         })
       })
-      .catch(function () {
-        updateError({
-          id: 'account-action',
-          title: i18n.get('Error'),
-          message: errormessage,
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          hideNotification('account-action')
+          i18n.showServerUnreachable()
+        }
+        else {
+          updateError({
+            id: 'account-action',
+            title: i18n.get('Error'),
+            message: errormessage,
+          })
+        }
       })
   }
 

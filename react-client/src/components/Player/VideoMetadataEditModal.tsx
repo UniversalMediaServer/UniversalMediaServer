@@ -16,7 +16,7 @@
  */
 import { Badge, Button, Card, Divider, Flex, Group, Image, Modal, NumberInput, ScrollArea, Spoiler, Stack, Text, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useEffect, useState } from 'react'
 import { IconListSearch } from '@tabler/icons-react'
 
@@ -53,12 +53,17 @@ export default function VideoMetadataEditModal({
         searchForm.setValues(response.data)
         setOpened(true)
       })
-      .catch(function () {
-        showError({
-          id: 'data-loading',
-          title: i18n.get('Error'),
-          message: 'Your edit data was not received from the server.',
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'data-loading',
+            title: i18n.get('Error'),
+            message: 'Your edit data was not received from the server.',
+          })
+        }
       })
       .then(function () {
         setLoading(false)
@@ -71,12 +76,17 @@ export default function VideoMetadataEditModal({
       .then(function (response: any) {
         setEditResults(response.data)
       })
-      .catch(function () {
-        showError({
-          id: 'data-loading',
-          title: i18n.get('Error'),
-          message: 'Your search data was not received from the server.',
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'data-loading',
+            title: i18n.get('Error'),
+            message: 'Your search data was not received from the server.',
+          })
+        }
       })
       .then(function () {
         setLoading(false)
@@ -90,12 +100,17 @@ export default function VideoMetadataEditModal({
         setOpened(false)
         callback()
       })
-      .catch(function () {
-        showError({
-          id: 'data-loading',
-          title: i18n.get('Error'),
-          message: 'Your data sent was not received from the server.',
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'data-loading',
+            title: i18n.get('Error'),
+            message: 'Your data sent was not received from the server.',
+          })
+        }
       })
       .then(function () {
         setLoading(false)

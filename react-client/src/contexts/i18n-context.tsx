@@ -30,6 +30,7 @@ const I18nContext: Context<I18nInterface> = createContext({
   languages: [] as LanguageValue[],
   setLanguage: (_language: string) => { },
   getReportLink: () => { return undefined as React.ReactNode },
+  showServerUnreachable: () => { },
 })
 
 export default I18nContext

@@ -27,6 +27,7 @@ export interface I18nInterface {
   languages: LanguageValue[]
   setLanguage: (language: string) => void
   getReportLink: () => React.ReactNode
+  showServerUnreachable: () => void
 }
 
 export interface LanguageValue {

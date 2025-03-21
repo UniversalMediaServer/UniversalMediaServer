@@ -16,7 +16,7 @@
  */
 import { Box, Button, Group, LoadingOverlay, Modal, Paper, ScrollArea, Stack } from '@mantine/core'
 import { IconFolder, IconFolders } from '@tabler/icons-react'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useEffect, useState } from 'react'
 
 import DirectoryBreadcrumbs from './DirectoryBreadcrumbs'
@@ -57,13 +57,18 @@ export default function DirectoryModal({
         setDirectories(directoriesResponse.children)
         setParents(directoriesResponse.parents.reverse())
       })
-      .catch(function () {
-        showError({
-          id: 'data-loading',
-          title: i18n.get('Error'),
-          message: i18n.get('SubdirectoriesNotReceived'),
-          message2: i18n.getReportLink(),
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('SubdirectoriesNotReceived'),
+            message2: i18n.getReportLink(),
+          })
+        }
       })
       .then(function () {
         setLoading(false)

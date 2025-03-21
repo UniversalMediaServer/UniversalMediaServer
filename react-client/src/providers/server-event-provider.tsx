@@ -59,16 +59,6 @@ const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode
       })
     }
 
-    const showErrorNotification = () => {
-      showNotification({
-        id: 'connection-lost',
-        color: 'orange',
-        title: i18n.get('Warning'),
-        message: i18n.get('UniversalMediaServerUnreachable'),
-        autoClose: false,
-      })
-    }
-
     const onOpen = (event: Response) => {
       if (event.ok && event.headers.get('content-type') === EventStreamContentType) {
         hideNotification('connection-lost')
@@ -150,7 +140,7 @@ const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     const onError = () => {
       if (!notified) {
         notified = true
-        showErrorNotification()
+        i18n.showServerUnreachable()
       }
       setConnectionStatus(2)
     }

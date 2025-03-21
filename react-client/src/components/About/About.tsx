@@ -83,12 +83,17 @@ const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionIn
       .then(function (response: any) {
         setAboutDatas(response.data)
       })
-      .catch(function () {
-        showError({
-          id: 'about-data-loading',
-          title: i18n.get('Error'),
-          message: i18n.get('DataNotReceived'),
-        })
+      .catch(function (error) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'about-data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('DataNotReceived'),
+          })
+        }
       })
   }, [i18n])
 

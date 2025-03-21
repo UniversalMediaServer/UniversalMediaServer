@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Affix, Box, Button, Text } from '@mantine/core'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
@@ -67,13 +67,18 @@ export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterf
           setConfiguration(sharedResponse)
           setSharedContents(sharedResponse.shared_content)
         })
-        .catch(function () {
-          showError({
-            id: 'data-loading',
-            title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotReceived'),
-            message2: i18n.getReportLink(),
-          })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            i18n.showServerUnreachable()
+          }
+          else {
+            showError({
+              id: 'data-loading',
+              title: i18n.get('Error'),
+              message: i18n.get('ConfigurationNotReceived'),
+              message2: i18n.getReportLink(),
+            })
+          }
         })
         .then(function () {
           setLoading(false)

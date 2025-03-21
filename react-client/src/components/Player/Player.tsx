@@ -16,7 +16,7 @@
  */
 import { Box, Breadcrumbs, Button, Group, Image, LoadingOverlay, Paper, ScrollArea, Text } from '@mantine/core'
 import { IconHome } from '@tabler/icons-react'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
@@ -71,12 +71,17 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
             window.history.pushState(url, '', url)
           }
         })
-        .catch(function () {
-          showError({
-            id: 'player-data-loading',
-            title: i18n.get('Error'),
-            message: 'Your browse data was not received from the server.',
-          })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            i18n.showServerUnreachable()
+          }
+          else {
+            showError({
+              id: 'player-data-loading',
+              title: i18n.get('Error'),
+              message: 'Your browse data was not received from the server.',
+            })
+          }
         })
         .then(function () {
           setLoading(false)

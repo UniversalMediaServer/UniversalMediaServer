@@ -40,7 +40,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
             variant={from === Home.name ? undefined : 'subtle'}
             size="compact-md"
             leftSection={<IconHome size={14} />}
-            onClick={() => { navigate('/') }}
+            onClick={() => {
+              navigate('/')
+              session.setNavbarOpened(false)
+            }}
           >
             {i18n.get('Home')}
           </Button>
@@ -51,7 +54,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
           variant={from === SharedContent.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconShare size={14} />}
-          onClick={() => { navigate('/shared') }}
+          onClick={() => {
+            navigate('/shared')
+            session.setNavbarOpened(false)
+          }}
         >
           {i18n.get('SharedContent')}
         </Button>
@@ -62,7 +68,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
           variant={from === Actions.name || from === Logs.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconTool size={14} />}
-          onClick={() => { navigate('/actions') }}
+          onClick={() => {
+            navigate('/actions')
+            session.setNavbarOpened(false)
+          }}
         >
           {i18n.get('Tools')}
         </Button>
@@ -73,7 +82,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
           variant={from === ServerSettings.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconSettings size={14} />}
-          onClick={() => { navigate('/settings') }}
+          onClick={() => {
+            navigate('/settings')
+            session.setNavbarOpened(false)
+          }}
         >
           {i18n.get('ServerSettings')}
         </Button>
@@ -84,7 +96,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
           variant={from === Accounts.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={session.havePermission(UmsPermission.users_manage) ? <IconUsers size={14} /> : <IconUser size={14} />}
-          onClick={() => { navigate('/accounts') }}
+          onClick={() => {
+            navigate('/accounts')
+            session.setNavbarOpened(false)
+          }}
         >
           {session.havePermission(UmsPermission.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
         </Button>
@@ -94,7 +109,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
         variant={from === BrowserSettings.name ? undefined : 'subtle'}
         size="compact-md"
         leftSection={<IconDeviceDesktopCog size={14} />}
-        onClick={() => { navigate('/customize') }}
+        onClick={() => {
+          navigate('/customize')
+          session.setNavbarOpened(false)
+        }}
       >
         {i18n.get('Customize')}
       </Button>
@@ -103,7 +121,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
         variant={from === About.name ? undefined : 'subtle'}
         size="compact-md"
         leftSection={<IconInfoCircle size={14} />}
-        onClick={() => { navigate('/about') }}
+        onClick={() => {
+          navigate('/about')
+          session.setNavbarOpened(false)
+        }}
       >
         {i18n.get('About')}
       </Button>

@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { useInterval, useLocalStorage, useSessionStorage } from '@mantine/hooks'
+import { hideNotification } from '@mantine/notifications'
 import axios, { AxiosError } from 'axios'
 import { jwtDecode, JwtPayload } from 'jwt-decode'
 import _ from 'lodash'
@@ -75,16 +76,22 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const refresh = () => {
     axios.get(authApiUrl + 'session')
       .then(function (response: any) {
+        hideNotification('connection-lost')
         setSession({ ...response.data })
         setServerName(response.data.serverName ? response.data.serverName : 'Universal Media Server')
         setInitialized(true)
       })
-      .catch(function () {
-        showError({
-          id: 'session_error',
-          title: i18n.get('Error'),
-          message: i18n.get('SessionNotReceived'),
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'session_error',
+            title: i18n.get('Error'),
+            message: i18n.get('SessionNotReceived'),
+          })
+        }
       })
   }
 
@@ -265,7 +272,10 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
               }
             })
             .catch(function (error: AxiosError) {
-              if (error.response?.status == 403) {
+              if (!error.response && error.request) {
+                i18n.showServerUnreachable()
+              }
+              else if (error.response?.status == 403) {
                 localUser.token = ''
               }
               else {

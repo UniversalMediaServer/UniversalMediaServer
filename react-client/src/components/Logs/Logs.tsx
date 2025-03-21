@@ -18,7 +18,7 @@ import { Box, Button, Checkbox, Code, Divider, Group, Modal, MultiSelect, Pagina
 import { Dropzone, FileWithPath } from '@mantine/dropzone'
 import { useForm } from '@mantine/form'
 import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
@@ -110,12 +110,17 @@ const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
         setLogLevel(getLogLevel(response.data.guiLogLevel))
         setTraceMode(response.data.traceMode)
       })
-      .catch(function () {
-        showError({
-          id: 'logs-data-loading',
-          title: i18n.get('Error'),
-          message: i18n.get('DataNotReceived'),
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'logs-data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('DataNotReceived'),
+          })
+        }
       })
   }, [i18n, canModify, fileMode])
 
