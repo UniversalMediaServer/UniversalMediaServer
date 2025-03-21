@@ -48,6 +48,7 @@ export interface UmsUserLogin {
   displayName: string
   avatar?: string
   login: string
+  token?: string
 }
 
 export interface UmsSession {
@@ -56,6 +57,13 @@ export interface UmsSession {
   authenticate: boolean
   player: boolean
   users?: UmsUserLogin[]
+}
+
+export interface LocalUser {
+  id: number
+  displayName: string
+  token: string
+  avatar?: string
 }
 
 export const UmsPermission = {
@@ -77,14 +85,26 @@ export const UmsPermission = {
 export interface SessionInterface extends UmsSession {
   initialized: boolean
   havePermission(permission: number): boolean
+  users?: UmsUserLogin[]
+  isDefaultUser: boolean
+  canSwitchUser: boolean
   refresh: () => void
-  logout: () => Promise<void>
+  token: string
+  setToken: (token: string) => void
+  login: (username: string, password: string) => Promise<void>
+  loginPin: (id: number, pin: string) => Promise<void>
+  logout: (keepLocal: boolean) => Promise<void>
+  isLogout: boolean
+  resetLogout: () => void
+  lastUserId: number
   sseAs: string
   useSseAs: (name: string) => void
   stopSse: () => void
   usePlayerSse: boolean
   startPlayerSse: () => void
   stopPlayerSse: () => void
+  uuid: string
+  setUuid: (_uuid: string) => void
   serverName: string
   setServerName: (serverName: string) => void
   setDocumentTitle: (documentTitle: string) => void

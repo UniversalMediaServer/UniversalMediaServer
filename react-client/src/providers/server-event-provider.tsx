@@ -19,7 +19,6 @@ import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@m
 import { ReactNode, useEffect, useState } from 'react'
 
 import ServerEventContext from '../contexts/server-event-context'
-import { getJwt } from '../services/auth-service'
 import { I18nInterface } from '../services/i18n-service'
 import { UmsMemory } from '../services/server-event-service'
 import { SessionInterface } from '../services/session-service'
@@ -108,8 +107,17 @@ const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode
             setReloadable(datas.value)
             break
           case 'set_configuration_changed':
-            if (datas.value && datas.value.server_name) {
-              session.setServerName(datas.value.server_name)
+            if (datas.value) {
+              if (datas.value.server_name !== undefined) {
+                session.setServerName(datas.value.server_name)
+              }
+              if (datas.value.authentication_enabled !== undefined
+                || datas.value.authenticate_localhost_as_admin !== undefined
+                || datas.value.web_gui_show_users !== undefined
+                || datas.value.web_gui_allow_empty_pin !== undefined
+              ) {
+                session.refresh()
+              }
             }
             setUserConfiguration(datas.value)
             break
@@ -151,12 +159,14 @@ const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode
       setConnectionStatus(0)
     }
 
+    const headers = () => {
+      return session.token ? { Authorization: 'Bearer ' + session.token } : undefined
+    }
+
     const startSse = () => {
       setConnectionStatus(0)
       fetchEventSource(sseApiUrl, {
-        headers: {
-          Authorization: 'Bearer ' + getJwt(),
-        },
+        headers: headers(),
         signal: abortController.signal,
         async onopen(event: Response) { onOpen(event) },
         onmessage(event: EventSourceMessage) {

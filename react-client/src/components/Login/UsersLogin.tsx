@@ -14,133 +14,87 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Carousel } from '@mantine/carousel'
-import { Button, PinInput, Stack, TextInput, VisuallyHidden } from '@mantine/core'
-import { useForm } from '@mantine/form'
-import { IconLock } from '@tabler/icons-react'
-import { useState } from 'react'
+import { Group, ScrollArea, Stack } from '@mantine/core'
+import { useEffect, useRef, useState } from 'react'
 
-import { login, loginPin } from '../../services/auth-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsUserLogin } from '../../services/session-service'
-import { showError } from '../../utils/notifications'
+import LocalhostLogin from './LocalhostLogin'
 import LoginUserCard from './LoginUserCard'
+import NoneLogin from './NoneLogin'
+import PassLogin from './PassLogin'
+import PinLogin from './PinLogin'
+import TokenLogin from './TokenLogin'
 
 export default function UsersLogin({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
-  const [selected, setSelected] = useState<UmsUserLogin | undefined>((session.users && session.users.length > 0) ? session.users[0] : undefined)
+  const [selectedUser, selectUser] = useState<UmsUserLogin | undefined>()
+  const viewport = useRef<HTMLDivElement>(null)
+  const hideCards = selectedUser?.id === 0 && session.users?.length == 1
 
-  const UserSlides = session.users?.map((user) => {
-    return <Carousel.Slide key={user.id}><LoginUserCard user={user} /></Carousel.Slide>
-  })
-
-  const onSlideChange = (index: number) => {
-    if (session.users && session.users.length > index) {
-      setSelected(session.users[index])
+  const getLastUserId = () => {
+    if (session.users && session.users.length > 0) {
+      const lastUserLogin = session.users.find((userLogin: UmsUserLogin) => userLogin.id === session.lastUserId)
+      if (lastUserLogin) {
+        return lastUserLogin
+      }
+      return session.users[0]
     }
-  }
-  const handlePinLogin = (id: number, pin: string) => {
-    loginPin(id, pin).then(
-      () => {
-        session.refresh()
-      },
-      () => {
-        showError({
-          id: 'pwd-error',
-          title: i18n.get('Error'),
-          message: i18n.get('ErrorLoggingIn'),
-        })
-      },
-    )
+    return undefined
   }
 
-  const NoneLogin = () => {
-    return (selected && selected.login === 'none')
-      ? (
-          <Button
-            variant="default"
-            onClick={() => handlePinLogin(selected.id, '')}
-          >
-            {i18n.get('LogIn')}
-          </Button>
-        )
-      : undefined
-  }
-
-  const PinLogin = () => {
-    return (selected && selected.login === 'pin')
-      ? (
-          <PinInput
-            oneTimeCode
-            mask
-            type="number"
-            onComplete={(value: string) => {
-              handlePinLogin(selected.id, value)
-            }}
-          />
-        )
-      : undefined
-  }
-
-  const PassLogin = () => {
-    return (selected && selected.login === 'pass')
-      ? (
-          <PassLoginForm user={selected} />
-        )
-      : undefined
-  }
-
-  function PassLoginForm({ user }: { user: UmsUserLogin }) {
-    const form = useForm({
-      initialValues: {
-        username: user.username,
-        password: '',
-      },
-    })
-    const handleLogin = (values: typeof form.values) => {
-      const { username, password } = values
-      login(username, password).then(
-        () => {
-          session.refresh()
-        },
-        () => {
-          showError({
-            id: 'pwd-error',
-            title: i18n.get('Error'),
-            message: i18n.get('ErrorLoggingIn'),
-          })
-        },
-      )
+  const SelectedLogin = () => {
+    if (selectedUser) {
+      if (selectedUser.login === 'pass') {
+        return <PassLogin i18n={i18n} session={session} user={selectedUser} />
+      }
+      if (selectedUser.login === 'localhost') {
+        return <LocalhostLogin i18n={i18n} session={session} />
+      }
+      if (selectedUser.login === 'token') {
+        return <TokenLogin i18n={i18n} session={session} user={selectedUser} />
+      }
+      if (selectedUser.login === 'pin') {
+        return <PinLogin i18n={i18n} session={session} user={selectedUser} />
+      }
+      if (selectedUser.login === 'none') {
+        return <NoneLogin i18n={i18n} session={session} user={selectedUser} />
+      }
     }
-    return (
-      <form onSubmit={form.onSubmit(handleLogin)}>
-        <Stack>
-          <VisuallyHidden>
-            <TextInput
-              name="username"
-              value={user.username}
-            />
-          </VisuallyHidden>
-          <TextInput
-            required
-            label={i18n.get('Password')}
-            type="password"
-            leftSection={<IconLock size={14} />}
-            {...form.getInputProps('password')}
-          />
-          <Button variant="default" type="submit">{i18n.get('LogIn')}</Button>
-        </Stack>
-      </form>
-    )
+    return undefined
   }
+
+  useEffect(() => {
+    selectUser(getLastUserId())
+  }, [session.users])
 
   return (
     <Stack justify="center" align="center" h="100%">
-      <Carousel slideSize={180} slideGap={20} onSlideChange={onSlideChange}>
-        {UserSlides}
-      </Carousel>
-      <PassLogin />
-      <PinLogin />
-      <NoneLogin />
+      { !hideCards && (
+        <ScrollArea
+          scrollbars="x"
+          h={130}
+          viewportRef={viewport}
+          overscrollBehavior="contain"
+          onWheel={(e) => {
+            e.preventDefault()
+            viewport.current!.scrollBy({ top: 0, left: e.deltaY, behavior: 'smooth' })
+          }}
+        >
+          <Group
+            justify="center"
+            grow
+            preventGrowOverflow={false}
+            wrap="nowrap"
+          >
+            {session.users?.map((user) => {
+              return (
+                <LoginUserCard key={user.id} i18n={i18n} user={user} selectedUser={selectedUser} selectUser={selectUser} />
+              )
+            })}
+          </Group>
+        </ScrollArea>
+      )}
+      <SelectedLogin />
     </Stack>
   )
 }

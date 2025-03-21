@@ -16,6 +16,7 @@
  */
 import { I18nInterface } from '../../services/i18n-service'
 import { UmsGroup } from '../../services/session-service'
+
 import { Feed, Folder, SharedContentInterface, Stream, VirtualFolder } from '../../services/shared-service'
 import SharedContentFeedDetails from './SharedContentFeedDetails'
 import SharedContentFolderDetails from './SharedContentFolderDetails'

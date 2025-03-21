@@ -637,19 +637,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/carousel@npm:7.17.2":
-  version: 7.17.2
-  resolution: "@mantine/carousel@npm:7.17.2"
-  peerDependencies:
-    "@mantine/core": 7.17.2
-    "@mantine/hooks": 7.17.2
-    embla-carousel-react: ">=7.0.0"
-    react: ^18.x || ^19.x
-    react-dom: ^18.x || ^19.x
-  checksum: 10c0/92ac7b70bd057c1ccc8a120db418d6c415cb6742f20dd8a52adbf208c80d14089c09f69ca3885727acfd1ac81fafb5fe726df03e1e8abed7e8d64c782fe2cc91
-  languageName: node
-  linkType: hard
-
 "@mantine/core@npm:7.17.2":
   version: 7.17.2
   resolution: "@mantine/core@npm:7.17.2"
@@ -1113,6 +1100,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@typescript-eslint/scope-manager@npm:8.27.0":
+  version: 8.27.0
+  resolution: "@typescript-eslint/scope-manager@npm:8.27.0"
+  dependencies:
+    "@typescript-eslint/types": "npm:8.27.0"
+    "@typescript-eslint/visitor-keys": "npm:8.27.0"
+  checksum: 10c0/d87daeffb81f4e70f168c38f01c667713bda71c4545e28fcdf0792378fb3df171894ef77854c5c1a5e5a22c784ee1ccea2dd856b5baf825840710a6a74c14ac9
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/type-utils@npm:8.26.1":
   version: 8.26.1
   resolution: "@typescript-eslint/type-utils@npm:8.26.1"
@@ -1135,6 +1132,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@typescript-eslint/types@npm:8.27.0":
+  version: 8.27.0
+  resolution: "@typescript-eslint/types@npm:8.27.0"
+  checksum: 10c0/9c5f2ba816a9baea5982feeadebe4d19f4df77ddb025a7b2307f9e1e6914076b63cbad81f7f915814e64b4d915052cf27bd79ce3e5a831340cb5ab244133941b
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/typescript-estree@npm:8.26.1":
   version: 8.26.1
   resolution: "@typescript-eslint/typescript-estree@npm:8.26.1"
@@ -1153,7 +1157,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/utils@npm:8.26.1, @typescript-eslint/utils@npm:^8.23.0":
+"@typescript-eslint/typescript-estree@npm:8.27.0":
+  version: 8.27.0
+  resolution: "@typescript-eslint/typescript-estree@npm:8.27.0"
+  dependencies:
+    "@typescript-eslint/types": "npm:8.27.0"
+    "@typescript-eslint/visitor-keys": "npm:8.27.0"
+    debug: "npm:^4.3.4"
+    fast-glob: "npm:^3.3.2"
+    is-glob: "npm:^4.0.3"
+    minimatch: "npm:^9.0.4"
+    semver: "npm:^7.6.0"
+    ts-api-utils: "npm:^2.0.1"
+  peerDependencies:
+    typescript: ">=4.8.4 <5.9.0"
+  checksum: 10c0/c04d602825ff2a7b2a89746a68b32f7052fb4ce3d2355d1f4e6f43fd064f17c3b44fb974c98838a078fdebdc35152d2ab0af34663dfca99db7a790bd3fc5d8ac
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/utils@npm:8.26.1":
   version: 8.26.1
   resolution: "@typescript-eslint/utils@npm:8.26.1"
   dependencies:
@@ -1168,6 +1190,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@typescript-eslint/utils@npm:^8.23.0":
+  version: 8.27.0
+  resolution: "@typescript-eslint/utils@npm:8.27.0"
+  dependencies:
+    "@eslint-community/eslint-utils": "npm:^4.4.0"
+    "@typescript-eslint/scope-manager": "npm:8.27.0"
+    "@typescript-eslint/types": "npm:8.27.0"
+    "@typescript-eslint/typescript-estree": "npm:8.27.0"
+  peerDependencies:
+    eslint: ^8.57.0 || ^9.0.0
+    typescript: ">=4.8.4 <5.9.0"
+  checksum: 10c0/dcfd5f2c17f1a33061e3ec70d0946ff23a4238aabacae3d85087165beccedf84fb8506d30848f2470e3b60ab98b230aef79c6e8b4c5d39648a37ac559ac5b1e0
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/visitor-keys@npm:8.26.1":
   version: 8.26.1
   resolution: "@typescript-eslint/visitor-keys@npm:8.26.1"
@@ -1175,6 +1212,16 @@ __metadata:
     "@typescript-eslint/types": "npm:8.26.1"
     eslint-visitor-keys: "npm:^4.2.0"
   checksum: 10c0/51b1016d06cd2b9eac0a213de418b0a26022fd3b71478014541bfcbc2a3c4d666552390eb9c209fa9e52c868710d9f1b21a2c789d35c650239438c366a27a239
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/visitor-keys@npm:8.27.0":
+  version: 8.27.0
+  resolution: "@typescript-eslint/visitor-keys@npm:8.27.0"
+  dependencies:
+    "@typescript-eslint/types": "npm:8.27.0"
+    eslint-visitor-keys: "npm:^4.2.0"
+  checksum: 10c0/d86fd4032db07123816aab3a6b8b53f840387385ab2a4d8f96b22fc76b5438fb27ac8dc42b63caf23f3d265c33e9075dbf1ce8d31f939df12f5cd077d3b10295
   languageName: node
   linkType: hard
 
@@ -1565,9 +1612,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001688":
-  version: 1.0.30001705
-  resolution: "caniuse-lite@npm:1.0.30001705"
-  checksum: 10c0/f135a9075e36cc28a66a8f37145dca2bdc45ea18fd9fae2569e781e0f7156962d4fcac374640aa6421a70c6e8d23587bf9386f5561a1fe81bbbf36055b807243
+  version: 1.0.30001706
+  resolution: "caniuse-lite@npm:1.0.30001706"
+  checksum: 10c0/b502d0a509611fd5b009e1123d482e983696984b6b749c3f485fd8d02cc58376c59cf0bb15f22fa2d337da104970edd27dd525d4663cebc728e26ac4adedff0d
   languageName: node
   linkType: hard
 
@@ -1792,37 +1839,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.73":
-  version: 1.5.119
-  resolution: "electron-to-chromium@npm:1.5.119"
-  checksum: 10c0/f4ca0eb3af21d16d2c1fd480c5a43428ce4423ca887338d69bd3eadae818b6d6e799c62b1baac1bc4f76e4226f5fb15a6b0dc8965f601ac053e86508d3e8e41c
-  languageName: node
-  linkType: hard
-
-"embla-carousel-react@npm:8.5.2":
-  version: 8.5.2
-  resolution: "embla-carousel-react@npm:8.5.2"
-  dependencies:
-    embla-carousel: "npm:8.5.2"
-    embla-carousel-reactive-utils: "npm:8.5.2"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.1 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
-  checksum: 10c0/8e55a2bc562aed2c55d9debf2523dbd4f2524b0ecea62cf51f8f096ed993af608890084b5f35e1694a8aada087602a12cc4b8a68aeee12b4a33cc8361636c63d
-  languageName: node
-  linkType: hard
-
-"embla-carousel-reactive-utils@npm:8.5.2":
-  version: 8.5.2
-  resolution: "embla-carousel-reactive-utils@npm:8.5.2"
-  peerDependencies:
-    embla-carousel: 8.5.2
-  checksum: 10c0/aa4870539d9090f9ac02338c3ca3e1710a6f0e6890cd2f6fbf6afcc1eeac48192406f92bf042fe9429cc61709338124baf1514c75227a7a16b19b83e9f376274
-  languageName: node
-  linkType: hard
-
-"embla-carousel@npm:8.5.2":
-  version: 8.5.2
-  resolution: "embla-carousel@npm:8.5.2"
-  checksum: 10c0/4bbb04c08616d560a7b47b1897794a077baa5aa27642420b35b3be58ab7b0dc000ef073b6e47d0029b0791c046e0cd39d295704faecb1957d2c315df51be58e6
+  version: 1.5.123
+  resolution: "electron-to-chromium@npm:1.5.123"
+  checksum: 10c0/ffaa65e9337f5ba0b51d5709795c3d1074e0cae8efda24116561feed6cedd281f523be50339d991c2fc65344e66e65e7308a157ff87047a8bb4e8008412e9eb1
   languageName: node
   linkType: hard
 
@@ -3418,11 +3437,11 @@ __metadata:
   linkType: hard
 
 "nanoid@npm:^3.3.8":
-  version: 3.3.10
-  resolution: "nanoid@npm:3.3.10"
+  version: 3.3.11
+  resolution: "nanoid@npm:3.3.11"
   bin:
     nanoid: bin/nanoid.cjs
-  checksum: 10c0/34eca53d4d95cb538b05a9fa07e4b2ab941906852202edb00824c8004d71d34592704e40b0ae608bf756b1ffd91ff9359d2ea59f8d92e1a7b769e0ca46368e84
+  checksum: 10c0/40e7f70b3d15f725ca072dfc4f74e81fcf1fbb02e491cf58ac0c79093adc9b0a73b152bcde57df4b79cd097e13023d7504acb38404a4da7bc1cd8e887b82fe0b
   languageName: node
   linkType: hard
 
@@ -4535,11 +4554,11 @@ __metadata:
   linkType: hard
 
 "ts-api-utils@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "ts-api-utils@npm:2.0.1"
+  version: 2.1.0
+  resolution: "ts-api-utils@npm:2.1.0"
   peerDependencies:
     typescript: ">=4.8.4"
-  checksum: 10c0/23fd56a958b332cac00150a652e4c84730df30571bd2faa1ba6d7b511356d1a61656621492bb6c7f15dd6e18847a1408357a0e406671d358115369a17f5bfedd
+  checksum: 10c0/9806a38adea2db0f6aa217ccc6bc9c391ddba338a9fe3080676d0d50ed806d305bb90e8cef0276e793d28c8a929f400abb184ddd7ff83a416959c0f4d2ce754f
   languageName: node
   linkType: hard
 
@@ -4664,7 +4683,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ums-gui@workspace:."
   dependencies:
-    "@mantine/carousel": "npm:7.17.2"
     "@mantine/core": "npm:7.17.2"
     "@mantine/dropzone": "npm:7.17.2"
     "@mantine/form": "npm:7.17.2"
@@ -4680,7 +4698,6 @@ __metadata:
     "@types/react-dom": "npm:19.0.4"
     "@vitejs/plugin-react": "npm:4.3.4"
     axios: "npm:1.8.3"
-    embla-carousel-react: "npm:8.5.2"
     eslint: "npm:9.22.0"
     eslint-plugin-react: "npm:7.37.4"
     eslint-plugin-react-hooks: "npm:5.2.0"

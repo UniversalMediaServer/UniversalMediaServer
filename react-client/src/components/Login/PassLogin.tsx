@@ -14,28 +14,31 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Button, Group, TextInput } from '@mantine/core'
+import { Button, Group, TextInput, VisuallyHidden } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconLock, IconUser } from '@tabler/icons-react'
+import { useState } from 'react'
 
-import { login } from '../../services/auth-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsUserLogin } from '../../services/session-service'
 import { showError } from '../../utils/notifications'
 
-export default function PassLogin({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
+export default function PassLogin({ i18n, session, user }: { i18n: I18nInterface, session: SessionInterface, user?: UmsUserLogin }) {
+  const username = (user && user.username) ? user.username : ''
+  const [isLoading, setLoading] = useState(false)
   const form = useForm({
     initialValues: {
-      username: '',
+      username: username,
       password: '',
     },
   })
 
   const handleLogin = (values: typeof form.values) => {
     const { username, password } = values
-    login(username, password).then(
+    setLoading(true)
+    session.login(username, password).then(
       () => {
-        session.refresh()
+        session.resetLogout()
       },
       () => {
         showError({
@@ -45,16 +48,28 @@ export default function PassLogin({ i18n, session }: { i18n: I18nInterface, sess
         })
       },
     )
+    setLoading(false)
   }
 
   return (
     <form onSubmit={form.onSubmit(handleLogin)}>
-      <TextInput
-        required
-        label={i18n.get('Username')}
-        leftSection={<IconUser size={14} />}
-        {...form.getInputProps('username')}
-      />
+      { username
+        ? (
+            <VisuallyHidden>
+              <TextInput
+                name="username"
+                {...form.getInputProps('username')}
+              />
+            </VisuallyHidden>
+          )
+        : (
+            <TextInput
+              required
+              label={i18n.get('Username')}
+              leftSection={<IconUser size={14} />}
+              {...form.getInputProps('username')}
+            />
+          )}
       <TextInput
         required
         label={i18n.get('Password')}
@@ -63,7 +78,7 @@ export default function PassLogin({ i18n, session }: { i18n: I18nInterface, sess
         {...form.getInputProps('password')}
       />
       <Group justify="flex-end" mt="md">
-        <Button type="submit">{i18n.get('LogIn')}</Button>
+        <Button disabled={isLoading} loading={isLoading} type="submit">{i18n.get('LogIn')}</Button>
       </Group>
     </form>
   )

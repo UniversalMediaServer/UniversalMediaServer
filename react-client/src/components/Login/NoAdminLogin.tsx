@@ -17,12 +17,12 @@
 import { Button, Divider, Group, Modal, Text, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconLock, IconUser } from '@tabler/icons-react'
+import axios from 'axios'
 import { useState } from 'react'
 
-import { create, disable } from '../../services/auth-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
-import { allowHtml } from '../../utils'
+import { allowHtml, authApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
 export default function NoAdminLogin({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
@@ -34,11 +34,30 @@ export default function NoAdminLogin({ i18n, session }: { i18n: I18nInterface, s
     },
   })
 
+  const createUser = async (username: string, password: string) => {
+    const response = await axios
+      .post(authApiUrl + 'create', {
+        username,
+        password,
+      })
+    if (response.data.token) {
+      session.setToken(response.data.token)
+    }
+    if (response.data.account) {
+    // refresh session.account
+    }
+    return response.data
+  }
+
+  const disableAuth = async () => {
+    return await axios.get(authApiUrl + 'disable')
+  }
+
   const handleUserCreation = (values: typeof form.values) => {
     const { username, password } = values
-    create(username, password).then(
+    createUser(username, password).then(
       () => {
-        session.refresh()
+        session.resetLogout()
       },
       () => {
         showError({
@@ -51,9 +70,9 @@ export default function NoAdminLogin({ i18n, session }: { i18n: I18nInterface, s
   }
 
   const handleAuthDisable = () => {
-    disable().then(
+    disableAuth().then(
       () => {
-        session.logout()
+        session.logout(false)
       },
       () => {
         showError({

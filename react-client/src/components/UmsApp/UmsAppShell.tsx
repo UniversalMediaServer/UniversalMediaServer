@@ -96,7 +96,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
         <AppShell.Main>
           {(session.initialized && session.player)
             ? (
-                (!session.authenticate || session.account)
+                (!session.authenticate || (session.account && !session.isLogout))
                   ? (
                       <Routes>
                         <Route path="about" element={<About i18n={i18n} session={session} sse={sse} />}></Route>
@@ -110,7 +110,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
                       <Login i18n={i18n} session={session} />
                     )
               )
-            : session.account
+            : session.account && !session.isLogout
               ? (
                   <Routes>
                     <Route path="about" element={<About i18n={i18n} session={session} sse={sse} />}></Route>

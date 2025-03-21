@@ -108,7 +108,7 @@ export default function SharedContentList({
                 openEditModal={openEditModal}
                 groups={groups}
                 canModify={canModify}
-                usekey={index}
+                key={index}
               />
             )
           })}

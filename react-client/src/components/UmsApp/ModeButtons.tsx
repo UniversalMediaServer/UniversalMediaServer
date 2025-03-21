@@ -23,8 +23,8 @@ import { SessionInterface, UmsPermission } from '../../services/session-service'
 
 export default function ModeButtons({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
   const navigate = useNavigate()
-  const canPlay = session.havePermission(UmsPermission.web_player_browse)
-  const canManage = !session.player && session.havePermission(UmsPermission.settings_view)
+  const canPlay = !session.isLogout && session.havePermission(UmsPermission.web_player_browse)
+  const canManage = !session.isLogout && !session.player && session.havePermission(UmsPermission.settings_view)
   const inPlayer = location.pathname.startsWith('/player') || (!canManage && location.pathname == '/')
   const playerSection = useMatches({
     sm: <IconPlayerPlay size={16} />,

@@ -14,16 +14,17 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { useLocalStorage } from '@mantine/hooks'
-import axios from 'axios'
+import { useInterval, useLocalStorage, useSessionStorage } from '@mantine/hooks'
+import axios, { AxiosError } from 'axios'
+import { jwtDecode, JwtPayload } from 'jwt-decode'
+import _ from 'lodash'
 import { ReactNode, useEffect, useState } from 'react'
 
 import SessionContext from '../contexts/session-context'
 import { accountHavePermission } from '../services/accounts-service'
-import { logout, refreshAuthTokenNearExpiry } from '../services/auth-service'
 import { I18nInterface } from '../services/i18n-service'
-import { UmsSession } from '../services/session-service'
-import { authApiUrl } from '../utils'
+import { LocalUser, UmsSession, UmsUser, UmsUserLogin } from '../services/session-service'
+import { authApiUrl, playerApiUrl } from '../utils'
 import { showError } from '../utils/notifications'
 
 const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nInterface }) => {
@@ -39,6 +40,11 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const [navbarValue, setNavbarValueInternal] = useState<React.ReactNode>(undefined)
   const [navbarManage, setNavbarManageInternal] = useState<string>('')
   const [statusLine, setStatusLine] = useState<string>('')
+  const [isDefaultUser, setIsDefaultUser] = useState<boolean>(false)
+  const [isLogout, setIsLogout] = useState<boolean>(false)
+  const [lastUserId, setLastUserId] = useState<number>(0)
+  const [canSwitchUser, setCanSwitchUser] = useState<boolean>(false)
+  const [switchUsers, setSwitchUsers] = useState<UmsUserLogin[]>([])
   const [playerNavbar, setPlayerNavbar] = useLocalStorage<boolean>({
     key: 'player-navbar',
     defaultValue: true,
@@ -47,6 +53,24 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     key: 'player-direct-play',
     defaultValue: false,
   })
+  const [token, setToken, clearToken] = useLocalStorage<string>({
+    key: 'user',
+    defaultValue: '',
+    getInitialValueInEffect: false,
+  })
+  const [localUsers, setLocalUsers, clearLocalUsers] = useLocalStorage<LocalUser[]>({
+    key: 'local-users',
+    defaultValue: [],
+  })
+  const [uuid, setUuid, clearUuid] = useSessionStorage<string>({
+    key: 'player',
+    defaultValue: '',
+  })
+  useInterval(
+    () => refreshLocalUsers(),
+    30000,
+    { autoInvoke: true },
+  )
 
   const refresh = () => {
     axios.get(authApiUrl + 'session')
@@ -62,11 +86,6 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
           message: i18n.get('SessionNotReceived'),
         })
       })
-  }
-
-  const sessionLogout = async () => {
-    await logout()
-    refresh()
   }
 
   const useSseAs = (name: string) => {
@@ -110,6 +129,184 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     )
   }
 
+  const storeLocalUser = (user?: UmsUser) => {
+    if (user && user.id && user.id != 2147483647) {
+      const localUsersTemp = _.cloneDeep(localUsers).filter((localUser: LocalUser) => localUser.id != user.id)
+      localUsersTemp.push({
+        id: user.id,
+        displayName: user.displayName,
+        token: token,
+        avatar: user.avatar,
+      })
+      setLocalUsers(localUsersTemp)
+    }
+  }
+
+  const removeLocalUser = (userId: number) => {
+    const localUsersTemp = _.cloneDeep(localUsers).filter((localUser: LocalUser) => localUser.id != userId)
+    setLocalUsers(localUsersTemp)
+  }
+
+  const updateSwitchUsers = () => {
+    const switchUsersTemp = [] as UmsUserLogin[]
+    if (session.authenticate) {
+      if (session.users) {
+        session.users.map((user: UmsUserLogin) => {
+          const localUser = localUsers.find((localUser: LocalUser) => user.id == localUser.id)
+          if (localUser && localUser.token) {
+            user.login = 'token'
+            user.token = localUser.token
+          }
+          switchUsersTemp.push(user)
+        })
+      }
+      else {
+        if (session.account?.user.id === 2147483647) {
+          switchUsersTemp.push(
+            {
+              id: 2147483647,
+              username: '',
+              displayName: '',
+              login: 'localhost',
+            },
+          )
+        }
+        switchUsersTemp.push(
+          {
+            id: 0,
+            username: '',
+            displayName: '',
+            login: 'pass',
+          },
+        )
+        localUsers.map((localUser: LocalUser) => {
+          if (localUser && localUser.token) {
+            switchUsersTemp.push(
+              {
+                id: localUser.id,
+                username: '',
+                displayName: localUser.displayName,
+                avatar: localUser.avatar,
+                login: 'token',
+                token: localUser.token,
+              },
+            )
+          }
+        })
+      }
+    }
+    setSwitchUsers(switchUsersTemp)
+  }
+
+  const login = async (username: string, password: string) => {
+    const response = await axios
+      .post(authApiUrl + 'login', {
+        username,
+        password,
+      })
+    if (response.data.token) {
+      setToken(response.data.token)
+    }
+    return response.data
+  }
+
+  const loginPin = async (id: number, pin: string) => {
+    const response = await axios
+      .post(authApiUrl + 'loginpin', {
+        id,
+        pin,
+      })
+    if (response.data.token) {
+      setToken(response.data.token)
+    }
+    return response.data
+  }
+
+  const logout = async (keepLocal: boolean) => {
+    const currentUserId = session.account?.user.id
+    if (currentUserId !== undefined) {
+      if (!keepLocal) {
+        removeLocalUser(currentUserId)
+      }
+      setLastUserId(currentUserId)
+    }
+    if (uuid) {
+      try {
+        await axios.post(playerApiUrl + 'logout', { uuid: uuid })
+      }
+      catch { /* server Forbidden or Unauthorized */ }
+      clearUuid()
+    }
+    clearToken()
+    setIsLogout(true)
+  }
+
+  const resetLogout = () => {
+    setIsLogout(false)
+    refresh()
+  }
+
+  const refreshLocalUsers = () => {
+    const localUsersTemp = [] as LocalUser[]
+    const renew = Math.floor(new Date().getTime() / 1000) + 300
+    localUsers.map((localUser: LocalUser) => {
+      const currentToken = localUser.token
+      const decoded = jwtDecode<JwtPayload>(currentToken)
+      if (decoded.exp) {
+        if (decoded.exp < renew) {
+          axios.post(authApiUrl + 'refresh', { token: currentToken })
+            .then(function (response: any) {
+              if (response.data.token) {
+                localUser.token = response.data.token
+                localUsersTemp.push(localUser)
+                if (token == currentToken) {
+                  setToken(currentToken)
+                }
+              }
+            })
+            .catch(function (error: AxiosError) {
+              if (error.response?.status == 403) {
+                localUser.token = ''
+              }
+              else {
+                showError({
+                  id: 'session_error',
+                  title: i18n.get('Error'),
+                  message: i18n.get('SessionNotReceived'),
+                })
+              }
+            })
+        }
+        else {
+          localUsersTemp.push(localUser)
+        }
+      }
+    })
+    if (!_.isEqual(localUsers, localUsersTemp)) {
+      setLocalUsers(localUsersTemp)
+    }
+  }
+
+  useEffect(() => {
+    updateSwitchUsers()
+  }, [localUsers])
+
+  useEffect(() => {
+    if (!session.authenticate && session.account && session.account.user) {
+      clearLocalUsers()
+      clearToken()
+    }
+    storeLocalUser(session.account?.user)
+    setIsDefaultUser(session.account?.user.id === 2147483647)
+    setCanSwitchUser(session.authenticate && (!session.users || session.users.length > 1))
+    updateSwitchUsers()
+  }, [session])
+
+  useEffect(() => {
+    axios.defaults.headers.common['Authorization'] = token ? 'Bearer ' + token : undefined
+    refresh()
+  }, [token])
+
   useEffect(() => {
     setHasNavbar((navbarManage || navbarValue) ? true : false)
   }, [navbarManage, navbarValue])
@@ -133,8 +330,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     if (initialized) {
       return
     }
-    refresh()
-    refreshAuthTokenNearExpiry()
+    axios.defaults.headers.common['Authorization'] = token ? 'Bearer ' + token : undefined
     axios.interceptors.response.use(function (response) {
       return response
     }, function (error) {
@@ -148,6 +344,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       }
       return Promise.reject(error)
     })
+    refresh()
   }, [initialized])
 
   return (
@@ -157,16 +354,27 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       noAdminFound: session.noAdminFound,
       account: session.account,
       player: session.player,
-      users: session.users,
+      users: switchUsers,
+      isDefaultUser: isDefaultUser,
+      canSwitchUser: canSwitchUser,
       havePermission: havePermission,
       refresh: refresh,
-      logout: sessionLogout,
+      token: token,
+      setToken: setToken,
+      login: login,
+      loginPin: loginPin,
+      logout: logout,
+      isLogout: isLogout,
+      resetLogout: resetLogout,
+      lastUserId: lastUserId,
       sseAs: sse,
       useSseAs: useSseAs,
       stopSse: stopSse,
       usePlayerSse: playerSse,
       stopPlayerSse: stopPlayerSse,
       startPlayerSse: startPlayerSse,
+      uuid: uuid,
+      setUuid: setUuid,
       serverName: serverName,
       setServerName: setServerName,
       setDocumentTitle: setDocumentTitle,

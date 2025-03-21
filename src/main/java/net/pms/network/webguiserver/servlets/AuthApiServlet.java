@@ -72,6 +72,14 @@ public class AuthApiServlet extends GuiHttpServlet {
 					}
 					if (AuthService.isShowUserChoice()) {
 						JsonArray jUsers = new JsonArray();
+						if (req.getRemoteAddr().equals(req.getLocalAddr()) && AuthService.isLocalhostAsAdmin()) {
+							JsonObject jUser = new JsonObject();
+							jUser.addProperty("id", Integer.MAX_VALUE);
+							jUser.addProperty("username", "");
+							jUser.addProperty("displayName", "");
+							jUser.addProperty("login", "localhost");
+							jUsers.add(jUser);
+						}
 						for (User user : AccountService.getAllUsers()) {
 							jUsers.add(userToJsonObject(user));
 						}
@@ -193,12 +201,17 @@ public class AuthApiServlet extends GuiHttpServlet {
 					}
 				}
 				case "/refresh" -> {
-					Account account = AuthService.getAccountLoggedIn(req);
-					if (account != null) {
-						String token = AuthService.signJwt(account.getUser().getId(), req.getRemoteAddr());
-						respond(req, resp, "{\"token\": \"" + token + "\"}", 200, "application/json");
+					JsonObject post = getJsonObjectFromBody(req);
+					if (post != null && post.has("token")) {
+						String token = post.get("token").getAsString();
+						String newToken = AuthService.reSignJwt(token, req.getRemoteAddr());
+						if (newToken != null) {
+							respond(req, resp, "{\"token\": \"" + newToken + "\"}", 200, "application/json");
+						} else {
+							respondForbidden(req, resp);
+						}
 					} else {
-						respondUnauthorized(req, resp);
+						respondBadRequest(req, resp);
 					}
 				}
 				case "/create" -> {

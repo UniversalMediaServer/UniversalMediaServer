@@ -94,6 +94,14 @@ public class AuthService {
 		}
 	}
 
+	public static String reSignJwt(String token, String host) {
+		if (isValidToken(token, host)) {
+			int userId = getUserIdFromJWT(token);
+			return signJwt(userId, host);
+		}
+		return null;
+	}
+
 	private static Account getAccountLoggedIn(String authHeader, String host) {
 		final String token = authHeader.replace("Bearer ", "");
 		if (isValidToken(token, host)) {
@@ -114,12 +122,12 @@ public class AuthService {
 	}
 
 	public static Account getAccountLoggedIn(HttpServletRequest req) {
+		String authHeader = req.getHeader("Authorization");
 		if (!isEnabled() ||
-			(req.getRemoteAddr().equals(req.getLocalAddr()) && isLocalhostAsAdmin())
+			(authHeader == null && req.getRemoteAddr().equals(req.getLocalAddr()) && isLocalhostAsAdmin())
 			) {
 			return AccountService.getFakeAdminAccount();
 		}
-		String authHeader = req.getHeader("Authorization");
 		if (authHeader == null) {
 			return null;
 		}

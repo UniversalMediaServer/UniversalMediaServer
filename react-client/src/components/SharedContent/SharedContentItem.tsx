@@ -15,13 +15,14 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Card, Group } from '@mantine/core'
+import { IItemProps } from 'react-movable'
+
+import { I18nInterface } from '../../services/i18n-service'
+import { UmsGroup } from '../../services/session-service'
 import { SharedContentInterface } from '../../services/shared-service'
 import MovableActionIcon from './MovableActionIcon'
-import { IItemProps } from 'react-movable'
 import SharedContentItemDetails from './SharedContentItemDetails'
-import { I18nInterface } from '../../services/i18n-service'
 import SharedContentItemMenu from './SharedContentItemMenu'
-import { UmsGroup } from '../../services/session-service'
 
 export default function SharedContentItem({
   i18n,
@@ -45,7 +46,7 @@ export default function SharedContentItem({
   openEditModal: (index: number) => void
   groups: UmsGroup[]
   canModify: boolean
-  usekey: string | number
+  usekey?: string | number
   isDragged?: boolean
   isSelected?: boolean
   isFirst?: boolean
@@ -62,7 +63,7 @@ export default function SharedContentItem({
     >
       <Group justify="space-between">
         <Group justify="flex-start">
-          {canModify && (
+          {canModify && usekey !== undefined && (
             <MovableActionIcon isDragged={isDragged} isSelected={isSelected} isFirst={isFirst} isLast={isLast} />
           )}
           <SharedContentItemDetails i18n={i18n} value={value} groups={groups} />
