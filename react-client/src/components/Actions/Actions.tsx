@@ -20,36 +20,35 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff } from '@tabler/icons-react'
 
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { ActionsValues, sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils'
 
 const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
-  const canModify = havePermission(session, Permissions.settings_modify)
+  const canModify = session.havePermission(UmsPermission.settings_modify)
   const [actionsValues, setActionsValues] = useState<ActionsValues>({ canShutdownComputer: false })
   const navigate = useNavigate()
 
-  const canRestartServer = havePermission(session, Permissions.server_restart)
+  const canRestartServer = session.havePermission(UmsPermission.server_restart)
   const [restartServerOpened, setRestartServerOpened] = useState(false)
   const restartServer = async () => {
     await sendAction('Server.Restart')
   }
 
-  const canShutdownComputer = havePermission(session, Permissions.computer_shutdown)
+  const canShutdownComputer = session.havePermission(UmsPermission.computer_shutdown)
   const [shutdownComputerOpened, setShutdownComputerOpened] = useState(false)
   const shutdownComputer = async () => {
     await sendAction('Computer.Shutdown')
   }
 
-  const canRestartApplication = havePermission(session, Permissions.application_restart | Permissions.application_shutdown)
+  const canRestartApplication = session.havePermission(UmsPermission.application_restart | UmsPermission.application_shutdown)
   const [restartApplicationOpened, setRestartApplicationOpened] = useState(false)
   const restartApplication = async () => {
     await sendAction('Process.Reboot')
   }
 
-  const canShutdownApplication = havePermission(session, Permissions.application_shutdown)
+  const canShutdownApplication = session.havePermission(UmsPermission.application_shutdown)
   const [shutdownApplicationOpened, setShutdownApplicationOpened] = useState(false)
   const shutdownApplication = async () => {
     await sendAction('Process.Exit')

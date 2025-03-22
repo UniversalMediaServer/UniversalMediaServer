@@ -15,19 +15,19 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core'
-import axios from 'axios'
+import { IconCheck } from '@tabler/icons-react'
+import { hideNotification } from '@mantine/notifications'
+import axios, { AxiosError } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
-import { IconCheck, IconExclamationMark } from '@tabler/icons-react'
 
 import Renderers from './Renderers'
 import NetworkDevices from './NetworkDevices'
 import { renderersApiUrl } from '../../utils'
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications'
 
 const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
@@ -38,9 +38,9 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
   const [isLocalhost, setIsLocalhost] = useState(false)
   const [users, setUsers] = useState([] as User[])
   const [currentTime, setCurrentTime] = useState(0)
-  const canModify = havePermission(session, Permissions.settings_modify)
-  const canView = canModify || havePermission(session, Permissions.settings_view)
-  const canControlRenderers = havePermission(session, Permissions.devices_control)
+  const canModify = session.havePermission(UmsPermission.settings_modify)
+  const canView = canModify || session.havePermission(UmsPermission.settings_view)
+  const canControlRenderers = session.havePermission(UmsPermission.devices_control)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -100,12 +100,17 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
         setUsers(response.data.users)
         setCurrentTime(response.data.currentTime)
       })
-      .catch(function () {
-        showError({
-          id: 'renderers-data-loading',
-          title: i18n.get('Error'),
-          message: i18n.get('DataNotReceived'),
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'renderers-data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('DataNotReceived'),
+          })
+        }
       })
       .then(function () {
         setLoading(false)
@@ -121,12 +126,17 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
         setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault)
         setCurrentTime(response.data.currentTime)
       })
-      .catch(function () {
-        showError({
-          id: 'renderers-data-loading',
-          title: i18n.get('Error'),
-          message: i18n.get('DataNotReceived'),
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'renderers-data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('DataNotReceived'),
+          })
+        }
       })
       .then(function () {
         setLoading(false)
@@ -170,14 +180,10 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
           refreshData()
         }
       })
-      .catch(function (error) {
+      .catch(function (error: AxiosError) {
         if (!error.response && error.request) {
-          updateError({
-            id: 'settings-save',
-            title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotReceived'),
-            icon: <IconExclamationMark size="1rem" />,
-          })
+          hideNotification('settings-save')
+          i18n.showServerUnreachable()
         }
         else {
           updateError({

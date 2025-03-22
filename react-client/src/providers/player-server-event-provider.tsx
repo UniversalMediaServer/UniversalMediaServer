@@ -16,13 +16,12 @@
  */
 import { hideNotification, showNotification } from '@mantine/notifications'
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import videojs from 'video.js'
 
 import PlayerEventContext from '../contexts/player-server-event-context'
-import { getJwt } from '../services/auth-service'
 import { I18nInterface } from '../services/i18n-service'
 import { SessionInterface } from '../services/session-service'
 import { playerApiUrl } from '../utils'
@@ -101,24 +100,29 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
   useEffect(() => {
     if (uuid || askingUuid || !session.initialized || !usePlayerSse) return
     setAskingUuid(true)
-    if (sessionStorage.getItem('player')) {
-      setUuid(sessionStorage.getItem('player') as string)
+    if (session.uuid) {
+      setUuid(session.uuid)
       setAskingUuid(false)
     }
     else {
       axios.get(playerApiUrl)
         .then(function (response: any) {
           if (response.data.uuid) {
-            sessionStorage.setItem('player', response.data.uuid)
+            session.setUuid(response.data.uuid)
             setUuid(response.data.uuid)
           }
         })
-        .catch(function () {
-          showError({
-            id: 'session-lost',
-            title: i18n.get('Error'),
-            message: 'Your player session was not received from the server.',
-          })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            i18n.showServerUnreachable()
+          }
+          else {
+            showError({
+              id: 'session-lost',
+              title: i18n.get('Error'),
+              message: 'Your player session was not received from the server.',
+            })
+          }
         })
         .then(function () {
           setAskingUuid(false)
@@ -158,16 +162,6 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
         title: datas.title,
         message: datas.message ? i18n.getString(datas.message) : '',
         autoClose: datas.autoClose ? datas.autoClose : true,
-      })
-    }
-
-    const showErrorNotification = () => {
-      showNotification({
-        id: 'connection-lost',
-        color: 'orange',
-        title: i18n.get('Warning'),
-        message: i18n.get('UniversalMediaServerUnreachable'),
-        autoClose: false,
       })
     }
 
@@ -239,7 +233,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     const onError = () => {
       if (!notified) {
         notified = true
-        showErrorNotification()
+        i18n.showServerUnreachable()
       }
       setConnectionStatus(2)
     }
@@ -252,7 +246,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
       setConnectionStatus(0)
       fetchEventSource(playerApiUrl + 'sse/' + uuid, {
         headers: {
-          Authorization: 'Bearer ' + getJwt(),
+          Authorization: 'Bearer ' + session.token,
           Player: uuid,
         },
         signal: abortController.signal,

@@ -1377,7 +1377,7 @@ public class FileUtil {
 			extraInformation = edition;
 		}
 
-		return new FileNameMetadata(movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName);
+		return new FileNameMetadata(movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName, isSample);
 	}
 
 	/**

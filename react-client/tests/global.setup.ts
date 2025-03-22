@@ -1,6 +1,6 @@
 import { test as setup } from '@playwright/test'
 
-setup('global setup', async ({ page }) => {
+setup('Disable authentication', async ({ page }) => {
   await page.goto('/')
 
   // todo: fix the need for this initial delay/reload

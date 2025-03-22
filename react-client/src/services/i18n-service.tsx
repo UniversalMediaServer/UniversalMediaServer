@@ -20,13 +20,14 @@ export interface I18nInterface {
   get: (value: string) => string
   getString: (value: string) => string
   getFormat: (value: string[]) => string
-  getValueLabelData: (values: ValueLabelData[]) => ValueLabelData[]
+  getValueLabelData: (values: ValueLabelData[] | undefined) => ValueLabelData[] | undefined
   getLocalizedName: (value: string | undefined) => string
   language: string
   dir: Direction
   languages: LanguageValue[]
   setLanguage: (language: string) => void
   getReportLink: () => React.ReactNode
+  showServerUnreachable: () => void
 }
 
 export interface LanguageValue {

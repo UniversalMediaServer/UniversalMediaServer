@@ -35,7 +35,7 @@ const Customize = ({ i18n, session }: { i18n: I18nInterface, session: SessionInt
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">
-      <Accordion defaultValue="NotificationDuration">
+      <Accordion>
         <Accordion.Item value="NotificationDuration">
           <Accordion.Control icon={<IconClockExclamation />}>Notification duration</Accordion.Control>
           <Accordion.Panel>

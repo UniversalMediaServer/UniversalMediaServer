@@ -392,6 +392,8 @@ public class MediaInfoStore {
 				if (metadataFromFilename.getExtraInformation() != null) {
 					videoMetadata.setExtraInformation(metadataFromFilename.getExtraInformation());
 				}
+				videoMetadata.setIsSample(metadataFromFilename.isSample());
+
 				mediaInfo.setVideoMetadata(videoMetadata);
 
 				if (MediaDatabase.isAvailable()) {

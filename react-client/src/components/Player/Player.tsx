@@ -16,14 +16,13 @@
  */
 import { Box, Breadcrumbs, Button, Group, Image, LoadingOverlay, Paper, ScrollArea, Text } from '@mantine/core'
 import { IconHome } from '@tabler/icons-react'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { AudioMedia, BaseBrowse, BaseMedia, ImageMedia, PlayMedia, VideoMedia, VideoMetadata } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
 import VideoJsPlayer from './VideoJsPlayer'
@@ -72,12 +71,17 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
             window.history.pushState(url, '', url)
           }
         })
-        .catch(function () {
-          showError({
-            id: 'player-data-loading',
-            title: i18n.get('Error'),
-            message: 'Your browse data was not received from the server.',
-          })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            i18n.showServerUnreachable()
+          }
+          else {
+            showError({
+              id: 'player-data-loading',
+              title: i18n.get('Error'),
+              message: 'Your browse data was not received from the server.',
+            })
+          }
         })
         .then(function () {
           setLoading(false)
@@ -261,7 +265,7 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
     session.setNavbarValue(session.playerNavbar ? <PlayerNavbar data={data} i18n={i18n} sse={sse} /> : undefined)
   }, [data, i18n.get, session.playerNavbar])
 
-  return (!session.authenticate || havePermission(session, Permissions.web_player_browse))
+  return (!session.authenticate || session.havePermission(UmsPermission.web_player_browse))
     ? (
         <Box>
           <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} loaderProps={{ style: { position: 'fixed' } }} />

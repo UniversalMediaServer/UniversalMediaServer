@@ -14,8 +14,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { useEffect } from 'react'
-
 import UmsAppShell from './components/UmsApp/UmsAppShell'
 import I18nContext from './contexts/i18n-context'
 import PlayerEventContext from './contexts/player-server-event-context'
@@ -25,14 +23,8 @@ import I18nProvider from './providers/i18n-provider'
 import PlayerEventProvider from './providers/player-server-event-provider'
 import ServerEventProvider from './providers/server-event-provider'
 import SessionProvider from './providers/session-provider'
-import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service'
 
 function UmsApp() {
-  setAxiosAuthorization()
-
-  useEffect(() => {
-    refreshAuthTokenNearExpiry()
-  })
   return (
     <I18nProvider>
       <I18nContext.Consumer>

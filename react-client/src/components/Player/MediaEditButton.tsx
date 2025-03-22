@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Button, Menu } from '@mantine/core'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
@@ -31,12 +31,17 @@ export default function MediaEditButton({ i18n, sse, fullyplayed, videoMetadataE
       .then(function () {
         refreshPage()
       })
-      .catch(function () {
-        showError({
-          id: 'player-fully-played',
-          title: i18n.get('Error'),
-          message: 'Your request was not handled by the server.',
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'player-fully-played',
+            title: i18n.get('Error'),
+            message: 'Your request was not handled by the server.',
+          })
+        }
       })
       .then(function () {
         setLoading(false)

@@ -18,9 +18,8 @@ import { Button } from '@mantine/core'
 import { IconDeviceDesktopCog, IconHome, IconInfoCircle, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { SessionInterface } from '../../services/session-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
 import About from '../About/About'
 import Actions from '../Actions/Actions'
 import Accounts from '../Accounts/Accounts'
@@ -34,47 +33,59 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
   const navigate = useNavigate()
   return (
     <>
-      {!session.player && havePermission(session, Permissions.settings_view)
+      {!session.player && session.havePermission(UmsPermission.settings_view)
         && (
           <Button
             color="gray"
             variant={from === Home.name ? undefined : 'subtle'}
             size="compact-md"
             leftSection={<IconHome size={14} />}
-            onClick={() => { navigate('/') }}
+            onClick={() => {
+              navigate('/')
+              session.setNavbarOpened(false)
+            }}
           >
             {i18n.get('Home')}
           </Button>
         )}
-      {!session.player && havePermission(session, Permissions.settings_view) && (
+      {!session.player && session.havePermission(UmsPermission.settings_view) && (
         <Button
           color="gray"
           variant={from === SharedContent.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconShare size={14} />}
-          onClick={() => { navigate('/shared') }}
+          onClick={() => {
+            navigate('/shared')
+            session.setNavbarOpened(false)
+          }}
         >
           {i18n.get('SharedContent')}
         </Button>
       )}
-      {!session.player && havePermission(session, (Permissions.server_restart | Permissions.computer_shutdown) | Permissions.settings_modify) && (
+      {!session.player && session.havePermission((UmsPermission.server_restart | UmsPermission.computer_shutdown) | UmsPermission.settings_modify) && (
         <Button
           color="gray"
           variant={from === Actions.name || from === Logs.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconTool size={14} />}
-          onClick={() => { navigate('/actions') }}
+          onClick={() => {
+            navigate('/actions')
+            session.setNavbarOpened(false)
+          }}
         >
           {i18n.get('Tools')}
         </Button>
       )}
-      {!session.player && havePermission(session, Permissions.settings_view) && (
+      {!session.player && session.havePermission(UmsPermission.settings_view) && (
         <Button
           color="gray"
           variant={from === ServerSettings.name ? undefined : 'subtle'}
           size="compact-md"
           leftSection={<IconSettings size={14} />}
-          onClick={() => { navigate('/settings') }}
+          onClick={() => {
+            navigate('/settings')
+            session.setNavbarOpened(false)
+          }}
         >
           {i18n.get('ServerSettings')}
         </Button>
@@ -84,10 +95,13 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
           color="gray"
           variant={from === Accounts.name ? undefined : 'subtle'}
           size="compact-md"
-          leftSection={havePermission(session, Permissions.users_manage) ? <IconUsers size={14} /> : <IconUser size={14} />}
-          onClick={() => { navigate('/accounts') }}
+          leftSection={session.havePermission(UmsPermission.users_manage) ? <IconUsers size={14} /> : <IconUser size={14} />}
+          onClick={() => {
+            navigate('/accounts')
+            session.setNavbarOpened(false)
+          }}
         >
-          {havePermission(session, Permissions.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
+          {session.havePermission(UmsPermission.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
         </Button>
       )}
       <Button
@@ -95,7 +109,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
         variant={from === BrowserSettings.name ? undefined : 'subtle'}
         size="compact-md"
         leftSection={<IconDeviceDesktopCog size={14} />}
-        onClick={() => { navigate('/customize') }}
+        onClick={() => {
+          navigate('/customize')
+          session.setNavbarOpened(false)
+        }}
       >
         {i18n.get('Customize')}
       </Button>
@@ -104,7 +121,10 @@ export default function ManageNavbar({ i18n, session, from }: { i18n: I18nInterf
         variant={from === About.name ? undefined : 'subtle'}
         size="compact-md"
         leftSection={<IconInfoCircle size={14} />}
-        onClick={() => { navigate('/about') }}
+        onClick={() => {
+          navigate('/about')
+          session.setNavbarOpened(false)
+        }}
       >
         {i18n.get('About')}
       </Button>

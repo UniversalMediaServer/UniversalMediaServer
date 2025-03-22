@@ -51,4 +51,5 @@ portable/
 
 # Playwright test outputs
 react-client/test-results/
+react-client/tests/*/
 ums-testserver.jar

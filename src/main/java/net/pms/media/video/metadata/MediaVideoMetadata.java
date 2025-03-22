@@ -50,6 +50,7 @@ public class MediaVideoMetadata {
 	private String tvEpisodeNumber;
 	private String extraInformation;
 	private boolean isTvEpisode;
+	private boolean isSample;
 	/**
 	 * Metadata gathered from our API.
 	 */
@@ -205,6 +206,14 @@ public class MediaVideoMetadata {
 			return seriesMetadata.getTitle(lang);
 		}
 		return null;
+	}
+
+	public boolean isSample() {
+		return isSample;
+	}
+
+	public void setIsSample(boolean value) {
+		this.isSample = value;
 	}
 
 	/**
