@@ -23,20 +23,35 @@ import { SessionInterface, UmsUserLogin } from '../../services/session-service'
 export default function TokenLogin({ i18n, session, user }: { i18n: I18nInterface, session: SessionInterface, user: UmsUserLogin }) {
   const [isLoading, setLoading] = useState(false)
   return (
-    <Button
-      disabled={isLoading}
-      loading={isLoading}
-      variant="default"
-      onClick={() => {
-        setLoading(true)
-        if (user.token) {
-          session.setToken(user.token)
-          session.resetLogout()
-        }
-        setLoading(false)
-      }}
-    >
-      {i18n.get('LogIn')}
-    </Button>
+    <Button.Group>
+      <Button
+        disabled={isLoading}
+        loading={isLoading}
+        variant="default"
+        onClick={() => {
+          setLoading(true)
+          if (user.token) {
+            session.removeLocalUser(user.id)
+          }
+          setLoading(false)
+        }}
+      >
+        {i18n.get('LogOut')}
+      </Button>
+      <Button
+        disabled={isLoading}
+        loading={isLoading}
+        onClick={() => {
+          setLoading(true)
+          if (user.token) {
+            session.setToken(user.token)
+            session.resetLogout()
+          }
+          setLoading(false)
+        }}
+      >
+        {i18n.get('LogIn')}
+      </Button>
+    </Button.Group>
   )
 }

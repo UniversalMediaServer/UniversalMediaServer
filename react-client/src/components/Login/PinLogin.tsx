@@ -17,27 +17,15 @@
 import { PinInput } from '@mantine/core'
 import { useState } from 'react'
 
-import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsUserLogin } from '../../services/session-service'
-import { showError } from '../../utils/notifications'
 
-export default function PinLogin({ i18n, session, user }: { i18n: I18nInterface, session: SessionInterface, user: UmsUserLogin }) {
+export default function PinLogin({ session, user }: { session: SessionInterface, user: UmsUserLogin }) {
   const [isLoading, setLoading] = useState(false)
   const handlePinLogin = (id: number, pin: string) => {
     setLoading(true)
-    session.loginPin(id, pin).then(
-      () => {
-        session.resetLogout()
-      },
-      () => {
-        showError({
-          id: 'pwd-error',
-          title: i18n.get('Error'),
-          message: i18n.get('ErrorLoggingIn'),
-        })
-      },
+    session.loginPin(id, pin).then(() =>
+      setLoading(false),
     )
-    setLoading(false)
   }
 
   return (

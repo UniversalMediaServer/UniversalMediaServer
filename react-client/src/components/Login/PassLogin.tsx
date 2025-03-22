@@ -21,7 +21,6 @@ import { useState } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsUserLogin } from '../../services/session-service'
-import { showError } from '../../utils/notifications'
 
 export default function PassLogin({ i18n, session, user }: { i18n: I18nInterface, session: SessionInterface, user?: UmsUserLogin }) {
   const username = (user && user.username) ? user.username : ''
@@ -36,19 +35,9 @@ export default function PassLogin({ i18n, session, user }: { i18n: I18nInterface
   const handleLogin = (values: typeof form.values) => {
     const { username, password } = values
     setLoading(true)
-    session.login(username, password).then(
-      () => {
-        session.resetLogout()
-      },
-      () => {
-        showError({
-          id: 'pwd-error',
-          title: i18n.get('Error'),
-          message: i18n.get('ErrorLoggingIn'),
-        })
-      },
+    session.login(username, password).then(() =>
+      setLoading(false),
     )
-    setLoading(false)
   }
 
   return (

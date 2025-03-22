@@ -35,8 +35,8 @@ import RenderersSettings from './RenderersSettings'
 import TranscodingSettings from './TranscodingSettings'
 
 export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) {
-  const [advancedSettings] = useLocalStorage<boolean>({
-    key: 'mantine-advanced-settings',
+  const [advancedSettings, setAdvancedSettings] = useLocalStorage<boolean>({
+    key: 'show-advanced-settings',
     defaultValue: false,
   })
   const [isLoading, setLoading] = useState(true)
@@ -59,7 +59,6 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
       return {}
     },
   })
-  const formSetValues = form.setValues
 
   useEffect(() => {
     session.useSseAs(ServerSettings.name)
@@ -75,10 +74,9 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
     const userConfig = _.merge({}, configuration, sse.userConfiguration)
     sse.setUserConfiguration(null)
     setConfiguration(userConfig)
-    formSetValues(userConfig)
-  }, [configuration, sse, formSetValues])
+    form.setValues(userConfig)
+  }, [configuration, sse])
 
-  // Code here will run just like componentDidMount
   useEffect(() => {
     if (canView) {
       axios.get(settingsApiUrl)
@@ -169,34 +167,36 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
     ? (
         <Box style={{ maxWidth: 1024 }} mx="auto">
           <form onSubmit={form.onSubmit(handleSubmit)}>
-            <Tabs defaultValue="GeneralSettings">
-              <Tabs.List>
-                <Tabs.Tab value="GeneralSettings">{i18n.get('GeneralSettings')}</Tabs.Tab>
+            { form.initialized && (
+              <Tabs defaultValue="GeneralSettings">
+                <Tabs.List>
+                  <Tabs.Tab value="GeneralSettings">{i18n.get('GeneralSettings')}</Tabs.Tab>
+                  {advancedSettings
+                    && <Tabs.Tab value="RenderersSettings">{i18n.get('RenderersSettings')}</Tabs.Tab>}
+                  {advancedSettings
+                    && <Tabs.Tab value="NavigationSettings">{i18n.get('NavigationSettings')}</Tabs.Tab>}
+                  <Tabs.Tab value="TranscodingSettings">{i18n.get('TranscodingSettings')}</Tabs.Tab>
+                </Tabs.List>
+                <Tabs.Panel value="GeneralSettings">
+                  <GeneralSettings i18n={i18n} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} advancedSettings={advancedSettings} setAdvancedSettings={setAdvancedSettings} />
+                </Tabs.Panel>
                 {advancedSettings
-                  && <Tabs.Tab value="RenderersSettings">{i18n.get('RenderersSettings')}</Tabs.Tab>}
+                  && (
+                    <Tabs.Panel value="RenderersSettings">
+                      <RenderersSettings i18n={i18n} form={form} selectionSettings={selectionSettings} />
+                    </Tabs.Panel>
+                  )}
                 {advancedSettings
-                  && <Tabs.Tab value="NavigationSettings">{i18n.get('NavigationSettings')}</Tabs.Tab>}
-                <Tabs.Tab value="TranscodingSettings">{i18n.get('TranscodingSettings')}</Tabs.Tab>
-              </Tabs.List>
-              <Tabs.Panel value="GeneralSettings">
-                <GeneralSettings i18n={i18n} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} />
-              </Tabs.Panel>
-              {advancedSettings
-                && (
-                  <Tabs.Panel value="RenderersSettings">
-                    <RenderersSettings i18n={i18n} form={form} selectionSettings={selectionSettings} />
-                  </Tabs.Panel>
-                )}
-              {advancedSettings
-                && (
-                  <Tabs.Panel value="NavigationSettings">
-                    <NavigationSettings i18n={i18n} canModify={canModify} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} />
-                  </Tabs.Panel>
-                )}
-              <Tabs.Panel value="TranscodingSettings">
-                <TranscodingSettings i18n={i18n} canModify={canModify} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} />
-              </Tabs.Panel>
-            </Tabs>
+                  && (
+                    <Tabs.Panel value="NavigationSettings">
+                      <NavigationSettings i18n={i18n} canModify={canModify} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} />
+                    </Tabs.Panel>
+                  )}
+                <Tabs.Panel value="TranscodingSettings">
+                  <TranscodingSettings i18n={i18n} canModify={canModify} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} advancedSettings={advancedSettings} />
+                </Tabs.Panel>
+              </Tabs>
+            )}
             {canModify && (
               <Group justify="flex-end" mt="md">
                 <Button type="submit" loading={isLoading}>

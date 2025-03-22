@@ -16,7 +16,6 @@
  */
 import { Accordion, Anchor, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core'
 import { UseFormReturnType } from '@mantine/form'
-import { useLocalStorage } from '@mantine/hooks'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { SelectionSettingsData } from '../../services/settings-service'
@@ -27,17 +26,16 @@ export default function GeneralSettings({
   form,
   defaultConfiguration,
   selectionSettings,
+  advancedSettings,
+  setAdvancedSettings,
 }: {
   i18n: I18nInterface
   form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
   defaultConfiguration: Record<string, unknown>
   selectionSettings: SelectionSettingsData | undefined
+  advancedSettings: boolean
+  setAdvancedSettings: (value: boolean) => void
 }) {
-  const [advancedSettings, setAdvancedSettings] = useLocalStorage<boolean>({
-    key: 'mantine-advanced-settings',
-    defaultValue: false,
-  })
-
   const getLanguagesSelectData = () => {
     return i18n.languages.map((language) => {
       return {
@@ -54,11 +52,13 @@ export default function GeneralSettings({
       <Accordion.Item value="Application">
         <Accordion.Control>{i18n.get('Application')}</Accordion.Control>
         <Accordion.Panel>
+
           <Checkbox
             label={i18n.get('ShowAdvancedSettings')}
             checked={advancedSettings}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAdvancedSettings(event.currentTarget.checked)}
           />
+
           <Select
             label={i18n.get('Language')}
             data={getLanguagesSelectData()}
@@ -174,41 +174,62 @@ export default function GeneralSettings({
               label={i18n.get('EnableWebPlayer')}
               {...form.getInputProps('web_player_enable', { type: 'checkbox' })}
             />
-            <NumberInput
-              disabled={!form.values['web_player_enable']}
-              placeholder={defaultConfiguration.web_player_port?.toString()}
-              label={i18n.get('ForcePortPlayerServer')}
-              hideControls
-              {...form.getInputProps('web_player_port')}
-            />
-            <Stack align="flex-start" mt="sm">
+            <Stack
+              align="flex-start"
+              className={!form.values['web_player_enable'] ? 'hidden' : ''}
+            >
+              <NumberInput
+                placeholder={defaultConfiguration.web_player_port?.toString()}
+                label={i18n.get('ForcePortPlayerServer')}
+                hideControls
+                {...form.getInputProps('web_player_port')}
+              />
+              <Text
+                c="orange"
+                span
+                size="sm"
+                className={form.values['authentication_enabled'] ? 'hidden' : ''}
+              >
+                {i18n.get('AuthenticationServiceDisabled')}
+              </Text>
               <Checkbox
+                className={!form.values['authentication_enabled'] ? 'hidden' : ''}
                 disabled={!form.values['web_player_enable'] || !form.values['authentication_enabled']}
                 label={i18n.get('UseAuthenticationService')}
-                checked={!form.values['authentication_enabled'] ? false : undefined}
-                description={!form.values['authentication_enabled'] ? i18n.get('AuthenticationServiceDisabled') : undefined}
-                {...form.getInputProps('web_player_auth', { type: form.values['authentication_enabled'] ? 'checkbox' : 'input' })}
+                {...form.getInputProps('web_player_auth', { type: 'checkbox' })}
               />
-              <Checkbox
-                disabled={!form.values['web_player_auth'] || !form.values['authentication_enabled']}
-                label={i18n.get('ShowUserChoice')}
-                {...form.getInputProps('web_player_show_users', { type: 'checkbox' })}
-              />
-              <Checkbox
-                disabled={!form.values['web_player_show_users'] || !form.values['web_player_auth'] || !form.values['authentication_enabled']}
-                label={i18n.get('AllowEmptyPinLogin')}
-                {...form.getInputProps('web_player_allow_empty_pin', { type: 'checkbox' })}
-              />
-              <Checkbox
-                disabled={!form.values['web_player_enable'] || form.values['web_player_auth'] === true || !form.values['authentication_enabled']}
-                label={i18n.get('AllowMediaDownload')}
-                {...form.getInputProps('web_player_download', { type: 'checkbox' })}
-              />
-              <Checkbox
-                disabled={!form.values['web_player_enable'] || form.values['web_player_auth'] === true || !form.values['authentication_enabled']}
-                label={i18n.get('CanControlOtherDevices')}
-                {...form.getInputProps('web_player_controls', { type: 'checkbox' })}
-              />
+              <Stack
+                align="flex-start"
+                className={!form.values['authentication_enabled'] || !form.values['web_player_auth'] ? 'hidden' : ''}
+              >
+                <Checkbox
+                  hidden={true}
+                  disabled={!form.values['web_player_auth'] || !form.values['authentication_enabled']}
+                  label={i18n.get('ShowUserChoice')}
+                  {...form.getInputProps('web_player_show_users', { type: 'checkbox' })}
+                />
+                <Checkbox
+                  disabled={!form.values['web_player_show_users'] || !form.values['web_player_auth'] || !form.values['authentication_enabled']}
+                  label={i18n.get('AllowEmptyPinLogin')}
+                  {...form.getInputProps('web_player_allow_empty_pin', { type: 'checkbox' })}
+                />
+              </Stack>
+              <Stack
+                align="flex-start"
+                className={form.values['authentication_enabled'] && form.values['web_player_auth'] ? 'hidden' : ''}
+              >
+                <Text size="sm">{i18n.get('UnauthenticatedAccessRights')}</Text>
+                <Checkbox
+                  disabled={!form.values['web_player_enable'] || form.values['web_player_auth'] === true || !form.values['authentication_enabled']}
+                  label={i18n.get('AllowMediaDownload')}
+                  {...form.getInputProps('web_player_download', { type: 'checkbox' })}
+                />
+                <Checkbox
+                  disabled={!form.values['web_player_enable'] || form.values['web_player_auth'] === true || !form.values['authentication_enabled']}
+                  label={i18n.get('CanControlOtherDevices')}
+                  {...form.getInputProps('web_player_controls', { type: 'checkbox' })}
+                />
+              </Stack>
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>

@@ -16,7 +16,6 @@
  */
 import { Accordion, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core'
 import { UseFormReturnType } from '@mantine/form'
-import { useLocalStorage } from '@mantine/hooks'
 import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, IconExclamationMark, IconPlayerPlay } from '@tabler/icons-react'
 import { useState } from 'react'
 import { arrayMove, List } from 'react-movable'
@@ -32,21 +31,19 @@ export default function TranscodingSettings({
   form,
   defaultConfiguration,
   selectionSettings,
+  advancedSettings,
 }: {
   i18n: I18nInterface
   canModify: boolean
   form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
   defaultConfiguration: Record<string, unknown>
   selectionSettings: SelectionSettingsData | undefined
+  advancedSettings: boolean
 }) {
   const [transcodingContent, setTranscodingContent] = useState('common')
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)')
   const [subColorModalOpened, setSubColorModalOpened] = useState(false)
   const [mencoderAdvancedOpened, setMencoderAdvancedOpened] = useState(false)
-  const [advancedSettings] = useLocalStorage<boolean>({
-    key: 'mantine-advanced-settings',
-    defaultValue: false,
-  })
   const transcodingEngines = selectionSettings ? selectionSettings.transcodingEngines : {}
 
   const getTranscodingEnginesPriority = (purpose: number) => {

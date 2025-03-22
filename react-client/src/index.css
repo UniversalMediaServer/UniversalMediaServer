@@ -112,3 +112,7 @@ nav button .mantine-Button-inner:hover {
 .mantine-Breadcrumbs-root .mantine-Button-inner:hover {
   color: var(--mantine-color-bright);
 }
+
+.hidden {
+  display: none;
+}

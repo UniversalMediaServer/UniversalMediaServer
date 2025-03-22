@@ -96,6 +96,7 @@ export interface SessionInterface extends UmsSession {
   logout: (keepLocal: boolean) => Promise<void>
   isLogout: boolean
   resetLogout: () => void
+  removeLocalUser: (id: number) => void
   lastUserId: number
   sseAs: string
   useSseAs: (name: string) => void

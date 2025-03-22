@@ -37,6 +37,7 @@ const SessionContext: Context<SessionInterface> = createContext({
   logout: async (_keepLocal: boolean) => { },
   isLogout: false,
   resetLogout: () => { },
+  removeLocalUser: (_id: number) => { },
   lastUserId: 0,
   sseAs: '',
   useSseAs: (_name: string) => { },

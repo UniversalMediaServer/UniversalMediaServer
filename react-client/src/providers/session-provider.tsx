@@ -159,12 +159,13 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     if (session.authenticate) {
       if (session.users) {
         session.users.map((user: UmsUserLogin) => {
+          const switchUser = _.cloneDeep(user)
           const localUser = localUsers.find((localUser: LocalUser) => user.id == localUser.id)
           if (localUser && localUser.token) {
-            user.login = 'token'
-            user.token = localUser.token
+            switchUser.login = 'token'
+            switchUser.token = localUser.token
           }
-          switchUsersTemp.push(user)
+          switchUsersTemp.push(switchUser)
         })
       }
       else {
@@ -206,27 +207,55 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   }
 
   const login = async (username: string, password: string) => {
-    const response = await axios
-      .post(authApiUrl + 'login', {
-        username,
-        password,
+    await axios.post(authApiUrl + 'login', {
+      username,
+      password,
+    })
+      .then(function (response: any) {
+        if (response.data.token) {
+          setToken(response.data.token)
+          hideNotification('pwd-error')
+          resetLogout()
+        }
       })
-    if (response.data.token) {
-      setToken(response.data.token)
-    }
-    return response.data
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'pwd-error',
+            title: i18n.get('Error'),
+            message: i18n.get('ErrorLoggingIn'),
+          })
+        }
+      })
   }
 
   const loginPin = async (id: number, pin: string) => {
-    const response = await axios
-      .post(authApiUrl + 'loginpin', {
-        id,
-        pin,
+    await axios.post(authApiUrl + 'loginpin', {
+      id,
+      pin,
+    })
+      .then(function (response: any) {
+        if (response.data.token) {
+          setToken(response.data.token)
+          hideNotification('pwd-error')
+          resetLogout()
+        }
       })
-    if (response.data.token) {
-      setToken(response.data.token)
-    }
-    return response.data
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'pwd-error',
+            title: i18n.get('Error'),
+            message: i18n.get('ErrorLoggingIn'),
+          })
+        }
+      })
   }
 
   const logout = async (keepLocal: boolean) => {
@@ -376,6 +405,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       logout: logout,
       isLogout: isLogout,
       resetLogout: resetLogout,
+      removeLocalUser: removeLocalUser,
       lastUserId: lastUserId,
       sseAs: sse,
       useSseAs: useSseAs,

@@ -54,7 +54,7 @@ export default function UsersLogin({ i18n, session }: { i18n: I18nInterface, ses
         return <TokenLogin i18n={i18n} session={session} user={selectedUser} />
       }
       if (selectedUser.login === 'pin') {
-        return <PinLogin i18n={i18n} session={session} user={selectedUser} />
+        return <PinLogin session={session} user={selectedUser} />
       }
       if (selectedUser.login === 'none') {
         return <NoneLogin i18n={i18n} session={session} user={selectedUser} />
