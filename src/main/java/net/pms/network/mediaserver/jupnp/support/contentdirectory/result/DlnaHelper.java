@@ -59,7 +59,10 @@ public class DlnaHelper {
 		// TODO: Determine renderer's correct localization value
 		int localizationValue = 1;
 		StringBuilder sb = new StringBuilder();
-		sb.append(getDlnaOrgPn(item, localizationValue));
+		ORG_PN pn = getDlnaOrgPn(item, localizationValue);
+		if (pn != null) {
+			sb.append(pn);
+		}
 		ORG_OP op = getDlnaOrgOp(item);
 		if (sb.length() > 0) {
 			sb.append(op.getParam());
@@ -124,7 +127,10 @@ public class DlnaHelper {
 
 	protected static String getDlnaAdditionalInfo(StoreItem item, int localizationValue) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(getDlnaOrgPn(item, localizationValue));
+		ORG_PN pn = getDlnaOrgPn(item, localizationValue);
+		if (pn != null) {
+			sb.append(pn);
+		}
 		ORG_OP op = getDlnaOrgOp(item);
 		if (sb.length() > 0) {
 			sb.append(op.getParam());

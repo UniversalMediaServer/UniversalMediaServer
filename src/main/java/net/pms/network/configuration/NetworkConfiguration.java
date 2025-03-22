@@ -512,12 +512,17 @@ public class NetworkConfiguration {
 	/**
 	 * @return available network interfaces as a JSON array
 	 */
-	public static synchronized JsonArray getNetworkInterfacesAsJsonArray() {
-		List<String> values = getDisplayNames();
-		List<String> labels = getDisplayNamesWithAddress();
-		values.add(0, "");
-		labels.add(0, "i18n@AutoDetect");
-		return UMSUtils.getListsAsJsonArrayOfObjects(values, labels, null);
+	public static JsonArray getNetworkInterfacesAsJsonArray() {
+		Map<String, String> interfaces = new HashMap<>();
+		interfaces.put("", "i18n@AutoDetect");
+		synchronized (INTERFACES_ASSOCIATIONS) {
+			for (NetworkInterfaceAssociation i : INTERFACES_ASSOCIATIONS.values()) {
+				interfaces.put(i.getDisplayNameWithAddress(), i.getDisplayName());
+			}
+		}
+		String[] values = interfaces.values().toArray(String[]::new);
+		String[] labels = interfaces.keySet().toArray(String[]::new);
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
 	/**
