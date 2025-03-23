@@ -40,7 +40,7 @@ public class ResourceIdentifierTest {
 		//test with file
 		File file = getTestFile("video-h264-aac.mp4");
 		String filePath = file.getAbsolutePath();
-		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "da9f270b9c36097d8ac15e676ebaeb34d730e999df4e8852a3335e692186610a");
+		testResourceIdentifier("file: " + filePath + "(" + file.length() + ")", file.getAbsolutePath(), "da9f270b9c36097d8ac15e676ebaeb34d730e999df4e8852a3335e692186610a");
 		//test with file url
 		try {
 			String fileUrl = file.toURI().toURL().toString();
