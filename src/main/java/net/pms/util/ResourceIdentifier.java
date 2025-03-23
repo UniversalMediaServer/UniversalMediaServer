@@ -90,16 +90,17 @@ public class ResourceIdentifier {
 	}
 
 	private static File getFile(final String uri) {
-		try {
-			return Path.of(uri).toFile();
-		} catch (InvalidPathException e) {
-			//not a path
-		}
 		//try URI
 		try {
 			return new File(URI.create(uri));
 		} catch (IllegalArgumentException es) {
 			//not a file URI
+		}
+		//try path
+		try {
+			return Path.of(uri).toFile();
+		} catch (InvalidPathException e) {
+			//not a path
 		}
 		return null;
 	}
