@@ -156,15 +156,8 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
           {mediaList.map((media: BaseMedia) => {
             return (
               <Badge
-                key={title + media.id}
-                style={{
-                  'cursor': 'pointer',
-                  'color': 'var(--mantine-color-bright)',
-                  'backgroundColor': 'var(--mantine-color-default-border)',
-                  '&:hover': {
-                    backgroundColor: 'var(--mantine-color-default-hover)',
-                  },
-                }}
+                key={title + media.name + media.id?.toString()}
+                className={media.id ? 'fake-button-default-hover' : 'fake-button-default'}
                 onClick={() => {
                   if (media.id) {
                     sse.askBrowseId(media.id)
@@ -181,7 +174,7 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
   }
 
   const MetadataBaseMedia = ({ i18n, sse, title, media }: { i18n: I18nInterface, sse: PlayerEventInterface, title: string, media?: BaseMedia }) => {
-    return media
+    return media && media.name
       ? <MetadataBaseMediaList i18n={i18n} sse={sse} title={title} mediaList={[media]} />
       : undefined
   }

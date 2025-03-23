@@ -39,7 +39,7 @@ export default function AuthenticationSettings({
   const postAccountAuthAction = async (data: any, errormessage: string) => {
     try {
       await axios.post(accountApiUrl + 'action', data)
-      await session.logout()
+      await session.logout(false)
     }
     catch {
       showError({

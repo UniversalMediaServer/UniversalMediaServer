@@ -412,7 +412,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
 	private static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
 	private static final String KEY_SHOW_TRANSCODE_FOLDER = "show_transcode_folder";
-	private static final String KEY_SHOW_USER_CHOICE = "show_user_choice";
 	private static final String KEY_SINGLE = "single_instance";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
@@ -456,8 +455,12 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 	private static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
 	private static final String KEY_WEB_GUI_PORT = "web_gui_port";
+	private static final String KEY_WEB_GUI_ALLOW_EMPTY_PIN = "web_gui_allow_empty_pin";
+	private static final String KEY_WEB_GUI_SHOW_USERS = "web_gui_show_users";
 	private static final String KEY_WEB_PATH = "web_path";
+	private static final String KEY_WEB_PLAYER_ALLOW_EMPTY_PIN = "web_player_allow_empty_pin";
 	private static final String KEY_WEB_PLAYER_AUTH = "web_player_auth";
+	private static final String KEY_WEB_PLAYER_SHOW_USERS = "web_player_show_users";
 	private static final String KEY_WEB_PLAYER_CONT_AUDIO = "web_player_continue_audio";
 	private static final String KEY_WEB_PLAYER_CONT_IMAGE = "web_player_continue_image";
 	private static final String KEY_WEB_PLAYER_CONT_VIDEO = "web_player_continue_video";
@@ -4249,24 +4252,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_SHOW_TRANSCODE_FOLDER, value);
 	}
 
-	/**
-	 * Whether to show user choice on non affiliate renderer.
-	 *
-	 * @return whether the user choice is shown
-	 */
-	public boolean isShowUserChoice() {
-		return getBoolean(KEY_SHOW_USER_CHOICE, true);
-	}
-
-	/**
-	 * Whether to show user choice on non affiliate renderer.
-	 *
-	 * @param value whether the user choice is shown
-	 */
-	public void setShowUserChoice(boolean value) {
-		configuration.setProperty(KEY_SHOW_USER_CHOICE, value);
-	}
-
 	public boolean isDvdIsoThumbnails() {
 		return getBoolean(KEY_DVDISO_THUMBNAILS, true);
 	}
@@ -5154,6 +5139,24 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getInt(KEY_WEB_GUI_PORT, DEFAULT_WEB_GUI_PORT);
 	}
 
+	/**
+	 * Whether to show user choice on web gui.
+	 *
+	 * @return whether the user choice is shown
+	 */
+	public boolean isWebGuiShowUserChoice() {
+		return getBoolean(KEY_WEB_GUI_SHOW_USERS, false);
+	}
+
+	/**
+	 * Whether to allow empty pin login on web gui.
+	 *
+	 * @return whether the empty pin login is allowed
+	 */
+	public boolean isWebGuiAllowEmptyPin() {
+		return getBoolean(KEY_WEB_GUI_ALLOW_EMPTY_PIN, false);
+	}
+
 	public int getWebThreads() {
 		int x = getInt(KEY_WEB_THREADS, 30);
 		return (x > WEB_MAX_THREADS ? WEB_MAX_THREADS : x);
@@ -5186,6 +5189,14 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public boolean isWebPlayerAuthenticationEnabled() {
 		return getBoolean(KEY_WEB_PLAYER_AUTH, false);
+	}
+
+	public boolean isWebPlayerShowUserChoice() {
+		return getBoolean(KEY_WEB_PLAYER_SHOW_USERS, true);
+	}
+
+	public boolean isWebPlayerAllowEmptyPin() {
+		return getBoolean(KEY_WEB_PLAYER_ALLOW_EMPTY_PIN, true);
 	}
 
 	public boolean useWebPlayerControls() {
@@ -5720,6 +5731,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_AUDIO_SUB_LANGS, "");
 		jObj.addProperty(KEY_AUDIO_THUMBNAILS_METHOD, "1");
 		jObj.addProperty(KEY_AUDIO_USE_PCM, false);
+		jObj.addProperty(KEY_AUTHENTICATION_ENABLED, false);
+		jObj.addProperty(KEY_AUTHENTICATE_LOCALHOST_AS_ADMIN, false);
 		jObj.addProperty(KEY_AUTO_UPDATE, true);
 		jObj.addProperty(KEY_AUTOLOAD_SUBTITLES, true);
 		jObj.addProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, true);
@@ -5819,7 +5832,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_SPLASH_SCREEN, true);
 		jObj.addProperty(KEY_SHOW_TRANSCODE_FOLDER, true);
-		jObj.addProperty(KEY_SHOW_USER_CHOICE, true);
 		jObj.addProperty(KEY_SORT_METHOD, "0");
 		jObj.addProperty(KEY_SUBS_INFO_LEVEL, "basic");
 		jObj.addProperty(KEY_SUBTITLES_CODEPAGE, "");
@@ -5841,12 +5853,16 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_VLC_AUDIO_SYNC_ENABLED, false);
 		jObj.addProperty(KEY_VLC_USE_EXPERIMENTAL_CODECS, false);
 		jObj.addProperty(KEY_WEB_PLAYER_ENABLE, true);
+		jObj.addProperty(KEY_WEB_GUI_ALLOW_EMPTY_PIN, false);
 		jObj.addProperty(KEY_WEB_GUI_ON_START, true);
 		jObj.addProperty(KEY_WEB_GUI_PORT, DEFAULT_WEB_GUI_PORT);
+		jObj.addProperty(KEY_WEB_GUI_SHOW_USERS, false);
+		jObj.addProperty(KEY_WEB_PLAYER_ALLOW_EMPTY_PIN, true);
 		jObj.addProperty(KEY_WEB_PLAYER_AUTH, false);
 		jObj.addProperty(KEY_WEB_PLAYER_CONTROLS, true);
 		jObj.addProperty(KEY_WEB_PLAYER_DOWNLOAD, true);
 		jObj.addProperty(KEY_WEB_PLAYER_PORT, DEFAULT_WEB_PLAYER_PORT);
+		jObj.addProperty(KEY_WEB_PLAYER_SHOW_USERS, true);
 		jObj.addProperty(KEY_X264_CONSTANT_RATE_FACTOR, "Automatic (Wired)");
 		jObj.addProperty(KEY_3D_SUBTITLES_DEPTH, "0");
 		return jObj;

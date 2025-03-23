@@ -19,15 +19,15 @@
   },
   "packageManager": "yarn@4.7.0",
   "dependencies": {
-    "@mantine/core": "7.17.1",
-    "@mantine/dropzone": "7.17.1",
-    "@mantine/form": "7.17.1",
-    "@mantine/hooks": "7.17.1",
-    "@mantine/modals": "7.17.1",
-    "@mantine/notifications": "7.17.1",
+    "@mantine/core": "7.17.2",
+    "@mantine/dropzone": "7.17.2",
+    "@mantine/form": "7.17.2",
+    "@mantine/hooks": "7.17.2",
+    "@mantine/modals": "7.17.2",
+    "@mantine/notifications": "7.17.2",
     "@microsoft/fetch-event-source": "2.0.1",
     "@tabler/icons-react": "^3.31.0",
-    "axios": "1.8.2",
+    "axios": "1.8.3",
     "jwt-decode": "4.0.0",
     "lodash": "4.17.21",
     "react": "19.0.0",
@@ -35,7 +35,7 @@
     "react-dom": "19.0.0",
     "react-movable": "3.4.1",
     "react-router-dom": "7.3.0",
-    "video.js": "8.21.0"
+    "video.js": "8.22.0"
   },
   "devDependencies": {
     "@playwright/test": "1.51.0",
@@ -50,6 +50,6 @@
     "eslint-plugin-react-refresh": "0.4.19",
     "typescript": "5.8.2",
     "typescript-eslint": "8.26.1",
-    "vite": "6.2.1"
+    "vite": "6.2.2"
   }
 }

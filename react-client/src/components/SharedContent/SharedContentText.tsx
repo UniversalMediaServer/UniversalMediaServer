@@ -19,6 +19,6 @@ import { ReactNode } from 'react'
 
 export default function SharedContentText({ children, color }: { children?: ReactNode, color: string }) {
   return (
-    <Paper flex="flex-start" bg={color} radius="sm" px="4" py="1"><Text size="xs" color="white" truncate="end">{ children }</Text></Paper>
+    <Paper flex="flex-start" bg={color} radius="sm" px="4" py="1"><Text size="xs" c="white" truncate="end">{ children }</Text></Paper>
   )
 }

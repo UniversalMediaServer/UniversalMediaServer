@@ -17,56 +17,48 @@
 import { Box, Button, Group, Tabs, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useLocalStorage } from '@mantine/hooks'
-import axios from 'axios'
+import { hideNotification } from '@mantine/notifications'
+import axios, { AxiosError } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
-import { IconCheck, IconExclamationMark } from '@tabler/icons-react'
+import { IconCheck } from '@tabler/icons-react'
 
-import { havePermission, Permissions } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
-import { SessionInterface } from '../../services/session-service'
-import { mantineSelectData } from '../../services/settings-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
+import { SelectionSettingsData } from '../../services/settings-service'
 import { settingsApiUrl } from '../../utils'
+import { showError, showLoading, updateError, updateInfo, updateSuccess } from '../../utils/notifications'
 import GeneralSettings from './GeneralSettings'
 import NavigationSettings from './NavigationSettings'
 import RenderersSettings from './RenderersSettings'
 import TranscodingSettings from './TranscodingSettings'
-import { showError, showLoading, updateError, updateInfo, updateSuccess } from '../../utils/notifications'
 
 export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) {
-  const [advancedSettings] = useLocalStorage<boolean>({
-    key: 'mantine-advanced-settings',
+  const [advancedSettings, setAdvancedSettings] = useLocalStorage<boolean>({
+    key: 'show-advanced-settings',
     defaultValue: false,
   })
   const [isLoading, setLoading] = useState(true)
-  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any)
-  const [configuration, setConfiguration] = useState({} as any)
-
+  const [defaultConfiguration, setDefaultConfiguration] = useState<Record<string, unknown>>({})
+  const [configuration, setConfiguration] = useState<Record<string, unknown>>({})
   // key/value pairs for dropdowns
-  const [selectionSettings, setSelectionSettings] = useState({
-    allRendererNames: [] as mantineSelectData[],
-    audioCoverSuppliers: [] as mantineSelectData[],
-    enabledRendererNames: [] as mantineSelectData[],
-    ffmpegLoglevels: [],
-    upnpLoglevels: [] as mantineSelectData[],
-    fullyPlayedActions: [] as mantineSelectData[],
-    gpuAccelerationMethod: [],
-    networkInterfaces: [],
-    serverEngines: [] as mantineSelectData[],
-    sortMethods: [] as mantineSelectData[],
-    subtitlesDepth: [],
-    subtitlesCodepages: [] as mantineSelectData[],
-    subtitlesInfoLevels: [] as mantineSelectData[],
-    transcodingEngines: {} as { [key: string]: { id: string, name: string, isAvailable: boolean, purpose: number, statusText: string[] } },
-    transcodingEnginesPurposes: [],
+  const [selectionSettings, setSelectionSettings] = useState<SelectionSettingsData>()
+
+  const canModify = session.havePermission(UmsPermission.settings_modify)
+  const canView = canModify || session.havePermission(UmsPermission.settings_view)
+
+  const form = useForm({
+    enhanceGetInputProps: (payload) => {
+      if (!payload.form.initialized) {
+        return { disabled: true }
+      }
+      if (!canModify) {
+        return { disabled: true }
+      }
+      return {}
+    },
   })
-
-  const form = useForm({ initialValues: {} as Record<string, unknown> })
-  const formSetValues = form.setValues
-
-  const canModify = havePermission(session, Permissions.settings_modify)
-  const canView = canModify || havePermission(session, Permissions.settings_view)
 
   useEffect(() => {
     session.useSseAs(ServerSettings.name)
@@ -82,37 +74,41 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
     const userConfig = _.merge({}, configuration, sse.userConfiguration)
     sse.setUserConfiguration(null)
     setConfiguration(userConfig)
-    formSetValues(userConfig)
-  }, [configuration, sse, formSetValues])
+    form.setValues(userConfig)
+  }, [configuration, sse])
 
-  // Code here will run just like componentDidMount
   useEffect(() => {
     if (canView) {
       axios.get(settingsApiUrl)
         .then(function (response: any) {
           const settingsResponse = response.data
-          setSelectionSettings(settingsResponse)
+          setSelectionSettings(settingsResponse.selectionSettings)
           setDefaultConfiguration(settingsResponse.userSettingsDefaults)
 
           // merge defaults with what we receive, which might only be non-default values
           const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings)
 
           setConfiguration(userConfig)
-          formSetValues(userConfig)
+          form.initialize(userConfig)
         })
-        .catch(function () {
-          showError({
-            id: 'data-loading',
-            title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotReceived'),
-            message2: i18n.getReportLink(),
-          })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            i18n.showServerUnreachable()
+          }
+          else {
+            showError({
+              id: 'data-loading',
+              title: i18n.get('Error'),
+              message: i18n.get('ConfigurationNotReceived'),
+              message2: i18n.getReportLink(),
+            })
+          }
         })
         .then(function () {
           setLoading(false)
         })
     }
-  }, [canView, formSetValues])
+  }, [canView])
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true)
@@ -121,59 +117,49 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
     })
-    try {
-      const changedValues: Record<string, any> = {}
+    const changedValues: Record<string, any> = {}
 
-      // construct an object of only changed values to send
-      for (const key in values) {
-        if (!_.isEqual(configuration[key], values[key])) {
-          changedValues[key] = values[key] !== undefined && values[key] !== null ? values[key] : null
-        }
-      }
-
-      if (_.isEmpty(changedValues)) {
-        updateInfo({
-          id: 'settings-save',
-          title: i18n.get('Saved'),
-          message: i18n.get('ConfigurationHasNoChanges'),
-        })
-      }
-      else {
-        await axios.post(settingsApiUrl, changedValues)
-          .then(function () {
-            setConfiguration(values)
-            setLoading(false)
-            updateSuccess({
-              id: 'settings-save',
-              title: i18n.get('Saved'),
-              message: i18n.get('ConfigurationSaved'),
-              icon: <IconCheck size="1rem" />,
-            })
-          })
-          .catch(function (error) {
-            if (!error.response && error.request) {
-              updateError({
-                id: 'settings-save',
-                title: i18n.get('Error'),
-                message: i18n.get('ConfigurationNotReceived'),
-                icon: <IconExclamationMark size="1rem" />,
-              })
-            }
-            else {
-              throw new Error(error)
-            }
-          })
+    // construct an object of only changed values to send
+    for (const key in values) {
+      if (!_.isEqual(configuration[key], values[key])) {
+        changedValues[key] = values[key] !== undefined && values[key] !== null ? values[key] : null
       }
     }
-    catch (err) {
-      updateError({
+
+    if (_.isEmpty(changedValues)) {
+      updateInfo({
         id: 'settings-save',
-        title: i18n.get('Error'),
-        message: i18n.get('ConfigurationNotSaved'),
-        message2: i18n.getReportLink(),
+        title: i18n.get('Saved'),
+        message: i18n.get('ConfigurationHasNoChanges'),
       })
     }
-
+    else {
+      await axios.post(settingsApiUrl, changedValues)
+        .then(function () {
+          setConfiguration(values)
+          setLoading(false)
+          updateSuccess({
+            id: 'settings-save',
+            title: i18n.get('Saved'),
+            message: i18n.get('ConfigurationSaved'),
+            icon: <IconCheck size="1rem" />,
+          })
+        })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            hideNotification('settings-save')
+            i18n.showServerUnreachable()
+          }
+          else {
+            updateError({
+              id: 'settings-save',
+              title: i18n.get('Error'),
+              message: i18n.get('ConfigurationNotSaved'),
+              message2: i18n.getReportLink(),
+            })
+          }
+        })
+    }
     setLoading(false)
   }
 
@@ -181,34 +167,36 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
     ? (
         <Box style={{ maxWidth: 1024 }} mx="auto">
           <form onSubmit={form.onSubmit(handleSubmit)}>
-            <Tabs defaultValue="GeneralSettings">
-              <Tabs.List>
-                <Tabs.Tab value="GeneralSettings">{i18n.get('GeneralSettings')}</Tabs.Tab>
+            { form.initialized && (
+              <Tabs defaultValue="GeneralSettings">
+                <Tabs.List>
+                  <Tabs.Tab value="GeneralSettings">{i18n.get('GeneralSettings')}</Tabs.Tab>
+                  {advancedSettings
+                    && <Tabs.Tab value="RenderersSettings">{i18n.get('RenderersSettings')}</Tabs.Tab>}
+                  {advancedSettings
+                    && <Tabs.Tab value="NavigationSettings">{i18n.get('NavigationSettings')}</Tabs.Tab>}
+                  <Tabs.Tab value="TranscodingSettings">{i18n.get('TranscodingSettings')}</Tabs.Tab>
+                </Tabs.List>
+                <Tabs.Panel value="GeneralSettings">
+                  <GeneralSettings i18n={i18n} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} advancedSettings={advancedSettings} setAdvancedSettings={setAdvancedSettings} />
+                </Tabs.Panel>
                 {advancedSettings
-                  && <Tabs.Tab value="RenderersSettings">{i18n.get('RenderersSettings')}</Tabs.Tab>}
+                  && (
+                    <Tabs.Panel value="RenderersSettings">
+                      <RenderersSettings i18n={i18n} form={form} selectionSettings={selectionSettings} />
+                    </Tabs.Panel>
+                  )}
                 {advancedSettings
-                  && <Tabs.Tab value="NavigationSettings">{i18n.get('NavigationSettings')}</Tabs.Tab>}
-                <Tabs.Tab value="TranscodingSettings">{i18n.get('TranscodingSettings')}</Tabs.Tab>
-              </Tabs.List>
-              <Tabs.Panel value="GeneralSettings">
-                <GeneralSettings i18n={i18n} session={session} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} />
-              </Tabs.Panel>
-              {advancedSettings
-                && (
-                  <Tabs.Panel value="RenderersSettings">
-                    <RenderersSettings i18n={i18n} session={session} form={form} selectionSettings={selectionSettings} />
-                  </Tabs.Panel>
-                )}
-              {advancedSettings
-                && (
-                  <Tabs.Panel value="NavigationSettings">
-                    <NavigationSettings i18n={i18n} session={session} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} />
-                  </Tabs.Panel>
-                )}
-              <Tabs.Panel value="TranscodingSettings">
-                <TranscodingSettings i18n={i18n} session={session} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} />
-              </Tabs.Panel>
-            </Tabs>
+                  && (
+                    <Tabs.Panel value="NavigationSettings">
+                      <NavigationSettings i18n={i18n} canModify={canModify} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} />
+                    </Tabs.Panel>
+                  )}
+                <Tabs.Panel value="TranscodingSettings">
+                  <TranscodingSettings i18n={i18n} canModify={canModify} form={form} defaultConfiguration={defaultConfiguration} selectionSettings={selectionSettings} advancedSettings={advancedSettings} />
+                </Tabs.Panel>
+              </Tabs>
+            )}
             {canModify && (
               <Group justify="flex-end" mt="md">
                 <Button type="submit" loading={isLoading}>

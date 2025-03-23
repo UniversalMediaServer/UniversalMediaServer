@@ -79,6 +79,16 @@ code {
   color: var(--mantine-color-bright);
 }
 
+.fake-button-default, .fake-button-default-hover {
+  background-color: var(--mantine-color-default);
+  color: var(--mantine-color-default-color);
+}
+
+.fake-button-default-hover:hover {
+  cursor: pointer;
+  background-color: var(--mantine-color-default-hover);
+}
+
 nav button .mantine-Button-inner {
   justify-content: normal;
   font-weight: 400;
@@ -103,9 +113,6 @@ nav button .mantine-Button-inner:hover {
   color: var(--mantine-color-bright);
 }
 
-/*fix for Mantine 7.17.1*/
-@supports (-moz-appearance: none) {
-  input[readonly][aria-haspopup] {
-    pointer-events: auto !important;
-  }
+.hidden {
+  display: none;
 }

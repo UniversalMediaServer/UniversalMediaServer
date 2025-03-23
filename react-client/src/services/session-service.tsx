@@ -42,23 +42,70 @@ export interface UmsAccount {
   group: UmsGroup
 }
 
+export interface UmsUserLogin {
+  id: number
+  username: string
+  displayName: string
+  avatar?: string
+  login: string
+  token?: string
+}
+
 export interface UmsSession {
   noAdminFound: boolean
   account?: UmsAccount
   authenticate: boolean
   player: boolean
+  users?: UmsUserLogin[]
+}
+
+export interface LocalUser {
+  id: number
+  displayName: string
+  token: string
+  avatar?: string
+}
+
+export const UmsPermission = {
+  users_manage: 1,
+  groups_manage: 1 << 1,
+  settings_view: 1 << 10,
+  settings_modify: 1 << 11,
+  devices_control: 1 << 12,
+  server_restart: 1 << 20,
+  application_restart: 1 << 21,
+  application_shutdown: 1 << 22,
+  computer_shutdown: 1 << 23,
+  web_player_browse: 1 << 25,
+  web_player_download: 1 << 26,
+  web_player_edit: 1 << 27,
+  all: -1,
 }
 
 export interface SessionInterface extends UmsSession {
   initialized: boolean
+  havePermission(permission: number): boolean
+  users?: UmsUserLogin[]
+  isDefaultUser: boolean
+  canSwitchUser: boolean
   refresh: () => void
-  logout: () => Promise<void>
+  token: string
+  setToken: (token: string) => void
+  login: (username: string, password: string) => Promise<void>
+  loginPin: (id: number, pin: string) => Promise<void>
+  logout: (keepLocal: boolean) => Promise<void>
+  isLogout: boolean
+  resetLogout: () => void
+  removeLocalUser: (id: number) => void
+  lastUserId: number
   sseAs: string
   useSseAs: (name: string) => void
   stopSse: () => void
   usePlayerSse: boolean
   startPlayerSse: () => void
   stopPlayerSse: () => void
+  uuid: string
+  setUuid: (_uuid: string) => void
   serverName: string
   setServerName: (serverName: string) => void
   setDocumentTitle: (documentTitle: string) => void

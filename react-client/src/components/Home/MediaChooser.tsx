@@ -16,7 +16,7 @@
  */
 import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea, Stack, TextInput, Tooltip } from '@mantine/core'
 import { IconFolder, IconHome, IconPictureInPicture, IconPictureInPictureOn } from '@tabler/icons-react'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useState, ReactNode } from 'react'
 
 import { Media } from '../../services/home-service'
@@ -66,13 +66,18 @@ export default function MediaChooser(props: {
         setMedias(mediasResponse.childrens)
         setParents(mediasResponse.parents.reverse())
       })
-      .catch(function () {
-        showError({
-          id: 'data-loading',
-          title: i18n.get('Error'),
-          message: i18n.get('DataNotReceived'),
-          message2: i18n.getReportLink(),
-        })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('DataNotReceived'),
+            message2: i18n.getReportLink(),
+          })
+        }
       })
       .then(function () {
         setLoading(false)
