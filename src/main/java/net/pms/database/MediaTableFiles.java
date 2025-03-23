@@ -705,6 +705,7 @@ public class MediaTableFiles extends MediaTable {
 					media = new MediaInfo();
 					long fileId = rs.getLong(COL_ID);
 					media.setFileId(fileId);
+					media.setResourceId(rs.getString(COL_RESOURCE_UID));
 					media.setMediaParser(rs.getString(COL_PARSER));
 					media.setSize(rs.getLong(COL_MEDIA_SIZE));
 					media.setContainer(rs.getString(COL_CONTAINER));
@@ -828,6 +829,7 @@ public class MediaTableFiles extends MediaTable {
 					result.updateTimestamp(COL_MODIFIED, new Timestamp(modified));
 					result.updateInt(COL_FORMAT_TYPE, type);
 					if (media != null) {
+						updateString(result, COL_RESOURCE_UID, media.getResourceId(), 64);
 						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
 						updateLong(result, COL_THUMBID, media.getThumbnailId());
 						if (media.getThumbnailSource() != null) {
