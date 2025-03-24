@@ -5417,15 +5417,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_UPNP_JUPNP_DIDL, false);
 	}
 
-	/**
-	 * This allow remote device to modify CDS.
-	 *
-	 * Restricting service access violates the UPnP-av-ContentDirectory contract and should default to true.
-	 * See UPnP-av-ContentDirectory-v4-Service.pdf section 5.2.25 Device Protection Option. Correct way is to
-	 * implement a DeviceProtection service to restrict access.
-	 */
 	public boolean isUpnpCdsWrite() {
-		return getBoolean(KEY_UPNP_CDS_WRITE, false);
+		return getBoolean(KEY_UPNP_CDS_WRITE, true);
 	}
 
 	public boolean setUpnpCdsWrite(boolean newUpnpCdsWrite) {
@@ -5437,15 +5430,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		}
 	}
 
-	/**
-	 * This allow anonymous remote devices to add/replace files and folders.
-	 *
-	 * Restricting service access violates the UPnP-av-ContentDirectory contract and should default to true.
-	 * See UPnP-av-ContentDirectory-v4-Service.pdf section 5.2.25 Device Protection Option. Correct way is to
-	 * implement a DeviceProtection service to restrict access.
-	 */
 	public boolean isAnonymousDevicesWrite() {
-		return getBoolean(KEY_ANONYMOUS_DEVICES_WRITE, false);
+		return getBoolean(KEY_ANONYMOUS_DEVICES_WRITE, true);
 	}
 
 	public boolean setAnonymousDevicesWrite(boolean newAnonymousDevicesWrite) {
