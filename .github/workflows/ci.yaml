@@ -127,7 +127,7 @@ jobs:
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
       - name: Run Java tests
-        run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
+        run: mvn verify -P testing-macos
 
   macos-arm:
     needs: changes
@@ -159,7 +159,7 @@ jobs:
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
       - name: Run Java tests
-        run: DEVELOPER_DIR=/Applications/Xcode_latest.app/Contents/Developer && mvn verify -P testing-macos
+        run: mvn verify -P testing-macos
 
   windows-latest:
     needs: changes
