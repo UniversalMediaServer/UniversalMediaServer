@@ -38,7 +38,7 @@
     "video.js": "8.22.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.51.0",
+    "@playwright/test": "1.51.1",
     "@stylistic/eslint-plugin": "4.1.0",
     "@types/lodash": "4.17.16",
     "@types/react": "19.0.10",
