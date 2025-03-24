@@ -282,10 +282,10 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
     <Grid mb="md">
       <Grid.Col span={12}>
         <Grid columns={20} justify="center">
-          <Grid.Col span={6}>
+          <Grid.Col span={{ base: 0, xs: 6 }}>
             {images.poster}
           </Grid.Col>
-          <Grid.Col span={12}>
+          <Grid.Col span={{ base: 20, xs: 12 }}>
             <Card shadow="sm" p="lg" radius="md" bg="transparentBg">
               {images.logo}
               {children}
