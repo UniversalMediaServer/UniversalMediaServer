@@ -28,10 +28,10 @@ export default function MediaShowPanel({ i18n, sse, media, children }: { i18n: I
     <Grid mb="md">
       <Grid.Col span={12}>
         <Grid columns={20} justify="center">
-          <Grid.Col span={6}>
+          <Grid.Col span={{ base: 0, xs: 6 }}>
             <Image style={{ maxHeight: 500 }} radius="md" fit="contain" src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} />
           </Grid.Col>
-          <Grid.Col span={12}>
+          <Grid.Col span={{ base: 20, xs: 12 }}>
             <Card shadow="sm" p="lg" radius="md" bg="transparentBg">
               <Text pb="xs">{i18n.getLocalizedName(media.name)}</Text>
               {children}

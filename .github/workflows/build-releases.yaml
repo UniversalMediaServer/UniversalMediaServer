@@ -25,7 +25,7 @@ jobs:
       - name: Build x86_64 release
         run: mvn package -P linux-x86_64 -DskipTests
       - name: Install AppImage dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.0
         with:
           packages: desktop-file-utils
       - name: Build AppImage
