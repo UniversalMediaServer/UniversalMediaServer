@@ -101,9 +101,6 @@ public class ConnectedRenderers {
 			}
 
 			if (renderer == null) {
-				// Attempt 3: Not really an attempt; all other attempts to recognize
-				// the renderer have failed. The only option left is to assume the
-				// default renderer.
 				renderer = resolve(ia, null);
 				// If RendererConfiguration.resolve() didn't return the default renderer
 				// it means we know via upnp that it's not really a renderer.
