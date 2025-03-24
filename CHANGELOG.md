@@ -22,6 +22,7 @@
 - Bump `@mantine/notifications` from 7.17.1 to 7.17.2 ([#5382](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5382))
 - Bump `@playwright/test` from 1.50.1 to 1.51.0 ([#5343](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5343))
 - Bump `@tabler/icons-react` from 3.30.0 to 3.31.0 ([#5345](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5345))
+- Bump `@types/react` from 19.0.10 to 19.0.12 ([#5404](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5404))
 - Bump `axios` from 1.8.1 to 1.8.3 ([#5337](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5337), [#5386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5386))
 - Bump `chromecast-api-v2` from 0.11.3 to 0.12.4
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.2 to 2.18.3 ([#5350](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5350))
