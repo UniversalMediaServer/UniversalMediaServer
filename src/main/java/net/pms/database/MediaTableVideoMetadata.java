@@ -60,8 +60,9 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 *		ensure MEDIA_YEAR is year then convert to INTEGER
 	 *		set back 1 to 1 values to table (POSTER, RATED, RATING, RELEASEDATE)
 	 *		convert TVSEASON to INTEGER
+	 * - 9: Added ISSAMPLE column
 	 */
-	private static final int TABLE_VERSION = 8;
+	private static final int TABLE_VERSION = 9;
 
 	/**
 	 * COLUMNS NAMES
@@ -79,7 +80,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
 	private static final String COL_TVSEASON = "TVSEASON";
 	private static final String COL_TVEPISODENUMBER = "TVEPISODENUMBER";
-	private static final String BASIC_COLUMNS = COL_IMDBID + ", " + COL_MEDIA_YEAR + ", " + COL_TITLE + ", " + COL_TVSERIESID + ", " + COL_EXTRAINFORMATION + ", " + COL_ISTVEPISODE + ", " + COL_TVSEASON + ", " + COL_TVEPISODENUMBER;
+	private static final String COL_ISSAMPLE = "ISSAMPLE";
+	private static final String BASIC_COLUMNS = COL_IMDBID + ", " + COL_MEDIA_YEAR + ", " + COL_TITLE + ", " + COL_TVSERIESID + ", " + COL_EXTRAINFORMATION + ", " + COL_ISTVEPISODE + ", " + COL_TVSEASON + ", " + COL_TVEPISODENUMBER + ", " + COL_ISSAMPLE;
 	/**
 	 * The columns we added from TMDB in V11
 	 */
@@ -119,6 +121,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	public static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String TABLE_COL_TVEPISODENUMBER = TABLE_NAME + "." + COL_TVEPISODENUMBER;
 	public static final String TABLE_COL_TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
+	public static final String TABLE_COL_ISSAMPLE = TABLE_NAME + "." + COL_ISSAMPLE;
 
 	public static final String TABLE_COL_FIRST_TVEPISODE = "CAST(REGEXP_SUBSTR(CONCAT('0', " + TABLE_COL_TVEPISODENUMBER + "), '\\d*') AS INTEGER)";
 
@@ -312,11 +315,15 @@ public class MediaTableVideoMetadata extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_MEDIA_YEAR + INTEGER);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_TVSEASON + INTEGER);
 				}
-				case (7) -> {
+				case 7 -> {
 					LOGGER.debug("creating index " + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + IDX_MARKER);
 					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TMDBID + ")");
 					LOGGER.debug("creating index " + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID  + IDX_MARKER);
 					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID  + IDX_MARKER + ON + TABLE_NAME + "(" + COL_IMDBID + ")");
+				}
+				case 8 -> {
+					LOGGER.debug("Adding ISSAMPLE column");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_ISSAMPLE + BOOLEAN);
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -368,6 +375,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 				COL_RATING                  + DOUBLE_PRECISION                                 + COMMA +
 				COL_TAGLINE                 + VARCHAR                                          + COMMA +
 				COL_VOTES                   + VARCHAR                                          + COMMA +
+				COL_ISSAMPLE                + BOOLEAN                                          + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableFiles.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
 			")",
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + "BASIC_COLUMNS" + IDX_MARKER + ON + TABLE_NAME + "(" + BASIC_COLUMNS + ")",
@@ -415,6 +423,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 				updateLong(rs, COL_TVSERIESID, videoMetadata.getTvSeriesId());
 				updateInteger(rs, COL_TVSEASON, videoMetadata.getTvSeason());
 				rs.updateString(COL_TVEPISODENUMBER, StringUtils.left(videoMetadata.getTvEpisodeNumber(), SIZE_TVEPISODENUMBER));
+				rs.updateBoolean(COL_ISSAMPLE, videoMetadata.isSample());
 				if (fromApi) {
 					rs.updateString(COL_API_VERSION, StringUtils.left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
 					rs.updateLong(COL_MODIFIED, System.currentTimeMillis());
@@ -558,6 +567,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setExtraInformation(rs.getString(COL_EXTRAINFORMATION));
 						metadata.setIsTvEpisode(rs.getBoolean(COL_ISTVEPISODE));
 						metadata.setTvSeriesId(toLong(rs, COL_TVSERIESID));
+						metadata.setIsSample(rs.getBoolean(COL_ISSAMPLE));
 						metadata.setActors(MediaTableVideoMetadataActors.getActorsForFile(connection, fileId));
 						metadata.setAwards(MediaTableVideoMetadataAwards.getValueForFile(connection, fileId));
 						metadata.setBudget(toLong(rs, COL_BUDGET));
