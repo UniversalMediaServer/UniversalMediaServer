@@ -16,10 +16,6 @@
  */
 package net.pms.network.mediaserver.servlets;
 
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,10 +24,19 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnailInputStream;
@@ -61,12 +66,10 @@ import net.pms.store.StoreResource;
 import net.pms.util.ByteRange;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
+import net.pms.util.SortedHeaderMap;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.TimeRange;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This is the core stream server.
@@ -102,55 +105,16 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				return;
 			}
 
-			//find renderer by uuid
-			renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
+			// Identify renderer by headers
+			SortedHeaderMap headerMap = getHeaderMapFromRequest(req);
+
+			renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headerMap, getInetAddress(req));
 
 			if (renderer == null) {
-				//find renderer by uuid and ip for non registred upnp devices
-				renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
-				if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
-					}
-					/**
-					 * here, that mean the originated renderer advised is no more available.
-					 * It may be a caster/proxy control point, so let change to the real renderer.
-					 * fixme : non-renderer should advise a special uuid.
-					 * renderer = null;
-					 */
-				}
-
-				/*
-				if (renderer == null) {
-					 * In in a 3-box setup: If the accessing control point is a web application, physical IP-access to the resources
-					 * like thumbnails is done by the users web browser. If the web application and the web browser do not run on
-					 * the same machine, no renderer can be associated. If authentication is not enabled, just use the
-					 * default renderer.
-					if (!PMS.getConfiguration().isAuthenticationEnabled()) {
-						renderer = RendererConfigurations.getDefaultRenderer();
-					}
-				} */
+				LOGGER.debug("Renderer not identified by header. Using default.");
+				renderer = RendererConfigurations.getDefaultRenderer();
 			}
-
-			if (renderer == null) {
-				// If uuid not known, it mean the renderer is not registred
-				if (LOGGER.isTraceEnabled()) {
-					logHttpServletRequest(req, "");
-				}
-				//Forbidden
-				respondForbidden(req, resp);
-				return;
-			}
-
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					logHttpServletRequest(req, "", getRendererName(req, renderer));
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
-				//Unauthorized
-				respondUnauthorized(req, resp);
-				return;
-			}
+			LOGGER.info("Using {} renderer for this request", renderer.getRendererName());
 
 			if (req.getHeader("X-PANASONIC-DMP-Profile") != null) {
 				PanasonicDmpProfiles.parsePanasonicDmpProfiles(req.getHeader("X-PANASONIC-DMP-Profile"), renderer);
@@ -199,6 +163,14 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				LOGGER.error("Http request error:", e);
 			}
 		}
+	}
+
+	private SortedHeaderMap getHeaderMapFromRequest(HttpServletRequest req) {
+		SortedHeaderMap headerMap = new SortedHeaderMap();
+		for (String headerField : Collections.list(req.getHeaderNames())) {
+			headerMap.put(headerField, req.getHeader(headerField));
+		}
+		return headerMap;
 	}
 
 	private static void sendResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, int code, String message, String contentType) throws IOException {

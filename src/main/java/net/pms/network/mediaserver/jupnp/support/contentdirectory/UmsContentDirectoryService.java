@@ -28,9 +28,9 @@ import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
-import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
@@ -369,22 +369,8 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-			Renderer renderer = info.renderer;
-			if (renderer == null) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Unrecognized media renderer");
-				}
-				return null;
-			}
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
-				return null;
-			}
+			Renderer renderer = RendererConfigurations.getDefaultRenderer();
 
-			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
@@ -520,21 +506,7 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-			Renderer renderer = info.renderer;
-			if (renderer == null) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Unrecognized media renderer");
-				}
-				return null;
-			}
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
-				return null;
-			}
-			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
+			Renderer renderer = RendererConfigurations.getDefaultRenderer();
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
@@ -580,21 +552,8 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-			Renderer renderer = info.renderer;
-			if (renderer == null) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Unrecognized media renderer");
-				}
-				return;
-			}
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
-				return;
-			}
-			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
+			Renderer renderer = RendererConfigurations.getDefaultRenderer();
+
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
@@ -636,21 +595,8 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-			Renderer renderer = info.renderer;
-			if (renderer == null) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Unrecognized media renderer");
-				}
-				throw new ContentDirectoryException(714, "No such resource");
-			}
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
-				throw new ContentDirectoryException(715, "Source resource access denied");
-			}
-			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
+			Renderer renderer = RendererConfigurations.getDefaultRenderer();
+
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
@@ -736,20 +682,11 @@ public class UmsContentDirectoryService {
 			SortCriterion[] sortCriteria,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
-		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
-			}
-			return null;
-		}
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
-			return null;
-		}
+		//
+		// Renderer do not browse the CDS but control points. However, the object tree is at the moment held by a renderer object.
+		// Therefore, we just take the default renderer for "storing" the CDS items.
+		//
+		Renderer renderer = RendererConfigurations.getDefaultRenderer();
 
 		if (objectID == null || objectID.length() == 0) {
 			objectID = "0";
@@ -859,20 +796,7 @@ public class UmsContentDirectoryService {
 			SortCriterion[] orderBy,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
-		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
-			}
-			return null;
-		}
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
-			return null;
-		}
+		Renderer renderer = RendererConfigurations.getDefaultRenderer();
 
 		try {
 			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
@@ -1093,21 +1017,7 @@ public class UmsContentDirectoryService {
 			String rId,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
-		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
-			}
-			return null;
-		}
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
-			return null;
-		}
-
+		Renderer renderer = RendererConfigurations.getDefaultRenderer();
 		if (posSecond == 0) {
 			// Sometimes when Samsung device is starting to play the video
 			// it sends X_SetBookmark message immediatelly with the position=0.
@@ -1129,20 +1039,7 @@ public class UmsContentDirectoryService {
 	private static String samsungGetFeaturesList(
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
-		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
-			}
-			return null;
-		}
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
-			return null;
-		}
+		Renderer renderer = RendererConfigurations.getDefaultRenderer();
 
 		StringBuilder features = new StringBuilder();
 		String mediaStoreId = renderer.getMediaStore().getResourceId();
