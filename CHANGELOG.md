@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.12.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.11.0...14.12.0) (2025-03-26)
+
 ### General
 - Prevents sample files showing up in the TV shows and Movies areas of Media Library
 - Updated the Windows x86 build of FFmpeg after 4 years!
