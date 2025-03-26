@@ -16,6 +16,11 @@
 - Fixed memory error on Windows
 - Added Maven build step for Docker
 
+### Translation updates via Crowdin
+- Czech (100%)
+- Italian (62%) (thanks, tfr!)
+- Turkish (100%)
+
 ### Dependencies
 - Bump `@babel/runtime` from 7.26.9 to 7.26.10 ([#5365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5365))
 - Bump `@mantine/core` from 7.17.1 to 7.17.2 ([#5382](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5382))
