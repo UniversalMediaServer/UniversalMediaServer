@@ -3,14 +3,18 @@
 ## [Unreleased]
 
 ### General
-- Added Maven build step for Docker
 - Prevents sample files showing up in the TV shows and Movies areas of Media Library
 - Updated the Windows x86 build of FFmpeg after 4 years!
 - Fixed limited memory on Docker
 - Fixed Docker error while scanning
 - Fixed loading spinner on web player not staying centered on screen (#5202)
 - Fixed notifications not dismissing properly on the web interface
-- Fixed renderer/media player control via web interface (thank, @hawklithm!)
+- Fixed renderer/media player control via web interface (thanks, @hawklithm!)
+- Fixed parsing filenames with eac3
+- Fixed empty settings page on web interface (#5368) (thanks, @MEGAKNIGHT88!)
+- Fixed support for filenames with brackets (#5397) (thanks, @KanjiMonster!)
+- Fixed memory error on Windows
+- Added Maven build step for Docker
 
 ### Dependencies
 - Bump `@babel/runtime` from 7.26.9 to 7.26.10 ([#5365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5365))
