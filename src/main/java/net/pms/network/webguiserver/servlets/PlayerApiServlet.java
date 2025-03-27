@@ -274,6 +274,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						respondBadRequest(req, resp);
 					}
 				}
+				case "/getMediaInfo" -> {
+					if (action.has("id")) {
+						String id = action.get("id").getAsString();
+						JsonObject mediaInfo = getMediaInfo(renderer, id);
+						if (mediaInfo != null) {
+							respond(req, resp, mediaInfo.toString(), 200, "application/json");
+							return;
+						}
+					}
+					respondBadRequest(req, resp);
+				}
 				default -> {
 					LOGGER.trace("PlayerApiServlet request not available : {}", path);
 					respondNotFound(req, resp);
@@ -760,6 +771,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (item.isFullyPlayedAware()) {
 			media.addProperty("fullyplayed", item.isFullyPlayed());
 		}
+		media.addProperty("hasMediaInfo", true);
 
 		media.add("surroundMedias", getSurroundingByType(item, lang));
 
@@ -811,6 +823,25 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			result.addProperty("search", metadata.getTitle());
 			result.addProperty("year", metadata.getStartYear());
 			result.addProperty("media_type", "tv");
+		}
+		return result;
+	}
+
+	private static JsonObject getMediaInfo(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
+		LOGGER.debug("Make media info " + id);
+		StoreResource resource = renderer.getMediaStore().getResource(id);
+		RealFile item = resource instanceof RealFile realFile ? realFile : null;
+		if (item == null) {
+			LOGGER.debug("Bad media info id: " + id);
+			throw new IOException("Bad Id");
+		}
+		JsonObject result = new JsonObject();
+		File file = item.getFile();
+		result.addProperty("filename", item.getFileName());
+		result.addProperty("size", file.length());
+		MediaInfo mediaInfo = item.getMediaInfo();
+		if (mediaInfo != null) {
+			result.add("mediaInfo", mediaInfo.toJson());
 		}
 		return result;
 	}
