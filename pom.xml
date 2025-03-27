@@ -3621,6 +3621,7 @@
 												<include name="web/**"/>
 											</fileset>
 										</copy>
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR?p=${binary-revision}" dest="${project.basedir}/target/docker/app/tsMuxeR" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
