@@ -33,6 +33,7 @@ export interface PlayMedia extends BaseMedia {
   isDynamicPls: boolean
   mediaType: string
   surroundMedias: SurroundMedias
+  hasMediaInfo?: boolean
 }
 
 export interface VideoMedia extends PlayMedia {
@@ -146,6 +147,95 @@ export interface VideoMetadataImage {
 
 export interface ImageMedia extends PlayMedia {
   delay?: number
+}
+
+export interface BaseMediaInfo {
+  filename?: string
+  size?: number
+  mediaInfo?: MediaInfo
+}
+
+export interface MediaInfo {
+  size: number
+  container?: string
+  mediaType?: string
+  title?: string
+  bitrate?: number
+  framerate?: number
+  duration?: string
+  videotracks?: VideoTrackInfo[]
+  audiotracks?: AudioTrackInfo[]
+  subtitlestracks?: SubtitlesInfo[]
+  images?: number
+  image?: ImageInfo
+  thumbnail?: ImageInfo
+  mimetype?: string
+}
+
+export interface VideoTrackInfo {
+  id: number
+  default: boolean
+  forced: boolean
+  codec: string
+  stream: number
+  bitDepth: number
+  resolution: string
+  title?: string
+  lang?: string
+  formatProfile?: string
+  formatLevel?: string
+  formatTier?: string
+  duration?: string
+  displayaspectratio?: string
+  pixelaspectratio?: number
+  scantype?: string
+  scanOrder?: string
+  framerate?: number
+  framerateMode?: string
+  framerateModeRaw?: string
+  muxingMode?: string
+  matrixCoefficients?: string
+  referenceFrameCount?: number
+  hdrFormat?: string
+  hdrFormatRenderer?: string
+  hdrFormatCompatibility?: string
+  hdrFormatCompatibilityRenderer?: string
+}
+
+export interface AudioTrackInfo {
+  id: number
+  default: boolean
+  forced: boolean
+  codec: string
+  stream: number
+  bitrate: number
+  bitdepth: number
+  channel: number
+  samplerate: number
+  muxing: string
+  title?: string
+  lang?: string
+}
+
+export interface SubtitlesInfo {
+  id?: number
+  default?: boolean
+  forced?: boolean
+  embedded: boolean
+  stream?: number
+  title?: string
+  lang: string
+  type: string
+  externalFile?: string
+  subsCharacterSet?: string
+  convertedFile?: string
+}
+
+export interface ImageInfo {
+  resolution: string
+  format?: string
+  size?: number
+  bitDepth?: number
 }
 
 export function getMediaIcon(media: BaseMedia, i18n: I18nInterface, size: string | number, icon?: Icon) {

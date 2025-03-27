@@ -282,6 +282,20 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     refresh()
   }
 
+  const tokenIsValid = () => {
+    if (!token) {
+      return false
+    }
+    const now = Math.floor(new Date().getTime() / 1000) + 300
+    try {
+      const decoded = jwtDecode<JwtPayload>(token)
+      return (decoded.exp && decoded.exp > now)
+    }
+    catch (e) {
+      return false
+    }
+  }
+
   const refreshLocalUsers = () => {
     const localUsersTemp = [] as LocalUser[]
     const renew = Math.floor(new Date().getTime() / 1000) + 300
@@ -369,7 +383,12 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     if (initialized) {
       return
     }
-    axios.defaults.headers.common['Authorization'] = token ? 'Bearer ' + token : undefined
+    if (tokenIsValid()) {
+      axios.defaults.headers.common['Authorization'] = token ? 'Bearer ' + token : undefined
+    }
+    else {
+      clearToken()
+    }
     axios.interceptors.response.use(function (response) {
       return response
     }, function (error) {

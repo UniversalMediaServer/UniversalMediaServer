@@ -23,6 +23,7 @@ import { PlayerEventInterface } from '../../services/player-server-event-service
 import { BaseBrowse, PlayMedia, VideoMedia } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
 import MediaEditButton from './MediaEditButton'
+import MediaInfoModal from './MediaInfoModal'
 import VideoMetadataEditModal from './VideoMetadataEditModal'
 
 export default function MediaPanelMenu({ i18n, sse, data, refreshPage, setLoading }: { i18n: I18nInterface, sse: PlayerEventInterface, data: BaseBrowse, refreshPage: () => void, setLoading: (loading: boolean) => void }) {
@@ -31,6 +32,7 @@ export default function MediaPanelMenu({ i18n, sse, data, refreshPage, setLoadin
   const videoMedia = playMedia && playMedia.mediaType === 'video' ? playMedia as VideoMedia : undefined
   const isVideoMetadataEditable = (data.goal === 'browse' && data.metadata?.isEditable) || (videoMedia && videoMedia.metadata?.isEditable)
   const fullyplayed = (playMedia && playMedia.fullyplayed != null) ? playMedia.fullyplayed : data.fullyplayed
+  const hasMediaInfo = (playMedia && playMedia.hasMediaInfo)
   const hasFullyplayedValue = fullyplayed != null
   const hasEditMenu = isVideoMetadataEditable || hasFullyplayedValue
 
@@ -38,6 +40,8 @@ export default function MediaPanelMenu({ i18n, sse, data, refreshPage, setLoadin
     ? (
         <Button.Group>
           <Button variant="default" size="compact-md" leftSection={<IconPlayerPlay size={14} />} onClick={() => sse.askPlayId(data.medias[0].id)}>{i18n.get('Play')}</Button>
+          {hasMediaInfo
+            && <MediaInfoModal i18n={i18n} uuid={sse.uuid} id={sse.reqId} />}
           {isVideoMetadataEditable
             && <VideoMetadataEditModal i18n={i18n} uuid={sse.uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />}
           {hasEditMenu
