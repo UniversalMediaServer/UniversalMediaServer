@@ -72,12 +72,14 @@ public class MediaInfoParser {
 	private static final Version VERSION;
 	private static final boolean IS_VALID;
 	public static final String PARSER_NAME;
+	public static final Throwable LOADING_ERROR;
 
 	private static boolean blocked;
 
 	static {
 		MediaInfoHelper mediaInfoHelper = getMediaInfoHelper(true);
 		IS_VALID = mediaInfoHelper.isValid();
+		LOADING_ERROR = mediaInfoHelper.getLoadingError();
 		if (IS_VALID) {
 			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(mediaInfoHelper.option("Info_Version"));
 			if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {

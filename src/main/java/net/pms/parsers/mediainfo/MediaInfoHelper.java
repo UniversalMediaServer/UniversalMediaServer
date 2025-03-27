@@ -31,6 +31,7 @@ public class MediaInfoHelper implements AutoCloseable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoHelper.class);
 
 	private Pointer handle;
+	private Throwable loadingError;
 
 	// Constructor/Destructor
 	public MediaInfoHelper(boolean log) {
@@ -49,6 +50,7 @@ public class MediaInfoHelper implements AutoCloseable {
 				setUTF8();
 			}
 		} catch (Throwable e) {
+			loadingError = e;
 			LOGGER.error("Error loading MediaInfo library: {}", e.getMessage());
 			LOGGER.trace("", e);
 			if (!Platform.isWindows() && !Platform.isMac()) {
@@ -56,6 +58,10 @@ public class MediaInfoHelper implements AutoCloseable {
 			}
 			LOGGER.info("The server will now use the less accurate FFmpeg parsing method");
 		}
+	}
+
+	public Throwable getLoadingError() {
+		return loadingError;
 	}
 
 	public boolean isValid() {

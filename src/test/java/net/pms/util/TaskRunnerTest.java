@@ -26,7 +26,7 @@ public class TaskRunnerTest {
 
 	@BeforeEach
 	public void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	class Counter {
