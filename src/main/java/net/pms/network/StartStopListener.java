@@ -14,32 +14,23 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.service;
+package net.pms.network;
 
 import net.pms.formats.Format;
+import net.pms.service.Services;
 import net.pms.store.StoreItem;
 
 // a utility class, instances of which trigger start/stop callbacks before/after streaming a item
-public class StartStopListenerDelegate {
+public class StartStopListener {
 
 	private final String rendererId;
-	private StoreItem item;
+	private final StoreItem item;
 	private boolean started = false;
 	private boolean stopped = false;
 
-	public StartStopListenerDelegate(String rendererId, StoreItem item) {
+	public StartStopListener(String rendererId, StoreItem item) {
 		this.rendererId = rendererId;
 		this.item = item;
-	}
-
-	public StartStopListenerDelegate(String rendererId) {
-		this.rendererId = rendererId;
-	}
-
-	public synchronized void start(StoreItem item) {
-		assert this.item == null;
-		this.item = item;
-		start();
 	}
 
 	// technically, these don't need to be synchronized as there should be
@@ -54,6 +45,16 @@ public class StartStopListenerDelegate {
 			Services.sleepManager().startPlaying();
 		} else {
 			Services.postponeSleep();
+		}
+	}
+
+	public synchronized void setBytesSent(long bytesSent) {
+		//here we have access to the StoreItem, and can follow the bytes sent.
+		//we may use this to store bytes sent from the same range on previous
+		//request, or something like that to start only if we are sure it need.
+		//For now, I put a start if more than 100k was received by renderer.
+		if (!started && bytesSent > 100000) {
+			start();
 		}
 	}
 
