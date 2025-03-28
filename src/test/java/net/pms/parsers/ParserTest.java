@@ -39,7 +39,7 @@ public class ParserTest {
 	@BeforeAll
 	public static void setUpClass() {
 		PMS.configureJNA();
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 		//silent org.jaudiotagger
 		org.jaudiotagger.audio.wav.WavTagReader.logger.setLevel(Level.OFF);
 		org.jaudiotagger.audio.flac.FlacInfoReader.logger.setLevel(Level.OFF);

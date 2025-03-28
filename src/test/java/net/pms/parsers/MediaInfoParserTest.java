@@ -17,6 +17,7 @@
 package net.pms.parsers;
 
 import java.io.File;
+import net.pms.TestHelper;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -120,8 +121,9 @@ public class MediaInfoParserTest {
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
 		assertTrue(
-			MediaInfoParser.isValid(),
-			"\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n"
+				MediaInfoParser.isValid(),
+				"\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n" +
+				 "\r\n" + MediaInfoParser.LOADING_ERROR + "\r\n"
 		);
 
 		//video

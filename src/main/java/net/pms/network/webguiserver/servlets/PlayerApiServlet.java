@@ -55,7 +55,7 @@ import net.pms.media.video.metadata.TvSeasonMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.servlets.StartStopListener;
+import net.pms.network.StartStopListener;
 import net.pms.network.webguiserver.EventSourceClient;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.renderers.ConnectedRenderers;
@@ -1256,7 +1256,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							resp.setHeader("Connection", "keep-alive");
 							if (uri.endsWith(".ts")) {
 								resp.setContentType(HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
-								startStopListener = new StartStopListener(req.getRemoteHost(), item);
+								startStopListener = new StartStopListener(renderer.getUUID(), item);
 							} else if (uri.endsWith(".vtt")) {
 								resp.setContentType(HTTPResource.WEBVTT_TYPEMIME);
 							}
