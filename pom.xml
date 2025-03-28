@@ -3595,7 +3595,7 @@
 						<executions>
 							<execution>
 								<id>prepare-docker</id>
-								<phase>package</phase>
+								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -3629,7 +3629,7 @@
 							</execution>
 							<execution>
 								<id>docker-build</id>
-								<phase>install</phase>
+								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -3643,7 +3643,7 @@
 							</execution>
 							<execution>
 								<id>docker-deploy</id>
-								<phase>deploy</phase>
+								<phase>install</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
