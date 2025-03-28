@@ -29,7 +29,9 @@ rm -rf target/test-classes
 
 mvn -P macos package -DskipTests=true
 
+mvn -P docker prepare-package -DskipTests=true
 mvn -P docker package -DskipTests=true
+mvn -P docker install -DskipTests=true
 
 ./scripts/dependencies/gon ./gon-config-prebuild.json
 ./scripts/dependencies/gon ./gon-config-build-intel.json
