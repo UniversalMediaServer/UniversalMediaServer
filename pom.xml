@@ -92,7 +92,7 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.16</slf4j-api-version>
+		<slf4j-api-version>2.0.17</slf4j-api-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -487,7 +487,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.7.0</version>
+			<version>6.8.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -3595,7 +3595,7 @@
 						<executions>
 							<execution>
 								<id>prepare-docker</id>
-								<phase>package</phase>
+								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -3603,6 +3603,7 @@
 									<target>
 										<mkdir dir="${project.basedir}/target/docker" />
 										<mkdir dir="${project.basedir}/target/docker/app" />
+										<mkdir dir="${project.basedir}/target/docker/app/linux" />
 										<mkdir dir="${project.basedir}/target/docker/profile" />
 										<mkdir dir="${project.basedir}/target/docker/profile/data" />
 										<mkdir dir="${project.basedir}/target/docker/profile/database" />
@@ -3621,12 +3622,14 @@
 												<include name="web/**"/>
 											</fileset>
 										</copy>
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR?p=${binary-revision}" dest="${project.basedir}/target/docker/app/linux/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.basedir}/target/docker/app/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
 							<execution>
 								<id>docker-build</id>
-								<phase>install</phase>
+								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -3640,7 +3643,7 @@
 							</execution>
 							<execution>
 								<id>docker-deploy</id>
-								<phase>deploy</phase>
+								<phase>install</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>

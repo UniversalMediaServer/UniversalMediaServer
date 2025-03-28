@@ -48,6 +48,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.MediaType;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
+import net.pms.network.StartStopListener;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper;

@@ -32,7 +32,7 @@ public class UmsConfigurationTest {
 	private UmsConfiguration configuration;
 	@BeforeEach
 	public void setUp() throws ConfigurationException, InterruptedException {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 
 		// Create default configuration instance
 		configuration = new UmsConfiguration(false);
