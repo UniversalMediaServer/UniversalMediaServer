@@ -20,11 +20,15 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.Blake3;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +55,9 @@ public class ResourceIdentifier {
 	private static final int BLOCKS_DIVIDER = BLOCKS_COUNT - 1;
 	private static final int BUFFER_SIZE = 4096;
 	private static final int PROCESS_BYTES = BUFFER_SIZE * BUFFER_COUNT * BLOCKS_COUNT;
+	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
+	private static final String LOG_RUID_RESULTS = "RUID for \"{}\": {}";
+	private static final String LOG_RUID_ERROR = "Error creating ruid ({}) for \"{}\"";
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -67,19 +74,35 @@ public class ResourceIdentifier {
 	 * @throws IOException
 	 */
 	public static String getResourceIdentifier(final String uri) {
-		boolean isUrl = FileUtil.isUrl(uri);
-		if (!isUrl) {
-			File file = new File(uri);
-			if (file.exists() && file.isFile()) {
-				long fileSize = file.length();
-				if (fileSize > PROCESS_BYTES) {
-					return getBigFileIdentifier(file, fileSize);
-				} else {
-					return getSmallFileIdentifier(file, fileSize);
-				}
+		if (StringUtils.isBlank(uri)) {
+			return null;
+		}
+		File file = getFile(uri);
+		if (file != null && file.exists() && file.isFile()) {
+			long fileSize = file.length();
+			if (fileSize > PROCESS_BYTES) {
+				return getBigFileIdentifier(file, fileSize);
+			} else {
+				return getSmallFileIdentifier(file, fileSize);
 			}
 		}
 		return getTextIdentifier(uri);
+	}
+
+	private static File getFile(final String uri) {
+		//try URI
+		try {
+			return new File(URI.create(uri));
+		} catch (IllegalArgumentException es) {
+			//not a file URI
+		}
+		//try path
+		try {
+			return Path.of(uri).toFile();
+		} catch (InvalidPathException e) {
+			//not a path
+		}
+		return null;
 	}
 
 	/**
@@ -93,7 +116,8 @@ public class ResourceIdentifier {
 	 * @throws IOException
 	 */
 	private static String getBigFileIdentifier(final File file, final long fileSize) {
-		LOGGER.debug("Creating ruid (big file) for \"{}\"", file.getAbsolutePath());
+		String pathname = file.getAbsolutePath();
+		LOGGER.debug(LOG_RUID_CREATE, "big file", pathname);
 		Blake3 blake3 = Blake3.initHash();
 		try (InputStream is = Files.newInputStream(file.toPath())) {
 			//put file size
@@ -114,9 +138,11 @@ public class ResourceIdentifier {
 			}
 			byte[] hash = new byte[32];
 			blake3.doFinalize(hash);
-			return Hex.encodeHexString(hash);
+			String ruid = Hex.encodeHexString(hash);
+			LOGGER.trace(LOG_RUID_RESULTS, pathname, ruid);
+			return ruid;
 		} catch (IOException ex) {
-			LOGGER.error("Error creating ruid (big file) for \"{}\"", file.getAbsolutePath());
+			LOGGER.error(LOG_RUID_ERROR, "big file", pathname);
 			LOGGER.trace("", ex);
 		}
 		return null;
@@ -133,7 +159,8 @@ public class ResourceIdentifier {
 	 * @throws IOException
 	 */
 	private static String getSmallFileIdentifier(final File file, final long fileSize) {
-		LOGGER.debug("Creating ruid (small file) for \"{}\"", file.getAbsolutePath());
+		String pathname = file.getAbsolutePath();
+		LOGGER.debug(LOG_RUID_CREATE, "small file", pathname);
 		Blake3 blake3 = Blake3.initHash();
 		try (InputStream is = Files.newInputStream(file.toPath())) {
 			//put file size
@@ -145,9 +172,11 @@ public class ResourceIdentifier {
 			}
 			byte[] hash = new byte[32];
 			blake3.doFinalize(hash);
-			return Hex.encodeHexString(hash);
+			String ruid = Hex.encodeHexString(hash);
+			LOGGER.trace(LOG_RUID_RESULTS, pathname, ruid);
+			return ruid;
 		} catch (IOException ex) {
-			LOGGER.error("Error creating ruid (small file) for \"{}\"", file.getAbsolutePath());
+			LOGGER.error(LOG_RUID_ERROR, "small file", pathname);
 			LOGGER.trace("", ex);
 		}
 		return null;
@@ -164,7 +193,7 @@ public class ResourceIdentifier {
 	 * @throws IOException
 	 */
 	private static String getTextIdentifier(final String text) {
-		LOGGER.debug("Creating ruid (text) for \"{}\"", text);
+		LOGGER.debug(LOG_RUID_CREATE, "text", text);
 		Blake3 blake3 = Blake3.initHash();
 		byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
 		try (InputStream is = new ByteArrayInputStream(bytes)) {
@@ -177,9 +206,11 @@ public class ResourceIdentifier {
 			}
 			byte[] hash = new byte[32];
 			blake3.doFinalize(hash);
-			return Hex.encodeHexString(hash);
+			String ruid = Hex.encodeHexString(hash);
+			LOGGER.trace(LOG_RUID_RESULTS, text, ruid);
+			return ruid;
 		} catch (IOException ex) {
-			LOGGER.error("Error creating ruid (text) for \"{}\"", text);
+			LOGGER.error(LOG_RUID_ERROR, "text", text);
 			LOGGER.trace("", ex);
 		}
 		return null;

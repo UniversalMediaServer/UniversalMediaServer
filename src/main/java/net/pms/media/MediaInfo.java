@@ -63,6 +63,7 @@ public class MediaInfo implements Cloneable {
 
 	// Stored in database
 	private Long fileId;
+	private String resourceId;
 	private String lastParser;
 	private Double durationSec;
 	private int bitrate;
@@ -112,6 +113,14 @@ public class MediaInfo implements Cloneable {
 
 	public void setFileId(Long value) {
 		fileId = value;
+	}
+
+	public String getResourceId() {
+		return resourceId;
+	}
+
+	public void setResourceId(String value) {
+		resourceId = value;
 	}
 
 	public int getVideoTrackCount() {
