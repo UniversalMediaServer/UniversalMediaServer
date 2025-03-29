@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `eslint` from 9.22.0 to 9.23.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
+
 ## [14.12.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.11.0...14.12.0) (2025-03-26)
 
 ### General
