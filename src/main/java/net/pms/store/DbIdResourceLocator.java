@@ -151,6 +151,9 @@ public class DbIdResourceLocator {
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		LOGGER.debug("getLibraryResourceByDbTypeIdent : {}", typeIdent.toString());
 		switch (typeIdent.type) {
+			case TYPE_AUDIOADDICT -> {
+				return renderer.getMediaStore().getMediaLibrary().getAudioAddictPlatformFolder();
+			}
 			case TYPE_MUSICBRAINZ_RECORDID -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
 					return null;
