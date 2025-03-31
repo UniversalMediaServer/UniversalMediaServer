@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@stylistic/eslint-plugin` from 4.1.0 to 4.2.0 ([#5428](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5428))
 - Bump `ch.qos.logback:logback-classic` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
 - Bump `ch.qos.logback:logback-core` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
 - Bump `eslint` from 9.22.0 to 9.23.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
