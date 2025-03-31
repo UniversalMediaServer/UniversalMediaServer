@@ -1044,12 +1044,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:19.0.10":
-  version: 19.0.10
-  resolution: "@types/react@npm:19.0.10"
+"@types/react@npm:19.0.12":
+  version: 19.0.12
+  resolution: "@types/react@npm:19.0.12"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10c0/41884cca21850c8b2d6578b172ca0ca4fff6021251a68532b19f2031ac23dc5a9222470208065f8d9985d367376047df2f49ece8d927f7d04cdc94922b1eb34b
+  checksum: 10c0/c814b6af5c0fbcf5c65d031b1c9bf98c5b857e015254d95811f2851b27b869c3d31c6f35dab127dc6921a3dbda0b0622c6323d493a14b31b231a6a58c41c5e84
   languageName: node
   linkType: hard
 
@@ -3975,10 +3975,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.0.0":
-  version: 19.0.0
-  resolution: "react@npm:19.0.0"
-  checksum: 10c0/9cad8f103e8e3a16d15cb18a0d8115d8bd9f9e1ce3420310aea381eb42aa0a4f812cf047bb5441349257a05fba8a291515691e3cb51267279b2d2c3253f38471
+"react@npm:19.1.0":
+  version: 19.1.0
+  resolution: "react@npm:19.1.0"
+  checksum: 10c0/530fb9a62237d54137a13d2cfb67a7db6a2156faed43eecc423f4713d9b20c6f2728b026b45e28fcd72e8eadb9e9ed4b089e99f5e295d2f0ad3134251bdd3698
   languageName: node
   linkType: hard
 
@@ -4693,7 +4693,7 @@ __metadata:
     "@stylistic/eslint-plugin": "npm:4.1.0"
     "@tabler/icons-react": "npm:^3.31.0"
     "@types/lodash": "npm:4.17.16"
-    "@types/react": "npm:19.0.10"
+    "@types/react": "npm:19.0.12"
     "@types/react-dom": "npm:19.0.4"
     "@vitejs/plugin-react": "npm:4.3.4"
     axios: "npm:1.8.4"
@@ -4703,7 +4703,7 @@ __metadata:
     eslint-plugin-react-refresh: "npm:0.4.19"
     jwt-decode: "npm:4.0.0"
     lodash: "npm:4.17.21"
-    react: "npm:19.0.0"
+    react: "npm:19.1.0"
     react-country-flag: "npm:3.1.0"
     react-dom: "npm:19.0.0"
     react-movable: "npm:3.4.1"
