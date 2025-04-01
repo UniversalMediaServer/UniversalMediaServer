@@ -30,7 +30,7 @@
     "axios": "1.8.4",
     "jwt-decode": "4.0.0",
     "lodash": "4.17.21",
-    "react": "19.0.0",
+    "react": "19.1.0",
     "react-country-flag": "3.1.0",
     "react-dom": "19.1.0",
     "react-movable": "3.4.1",
