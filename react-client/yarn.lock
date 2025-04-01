@@ -3068,16 +3068,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jb-videojs-hls-quality-selector@npm:2.0.2":
-  version: 2.0.2
-  resolution: "jb-videojs-hls-quality-selector@npm:2.0.2"
-  dependencies:
-    global: "npm:^4.4.0"
-    video.js: "npm:^8"
-  checksum: 10c0/25f5dea2790c2b03bff788a1eaeadfb6ad98869f72182009a77185f262eb21793ba7d1c997565f0a472d82c46c416d252889767e92b3bd5597e5609e3be13f43
-  languageName: node
-  linkType: hard
-
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -4738,7 +4728,6 @@ __metadata:
     eslint-plugin-react: "npm:7.37.4"
     eslint-plugin-react-hooks: "npm:5.2.0"
     eslint-plugin-react-refresh: "npm:0.4.19"
-    jb-videojs-hls-quality-selector: "npm:2.0.2"
     jwt-decode: "npm:4.0.0"
     lodash: "npm:4.17.21"
     react: "npm:19.1.0"
@@ -4895,7 +4884,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:^7 || ^8, video.js@npm:^8":
+"video.js@npm:^7 || ^8":
   version: 8.23.0
   resolution: "video.js@npm:8.23.0"
   dependencies:
