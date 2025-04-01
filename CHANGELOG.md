@@ -9,6 +9,7 @@
 - Bump `@mantine/hooks` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
 - Bump `@mantine/modals` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
 - Bump `@mantine/notifications` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
+- Bump `@stylistic/eslint-plugin` from 4.1.0 to 4.2.0 ([#5428](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5428))
 - Bump `ch.qos.logback:logback-classic` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
 - Bump `ch.qos.logback:logback-core` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.4 to 0.12.12 ([#5430](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5430))
