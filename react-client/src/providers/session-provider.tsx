@@ -16,7 +16,7 @@
  */
 import { useInterval, useLocalStorage, useSessionStorage } from '@mantine/hooks'
 import { hideNotification } from '@mantine/notifications'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { jwtDecode, JwtPayload } from 'jwt-decode'
 import _ from 'lodash'
 import { ReactNode, useEffect, useState } from 'react'
@@ -75,7 +75,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
 
   const refresh = () => {
     axios.get(authApiUrl + 'session')
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         hideNotification('connection-lost')
         setSession({ ...response.data })
         setServerName(response.data.serverName ? response.data.serverName : 'Universal Media Server')
@@ -211,7 +211,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       username,
       password,
     })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         if (response.data.token) {
           setToken(response.data.token)
           hideNotification('pwd-error')
@@ -237,7 +237,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       id,
       pin,
     })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         if (response.data.token) {
           setToken(response.data.token)
           hideNotification('pwd-error')
@@ -291,7 +291,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       const decoded = jwtDecode<JwtPayload>(token)
       return (decoded.exp && decoded.exp > now)
     }
-    catch (e) {
+    catch {
       return false
     }
   }
@@ -305,7 +305,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       if (decoded.exp) {
         if (decoded.exp < renew) {
           axios.post(authApiUrl + 'refresh', { token: currentToken })
-            .then(function (response: any) {
+            .then(function (response: AxiosResponse) {
               if (response.data.token) {
                 localUser.token = response.data.token
                 localUsersTemp.push(localUser)

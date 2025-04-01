@@ -16,7 +16,7 @@
  */
 import { Button, Group, Modal, ScrollArea } from '@mantine/core'
 import { IconDeviceSpeaker, IconFileInfo, IconMovie } from '@tabler/icons-react'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
@@ -43,7 +43,7 @@ export default function MediaInfoModal({
   const getMediaInfo = () => {
     setLoading(true)
     axios.post(playerApiUrl + 'getMediaInfo', { uuid: uuid, id: id })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setMediaInfo(response.data)
         setOpened(true)
       })

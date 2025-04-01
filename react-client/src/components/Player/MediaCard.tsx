@@ -16,6 +16,7 @@
  */
 import { ActionIcon, Card, Center, Image, Text } from '@mantine/core'
 import { IconInfoSmall } from '@tabler/icons-react'
+import { MouseEvent } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
@@ -25,7 +26,7 @@ import { playerApiUrl } from '../../utils'
 
 export default function MediaCard({ i18n, session, sse, media }: { i18n: I18nInterface, session: SessionInterface, sse: PlayerEventInterface, media: BaseMedia }) {
   const onInfoPress = session.playerDirectPlay && media.goal === 'show'
-    ? (e: any) => {
+    ? (e: MouseEvent) => {
         sse.askReqId(media.id, 'show')
         e.stopPropagation()
       }

@@ -16,7 +16,7 @@
  */
 import { Box, Button, Group, LoadingOverlay, Modal, Paper, ScrollArea, Stack } from '@mantine/core'
 import { IconFolder, IconFolders } from '@tabler/icons-react'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 
 import DirectoryBreadcrumbs from './DirectoryBreadcrumbs'
@@ -51,7 +51,7 @@ export default function DirectoryModal({
   const getSubdirectories = (path: string) => {
     setLoading(true)
     axios.post(settingsApiUrl + 'directories', { path: (path) ? path : '' })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         const directoriesResponse = response.data
         setSeparator(directoriesResponse.separator)
         setDirectories(directoriesResponse.children)

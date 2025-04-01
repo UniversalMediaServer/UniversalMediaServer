@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Affix, Box, Button, Text } from '@mantine/core'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
@@ -62,7 +62,7 @@ export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterf
   useEffect(() => {
     if (canView) {
       axios.get(sharedApiUrl)
-        .then(function (response: any) {
+        .then(function (response: AxiosResponse) {
           const sharedResponse = response.data as SharedContentConfiguration
           setConfiguration(sharedResponse)
           setSharedContents(sharedResponse.shared_content)
@@ -93,7 +93,7 @@ export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterf
   const submit = async () => {
     setLoading(true)
     try {
-      const changedValues: Record<string, any> = {}
+      const changedValues: Record<string, unknown> = {}
 
       // construct an object of only changed values to send
       if (!_.isEqual(configuration?.shared_content, sharedContents)) {
@@ -115,7 +115,7 @@ export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterf
         })
       }
     }
-    catch (err) {
+    catch {
       showError({
         title: i18n.get('Error'),
         message: i18n.get('ConfigurationNotSaved'),

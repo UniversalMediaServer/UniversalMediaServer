@@ -17,14 +17,14 @@
 import axios from 'axios'
 import { useEffect } from 'react'
 import videojs from 'video.js'
-import Player, { PlayerReadyCallback } from 'video.js/dist/types/player'
 import 'video.js/dist/video-js.min.css'
 
 import { AudioMedia, BaseMedia, VideoMedia } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
-import './HlsQualitySelector/HlsQualitySelectorPlugin'
+import HlsQualitySelector from './VideoJs/HlsQualitySelector'
+import { VideoJsPlayer, VideoJsPlayerOptions } from './VideoJs/VideoJs'
 
-const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
+const VideoPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     const videoElem = document.createElement('video')
     videoElem.id = 'player'
@@ -32,11 +32,12 @@ const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
     document.getElementById('videodiv')?.appendChild(videoElem)
 
     const videoMedia = (vpOptions.media.mediaType === 'video') ? (vpOptions.media as VideoMedia) : null
-    const options = {} as any
+    const options = {} as VideoJsPlayerOptions
     options.liveui = true
     options.controls = true
+    options.qualityLevels = true
     options.userActions = {
-      hotkeys: function (event: any) {
+      hotkeys: function (event: KeyboardEvent) {
         if (event.which === 32) {
           if (this.paused()) {
             this.play()
@@ -46,11 +47,13 @@ const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
           }
         }
         if (event.which === 37) {
-          this.currentTime(Math.max(0, this.currentTime() - 15))
+          const currentTime = this.currentTime() || 0
+          this.currentTime(Math.max(0, currentTime - 15))
         }
         if (event.which === 39) {
-          const duration = this.liveTracker && this.liveTracker.isLive() ? this.liveTracker.seekableEnd() : this.duration()
-          this.currentTime(Math.min(this.currentTime() + 15), duration)
+          const currentTime = this.currentTime() || 0
+          const duration = (this.liveTracker && this.liveTracker.isLive()) ? this.liveTracker.seekableEnd() : this.duration() || 0
+          this.currentTime(Math.min(currentTime + 15, duration))
         }
         if (event.which === 70) {
           if (this.isFullscreen() === true) {
@@ -80,7 +83,7 @@ const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
       options.tracks.push(sub)
     }
     const status = { uuid: vpOptions.uuid, id: vpOptions.media.id } as { [key: string]: string }
-    const setStatus = (key: string, value: any, wait: boolean) => {
+    const setStatus = (key: string, value: string, wait: boolean) => {
       if (status[key] !== value) {
         status[key] = value
         if (!wait) {
@@ -88,7 +91,7 @@ const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         }
       }
     }
-    const onready = (_player: Player) => {
+    const onready = () => {
       const volumeStatus = () => {
         setStatus('mute', videoPlayer.muted() ? '1' : '0', true)
         setStatus('volume', ((videoPlayer.volume() || 0) * 100).toFixed(0), false)
@@ -166,7 +169,7 @@ const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
       }
       if (vpOptions.media.mime === 'application/x-mpegURL') {
         try {
-          (videoPlayer as any).hlsQualitySelector()
+          new HlsQualitySelector(videoPlayer, {})
         }
         catch (error) {
           videojs.log(error)
@@ -174,7 +177,7 @@ const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
       }
     }
 
-    const videoPlayer = videojs(videoElem, options, onready as PlayerReadyCallback)
+    const videoPlayer = videojs(videoElem, options, onready) as VideoJsPlayer
 
     return () => {
       if (!videoPlayer.isDisposed()) {
@@ -195,4 +198,4 @@ interface VideoPlayerOption {
   askPlayId: (id: string) => void
 }
 
-export default VideoJsPlayer
+export default VideoPlayer

@@ -28,7 +28,7 @@ export default function GroupAccordion({
 }: {
   i18n: I18nInterface
   accounts: UmsAccounts
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   return (
     <Accordion>

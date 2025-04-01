@@ -30,7 +30,7 @@ export default function UserAddAccordionItem({
   i18n: I18nInterface
   canManageUsers: boolean
   groupSelectionDatas: ValueLabelData[]
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const user = { id: 0, username: i18n.get('NewUser') } as UmsUser
   const group = { id: 0, displayName: '' } as UmsGroup

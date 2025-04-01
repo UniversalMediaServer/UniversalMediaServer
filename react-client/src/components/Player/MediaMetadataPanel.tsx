@@ -118,11 +118,11 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
       }
     }
     if (!poster && metadata && metadata.poster) {
-      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={metadata.poster} />)
+      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={metadata.poster} alt="poster" />)
     }
     if (!poster && media && media.id) {
       const updateId = media.updateId ? '?update=' + media.updateId : ''
-      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} />)
+      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} alt="thumbnail" />)
     }
     return { logo, poster }
   }

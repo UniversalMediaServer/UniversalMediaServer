@@ -16,6 +16,7 @@
  */
 import { Context, createContext } from 'react'
 
+import { RendererAction } from '../services/home-service'
 import { ServerEventInterface } from '../services/server-event-service'
 
 const ServerEventContext: Context<ServerEventInterface> = createContext({
@@ -24,13 +25,13 @@ const ServerEventContext: Context<ServerEventInterface> = createContext({
   updateAccounts: false as boolean,
   setUpdateAccounts: (_updateAccounts: boolean) => { },
   reloadable: false as boolean,
-  userConfiguration: null,
-  setUserConfiguration: (_config: any) => { },
+  userConfiguration: null as Record<string, unknown> | null,
+  setUserConfiguration: (_config: Record<string, unknown> | null) => { },
   mediaScan: false as boolean,
   hasRendererAction: false as boolean,
-  getRendererAction: () => null,
+  getRendererAction: () => undefined as RendererAction | undefined,
   hasNewLogLine: false as boolean,
-  getNewLogLine: () => null,
+  getNewLogLine: () => undefined as string | undefined,
 })
 
 export default ServerEventContext

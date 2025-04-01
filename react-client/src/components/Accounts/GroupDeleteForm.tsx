@@ -30,7 +30,7 @@ export default function GroupDeleteForm({
 {
   i18n: I18nInterface
   group: UmsGroup
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const groupDeleteForm = useForm({ initialValues: { id: group.id } })
   const handleGroupDeleteSubmit = () => {

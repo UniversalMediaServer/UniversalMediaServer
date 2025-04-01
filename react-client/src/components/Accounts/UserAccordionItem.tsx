@@ -38,7 +38,7 @@ export default function UserAccordionItem({
   accounts: UmsAccounts
   canManageGroups: boolean
   groupSelectionDatas: ValueLabelData[]
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const userGroup = getUserGroup(user, accounts)
   return (

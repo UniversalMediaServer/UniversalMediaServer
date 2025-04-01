@@ -25,7 +25,7 @@ export default function UserAccordionItems({
 }: {
   i18n: I18nInterface
   accounts: UmsAccounts
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   return accounts.groups.map((group) => {
     return <GroupAccordionItem key={group.id} i18n={i18n} group={group} postAccountAction={postAccountAction} />

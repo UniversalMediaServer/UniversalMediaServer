@@ -36,7 +36,7 @@ export default function AuthenticationSettings({
   const [authOpened, setAuthOpened] = useState(false)
   const [localhostOpened, setLocalhostOpened] = useState(false)
 
-  const postAccountAuthAction = async (data: any, errormessage: string) => {
+  const postAccountAuthAction = async (data: Record<string, unknown>, errormessage: string) => {
     try {
       await axios.post(accountApiUrl + 'action', data)
       await session.logout(false)

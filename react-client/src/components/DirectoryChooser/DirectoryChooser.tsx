@@ -21,38 +21,37 @@ import { IconFolders, IconFolderX } from '@tabler/icons-react'
 import { I18nInterface } from '../../services/i18n-service'
 import DirectoryModal from './DirectoryModal'
 
-export default function DirectoryChooser(props: {
+export default function DirectoryChooser({
+  i18n,
+  tooltipText,
+  path,
+  callback,
+  label,
+  disabled,
+  size,
+  placeholder,
+  withAsterisk,
+}: {
   i18n: I18nInterface
-  tooltipText: string
+  tooltipText?: string
   path: string
-  callback: any
+  callback: (value: string) => void
   label?: string
   disabled?: boolean
-  formKey?: string
   size?: MantineSize
   placeholder?: string
   withAsterisk?: boolean
 }) {
   const [opened, setOpened] = useState(false)
-  const i18n = props.i18n
-
-  const setDirectory = (value: string) => {
-    if (props.formKey) {
-      props.callback(props.formKey, value)
-    }
-    else {
-      props.callback(value)
-    }
-  }
 
   const setSelectedDirectory = (value: string) => {
     if (value) {
-      setDirectory(value)
+      callback(value)
     }
     setOpened(false)
   }
 
-  const hasRightSection = !props.disabled && props.path
+  const hasRightSection = !disabled && path
 
   const DirectoryRightSection = (): ReactNode => {
     return hasRightSection && (
@@ -60,7 +59,7 @@ export default function DirectoryChooser(props: {
         c="red"
         pt="4"
         style={{ cursor: 'pointer' }}
-        onClick={() => setDirectory('')}
+        onClick={() => callback('')}
       >
         <IconFolderX size={18} />
       </Box>
@@ -68,7 +67,7 @@ export default function DirectoryChooser(props: {
   }
 
   const hasLeftSection = () => {
-    return !props.disabled && !props.path
+    return !disabled && !path
   }
 
   const DirectoryLeftSection = (): ReactNode | undefined => {
@@ -85,7 +84,7 @@ export default function DirectoryChooser(props: {
   }
 
   const openModal = () => {
-    if (!props.disabled) {
+    if (!disabled) {
       // getSubdirectories(props.path)
       setOpened(true)
     }
@@ -94,14 +93,14 @@ export default function DirectoryChooser(props: {
   const DirectoryTextInput = (): ReactNode => {
     return (
       <TextInput
-        size={props.size}
-        label={props.label}
-        disabled={props.disabled}
+        size={size}
+        label={label}
+        disabled={disabled}
         styles={{ input: { cursor: 'pointer' } }}
         style={{ flex: 1 }}
-        value={props.path}
-        placeholder={props.placeholder}
-        withAsterisk={props.withAsterisk}
+        value={path}
+        placeholder={placeholder}
+        withAsterisk={withAsterisk}
         leftSection={<DirectoryLeftSection />}
         leftSectionWidth={hasLeftSection() ? 40 : 10}
         rightSection={<DirectoryRightSection />}
@@ -113,9 +112,9 @@ export default function DirectoryChooser(props: {
   }
 
   const DirectoryTooltipText = (): ReactNode => {
-    return props.tooltipText
+    return tooltipText
       ? (
-          <Tooltip label={props.tooltipText} style={{ width: 350 }} color="blue" multiline withArrow={true}>
+          <Tooltip label={tooltipText} style={{ width: 350 }} color="blue" multiline withArrow={true}>
             <DirectoryTextInput />
           </Tooltip>
         )
@@ -126,7 +125,7 @@ export default function DirectoryChooser(props: {
     <Group>
       <DirectoryModal
         i18n={i18n}
-        path={props.path}
+        path={path}
         opened={opened}
         onClose={() => setOpened(false)}
         setSelectedDirectory={setSelectedDirectory}
@@ -134,8 +133,4 @@ export default function DirectoryChooser(props: {
       <DirectoryTooltipText />
     </Group>
   )
-}
-
-DirectoryChooser.defaultProps = {
-  tooltipText: null,
 }

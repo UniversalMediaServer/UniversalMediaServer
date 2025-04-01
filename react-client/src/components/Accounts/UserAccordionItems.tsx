@@ -29,7 +29,7 @@ export default function UserAccordionItems({
   accounts: UmsAccounts
   canManageGroups: boolean
   groupSelectionDatas: ValueLabelData[]
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   return accounts.users.map((user) => {
     return <UserAccordionItem key={user.id} i18n={i18n} user={user} accounts={accounts} postAccountAction={postAccountAction} canManageGroups={canManageGroups} groupSelectionDatas={groupSelectionDatas} />

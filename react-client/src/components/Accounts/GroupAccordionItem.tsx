@@ -31,7 +31,7 @@ export default function GroupAccordionItem({
 {
   i18n: I18nInterface
   group: UmsGroup
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   return group.id > 0
     ? (

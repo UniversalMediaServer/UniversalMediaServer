@@ -18,7 +18,7 @@ import { Box, Button, Group, Tabs, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useLocalStorage } from '@mantine/hooks'
 import { hideNotification } from '@mantine/notifications'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 import { IconCheck } from '@tabler/icons-react'
@@ -80,7 +80,7 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
   useEffect(() => {
     if (canView) {
       axios.get(settingsApiUrl)
-        .then(function (response: any) {
+        .then(function (response: AxiosResponse) {
           const settingsResponse = response.data
           setSelectionSettings(settingsResponse.selectionSettings)
           setDefaultConfiguration(settingsResponse.userSettingsDefaults)
@@ -117,7 +117,7 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
     })
-    const changedValues: Record<string, any> = {}
+    const changedValues: Record<string, unknown> = {}
 
     // construct an object of only changed values to send
     for (const key in values) {

@@ -28,7 +28,7 @@ export default function GroupDisplayNameForm({
 {
   i18n: I18nInterface
   group: UmsGroup
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const groupDisplayNameForm = useForm({ initialValues: { id: group.id, displayName: group.displayName } })
   const handleGroupDisplayNameSubmit = (values: typeof groupDisplayNameForm.values) => {

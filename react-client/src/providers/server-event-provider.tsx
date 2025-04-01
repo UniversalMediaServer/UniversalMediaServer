@@ -20,9 +20,10 @@ import { ReactNode, useEffect, useState } from 'react'
 
 import ServerEventContext from '../contexts/server-event-context'
 import { I18nInterface } from '../services/i18n-service'
-import { UmsMemory } from '../services/server-event-service'
+import { SseNotificationData, UmsMemory } from '../services/server-event-service'
 import { SessionInterface } from '../services/session-service'
 import { sseApiUrl } from '../utils'
+import { RendererAction } from '../services/home-service'
 
 const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode, i18n: I18nInterface, session: SessionInterface }) => {
   const [prevLocation, setPrevLocation] = useState('')
@@ -32,10 +33,10 @@ const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode
   const [memory, setMemory] = useState<UmsMemory>({ max: 0, used: 0, dbcache: 0, buffer: 0 })
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(false)
   const [reloadable, setReloadable] = useState<boolean>(false)
-  const [userConfiguration, setUserConfiguration] = useState(null)
+  const [userConfiguration, setUserConfiguration] = useState<Record<string, unknown> | null>(null)
   const [mediaScan, setMediaScan] = useState<boolean>(false)
   const [hasRendererAction, setRendererAction] = useState(false)
-  const [rendererActions] = useState([] as any[])
+  const [rendererActions] = useState<RendererAction[]>([])
   const [hasNewLogLine, setNewLogLine] = useState(false)
   const [newLogLines] = useState([] as string[])
 
@@ -49,13 +50,13 @@ const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     }
     let notified = false
 
-    const addNotification = (datas: any) => {
+    const addNotification = (datas: SseNotificationData) => {
       showNotification({
         id: datas.id ? datas.id : 'sse-notification',
         color: datas.color,
         title: datas.title,
         message: datas.message ? i18n.getString(datas.message) : '',
-        autoClose: datas.autoClose ? datas.autoClose : true,
+        autoClose: datas.autoClose !== undefined ? datas.autoClose : true,
       })
     }
 
@@ -183,21 +184,19 @@ const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode
   }, [session.sseAs])
 
   const getRendererAction = () => {
-    let result = null
     if (rendererActions.length > 0) {
-      result = rendererActions.shift()
+      const result = rendererActions.shift()
       setRendererAction(rendererActions.length > 0)
+      return result
     }
-    return result
   }
 
   const getNewLogLine = () => {
-    let result = null
     if (newLogLines.length > 0) {
-      result = newLogLines.shift()
-      setNewLogLine(rendererActions.length > 0)
+      const result = newLogLines.shift()
+      setNewLogLine(newLogLines.length > 0)
+      return result
     }
-    return result
   }
 
   return (

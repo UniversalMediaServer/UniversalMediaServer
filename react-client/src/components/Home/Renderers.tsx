@@ -15,8 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ActionIcon, Button, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, ScrollArea, Select, Slider, Stack, Table, Text } from '@mantine/core'
-import axios from 'axios'
-import _ from 'lodash'
+import axios, { AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { IconCast, IconDevicesPc, IconDevicesPcOff, IconDots, IconLink, IconListDetails, IconPlayerPause, IconPlayerPlay, IconPlayerSkipBack, IconPlayerSkipForward, IconPlayerStop, IconPlayerTrackNext, IconPlayerTrackPrev, IconScreenShare, IconSettings, IconVolume, IconVolumeOff } from '@tabler/icons-react'
 
@@ -36,7 +35,7 @@ const Renderers = (
     renderers: Renderer[]
     users: User[]
     setAllowed: (rule: string, isAllowed: boolean) => void
-    setUserId: (rule: string, userId: any) => void
+    setUserId: (rule: string, userId: string | null) => void
   },
 ) => {
   const [askInfos, setAskInfos] = useState(-1)
@@ -52,7 +51,7 @@ const Renderers = (
       return
     }
     axios.post(renderersApiUrl + 'infos', { id: askInfos })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setInfos(response.data)
       })
       .catch(function () {
@@ -60,7 +59,7 @@ const Renderers = (
       })
   }, [askInfos])
 
-  const sendRendererControl = (id: number, action: string, value?: any) => {
+  const sendRendererControl = (id: number, action: string, value?: string | number) => {
     axios.post(renderersApiUrl + 'control', { id: id, action: action, value: value })
   }
 
@@ -282,7 +281,7 @@ const Renderers = (
               size="xs"
               id={rendererControlled.id}
               media={controlMedia}
-              callback={(value: Media | null) => setControlMedia(value)}
+              callback={(value: Media) => setControlMedia(value)}
             >
             </MediaChooser>
             {controlMedia && <ActionIcon onClick={() => sendRendererControl(rendererControlled.id, 'mediaid', controlMedia.value)}><IconCast /></ActionIcon>}

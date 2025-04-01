@@ -16,11 +16,12 @@
  */
 import { ActionIcon, Box, Group, Table, Tabs, Text } from '@mantine/core'
 import { IconEdit, IconEditOff } from '@tabler/icons-react'
-import axios from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import ReactCountryFlag from 'react-country-flag'
 
 import MemoryBar from '../MemoryBar/MemoryBar'
+import { AboutData } from '../../services/about-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface, UmsMemory } from '../../services/server-event-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
@@ -28,7 +29,7 @@ import { aboutApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
 const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
-  const [aboutDatas, setAboutDatas] = useState({ links: [] } as any)
+  const [aboutDatas, setAboutDatas] = useState<AboutData>()
   const [memory, setMemory] = useState<UmsMemory>()
   const canView = session.havePermission(UmsPermission.settings_view | UmsPermission.settings_modify)
   const languagesRows = i18n.languages.map(language => (
@@ -60,7 +61,7 @@ const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionIn
           )}
     </Table.Tr>
   ))
-  const linksRows = aboutDatas.links.map((link: { key: string, value: string }) => (
+  const linksRows = aboutDatas?.links.map((link: { key: string, value: string }) => (
     <Table.Tr key={link.key}>
       <Table.Td><Text ta="center" style={{ cursor: 'pointer' }} onClick={() => { window.open(link.value, '_blank') }}>{link.key}</Text></Table.Td>
     </Table.Tr>
@@ -80,10 +81,10 @@ const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionIn
 
   useEffect(() => {
     axios.get(aboutApiUrl)
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setAboutDatas(response.data)
       })
-      .catch(function (error) {
+      .catch(function (error: AxiosError) {
         if (!error.response && error.request) {
           i18n.showServerUnreachable()
         }
@@ -113,25 +114,25 @@ const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionIn
           <Table striped>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th colSpan={2}><Text c="blue" size="lg" ta="center">{aboutDatas.app}</Text></Table.Th>
+                <Table.Th colSpan={2}><Text c="blue" size="lg" ta="center">{aboutDatas?.app}</Text></Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               <Table.Tr>
                 <Table.Td>{i18n.get('Version')}</Table.Td>
-                <Table.Td>{aboutDatas.version}</Table.Td>
+                <Table.Td>{aboutDatas?.version}</Table.Td>
               </Table.Tr>
               <Table.Tr>
                 <Table.Td>{i18n.get('GitCommitHash')}</Table.Td>
-                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.commitUrl, '_blank') }}>{aboutDatas.commit}</Text></Table.Td>
+                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas?.commitUrl, '_blank') }}>{aboutDatas?.commit}</Text></Table.Td>
               </Table.Tr>
               <Table.Tr>
                 <Table.Td>{i18n.get('Website')}</Table.Td>
-                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.website, '_blank') }}>{aboutDatas.website}</Text></Table.Td>
+                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas?.website, '_blank') }}>{aboutDatas?.website}</Text></Table.Td>
               </Table.Tr>
               <Table.Tr>
                 <Table.Td>{i18n.get('Licence')}</Table.Td>
-                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.licenceUrl, '_blank') }}>{aboutDatas.licence}</Text></Table.Td>
+                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas?.licenceUrl, '_blank') }}>{aboutDatas?.licence}</Text></Table.Td>
               </Table.Tr>
             </Table.Tbody>
             {(canView && !session.player) && (
@@ -144,15 +145,15 @@ const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionIn
                 <Table.Tbody>
                   <Table.Tr>
                     <Table.Td>{i18n.get('OperatingSystem')}</Table.Td>
-                    <Table.Td>{aboutDatas.operatingSystem}</Table.Td>
+                    <Table.Td>{aboutDatas?.operatingSystem}</Table.Td>
                   </Table.Tr>
                   <Table.Tr>
                     <Table.Td>{i18n.get('SystemMemorySize')}</Table.Td>
-                    <Table.Td>{aboutDatas.systemMemorySize}</Table.Td>
+                    <Table.Td>{aboutDatas?.systemMemorySize}</Table.Td>
                   </Table.Tr>
                   <Table.Tr>
                     <Table.Td>{i18n.get('JVMMemoryMax')}</Table.Td>
-                    <Table.Td>{aboutDatas.jvmMemoryMax}</Table.Td>
+                    <Table.Td>{aboutDatas?.jvmMemoryMax}</Table.Td>
                   </Table.Tr>
                   {memory
                     && (

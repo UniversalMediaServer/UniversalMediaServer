@@ -27,7 +27,7 @@ export default function UserAddForm({
 {
   i18n: I18nInterface
   groupSelectionDatas: ValueLabelData[]
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const newUserForm = useForm({ initialValues: { username: '', password: '', groupid: '0', displayname: '' } })
   const handleNewUserSubmit = (values: typeof newUserForm.values) => {
