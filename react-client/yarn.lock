@@ -933,9 +933,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stylistic/eslint-plugin@npm:4.1.0":
-  version: 4.1.0
-  resolution: "@stylistic/eslint-plugin@npm:4.1.0"
+"@stylistic/eslint-plugin@npm:4.2.0":
+  version: 4.2.0
+  resolution: "@stylistic/eslint-plugin@npm:4.2.0"
   dependencies:
     "@typescript-eslint/utils": "npm:^8.23.0"
     eslint-visitor-keys: "npm:^4.2.0"
@@ -944,7 +944,7 @@ __metadata:
     picomatch: "npm:^4.0.2"
   peerDependencies:
     eslint: ">=9.0.0"
-  checksum: 10c0/edf1c14243017ca6b524bec0c3969be45b81e20498a98714290cdb24c3f2c111ad600b352ac254e41f081af2c84ee1895e0dbc63f96e71d96481f3e552e69ea9
+  checksum: 10c0/d9b2b08635dc4a98ceb59b3768e58e31ecd65f3e727ca8ed2e3538027d9d3d649d43d62631688cda9087f39b3893950b2a11557ccae11cf55b783b20d3f19e4e
   languageName: node
   linkType: hard
 
@@ -4690,7 +4690,7 @@ __metadata:
     "@mantine/notifications": "npm:7.17.3"
     "@microsoft/fetch-event-source": "npm:2.0.1"
     "@playwright/test": "npm:1.51.1"
-    "@stylistic/eslint-plugin": "npm:4.1.0"
+    "@stylistic/eslint-plugin": "npm:4.2.0"
     "@tabler/icons-react": "npm:^3.31.0"
     "@types/lodash": "npm:4.17.16"
     "@types/react": "npm:19.0.10"
