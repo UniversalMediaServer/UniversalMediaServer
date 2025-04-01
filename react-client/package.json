@@ -32,7 +32,7 @@
     "lodash": "4.17.21",
     "react": "19.0.0",
     "react-country-flag": "3.1.0",
-    "react-dom": "19.0.0",
+    "react-dom": "19.1.0",
     "react-movable": "3.4.1",
     "react-router-dom": "7.3.0",
     "video.js": "8.22.0"
