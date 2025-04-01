@@ -16,7 +16,7 @@
  */
 import { Box, Breadcrumbs, Button, Group, Image, LoadingOverlay, Paper, ScrollArea, Text } from '@mantine/core'
 import { IconHome } from '@tabler/icons-react'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
@@ -25,7 +25,7 @@ import { PlayerEventInterface } from '../../services/player-server-event-service
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { AudioMedia, BaseBrowse, BaseMedia, ImageMedia, PlayMedia, VideoMedia, VideoMetadata } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
-import VideoJsPlayer from './VideoJsPlayer'
+import VideoPlayer from './VideoPlayer'
 import { showError } from '../../utils/notifications'
 import MediaFolders from './MediaFolders'
 import MediaSelections from './MediaSelections'
@@ -59,11 +59,12 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
     if (sse.uuid && sse.reqType) {
       setLoading(true)
       axios.post(playerApiUrl + sse.reqType, { uuid: sse.uuid, id: sse.reqId, lang: i18n.language }, { headers: { Player: sse.uuid } })
-        .then(function (response: any) {
+        .then(function (response: AxiosResponse) {
           setData(response.data)
-          const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1]
+          const data = response.data as BaseBrowse
+          const mediaTemp = data.goal === 'show' ? data.medias[0] : data.breadcrumbs[response.data.breadcrumbs.length - 1]
           setMetadataBackground(
-            response.data.goal === 'show' ? (mediaTemp as any).metadata as VideoMetadata : response.data.metadata,
+            response.data.goal === 'show' ? (mediaTemp as BaseBrowse | VideoMedia).metadata : data.metadata,
           )
           window.scrollTo(0, 0)
           const url = '/player/' + sse.reqType + '/' + sse.reqId
@@ -145,7 +146,7 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
   const VideoJsMediaPlayer = ({ sse, media }: { sse: PlayerEventInterface, media: VideoMedia | AudioMedia }) => {
     return (
       <Paper>
-        <VideoJsPlayer
+        <VideoPlayer
           {...{ media: media, uuid: sse.uuid, askPlayId: sse.askPlayId }}
         />
       </Paper>
@@ -190,7 +191,7 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
    * image, preload it and fade it in, or if there is no metadata
    * it fades out any previous one and unsets it.
    */
-  function setMetadataBackground(metadata: VideoMetadata) {
+  function setMetadataBackground(metadata: VideoMetadata | undefined) {
     let background = ''
     if (metadata && metadata.images && metadata.images.length > 0) {
       const iso639 = i18n.language.substring(0, 2)
@@ -209,7 +210,7 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
           const randomBackground = Math.floor(Math.random() * (backgrounds.length))
           background = metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path
 
-          const backgroundImagePreCreation = new (window as any).Image() as HTMLImageElement
+          const backgroundImagePreCreation = document.createElement('img') as HTMLImageElement
           // @ts-expect-error doesn't think crossorigin exists, using crossOrigin breaks it
           backgroundImagePreCreation.crossorigin = ''
           backgroundImagePreCreation.id = 'backgroundPreload'
@@ -293,7 +294,7 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
             }
           </ScrollArea>
           <div className="backgroundPreloadContainer">
-            <img id="backgroundPreload" crossOrigin="" />
+            <img id="backgroundPreload" alt="" crossOrigin="" />
           </div>
         </Box>
       )

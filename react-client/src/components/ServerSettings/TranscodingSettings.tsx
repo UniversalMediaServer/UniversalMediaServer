@@ -17,7 +17,7 @@
 import { Accordion, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core'
 import { UseFormReturnType } from '@mantine/form'
 import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, IconExclamationMark, IconPlayerPlay } from '@tabler/icons-react'
-import { useState } from 'react'
+import { MouseEvent, useState } from 'react'
 import { arrayMove, List } from 'react-movable'
 
 import { I18nInterface } from '../../services/i18n-service'
@@ -54,8 +54,8 @@ export default function TranscodingSettings({
       : []
   }
 
-  const isStringArray = (value: any): boolean => {
-    return Array.isArray(value) && value.every((elem: any) => typeof elem === 'string')
+  const isStringArray = (value: unknown): boolean => {
+    return Array.isArray(value) && value.every((elem: unknown) => typeof elem === 'string')
   }
 
   const moveTranscodingEnginesPriority = (purpose: number, oldIndex: number, newIndex: number) => {
@@ -103,7 +103,7 @@ export default function TranscodingSettings({
         <Tooltip label={allowHtml(i18n.get('TranscodingEngineXEnabled')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
           <Box
             style={{ cursor: 'copy' }}
-            onClick={(e: any) => {
+            onClick={(e: MouseEvent) => {
               if (canModify) {
                 setTranscodingEngineStatus(engine.id, false)
               }
@@ -119,7 +119,7 @@ export default function TranscodingSettings({
       <Tooltip label={allowHtml(i18n.get('TranscodingEngineXDisabled')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
         <Box
           style={{ cursor: 'copy' }}
-          onClick={(e: any) => {
+          onClick={(e: MouseEvent) => {
             if (canModify) {
               setTranscodingEngineStatus(engine.id, true)
             }
@@ -424,9 +424,8 @@ export default function TranscodingSettings({
                   disabled={!canModify}
                   size="xs"
                   path={form.getInputProps('alternate_subtitles_folder').value}
-                  callback={form.setFieldValue}
+                  callback={(directory: string) => form.setFieldValue('alternate_subtitles_folder', directory)}
                   label={i18n.get('AlternateSubtitlesFolder')}
-                  formKey="alternate_subtitles_folder"
                 >
                 </DirectoryChooser>
                 <Select
@@ -448,9 +447,8 @@ export default function TranscodingSettings({
                   size="xs"
                   tooltipText={i18n.get('ToUseFontMustBeRegistered')}
                   path={form.getInputProps('subtitles_font').value}
-                  callback={form.setFieldValue}
+                  callback={(directory: string) => form.setFieldValue('subtitles_font', directory)}
                   label={i18n.get('SpecifyTruetypeFont')}
-                  formKey="subtitles_font"
                 >
                 </DirectoryChooser>
                 <Text size="xs">{i18n.get('StyledSubtitles')}</Text>

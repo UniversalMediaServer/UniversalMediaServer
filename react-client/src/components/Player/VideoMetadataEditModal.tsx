@@ -16,7 +16,7 @@
  */
 import { Badge, Button, Card, Divider, Flex, Group, Image, Modal, NumberInput, ScrollArea, Spoiler, Stack, Text, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { IconListSearch } from '@tabler/icons-react'
 
@@ -48,7 +48,7 @@ export default function VideoMetadataEditModal({
   const getEditData = () => {
     setLoading(true)
     axios.post(playerApiUrl + 'edit', { uuid: uuid, id: id })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setEditData(response.data)
         searchForm.setValues(response.data)
         setOpened(true)
@@ -73,7 +73,7 @@ export default function VideoMetadataEditModal({
   const getMetadataResults = (media_type: string, search: string, year: string) => {
     setLoading(true)
     axios.post(playerApiUrl + 'findMetadata', { uuid: uuid, id: id, media_type: media_type, search: search, year: year, lang: i18n.language })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setEditResults(response.data)
       })
       .catch(function (error: AxiosError) {
@@ -117,8 +117,8 @@ export default function VideoMetadataEditModal({
       })
   }
 
-  const handleSearchForm = (values: any) => {
-    getMetadataResults(values.media_type, values.search, values.year)
+  const handleSearchForm = (values: Record<string, unknown>) => {
+    getMetadataResults(values.media_type as string, values.search as string, values.year as string)
   }
 
   const MetadataResultCard = ({ i18n, tmdbResult, editData }: { i18n: I18nInterface, tmdbResult: TmdbResult, editData?: BaseEdit | null }) => {

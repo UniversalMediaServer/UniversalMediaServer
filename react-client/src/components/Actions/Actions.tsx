@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip } from '@mantine/core'
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff } from '@tabler/icons-react'
@@ -60,7 +60,7 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
     session.setDocumentI18nTitle('Tools')
     session.setNavbarManage(Actions.name)
     axios.get(actionsApiUrl)
-      .then((response) => {
+      .then((response: AxiosResponse) => {
         setActionsValues(response.data)
       })
   }, [])

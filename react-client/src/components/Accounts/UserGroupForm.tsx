@@ -32,7 +32,7 @@ export default function UserGroupForm({
   canManageGroups: boolean
   groupSelectionDatas: ValueLabelData[]
   user: UmsUser
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const userGroupForm = useForm({ initialValues: { id: user.id, groupId: user.groupId.toString() } })
   const handleUserGroupSubmit = (values: typeof userGroupForm.values) => {

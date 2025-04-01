@@ -17,7 +17,7 @@
 import { Anchor, useDirection } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
 import { showNotification } from '@mantine/notifications'
-import axios from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
 import { IconServerOff } from '@tabler/icons-react'
 
@@ -91,12 +91,12 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
 
   const getI18nLanguage = (language: string, version: string) => {
     axios.get(i18nApiUrl, { params: { language, version } })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setLanguages(response.data.languages)
         setI18n(response.data.i18n)
         setDirection(response.data.isRtl ? 'rtl' : 'ltr')
       })
-      .catch(function (error) {
+      .catch(function (error: AxiosError) {
         if (!error.response && error.request) {
           showServerUnreachable()
         }
@@ -111,11 +111,11 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
 
   const getI18nVersion = (language: string) => {
     axios.post(i18nApiUrl)
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setVersion(response.data.version)
         getI18nLanguage(language, response.data.version)
       })
-      .catch(function (error) {
+      .catch(function (error: AxiosError) {
         if (!error.response && error.request) {
           showServerUnreachable()
         }

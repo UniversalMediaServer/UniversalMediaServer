@@ -25,7 +25,7 @@ export default function GroupAddForm({
 }:
 {
   i18n: I18nInterface
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const newGroupForm = useForm({ initialValues: { displayName: '' } })
   const handleNewGroupSubmit = (values: typeof newGroupForm.values) => {

@@ -16,14 +16,14 @@
  */
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { BaseBrowse } from '../../services/player-service'
+import { BaseBrowse, VideoMedia } from '../../services/player-service'
 import MediaMetadataPanel from './MediaMetadataPanel'
 import MediaShowPanel from './MediaShowPanel'
 import MediaPanelMenu from './MediaPanelMenu'
 
 export default function MediaPanel({ i18n, sse, data, refreshPage, setLoading }: { i18n: I18nInterface, sse: PlayerEventInterface, data: BaseBrowse, refreshPage: () => void, setLoading: (loading: boolean) => void }) {
   const media = data.goal === 'show' ? data.medias[0] : data.breadcrumbs[data.breadcrumbs.length - 1]
-  const metadata = data.goal === 'show' ? (media as any).metadata : data.metadata
+  const metadata = data.goal === 'show' ? (media as BaseBrowse | VideoMedia).metadata : data.metadata
 
   return metadata
     ? (

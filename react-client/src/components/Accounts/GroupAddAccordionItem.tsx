@@ -26,7 +26,7 @@ export default function GroupAddAccordionItem({
   postAccountAction,
 }: {
   i18n: I18nInterface
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const group = { id: 0, displayName: i18n.get('NewGroup') } as UmsGroup
   return (

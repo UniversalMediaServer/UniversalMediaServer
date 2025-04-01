@@ -30,16 +30,17 @@ export interface Folder extends SharedContentInterface {
   metadata: boolean
 }
 
-export interface VirtualFolder extends SharedContentInterface {
+export interface NamedSharedContent extends SharedContentInterface {
   parent: string
   name: string
+}
+
+export interface VirtualFolder extends NamedSharedContent {
   childs: SharedContentInterface[]
   addToMediaLibrary: boolean
 }
 
-export interface Feed extends SharedContentInterface {
-  parent: string
-  name: string
+export interface Feed extends NamedSharedContent {
   uri: string
 }
 

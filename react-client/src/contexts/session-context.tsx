@@ -62,8 +62,8 @@ const SessionContext: Context<SessionInterface> = createContext({
   setNavbarValue: (_navbarValue: React.ReactNode) => { },
   navbarManage: '',
   setNavbarManage: (_navbarManage: string) => { },
-  statusLine: undefined,
-  setStatusLine: (_statusLine: any) => { },
+  statusLine: '',
+  setStatusLine: (_statusLine: string) => { },
 } as SessionInterface)
 
 export default SessionContext

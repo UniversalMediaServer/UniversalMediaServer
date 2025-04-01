@@ -17,7 +17,7 @@
 import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core'
 import { IconCheck } from '@tabler/icons-react'
 import { hideNotification } from '@mantine/notifications'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
@@ -49,8 +49,8 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
     }
     const renderersTemp = _.cloneDeep(renderers)
     while (sse.hasRendererAction) {
-      const rendererAction = sse.getRendererAction() as RendererAction
-      if (rendererAction === null) {
+      const rendererAction = sse.getRendererAction()
+      if (rendererAction === undefined) {
         break
       }
       switch (rendererAction.action) {
@@ -93,7 +93,7 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
   const refreshData = async () => {
     setLoading(true)
     axios.get(renderersApiUrl)
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setRenderers(response.data.renderers)
         setRenderersBlockedByDefault(response.data.renderersBlockedByDefault)
         setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault)
@@ -120,7 +120,7 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
   const refreshDeviceData = async () => {
     setLoading(true)
     axios.get(renderersApiUrl + 'devices')
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setIsLocalhost(response.data.isLocalhost)
         setNetworkDeviceFilters(response.data.networkDevices)
         setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault)
@@ -143,7 +143,7 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
       })
   }
 
-  const setUserId = async (rule: string, userId: any) => {
+  const setUserId = async (rule: string, userId: string | null) => {
     setSettings('renderers', { rule, userId }, false)
   }
 
@@ -159,7 +159,7 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
     setSettings('reset', null, true)
   }
 
-  const setSettings = async (endpoint: string, data: any, fromDevice: boolean) => {
+  const setSettings = async (endpoint: string, data: Record<string, unknown> | null, fromDevice: boolean) => {
     showLoading({
       id: 'settings-save',
       title: i18n.get('Save'),
@@ -252,10 +252,6 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
           <Text c="red">{i18n.get('YouDontHaveAccessArea')}</Text>
         </Box>
       )
-}
-
-interface RendererAction extends Renderer {
-  action: string
 }
 
 export default Home

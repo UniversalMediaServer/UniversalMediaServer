@@ -16,7 +16,6 @@
  */
 import { ActionIcon, Card, Grid, Group, Menu, Modal, Text, TextInput, Tooltip } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import _ from 'lodash'
 import { useEffect, useState } from 'react'
 import { IconCodePlus, IconDevicesPc, IconDevicesPcOff, IconDots, IconRefresh, IconSettingsOff } from '@tabler/icons-react'
 

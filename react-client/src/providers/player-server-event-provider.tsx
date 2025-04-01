@@ -16,13 +16,14 @@
  */
 import { hideNotification, showNotification } from '@mantine/notifications'
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import videojs from 'video.js'
 
 import PlayerEventContext from '../contexts/player-server-event-context'
 import { I18nInterface } from '../services/i18n-service'
+import { SseNotificationData } from '../services/server-event-service'
 import { SessionInterface } from '../services/session-service'
 import { playerApiUrl } from '../utils'
 import { showError, showWarning } from '../utils/notifications'
@@ -106,7 +107,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     }
     else {
       axios.get(playerApiUrl)
-        .then(function (response: any) {
+        .then(function (response: AxiosResponse) {
           if (response.data.uuid) {
             session.setUuid(response.data.uuid)
             setUuid(response.data.uuid)
@@ -155,7 +156,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
       }
     }
 
-    const addNotification = (datas: any) => {
+    const addNotification = (datas: SseNotificationData) => {
       showNotification({
         id: datas.id ? datas.id : 'sse-notification',
         color: datas.color,

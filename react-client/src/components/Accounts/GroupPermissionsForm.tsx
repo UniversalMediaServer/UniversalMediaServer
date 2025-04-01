@@ -29,7 +29,7 @@ export default function GroupPermissionsForm({
 {
   i18n: I18nInterface
   group: UmsGroup
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const [permissions, setPermissions] = useState<number>(group.permissions ? group.permissions.value : 0)
   const addPermission = (permission: number) => {

@@ -31,7 +31,7 @@ export default function UserAccordion({
   i18n: I18nInterface
   session: SessionInterface
   accounts: UmsAccounts
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const canManageUsers = session.havePermission(UmsPermission.users_manage)
   const canManageGroups = session.havePermission(UmsPermission.groups_manage)

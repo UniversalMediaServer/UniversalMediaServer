@@ -18,7 +18,7 @@ import { Box, Button, Checkbox, Code, Divider, Group, Modal, MultiSelect, Pagina
 import { Dropzone, FileWithPath } from '@mantine/dropzone'
 import { useForm } from '@mantine/form'
 import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
@@ -101,7 +101,7 @@ const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
       return
     }
     axios.get(logsApiUrl)
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setLogs(response.data.logs)
         setLogThreadFilter([])
         setLogThreads([])
@@ -219,7 +219,7 @@ const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
     const logsTemp = _.clone(logs)
     while (sse.hasNewLogLine) {
       const logLine = sse.getNewLogLine()
-      if (logLine === null) {
+      if (logLine === undefined) {
         break
       }
       if (logsTemp.length > 10000) {
@@ -235,7 +235,7 @@ const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
       return
     }
     axios.get(logsApiUrl + 'packer')
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         const items = response.data as PackerItem[]
         const selItems = []
         for (const item of items) {
@@ -250,7 +250,7 @@ const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
 
   const getPackerZip = () => {
     axios.post(logsApiUrl + 'packer', { items: packerFiles }, { responseType: 'blob' })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         const fileName = response.headers['content-disposition'].split('filename=')[1].replaceAll('"', '')
         const type = response.headers['content-type']
         const blob = new Blob([response.data], { type: type })

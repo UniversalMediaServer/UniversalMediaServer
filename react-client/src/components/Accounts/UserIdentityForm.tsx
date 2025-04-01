@@ -28,7 +28,7 @@ export default function UserIdentityForm({
 {
   i18n: I18nInterface
   user: UmsUser
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const userIdentityForm = useForm({ initialValues: { id: user.id, username: user.username, password: '' } })
   const handleUserIdentitySubmit = (values: typeof userIdentityForm.values) => {

@@ -32,12 +32,12 @@ export default function UserProfileForm({
 {
   i18n: I18nInterface
   user: UmsUser
-  postAccountAction: (data: any, title: string, message: string, successmessage: string, errormessage: string) => void
+  postAccountAction: (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => void
 }) {
   const [avatar, setAvatar] = useState<string>(user.avatar ? user.avatar : '')
   const userProfileForm = useForm({ initialValues: { id: user.id, displayName: user.displayName, avatar: user.avatar ? user.avatar : '', pinCode: user.pinCode ? user.pinCode : '', libraryHidden: user.libraryHidden } })
   const handleUserProfileSubmit = (values: typeof userProfileForm.values) => {
-    const data = { operation: 'modifyuser', userid: user.id, name: values.displayName } as any
+    const data = { operation: 'modifyuser', userid: user.id, name: values.displayName } as Record<string, unknown>
     if (userProfileForm.isDirty('displayName')) data.name = values.displayName
     if (userProfileForm.isDirty('avatar')) data.avatar = values.avatar
     if (userProfileForm.isDirty('pinCode')) data.pincode = values.pinCode
@@ -81,26 +81,24 @@ export default function UserProfileForm({
               <IconPhotoX />
             </Dropzone.Reject>
             <Dropzone.Idle>
-              <div onClick={(e) => { e.stopPropagation() }}>
-                <HoverCard disabled={avatar === ''}>
-                  <HoverCard.Target>
-                    <Avatar radius="xl" size="lg" src={avatar !== '' ? avatar : null}>
-                      {avatar === '' && <IconUser size={24} />}
-                    </Avatar>
-                  </HoverCard.Target>
-                  <HoverCard.Dropdown>
-                    <Button
-                      onClick={() => {
-                        const newavatar = (user.avatar && avatar !== user.avatar) ? user.avatar : ''
-                        setAvatar(newavatar)
-                        userProfileForm.setFieldValue('avatar', newavatar)
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </HoverCard.Dropdown>
-                </HoverCard>
-              </div>
+              <HoverCard disabled={avatar === ''}>
+                <HoverCard.Target>
+                  <Avatar radius="xl" size="lg" src={avatar !== '' ? avatar : null} onClick={(e) => { e.stopPropagation() }}>
+                    {avatar === '' && <IconUser size={24} />}
+                  </Avatar>
+                </HoverCard.Target>
+                <HoverCard.Dropdown>
+                  <Button
+                    onClick={() => {
+                      const newavatar = (user.avatar && avatar !== user.avatar) ? user.avatar : ''
+                      setAvatar(newavatar)
+                      userProfileForm.setFieldValue('avatar', newavatar)
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </HoverCard.Dropdown>
+              </HoverCard>
             </Dropzone.Idle>
             <div>
               <Text inline>

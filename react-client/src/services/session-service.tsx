@@ -105,7 +105,7 @@ export interface SessionInterface extends UmsSession {
   startPlayerSse: () => void
   stopPlayerSse: () => void
   uuid: string
-  setUuid: (_uuid: string) => void
+  setUuid: (uuid: string) => void
   serverName: string
   setServerName: (serverName: string) => void
   setDocumentTitle: (documentTitle: string) => void
@@ -119,8 +119,8 @@ export interface SessionInterface extends UmsSession {
   setNavbarValue: (navbarValue: React.ReactNode) => void
   navbarOpened: boolean
   setNavbarOpened: (navbarOpened: boolean) => void
-  statusLine: any
-  setStatusLine: (statusLine: any) => void
+  statusLine: string
+  setStatusLine: (statusLine: string) => void
   navbarManage: string
-  setNavbarManage: (_navbarManage: string) => void
+  setNavbarManage: (navbarManage: string) => void
 }

@@ -97,8 +97,7 @@ export default function NavigationSettings({
               i18n={i18n}
               label={i18n.get('DestinationFolder')}
               path={form.getInputProps('fully_played_output_directory').value}
-              callback={form.setFieldValue}
-              formKey="fully_played_output_directory"
+              callback={(directory: string) => form.setFieldValue('fully_played_output_directory', directory)}
             />
           )}
         </Accordion.Panel>
@@ -120,9 +119,8 @@ export default function NavigationSettings({
           <DirectoryChooser
             i18n={i18n}
             path={form.getInputProps('alternate_thumb_folder').value}
-            callback={form.setFieldValue}
+            callback={(directory: string) => form.setFieldValue('alternate_thumb_folder', directory)}
             label={i18n.get('AlternateVideoCoverArtFolder')}
-            formKey="alternate_thumb_folder"
           />
           <Select
             label={i18n.get('AudioThumbnailsImport')}

@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { ServerEventInterface } from '../../services/server-event-service'
-import { Feed, Folder, getFeedName, ITunes, SharedContentConfiguration, SharedContentData, SharedContentInterface, Stream, VirtualFolder } from '../../services/shared-service'
+import { Feed, Folder, getFeedName, ITunes, NamedSharedContent, SharedContentConfiguration, SharedContentData, SharedContentInterface, Stream, VirtualFolder } from '../../services/shared-service'
 import SharedContentModal from './SharedContentModal'
 import SharedContentList from './SharedContentList'
 import NewSharedContentButton from './NewSharedContentButton'
@@ -52,12 +52,17 @@ export default function SharedContentSettings({
   const setEditModalData = (index: number) => {
     const sharedContent = index > -1 ? sharedContents.at(index) : null
     const isNew = !sharedContent
+    const isFolder = !isNew && sharedContent.type === 'Folder'
+    const isITunes = !isNew && sharedContent.type === 'ITunes'
+    const isVirtualFolder = !isNew && sharedContent.type === 'VirtualFolder'
+    const isFeed = !isNew && (sharedContent.type.endsWith('Feed') || sharedContent.type.endsWith('Stream'))
     const type = isNew ? 'Folder' : sharedContent.type
+
     const groups = isNew || !sharedContent.groups ? [] : sharedContent.groups.map(String)
-    const name = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).name
-    const parent = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).parent
-    const source = isNew || sharedContent.type === 'VirtualFolder' ? '' : (sharedContent as any).uri ? (sharedContent as any).uri : (sharedContent as any).file ? (sharedContent as any).file : (sharedContent as any).path
-    const childs = isNew || sharedContent.type !== 'VirtualFolder' ? [] : (sharedContent as any).childs ? (sharedContent as any).childs : []
+    const name = isNew || isFolder || isITunes ? '' : (sharedContent as NamedSharedContent).name
+    const parent = isNew || isFolder || isITunes ? '' : (sharedContent as NamedSharedContent).parent
+    const source = isFeed ? (sharedContent as Feed).uri : isFolder ? (sharedContent as Folder).file : isITunes ? (sharedContent as ITunes).path : ''
+    const childs = isVirtualFolder && (sharedContent as VirtualFolder).childs ? (sharedContent as VirtualFolder).childs : []
     modalForm.setValues({
       index,
       type,

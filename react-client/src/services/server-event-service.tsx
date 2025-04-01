@@ -14,11 +14,21 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { RendererAction } from './home-service'
+
 export interface UmsMemory {
   max: number
   used: number
   dbcache: number
   buffer: number
+}
+
+export interface SseNotificationData {
+  id?: string
+  color?: string
+  title?: string
+  message?: string
+  autoClose?: boolean
 }
 
 export interface ServerEventInterface {
@@ -27,11 +37,11 @@ export interface ServerEventInterface {
   updateAccounts: boolean
   setUpdateAccounts: (updateAccounts: boolean) => void
   reloadable: boolean
-  userConfiguration: any
-  setUserConfiguration: (config: any) => void
+  userConfiguration: Record<string, unknown> | null
+  setUserConfiguration: (config: Record<string, unknown> | null) => void
   mediaScan: boolean
   hasRendererAction: boolean
-  getRendererAction: () => any
+  getRendererAction: () => RendererAction | undefined
   hasNewLogLine: boolean
-  getNewLogLine: () => any
+  getNewLogLine: () => string | undefined
 }

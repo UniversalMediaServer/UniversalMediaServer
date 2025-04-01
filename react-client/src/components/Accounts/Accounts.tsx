@@ -16,7 +16,7 @@
  */
 import { Box, Tabs, Text } from '@mantine/core'
 import { hideNotification } from '@mantine/notifications'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 
 import { UmsAccounts } from '../../services/accounts-service'
@@ -49,7 +49,7 @@ const Accounts = ({ i18n, session, sse }: { i18n: I18nInterface, session: Sessio
     setFilled(true)
     sse.setUpdateAccounts(false)
     axios.get(accountApiUrl + 'accounts')
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setAccounts(response.data)
       })
       .catch(function (error: AxiosError) {
@@ -65,7 +65,7 @@ const Accounts = ({ i18n, session, sse }: { i18n: I18nInterface, session: Sessio
       })
   }, [sse.updateAccounts, sse.setUpdateAccounts])
 
-  const postAccountAction = (data: any, title: string, message: string, successmessage: string, errormessage: string) => {
+  const postAccountAction = (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => {
     showLoading({
       id: 'account-action',
       title: title,

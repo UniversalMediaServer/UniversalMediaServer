@@ -16,7 +16,7 @@
  */
 import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea, Stack, TextInput, Tooltip } from '@mantine/core'
 import { IconFolder, IconHome, IconPictureInPicture, IconPictureInPictureOn } from '@tabler/icons-react'
-import axios, { AxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useState, ReactNode } from 'react'
 
 import { Media } from '../../services/home-service'
@@ -24,20 +24,27 @@ import { I18nInterface } from '../../services/i18n-service'
 import { renderersApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
-export default function MediaChooser(props: {
+export default function MediaChooser({
+  i18n,
+  tooltipText,
+  id,
+  media,
+  callback,
+  label,
+  disabled,
+  size,
+}: {
   i18n: I18nInterface
-  tooltipText: string
+  tooltipText?: string
   id: number
   media: Media | null
-  callback: any
+  callback: (value: Media) => void
   label?: string
   disabled?: boolean
-  formKey?: string
   size?: MantineSize
 }) {
   const [isLoading, setLoading] = useState(true)
   const [opened, setOpened] = useState(false)
-  const i18n = props.i18n
 
   const [medias, setMedias] = useState<Media[]>([])
   const [parents, setParents] = useState([] as { value: string, label: string }[])
@@ -45,12 +52,7 @@ export default function MediaChooser(props: {
 
   const selectAndCloseModal = () => {
     if (selectedMedia) {
-      if (props.formKey) {
-        props.callback(props.formKey, selectedMedia)
-      }
-      else {
-        props.callback(selectedMedia)
-      }
+      callback(selectedMedia)
       return setOpened(false)
     }
     showError({
@@ -60,8 +62,8 @@ export default function MediaChooser(props: {
   }
 
   const getMedias = (media: string) => {
-    axios.post(renderersApiUrl + 'browse', { id: props.id, media: media ? media : '0' })
-      .then(function (response: any) {
+    axios.post(renderersApiUrl + 'browse', { id: id, media: media ? media : '0' })
+      .then(function (response: AxiosResponse) {
         const mediasResponse = response.data
         setMedias(mediasResponse.childrens)
         setParents(mediasResponse.parents.reverse())
@@ -87,11 +89,11 @@ export default function MediaChooser(props: {
   const input = (): ReactNode => {
     return (
       <TextInput
-        size={props.size}
-        label={props.label}
-        disabled={props.disabled}
+        size={size}
+        label={label}
+        disabled={disabled}
         style={{ flex: 1 }}
-        value={props.media ? props.media.label : ''}
+        value={media ? media.label : ''}
         readOnly
       />
     )
@@ -169,19 +171,19 @@ export default function MediaChooser(props: {
           </Box>
         </Modal>
 
-        {props.tooltipText
+        {tooltipText
           ? (
-              <Tooltip label={props.tooltipText} style={{ width: 350 }} color="blue" multiline withArrow={true}>
+              <Tooltip label={tooltipText} style={{ width: 350 }} color="blue" multiline withArrow={true}>
                 {input()}
               </Tooltip>
             )
           : input()}
-        {!props.disabled && (
+        {!disabled && (
           <Button
-            mt={props.label ? '24px' : undefined}
-            size={props.size}
+            mt={label ? '24px' : undefined}
+            size={size}
             onClick={() => {
-              getMedias(props.media ? props.media.value : '0')
+              getMedias(media ? media.value : '0')
               setOpened(true)
             }}
             leftSection={<IconPictureInPictureOn size={18} />}
@@ -192,8 +194,4 @@ export default function MediaChooser(props: {
       </>
     </Group>
   )
-}
-
-MediaChooser.defaultProps = {
-  tooltipText: null,
 }

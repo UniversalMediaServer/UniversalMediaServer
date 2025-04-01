@@ -59,7 +59,7 @@ export default function SharedContentFolderActions({
         message: i18n.get('Saved'),
       })
     }
-    catch (err) {
+    catch {
       showError({
         title: i18n.get('Error'),
         message: i18n.get('ConfigurationNotSaved'),
