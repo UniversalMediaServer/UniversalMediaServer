@@ -14,15 +14,16 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { useDirection } from '@mantine/core'
+import { Anchor, useDirection } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
-import axios from 'axios'
+import { showNotification } from '@mantine/notifications'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
-import { IconExclamationMark } from '@tabler/icons-react'
+import { IconServerOff } from '@tabler/icons-react'
 
 import I18nContext from '../contexts/i18n-context'
-import { LanguageValue } from '../services/i18n-service'
-import { i18nApiUrl } from '../utils'
+import { LanguageValue, ValueLabelData } from '../services/i18n-service'
+import { gitHubNewIssueUrl, i18nApiUrl } from '../utils'
 import { showError } from '../utils/notifications'
 
 const I18nProvider = ({ children }: { children?: ReactNode }) => {
@@ -46,7 +47,7 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
     return i18n[value] ? i18n[value] : value
   }
 
-  const getI18nString = (value: string) => {
+  const getString = (value: string) => {
     if (value && value.startsWith('i18n@')) {
       return get(value.substring(5))
     }
@@ -55,37 +56,49 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
     }
   }
 
-  const getI18nFormat = (value: string[]) => {
+  const getFormat = (value: string[]) => {
     if (value == null || value.length < 1) {
       return ''
     }
-    let result = getI18nString(value[0])
+    let result = getString(value[0])
     for (let i = 1; i < value.length; i++) {
       const str = '%' + i.toString() + '$s'
       if (result.includes(str)) {
-        result = result.replace(str, getI18nString(value[i]))
+        result = result.replace(str, getString(value[i]))
       }
       else if (result.includes('%s')) {
-        result = result.replace('%s', getI18nString(value[i]))
+        result = result.replace('%s', getString(value[i]))
       }
     }
     return result
   }
 
+  const getValueLabelData = (values: ValueLabelData[] | undefined) => {
+    return values?.map((value: ValueLabelData) => {
+      return { value: value.value, label: getString(value.label) } as ValueLabelData
+    })
+  }
+
+  const getLocalizedName = (name: string | undefined) => {
+    const nameData = name ? name.split('|') : ['']
+    if (nameData.length > 1) {
+      return getFormat(nameData)
+    }
+    else {
+      return getString(nameData[0])
+    }
+  }
+
   const getI18nLanguage = (language: string, version: string) => {
     axios.get(i18nApiUrl, { params: { language, version } })
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setLanguages(response.data.languages)
         setI18n(response.data.i18n)
         setDirection(response.data.isRtl ? 'rtl' : 'ltr')
       })
-      .catch(function (error) {
+      .catch(function (error: AxiosError) {
         if (!error.response && error.request) {
-          showError({
-            title: i18n['Warning'],
-            message: i18n['UniversalMediaServerUnreachable'],
-            icon: <IconExclamationMark size="1rem" />,
-          })
+          showServerUnreachable()
         }
         else {
           showError({
@@ -98,17 +111,13 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
 
   const getI18nVersion = (language: string) => {
     axios.post(i18nApiUrl)
-      .then(function (response: any) {
+      .then(function (response: AxiosResponse) {
         setVersion(response.data.version)
         getI18nLanguage(language, response.data.version)
       })
-      .catch(function (error) {
+      .catch(function (error: AxiosError) {
         if (!error.response && error.request) {
-          showError({
-            title: i18n['Warning'],
-            message: i18n['UniversalMediaServerUnreachable'],
-            icon: <IconExclamationMark size="1rem" />,
-          })
+          showServerUnreachable()
         }
         else {
           showError({
@@ -117,6 +126,25 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
           })
         }
       })
+  }
+
+  const getReportLink = () => {
+    return (
+      <Anchor fz="xs" href={gitHubNewIssueUrl} target="_blank">
+        {get('ClickHereReportBug')}
+      </Anchor>
+    )
+  }
+
+  const showServerUnreachable = () => {
+    showNotification({
+      id: 'connection-lost',
+      color: 'orange',
+      title: get('Warning'),
+      message: get('UniversalMediaServerUnreachable'),
+      icon: <IconServerOff size="1rem" />,
+      autoClose: false,
+    })
   }
 
   useEffect(() => {
@@ -128,20 +156,23 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
     }
   }, [language])
 
-  const { Provider } = I18nContext
   return (
-    <Provider value={{
+    <I18nContext.Provider value={{
       get: get,
-      getI18nString: getI18nString,
-      getI18nFormat: getI18nFormat,
+      getString: getString,
+      getFormat: getFormat,
+      getValueLabelData: getValueLabelData,
+      getLocalizedName: getLocalizedName,
       language: language || 'en-US',
       dir: dir,
       languages: languages,
       setLanguage: setLanguage,
+      getReportLink: getReportLink,
+      showServerUnreachable: showServerUnreachable,
     }}
     >
       {children}
-    </Provider>
+    </I18nContext.Provider>
   )
 }
 

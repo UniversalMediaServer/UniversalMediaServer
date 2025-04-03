@@ -16,14 +16,14 @@
  */
 import { hideNotification, showNotification } from '@mantine/notifications'
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-import axios from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import videojs from 'video.js'
 
 import PlayerEventContext from '../contexts/player-server-event-context'
-import { getJwt } from '../services/auth-service'
 import { I18nInterface } from '../services/i18n-service'
+import { SseNotificationData } from '../services/server-event-service'
 import { SessionInterface } from '../services/session-service'
 import { playerApiUrl } from '../utils'
 import { showError, showWarning } from '../utils/notifications'
@@ -101,24 +101,29 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
   useEffect(() => {
     if (uuid || askingUuid || !session.initialized || !usePlayerSse) return
     setAskingUuid(true)
-    if (sessionStorage.getItem('player')) {
-      setUuid(sessionStorage.getItem('player') as string)
+    if (session.uuid) {
+      setUuid(session.uuid)
       setAskingUuid(false)
     }
     else {
       axios.get(playerApiUrl)
-        .then(function (response: any) {
+        .then(function (response: AxiosResponse) {
           if (response.data.uuid) {
-            sessionStorage.setItem('player', response.data.uuid)
+            session.setUuid(response.data.uuid)
             setUuid(response.data.uuid)
           }
         })
-        .catch(function () {
-          showError({
-            id: 'session-lost',
-            title: i18n.get('Error'),
-            message: 'Your player session was not received from the server.',
-          })
+        .catch(function (error: AxiosError) {
+          if (!error.response && error.request) {
+            i18n.showServerUnreachable()
+          }
+          else {
+            showError({
+              id: 'session-lost',
+              title: i18n.get('Error'),
+              message: 'Your player session was not received from the server.',
+            })
+          }
         })
         .then(function () {
           setAskingUuid(false)
@@ -151,23 +156,13 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
       }
     }
 
-    const addNotification = (datas: any) => {
+    const addNotification = (datas: SseNotificationData) => {
       showNotification({
         id: datas.id ? datas.id : 'sse-notification',
         color: datas.color,
         title: datas.title,
-        message: datas.message ? i18n.getI18nString(datas.message) : '',
+        message: datas.message ? i18n.getString(datas.message) : '',
         autoClose: datas.autoClose ? datas.autoClose : true,
-      })
-    }
-
-    const showErrorNotification = () => {
-      showNotification({
-        id: 'connection-lost',
-        color: 'orange',
-        title: i18n.get('Warning'),
-        message: i18n.get('UniversalMediaServerUnreachable'),
-        autoClose: false,
       })
     }
 
@@ -239,7 +234,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     const onError = () => {
       if (!notified) {
         notified = true
-        showErrorNotification()
+        i18n.showServerUnreachable()
       }
       setConnectionStatus(2)
     }
@@ -252,7 +247,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
       setConnectionStatus(0)
       fetchEventSource(playerApiUrl + 'sse/' + uuid, {
         headers: {
-          Authorization: 'Bearer ' + getJwt(),
+          Authorization: 'Bearer ' + session.token,
           Player: uuid,
         },
         signal: abortController.signal,
@@ -280,10 +275,8 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     }
   }, [session.usePlayerSse])
 
-  const { Provider } = PlayerEventContext
-
   return (
-    <Provider value={{
+    <PlayerEventContext.Provider value={{
       uuid: uuid,
       connectionStatus: connectionStatus,
       reqId: reqId,
@@ -295,7 +288,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
     }}
     >
       {children}
-    </Provider>
+    </PlayerEventContext.Provider>
   )
 }
 

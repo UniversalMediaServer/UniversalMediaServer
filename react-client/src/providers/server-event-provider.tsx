@@ -19,14 +19,13 @@ import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@m
 import { ReactNode, useEffect, useState } from 'react'
 
 import ServerEventContext from '../contexts/server-event-context'
-import { getJwt } from '../services/auth-service'
 import { I18nInterface } from '../services/i18n-service'
-import { MainInterface } from '../services/main-service'
-import { UmsMemory } from '../services/server-event-service'
+import { SseNotificationData, UmsMemory } from '../services/server-event-service'
 import { SessionInterface } from '../services/session-service'
 import { sseApiUrl } from '../utils'
+import { RendererAction } from '../services/home-service'
 
-const ServerEventProvider = ({ children, i18n, main, session }: { children?: ReactNode, i18n: I18nInterface, main: MainInterface, session: SessionInterface }) => {
+const ServerEventProvider = ({ children, i18n, session }: { children?: ReactNode, i18n: I18nInterface, session: SessionInterface }) => {
   const [prevLocation, setPrevLocation] = useState('')
   const [handled, setHandled] = useState<boolean>(true)
   const [abortController, setAbortController] = useState(new AbortController())
@@ -34,10 +33,10 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
   const [memory, setMemory] = useState<UmsMemory>({ max: 0, used: 0, dbcache: 0, buffer: 0 })
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(false)
   const [reloadable, setReloadable] = useState<boolean>(false)
-  const [userConfiguration, setUserConfiguration] = useState(null)
+  const [userConfiguration, setUserConfiguration] = useState<Record<string, unknown> | null>(null)
   const [mediaScan, setMediaScan] = useState<boolean>(false)
   const [hasRendererAction, setRendererAction] = useState(false)
-  const [rendererActions] = useState([] as any[])
+  const [rendererActions] = useState<RendererAction[]>([])
   const [hasNewLogLine, setNewLogLine] = useState(false)
   const [newLogLines] = useState([] as string[])
 
@@ -51,23 +50,13 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
     }
     let notified = false
 
-    const addNotification = (datas: any) => {
+    const addNotification = (datas: SseNotificationData) => {
       showNotification({
         id: datas.id ? datas.id : 'sse-notification',
         color: datas.color,
         title: datas.title,
-        message: datas.message ? i18n.getI18nString(datas.message) : '',
-        autoClose: datas.autoClose ? datas.autoClose : true,
-      })
-    }
-
-    const showErrorNotification = () => {
-      showNotification({
-        id: 'connection-lost',
-        color: 'orange',
-        title: i18n.get('Warning'),
-        message: i18n.get('UniversalMediaServerUnreachable'),
-        autoClose: false,
+        message: datas.message ? i18n.getString(datas.message) : '',
+        autoClose: datas.autoClose !== undefined ? datas.autoClose : true,
       })
     }
 
@@ -109,6 +98,18 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
             setReloadable(datas.value)
             break
           case 'set_configuration_changed':
+            if (datas.value) {
+              if (datas.value.server_name !== undefined) {
+                session.setServerName(datas.value.server_name)
+              }
+              if (datas.value.authentication_enabled !== undefined
+                || datas.value.authenticate_localhost_as_admin !== undefined
+                || datas.value.web_gui_show_users !== undefined
+                || datas.value.web_gui_allow_empty_pin !== undefined
+              ) {
+                session.refresh()
+              }
+            }
             setUserConfiguration(datas.value)
             break
           case 'set_media_scan_status':
@@ -131,7 +132,7 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
             setNewLogLine(true)
             break
           case 'set_status_line':
-            main.setStatusLine(datas.value)
+            session.setStatusLine(datas.value)
             break
         }
       }
@@ -140,7 +141,7 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
     const onError = () => {
       if (!notified) {
         notified = true
-        showErrorNotification()
+        i18n.showServerUnreachable()
       }
       setConnectionStatus(2)
     }
@@ -149,12 +150,14 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
       setConnectionStatus(0)
     }
 
+    const headers = () => {
+      return session.token ? { Authorization: 'Bearer ' + session.token } : undefined
+    }
+
     const startSse = () => {
       setConnectionStatus(0)
       fetchEventSource(sseApiUrl, {
-        headers: {
-          Authorization: 'Bearer ' + getJwt(),
-        },
+        headers: headers(),
         signal: abortController.signal,
         async onopen(event: Response) { onOpen(event) },
         onmessage(event: EventSourceMessage) {
@@ -181,26 +184,23 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
   }, [session.sseAs])
 
   const getRendererAction = () => {
-    let result = null
     if (rendererActions.length > 0) {
-      result = rendererActions.shift()
+      const result = rendererActions.shift()
       setRendererAction(rendererActions.length > 0)
+      return result
     }
-    return result
   }
 
   const getNewLogLine = () => {
-    let result = null
     if (newLogLines.length > 0) {
-      result = newLogLines.shift()
-      setNewLogLine(rendererActions.length > 0)
+      const result = newLogLines.shift()
+      setNewLogLine(newLogLines.length > 0)
+      return result
     }
-    return result
   }
 
-  const { Provider } = ServerEventContext
   return (
-    <Provider value={{
+    <ServerEventContext.Provider value={{
       connectionStatus: connectionStatus,
       memory: memory,
       updateAccounts: updateAccounts,
@@ -216,7 +216,7 @@ const ServerEventProvider = ({ children, i18n, main, session }: { children?: Rea
     }}
     >
       {children}
-    </Provider>
+    </ServerEventContext.Provider>
   )
 }
 

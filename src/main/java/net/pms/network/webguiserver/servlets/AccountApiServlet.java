@@ -124,6 +124,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 										boolean enabled = action.get("enabled").getAsBoolean();
 										AuthService.setEnabled(enabled);
 										respond(req, resp, "{}", 200, "application/json");
+										EventSourceServer.setUpdateAccounts();
 									} else {
 										LOGGER.trace("User '{}' try to change authentication service", account.toString());
 										respondForbidden(req, resp);
@@ -135,6 +136,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 										boolean enabled = action.get("enabled").getAsBoolean();
 										AuthService.setLocalhostAsAdmin(enabled);
 										respond(req, resp, "{}", 200, "application/json");
+										EventSourceServer.setUpdateAccounts();
 									} else {
 										LOGGER.trace("User '{}' try to change localhost auto admin", account.toString());
 										respondForbidden(req, resp);

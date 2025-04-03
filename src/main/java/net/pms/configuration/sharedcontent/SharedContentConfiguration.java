@@ -228,6 +228,7 @@ public class SharedContentConfiguration {
 	 * That is:
 	 * On macOS:
 	 *    - /user/Movies
+	 *    - TODO: exclude /user/Movies/CacheClip
 	 *    - /user/Music
 	 *    - /user/Pictures
 	 *  On Windows:
