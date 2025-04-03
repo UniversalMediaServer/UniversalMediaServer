@@ -62,6 +62,9 @@
 - Bump `eslint` from 9.21.0 to 9.23.0 ([#5384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5384), [#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
 - Bump `FFmpeg` from `20250103 nightlies` to `7.1.1` including on Windows x86
 - Bump `jna-version` from 5.16.0 to 5.17.0 ([#5380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5380))
+- Bump `org.eclipse.jetty:jetty-client` from 12.0.16 to 12.0.17 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.16 to 12.0.17 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.16 to 12.0.17 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
 - Bump `org.jsoup:jsoup` from 1.18.3 to 1.19.1 ([#5349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5349))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.0 to 5.12.1 ([#5378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5378))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.12.0 to 5.12.1 ([#5378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5378))
