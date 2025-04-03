@@ -33,8 +33,10 @@ import net.pms.network.webguiserver.servlets.RenderersApiServlet;
 import net.pms.network.webguiserver.servlets.SettingsApiServlet;
 import net.pms.network.webguiserver.servlets.SharedContentApiServlet;
 import net.pms.network.webguiserver.servlets.WebGuiServlet;
+import net.pms.network.webguiserver.servlets.WebSocketServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -80,6 +82,8 @@ public class WebGuiServerJetty extends WebGuiServer {
 		addServlet(servletHandler, SharedContentApiServlet.class);
 		addServlet(servletHandler, EventSourceServlet.class);
 		addServlet(servletHandler, WebGuiServlet.class);
+		JakartaWebSocketServletContainerInitializer.configure(servletHandler, null);
+		addServlet(servletHandler, WebSocketServlet.class);
 		server.setHandler(servletHandler);
 		try {
 			start();
