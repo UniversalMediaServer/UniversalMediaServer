@@ -42,7 +42,7 @@ public class WebSocketDispatcher {
 	}
 
 	public static synchronized void remove(Session session) {
-		WS_SESSIONS.add(session);
+		WS_SESSIONS.remove(session);
 	}
 
 	public static void onMessage(Session session, String message) {
