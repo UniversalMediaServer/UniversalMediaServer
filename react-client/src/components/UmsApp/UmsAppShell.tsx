@@ -19,6 +19,10 @@ import { useLocalStorage } from '@mantine/hooks'
 import { IconServer, IconServerOff } from '@tabler/icons-react'
 import { Route, Routes, Navigate } from 'react-router-dom'
 
+import { I18nInterface } from '../../services/i18n-service'
+import { PlayerEventInterface } from '../../services/player-server-event-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
+import { ServerEventInterface } from '../../services/server-event-service'
 import About from '../About/About'
 import Accounts from '../Accounts/Accounts'
 import Actions from '../Actions/Actions'
@@ -35,11 +39,7 @@ import SessionNavbar from './SessionNavbar'
 import SharedContent from '../SharedContent/SharedContent'
 import StatusLine from './StatusLine'
 import UserMenu from './UserMenu'
-import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { SessionInterface, UmsPermission } from '../../services/session-service'
-import { ServerEventInterface } from '../../services/server-event-service'
-import WebSocketProvider from '../../providers/web-socket-provider'
+import WebSocketClient from './WebSocketClient'
 
 export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface, playersse: PlayerEventInterface }) {
   const { dir } = useDirection()
@@ -57,7 +57,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
   })
   return (
     <div dir={dir} className="bodyBackgroundImageScreen">
-      <WebSocketProvider i18n={i18n} />
+      <WebSocketClient i18n={i18n} />
       <AppShell
         padding="md"
         navbar={session.hasNavbar

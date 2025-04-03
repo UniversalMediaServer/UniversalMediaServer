@@ -32,7 +32,7 @@ const I18nContext: Context<I18nInterface> = createContext({
   getReportLink: () => { return undefined as React.ReactNode },
   showServerUnreachable: () => { },
   languageLoaded: false as boolean,
-  serverUnreachable: false as boolean,
+  serverConnected: false as boolean,
   serverReadyState: -1,
   setServerReadyState: (_readyState: number) => { },
 })

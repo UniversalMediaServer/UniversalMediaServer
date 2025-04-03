@@ -14,12 +14,12 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import useWebSocket from 'react-use-websocket'
-import { wsApiUrl } from '../utils'
 import { useEffect } from 'react'
-import { I18nInterface } from '../services/i18n-service'
+import useWebSocket from 'react-use-websocket'
+import { I18nInterface } from '../../services/i18n-service'
+import { wsApiUrl } from '../../utils'
 
-const WebSocketProvider = ({ i18n }: { i18n: I18nInterface }) => {
+const WebSocketClient = ({ i18n }: { i18n: I18nInterface }) => {
   const { readyState: serverWebSocketReadyState } = useWebSocket(
     wsApiUrl,
     {
@@ -38,4 +38,4 @@ const WebSocketProvider = ({ i18n }: { i18n: I18nInterface }) => {
   return undefined
 }
 
-export default WebSocketProvider
+export default WebSocketClient
