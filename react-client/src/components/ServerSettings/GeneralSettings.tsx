@@ -220,12 +220,12 @@ export default function GeneralSettings({
               >
                 <Text size="sm">{i18n.get('UnauthenticatedAccessRights')}</Text>
                 <Checkbox
-                  disabled={!form.values['web_player_enable'] || form.values['web_player_auth'] === true || !form.values['authentication_enabled']}
+                  disabled={!form.values['web_player_enable'] || (form.values['web_player_auth'] === true && form.values['authentication_enabled'] === true)}
                   label={i18n.get('AllowMediaDownload')}
                   {...form.getInputProps('web_player_download', { type: 'checkbox' })}
                 />
                 <Checkbox
-                  disabled={!form.values['web_player_enable'] || form.values['web_player_auth'] === true || !form.values['authentication_enabled']}
+                  disabled={!form.values['web_player_enable'] || (form.values['web_player_auth'] === true && form.values['authentication_enabled'] === true)}
                   label={i18n.get('CanControlOtherDevices')}
                   {...form.getInputProps('web_player_controls', { type: 'checkbox' })}
                 />

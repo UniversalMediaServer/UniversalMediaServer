@@ -73,6 +73,7 @@ export default function NoAdminLogin({ i18n, session }: { i18n: I18nInterface, s
     disableAuth().then(
       () => {
         session.logout(false)
+        session.resetLogout()
       },
       () => {
         showError({

@@ -2,11 +2,6 @@ import { test as setup } from '@playwright/test'
 
 setup('Disable authentication', async ({ page }) => {
   await page.goto('/')
-
-  // todo: fix the need for this initial delay/reload
-  await page.waitForTimeout(1000)
-  await page.reload()
-
-  await page.getByText('Disable authentication').click()
-  await page.getByText('Confirm').click()
+  await page.getByRole('button', { name: 'Disable authentication' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
 })

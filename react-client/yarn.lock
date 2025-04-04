@@ -3998,6 +3998,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-use-websocket@npm:4.13.0":
+  version: 4.13.0
+  resolution: "react-use-websocket@npm:4.13.0"
+  checksum: 10c0/92f0941c67984f3b43979a2e5aa9a358d1e2b01591575b09fdcdd638d0c4275f6c5e180d1173632bc0fd564458afc3583643635eaeb4e0b8ce059555576661f3
+  languageName: node
+  linkType: hard
+
 "react@npm:19.1.0":
   version: 19.1.0
   resolution: "react@npm:19.1.0"
@@ -4735,6 +4742,7 @@ __metadata:
     react-dom: "npm:19.1.0"
     react-movable: "npm:3.4.1"
     react-router-dom: "npm:7.4.1"
+    react-use-websocket: "npm:4.13.0"
     typescript: "npm:5.8.2"
     typescript-eslint: "npm:8.29.0"
     video.js: "npm:8.22.0"

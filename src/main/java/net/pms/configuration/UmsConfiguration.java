@@ -5188,7 +5188,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean isWebPlayerAuthenticationEnabled() {
-		return getBoolean(KEY_WEB_PLAYER_AUTH, false);
+		return getBoolean(KEY_WEB_PLAYER_AUTH, true);
 	}
 
 	public boolean isWebPlayerShowUserChoice() {
@@ -5858,7 +5858,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_WEB_GUI_PORT, DEFAULT_WEB_GUI_PORT);
 		jObj.addProperty(KEY_WEB_GUI_SHOW_USERS, false);
 		jObj.addProperty(KEY_WEB_PLAYER_ALLOW_EMPTY_PIN, true);
-		jObj.addProperty(KEY_WEB_PLAYER_AUTH, false);
+		jObj.addProperty(KEY_WEB_PLAYER_AUTH, true);
 		jObj.addProperty(KEY_WEB_PLAYER_CONTROLS, true);
 		jObj.addProperty(KEY_WEB_PLAYER_DOWNLOAD, true);
 		jObj.addProperty(KEY_WEB_PLAYER_PORT, DEFAULT_WEB_PLAYER_PORT);

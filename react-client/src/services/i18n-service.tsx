@@ -28,6 +28,10 @@ export interface I18nInterface {
   setLanguage: (language: string) => void
   getReportLink: () => React.ReactNode
   showServerUnreachable: () => void
+  languageLoaded: boolean
+  serverConnected: boolean
+  serverReadyState: number
+  setServerReadyState: (readyState: number) => void
 }
 
 export interface LanguageValue {
