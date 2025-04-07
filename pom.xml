@@ -101,7 +101,7 @@
 		-->
 		<jackson.version>2.18.3</jackson.version>
 
-		<surefire-version>3.5.2</surefire-version>
+		<surefire-version>3.5.3</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
