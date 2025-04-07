@@ -74,6 +74,9 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   )
 
   const refresh = () => {
+    if (!i18n.languageLoaded) {
+      return
+    }
     axios.get(authApiUrl + 'session')
       .then(function (response: AxiosResponse) {
         hideNotification('connection-lost')
@@ -161,7 +164,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
         session.users.map((user: UmsUserLogin) => {
           const switchUser = _.cloneDeep(user)
           const localUser = localUsers.find((localUser: LocalUser) => user.id == localUser.id)
-          if (localUser && localUser.token) {
+          if (localUser && tokenIsValid(localUser.token)) {
             switchUser.login = 'token'
             switchUser.token = localUser.token
           }
@@ -188,7 +191,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
           },
         )
         localUsers.map((localUser: LocalUser) => {
-          if (localUser && localUser.token) {
+          if (localUser && tokenIsValid(localUser.token)) {
             switchUsersTemp.push(
               {
                 id: localUser.id,
@@ -282,13 +285,13 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     refresh()
   }
 
-  const tokenIsValid = () => {
-    if (!token) {
+  const tokenIsValid = (tokenToCheck: string) => {
+    if (!tokenToCheck) {
       return false
     }
     const now = Math.floor(new Date().getTime() / 1000) + 300
     try {
-      const decoded = jwtDecode<JwtPayload>(token)
+      const decoded = jwtDecode<JwtPayload>(tokenToCheck)
       return (decoded.exp && decoded.exp > now)
     }
     catch {
@@ -380,14 +383,27 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   }, [serverName, documentTitle])
 
   useEffect(() => {
-    if (initialized) {
+    if (initialized || !i18n.languageLoaded) {
       return
     }
-    if (tokenIsValid()) {
+    if (tokenIsValid(token)) {
       axios.defaults.headers.common['Authorization'] = token ? 'Bearer ' + token : undefined
     }
     else {
       clearToken()
+    }
+    refresh()
+  }, [initialized, i18n.languageLoaded])
+
+  useEffect(() => {
+    if (i18n.serverConnected) {
+      refresh()
+    }
+  }, [i18n.serverConnected])
+
+  useEffect(() => {
+    if (!i18n.languageLoaded) {
+      return
     }
     axios.interceptors.response.use(function (response) {
       return response
@@ -395,15 +411,18 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       if (error?.response?.status === 401 && error?.config?.url !== authApiUrl + 'login') {
         showError({
           id: 'authentication_error',
-          title: 'Authentication error',
-          message: 'You have been logged out from Universal Media Server.',
+          title: i18n.get('AuthenticationError'),
+          message: i18n.get('YouHaveBeenLoggedOut'),
         })
         refresh()
+      }
+      if (!error.response && error.request) {
+        i18n.showServerUnreachable()
       }
       return Promise.reject(error)
     })
     refresh()
-  }, [initialized])
+  }, [i18n.languageLoaded, i18n.language])
 
   return (
     <SessionContext.Provider value={{

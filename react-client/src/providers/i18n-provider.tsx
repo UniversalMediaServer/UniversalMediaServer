@@ -16,10 +16,10 @@
  */
 import { Anchor, useDirection } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
-import { showNotification } from '@mantine/notifications'
+import { hideNotification, showNotification } from '@mantine/notifications'
+import { IconServerOff } from '@tabler/icons-react'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { ReactNode, useEffect, useState } from 'react'
-import { IconServerOff } from '@tabler/icons-react'
 
 import I18nContext from '../contexts/i18n-context'
 import { LanguageValue, ValueLabelData } from '../services/i18n-service'
@@ -28,20 +28,30 @@ import { showError } from '../utils/notifications'
 
 const I18nProvider = ({ children }: { children?: ReactNode }) => {
   const { dir, setDirection } = useDirection()
+  const [languageLoaded, setLanguageLoaded] = useState<boolean>(false)
+  const [serverConnected, setServerConnected] = useState<boolean>(false)
+  const [serverReadyState, setServerReadyState] = useState<number>(-1)
   const [i18n, setI18n] = useState<{ [key: string]: string }>({
+    AuthenticationError: 'Authentication error',
     Error: 'Error',
     LanguagesNotReceived: 'Languages were not received from the server.',
     Warning: 'Warning',
     UniversalMediaServerUnreachable: 'Universal Media Server unreachable',
+    YouHaveBeenLoggedOut: 'You have been logged out from Universal Media Server.',
   })
   const [version, setVersion] = useState<string>()
   const [languages, setLanguages] = useState<LanguageValue[]>([])
-  const [language, setLanguage] = useLocalStorage<string>({
+  const [language, setLanguageInternal] = useLocalStorage<string>({
     key: 'language',
     defaultValue: navigator.languages
       ? navigator.languages[0]
       : (navigator.language || 'en-US'),
   })
+
+  const setLanguage = (value: string) => {
+    setLanguageLoaded(false)
+    setLanguageInternal(value)
+  }
 
   const get = (value: string) => {
     return i18n[value] ? i18n[value] : value
@@ -89,9 +99,14 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
     }
   }
 
-  const getI18nLanguage = (language: string, version: string) => {
-    axios.get(i18nApiUrl, { params: { language, version } })
+  const getI18nLanguage = async (language: string, version: string) => {
+    axios.get(i18nApiUrl, { params: { language, version }, responseType: 'json' })
       .then(function (response: AxiosResponse) {
+        if (!response.data) {
+          return
+        }
+        hideNotification('languages-error')
+        setLanguageLoaded(true)
         setLanguages(response.data.languages)
         setI18n(response.data.i18n)
         setDirection(response.data.isRtl ? 'rtl' : 'ltr')
@@ -102,6 +117,7 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
         }
         else {
           showError({
+            id: 'languages-error',
             title: i18n['Error'],
             message: i18n['LanguagesNotReceived'],
           })
@@ -110,8 +126,12 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
   }
 
   const getI18nVersion = (language: string) => {
-    axios.post(i18nApiUrl)
+    axios.post(i18nApiUrl, { responseType: 'json' })
       .then(function (response: AxiosResponse) {
+        if (!response.data) {
+          return
+        }
+        hideNotification('languages-error')
         setVersion(response.data.version)
         getI18nLanguage(language, response.data.version)
       })
@@ -121,6 +141,7 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
         }
         else {
           showError({
+            id: 'languages-error',
             title: i18n['Error'],
             message: i18n['LanguagesNotReceived'],
           })
@@ -137,6 +158,7 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
   }
 
   const showServerUnreachable = () => {
+    setServerConnected(false)
     showNotification({
       id: 'connection-lost',
       color: 'orange',
@@ -148,13 +170,27 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
   }
 
   useEffect(() => {
+    if (!serverConnected) {
+      return
+    }
     if (version) {
       getI18nLanguage(language, version)
     }
     else {
       getI18nVersion(language)
     }
-  }, [language])
+  }, [language, serverConnected])
+
+  useEffect(() => {
+    if (serverReadyState === 1) {
+      console.log('WebSocket connected')
+      setServerConnected(true)
+    }
+    else if (serverReadyState === 3) {
+      console.log('WebSocket disconnected')
+      setServerConnected(false)
+    }
+  }, [serverReadyState])
 
   return (
     <I18nContext.Provider value={{
@@ -169,6 +205,10 @@ const I18nProvider = ({ children }: { children?: ReactNode }) => {
       setLanguage: setLanguage,
       getReportLink: getReportLink,
       showServerUnreachable: showServerUnreachable,
+      languageLoaded: languageLoaded,
+      serverConnected: serverConnected,
+      serverReadyState: serverReadyState,
+      setServerReadyState: setServerReadyState,
     }}
     >
       {children}
