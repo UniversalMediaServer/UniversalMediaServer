@@ -21,7 +21,6 @@ import { useEffect, useState } from 'react'
 
 import { UmsAccounts } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { accountApiUrl } from '../../utils'
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications'
@@ -29,25 +28,25 @@ import AuthenticationSettings from './AuthenticationSettings'
 import GroupAccordion from './GroupAccordion'
 import UserAccordion from './UserAccordion'
 
-const Accounts = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
+const Accounts = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const canModifySettings = session.havePermission(UmsPermission.settings_modify)
   const canManageGroups = session.havePermission(UmsPermission.groups_manage)
   const [filled, setFilled] = useState(false)
 
   useEffect(() => {
-    session.useSseAs(Accounts.name)
+    session.subscribeTo('Accounts')
     session.stopPlayerSse()
     session.setDocumentI18nTitle('ManageAccounts')
     session.setNavbarManage(Accounts.name)
   }, [])
 
   useEffect(() => {
-    if (filled && !sse.updateAccounts) {
+    if (filled && !session.updateAccounts) {
       return
     }
     setFilled(true)
-    sse.setUpdateAccounts(false)
+    session.setUpdateAccounts(false)
     axios.get(accountApiUrl + 'accounts')
       .then(function (response: AxiosResponse) {
         setAccounts(response.data)
@@ -63,7 +62,7 @@ const Accounts = ({ i18n, session, sse }: { i18n: I18nInterface, session: Sessio
           })
         }
       })
-  }, [sse.updateAccounts, sse.setUpdateAccounts])
+  }, [session.updateAccounts, session.setUpdateAccounts])
 
   const postAccountAction = (data: Record<string, unknown>, title: string, message: string, successmessage: string, errormessage: string) => {
     showLoading({

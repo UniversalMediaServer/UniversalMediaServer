@@ -16,7 +16,8 @@
  */
 import { Context, createContext } from 'react'
 
-import { SessionInterface } from '../services/session-service'
+import { SessionInterface, UmsMemory } from '../services/session-service'
+import { RendererAction } from '../services/home-service'
 
 const SessionContext: Context<SessionInterface> = createContext({
   initialized: false,
@@ -39,9 +40,9 @@ const SessionContext: Context<SessionInterface> = createContext({
   resetLogout: () => { },
   removeLocalUser: (_id: number) => { },
   lastUserId: 0,
-  sseAs: '',
-  useSseAs: (_name: string) => { },
-  stopSse: () => { },
+  subscribe: '',
+  subscribeTo: (_name: string) => { },
+  unsubscribe: () => { },
   usePlayerSse: false,
   startPlayerSse: () => { },
   stopPlayerSse: () => { },
@@ -64,6 +65,22 @@ const SessionContext: Context<SessionInterface> = createContext({
   setNavbarManage: (_navbarManage: string) => { },
   statusLine: '',
   setStatusLine: (_statusLine: string) => { },
+  serverConfiguration: null,
+  setServerConfiguration: (_configuration: Record<string, unknown> | null) => { },
+  addLogLine: (_line: string) => { },
+  hasNewLogLine: false,
+  getNewLogLine: () => undefined,
+  addRendererAction: (_rendererAction: RendererAction) => { },
+  hasRendererAction: false,
+  getRendererAction: () => undefined,
+  mediaScan: false,
+  setMediaScan: (_mediaScan: boolean) => { },
+  reloadable: false,
+  setReloadable: (_reloadable: boolean) => { },
+  memory: { max: 0, used: 0, dbcache: 0, buffer: 0 },
+  setMemory: (_memory: UmsMemory) => { },
+  updateAccounts: false,
+  setUpdateAccounts: (_updateAccounts: boolean) => { },
 } as SessionInterface)
 
 export default SessionContext

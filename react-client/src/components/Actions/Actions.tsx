@@ -55,7 +55,7 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
   }
 
   useEffect(() => {
-    session.stopSse()
+    session.unsubscribe()
     session.stopPlayerSse()
     session.setDocumentI18nTitle('Tools')
     session.setNavbarManage(Actions.name)

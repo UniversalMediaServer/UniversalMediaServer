@@ -24,12 +24,11 @@ import { useEffect, useState } from 'react'
 
 import { sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
-const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
+const Logs = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   const canModify = session.havePermission(UmsPermission.settings_modify)
   const [rootLogLevel, setRootLogLevel] = useState(0)
   const [guiLogLevel, setGuiLogLevel] = useState(0)
@@ -89,7 +88,7 @@ const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
   }
 
   useEffect(() => {
-    session.useSseAs(Logs.name)
+    session.subscribeTo('Logs')
     session.stopPlayerSse()
     session.setDocumentI18nTitle('Logs')
     session.setNavbarManage(Logs.name)
@@ -213,12 +212,12 @@ const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
   }, [activeLogs, activePage, filteredLogs])
 
   useEffect(() => {
-    if (!sse.hasNewLogLine || fileMode) {
+    if (!session.hasNewLogLine || fileMode) {
       return
     }
     const logsTemp = _.clone(logs)
-    while (sse.hasNewLogLine) {
-      const logLine = sse.getNewLogLine()
+    while (session.hasNewLogLine) {
+      const logLine = session.getNewLogLine()
       if (logLine === undefined) {
         break
       }
@@ -228,7 +227,7 @@ const Logs = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
       logsTemp.push(logLine)
     }
     setLogs(logsTemp)
-  }, [logs, sse, fileMode])
+  }, [logs, session.hasNewLogLine, session.getNewLogLine, fileMode])
 
   useEffect(() => {
     if (!packerOpened) {

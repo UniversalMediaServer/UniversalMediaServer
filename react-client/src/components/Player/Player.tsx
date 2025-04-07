@@ -39,7 +39,7 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
   const { req, id } = useParams()
 
   useEffect(() => {
-    session.stopSse()
+    session.unsubscribe()
     session.startPlayerSse()
   }, [])
 

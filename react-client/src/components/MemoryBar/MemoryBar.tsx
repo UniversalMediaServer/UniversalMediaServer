@@ -17,7 +17,7 @@
 import { Group, Progress, Text, Tooltip } from '@mantine/core'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { UmsMemory } from '../../services/server-event-service'
+import { UmsMemory } from '../../services/session-service'
 
 const MemoryBar = ({ decorate, memory, i18n }: { decorate?: boolean, memory: UmsMemory, i18n: I18nInterface }) => {
   const MaxMemLabel = () => {

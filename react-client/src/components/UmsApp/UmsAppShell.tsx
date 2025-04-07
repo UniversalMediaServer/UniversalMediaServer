@@ -22,7 +22,6 @@ import { Route, Routes, Navigate } from 'react-router-dom'
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerEventInterface } from '../../services/player-server-event-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
-import { ServerEventInterface } from '../../services/server-event-service'
 import About from '../About/About'
 import Accounts from '../Accounts/Accounts'
 import Actions from '../Actions/Actions'
@@ -41,7 +40,7 @@ import StatusLine from './StatusLine'
 import UserMenu from './UserMenu'
 import WebSocketClient from './WebSocketClient'
 
-export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface, playersse: PlayerEventInterface }) {
+export default function UmsAppShell({ i18n, session, playersse }: { i18n: I18nInterface, session: SessionInterface, playersse: PlayerEventInterface }) {
   const { dir } = useDirection()
   const [navbarWidthSmall] = useLocalStorage<number>({
     key: 'mantine-navbar-width-sm',
@@ -57,7 +56,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
   })
   return (
     <div dir={dir} className="bodyBackgroundImageScreen">
-      <WebSocketClient i18n={i18n} />
+      <WebSocketClient i18n={i18n} session={session} />
       <AppShell
         padding="md"
         navbar={session.hasNavbar
@@ -102,7 +101,7 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
                 (!session.authenticate || (session.account && !session.isLogout))
                   ? (
                       <Routes>
-                        <Route path="about" element={<About i18n={i18n} session={session} sse={sse} />}></Route>
+                        <Route path="about" element={<About i18n={i18n} session={session} />}></Route>
                         <Route path="customize" element={<BrowserSettings i18n={i18n} session={session} />}></Route>
                         <Route path="player" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
                         <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
@@ -116,17 +115,17 @@ export default function UmsAppShell({ i18n, session, sse, playersse }: { i18n: I
             : session.account && !session.isLogout
               ? (
                   <Routes>
-                    <Route path="about" element={<About i18n={i18n} session={session} sse={sse} />}></Route>
-                    <Route path="accounts" element={<Accounts i18n={i18n} session={session} sse={sse} />}></Route>
+                    <Route path="about" element={<About i18n={i18n} session={session} />}></Route>
+                    <Route path="accounts" element={<Accounts i18n={i18n} session={session} />}></Route>
                     <Route path="actions" element={<Actions i18n={i18n} session={session} />}></Route>
                     <Route path="customize" element={<BrowserSettings i18n={i18n} session={session} />}></Route>
-                    <Route path="logs" element={<Logs i18n={i18n} session={session} sse={sse} />}></Route>
+                    <Route path="logs" element={<Logs i18n={i18n} session={session} />}></Route>
                     <Route path="player" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
                     <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
-                    <Route path="settings" element={<ServerSettings i18n={i18n} session={session} sse={sse} />}></Route>
-                    <Route path="shared" element={<SharedContent i18n={i18n} session={session} sse={sse} />}></Route>
+                    <Route path="settings" element={<ServerSettings i18n={i18n} session={session} />}></Route>
+                    <Route path="shared" element={<SharedContent i18n={i18n} session={session} />}></Route>
                     {session.havePermission(UmsPermission.settings_view)
-                      ? <Route index element={<Home i18n={i18n} session={session} sse={sse} />} />
+                      ? <Route index element={<Home i18n={i18n} session={session} />} />
                       : <Route index element={<Player i18n={i18n} session={session} sse={playersse} />} />}
                     <Route
                       path="/*"

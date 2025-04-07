@@ -26,11 +26,10 @@ import NetworkDevices from './NetworkDevices'
 import { renderersApiUrl } from '../../utils'
 import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications'
 
-const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
+const Home = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   const [renderers, setRenderers] = useState([] as Renderer[])
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false)
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[])
@@ -44,38 +43,38 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!sse.hasRendererAction) {
+    if (!session.hasRendererAction) {
       return
     }
     const renderersTemp = _.cloneDeep(renderers)
-    while (sse.hasRendererAction) {
-      const rendererAction = sse.getRendererAction()
+    while (session.hasRendererAction) {
+      const rendererAction = session.getRendererAction()
       if (rendererAction === undefined) {
         break
       }
       switch (rendererAction.action) {
         case 'renderer_add': {
-          renderersTemp.push(rendererAction)
+          renderersTemp.push(rendererAction.data)
           break
         }
         case 'renderer_delete': {
-          const delIndex = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id)
+          const delIndex = renderersTemp.findIndex(renderer => renderer.id === rendererAction.data.id)
           if (delIndex > -1) {
             renderersTemp.splice(delIndex, 1)
           }
           break
         }
         case 'renderer_update': {
-          const index = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id)
+          const index = renderersTemp.findIndex(renderer => renderer.id === rendererAction.data.id)
           if (index > -1) {
-            renderersTemp[index] = rendererAction
+            renderersTemp[index] = rendererAction.data
           }
           break
         }
       }
     }
     setRenderers(renderersTemp)
-  }, [renderers, sse])
+  }, [renderers, session.hasRendererAction])
 
   useEffect(() => {
     if (canView) {
@@ -85,7 +84,7 @@ const Home = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInt
 
   useEffect(() => {
     session.setDocumentTitle('')
-    session.useSseAs(Home.name)
+    session.subscribeTo('Home')
     session.stopPlayerSse()
     session.setNavbarManage(Home.name)
   }, [])

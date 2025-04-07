@@ -44,8 +44,9 @@ export interface Renderer {
   state: RendererState
 }
 
-export interface RendererAction extends Renderer {
+export interface RendererAction {
   action: string
+  data: Renderer
 }
 
 export interface NetworkDevice {

@@ -24,14 +24,15 @@ import { ReactNode, useEffect, useState } from 'react'
 import SessionContext from '../contexts/session-context'
 import { accountHavePermission } from '../services/accounts-service'
 import { I18nInterface } from '../services/i18n-service'
-import { LocalUser, UmsSession, UmsUser, UmsUserLogin } from '../services/session-service'
+import { LocalUser, UmsMemory, UmsSession, UmsUser, UmsUserLogin } from '../services/session-service'
 import { authApiUrl, playerApiUrl } from '../utils'
 import { showError } from '../utils/notifications'
+import { RendererAction } from '../services/home-service'
 
 const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nInterface }) => {
   const [initialized, setInitialized] = useState(false)
   const [session, setSession] = useState<UmsSession>({ noAdminFound: false, authenticate: true, player: false })
-  const [sse, setSse] = useState('')
+  const [subscribe, setSubscribe] = useState('')
   const [playerSse, setPlayerSse] = useState(false)
   const [serverName, setServerName] = useState<string>('Universal Media Server')
   const [documentTitle, setDocumentTitleInternal] = useState<string>('')
@@ -46,6 +47,15 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const [lastUserId, setLastUserId] = useState<number>(0)
   const [canSwitchUser, setCanSwitchUser] = useState<boolean>(false)
   const [switchUsers, setSwitchUsers] = useState<UmsUserLogin[]>([])
+  const [mediaScan, setMediaScan] = useState<boolean>(false)
+  const [reloadable, setReloadable] = useState<boolean>(false)
+  const [memory, setMemory] = useState<UmsMemory>({ max: 0, used: 0, dbcache: 0, buffer: 0 })
+  const [updateAccounts, setUpdateAccounts] = useState<boolean>(false)
+  const [serverConfiguration, setServerConfigurationInternal] = useState<Record<string, unknown> | null>(null)
+  const [hasRendererAction, setRendererAction] = useState(false)
+  const [rendererActions] = useState<RendererAction[]>([])
+  const [hasNewLogLine, setNewLogLine] = useState(false)
+  const [newLogLines] = useState([] as string[])
   const [playerNavbar, setPlayerNavbar] = useLocalStorage<boolean>({
     key: 'player-navbar',
     defaultValue: true,
@@ -98,12 +108,12 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       })
   }
 
-  const useSseAs = (name: string) => {
-    setSse(name)
+  const subscribeTo = (name: string) => {
+    setSubscribe(name)
   }
 
-  const stopSse = () => {
-    setSse('')
+  const unsubscribe = () => {
+    setSubscribe('')
   }
 
   const startPlayerSse = () => {
@@ -343,6 +353,54 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     }
   }
 
+  const addLogLine = (line: string) => {
+    newLogLines.push(line)
+    if (newLogLines.length > 20) {
+      newLogLines.slice(0, newLogLines.length - 20)
+    }
+    setNewLogLine(true)
+  }
+
+  const getNewLogLine = () => {
+    if (newLogLines.length > 0) {
+      const result = newLogLines.shift()
+      setNewLogLine(rendererActions.length > 0)
+      return result
+    }
+  }
+
+  const addRendererAction = (rendererAction: RendererAction) => {
+    rendererActions.push(rendererAction)
+    if (rendererActions.length > 20) {
+      rendererActions.slice(0, rendererActions.length - 20)
+    }
+    setRendererAction(true)
+  }
+
+  const getRendererAction = () => {
+    if (rendererActions.length > 0) {
+      const result = rendererActions.shift()
+      setRendererAction(rendererActions.length > 0)
+      return result
+    }
+  }
+
+  const setServerConfiguration = (configuration: Record<string, unknown> | null) => {
+    if (configuration != null) {
+      if (configuration.server_name !== undefined) {
+        setServerName(configuration.server_name as string)
+      }
+      if (configuration.authentication_enabled !== undefined
+        || configuration.authenticate_localhost_as_admin !== undefined
+        || configuration.web_gui_show_users !== undefined
+        || configuration.web_gui_allow_empty_pin !== undefined
+      ) {
+        refresh()
+      }
+    }
+    setServerConfigurationInternal(configuration)
+  }
+
   useEffect(() => {
     updateSwitchUsers()
   }, [localUsers])
@@ -445,9 +503,9 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       resetLogout: resetLogout,
       removeLocalUser: removeLocalUser,
       lastUserId: lastUserId,
-      sseAs: sse,
-      useSseAs: useSseAs,
-      stopSse: stopSse,
+      subscribe: subscribe,
+      subscribeTo: subscribeTo,
+      unsubscribe: unsubscribe,
       usePlayerSse: playerSse,
       stopPlayerSse: stopPlayerSse,
       startPlayerSse: startPlayerSse,
@@ -470,6 +528,22 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       setNavbarManage: setNavbarManage,
       statusLine: statusLine,
       setStatusLine: setStatusLine,
+      serverConfiguration: serverConfiguration,
+      setServerConfiguration: setServerConfiguration,
+      addLogLine: addLogLine,
+      hasNewLogLine: hasNewLogLine,
+      getNewLogLine: getNewLogLine,
+      addRendererAction: addRendererAction,
+      hasRendererAction: hasRendererAction,
+      getRendererAction: getRendererAction,
+      mediaScan: mediaScan,
+      setMediaScan: setMediaScan,
+      reloadable: reloadable,
+      setReloadable: setReloadable,
+      memory: memory,
+      setMemory: setMemory,
+      updateAccounts: updateAccounts,
+      setUpdateAccounts: setUpdateAccounts,
     }}
     >
       {children}

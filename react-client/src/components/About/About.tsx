@@ -23,12 +23,11 @@ import ReactCountryFlag from 'react-country-flag'
 import MemoryBar from '../MemoryBar/MemoryBar'
 import { AboutData } from '../../services/about-service'
 import { I18nInterface } from '../../services/i18n-service'
-import { ServerEventInterface, UmsMemory } from '../../services/server-event-service'
-import { SessionInterface, UmsPermission } from '../../services/session-service'
+import { SessionInterface, UmsMemory, UmsPermission } from '../../services/session-service'
 import { aboutApiUrl } from '../../utils'
 import { showError } from '../../utils/notifications'
 
-const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) => {
+const About = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   const [aboutDatas, setAboutDatas] = useState<AboutData>()
   const [memory, setMemory] = useState<UmsMemory>()
   const canView = session.havePermission(UmsPermission.settings_view | UmsPermission.settings_modify)
@@ -69,10 +68,10 @@ const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionIn
 
   useEffect(() => {
     if (canView && !session.player) {
-      session.useSseAs(About.name)
+      session.subscribeTo('About')
     }
     else {
-      session.stopSse()
+      session.unsubscribe()
     }
     session.stopPlayerSse()
     session.setDocumentI18nTitle('About')
@@ -99,8 +98,8 @@ const About = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionIn
   }, [i18n])
 
   useEffect(() => {
-    setMemory(sse.memory)
-  }, [sse.memory])
+    setMemory(session.memory)
+  }, [session.memory])
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">

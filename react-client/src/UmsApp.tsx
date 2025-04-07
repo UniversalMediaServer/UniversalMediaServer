@@ -17,11 +17,9 @@
 import UmsAppShell from './components/UmsApp/UmsAppShell'
 import I18nContext from './contexts/i18n-context'
 import PlayerEventContext from './contexts/player-server-event-context'
-import ServerEventContext from './contexts/server-event-context'
 import SessionContext from './contexts/session-context'
 import I18nProvider from './providers/i18n-provider'
 import PlayerEventProvider from './providers/player-server-event-provider'
-import ServerEventProvider from './providers/server-event-provider'
 import SessionProvider from './providers/session-provider'
 
 function UmsApp() {
@@ -32,19 +30,13 @@ function UmsApp() {
           <SessionProvider i18n={i18n}>
             <SessionContext.Consumer>
               {session => (
-                <ServerEventProvider i18n={i18n} session={session}>
-                  <ServerEventContext.Consumer>
-                    {sse => (
-                      <PlayerEventProvider i18n={i18n} session={session}>
-                        <PlayerEventContext.Consumer>
-                          {playersse => (
-                            <UmsAppShell i18n={i18n} session={session} sse={sse} playersse={playersse} />
-                          )}
-                        </PlayerEventContext.Consumer>
-                      </PlayerEventProvider>
+                <PlayerEventProvider i18n={i18n} session={session}>
+                  <PlayerEventContext.Consumer>
+                    {playersse => (
+                      <UmsAppShell i18n={i18n} session={session} playersse={playersse} />
                     )}
-                  </ServerEventContext.Consumer>
-                </ServerEventProvider>
+                  </PlayerEventContext.Consumer>
+                </PlayerEventProvider>
               )}
             </SessionContext.Consumer>
           </SessionProvider>
