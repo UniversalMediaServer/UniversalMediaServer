@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
+import { PlayerInterface } from '../../services/player-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { AudioMedia, BaseBrowse, BaseMedia, ImageMedia, PlayMedia, VideoMedia, VideoMetadata } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
@@ -33,13 +33,13 @@ import PlayerNavbar from './PlayerNavbar'
 import MediaGrid from './MediaGrid'
 import MediaPanel from './MediaPanel'
 
-const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: PlayerEventInterface }) => {
+const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface }) => {
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse)
   const [loading, setLoading] = useState(false)
   const { req, id } = useParams()
 
   useEffect(() => {
-    session.unsubscribe()
+    session.subscribeTo('Player')
     session.startPlayerSse()
   }, [])
 
@@ -56,9 +56,9 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
   }, [data.breadcrumbs])
 
   const refreshPage = () => {
-    if (sse.uuid && sse.reqType) {
+    if (player.uuid && player.reqType) {
       setLoading(true)
-      axios.post(playerApiUrl + sse.reqType, { uuid: sse.uuid, id: sse.reqId, lang: i18n.language }, { headers: { Player: sse.uuid } })
+      axios.post(playerApiUrl + player.reqType, { uuid: player.uuid, id: player.reqId, lang: i18n.language }, { headers: { Player: player.uuid } })
         .then(function (response: AxiosResponse) {
           setData(response.data)
           const data = response.data as BaseBrowse
@@ -67,7 +67,7 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
             response.data.goal === 'show' ? (mediaTemp as BaseBrowse | VideoMedia).metadata : data.metadata,
           )
           window.scrollTo(0, 0)
-          const url = '/player/' + sse.reqType + '/' + sse.reqId
+          const url = '/player/' + player.reqType + '/' + player.reqId
           if (url !== history.state) {
             window.history.pushState(url, '', url)
           }
@@ -113,7 +113,7 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
                       <Button
                         key={breadcrumb.id}
                         style={breadcrumb.id ? { fontWeight: 400 } : { cursor: 'default' }}
-                        onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
+                        onClick={breadcrumb.id ? () => player.askBrowseId(breadcrumb.id) : undefined}
                         color="gray"
                         variant="subtle"
                         size="compact-md"
@@ -143,21 +143,21 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
     </Button>
   )
 
-  const VideoJsMediaPlayer = ({ sse, media }: { sse: PlayerEventInterface, media: VideoMedia | AudioMedia }) => {
+  const VideoJsMediaPlayer = ({ player, media }: { player: PlayerInterface, media: VideoMedia | AudioMedia }) => {
     return (
       <Paper>
         <VideoPlayer
-          {...{ media: media, uuid: sse.uuid, askPlayId: sse.askPlayId }}
+          {...{ media: media, uuid: player.uuid, askPlayId: player.askPlayId, sendJsonMessage: session.sendJsonMessage }}
         />
       </Paper>
     )
   }
 
-  const ImageMediaPlayer = ({ sse, media }: { sse: PlayerEventInterface, media: ImageMedia }) => {
+  const ImageMediaPlayer = ({ player, media }: { player: PlayerInterface, media: ImageMedia }) => {
     if (media.delay && media.surroundMedias.next) {
       setTimeout(() => {
         if (media.surroundMedias.next) {
-          sse.askPlayId(media.surroundMedias.next.id)
+          player.askPlayId(media.surroundMedias.next.id)
         }
       }, media.delay)
     }
@@ -165,22 +165,22 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
       <Paper>
         <Image
           radius="md"
-          src={playerApiUrl + 'image/' + sse.uuid + '/' + media.id}
+          src={playerApiUrl + 'image/' + player.uuid + '/' + media.id}
           alt={media.name}
         />
       </Paper>
     )
   }
 
-  const MediaPlayer = ({ sse, data }: { sse: PlayerEventInterface, data: BaseBrowse }) => {
+  const MediaPlayer = ({ player, data }: { player: PlayerInterface, data: BaseBrowse }) => {
     if (data.medias.length === 1) {
       switch ((data.medias[0] as PlayMedia).mediaType) {
         case 'video':
-          return <VideoJsMediaPlayer media={data.medias[0] as VideoMedia} sse={sse} />
+          return <VideoJsMediaPlayer media={data.medias[0] as VideoMedia} player={player} />
         case 'audio':
-          return <VideoJsMediaPlayer media={data.medias[0] as AudioMedia} sse={sse} />
+          return <VideoJsMediaPlayer media={data.medias[0] as AudioMedia} player={player} />
         case 'image':
-          return <ImageMediaPlayer media={data.medias[0] as ImageMedia} sse={sse} />
+          return <ImageMediaPlayer media={data.medias[0] as ImageMedia} player={player} />
       }
     }
     return undefined
@@ -254,16 +254,16 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
 
   useEffect(() => {
     if (id && req) {
-      sse.askReqId(id, req)
+      player.askReqId(id, req)
     }
   }, [req, id])
 
   useEffect(() => {
     refreshPage()
-  }, [sse.uuid, sse.reqType, sse.reqId, i18n.language])
+  }, [player.uuid, player.reqType, player.reqId, i18n.language])
 
   useEffect(() => {
-    session.setNavbarValue(session.playerNavbar ? <PlayerNavbar data={data} i18n={i18n} sse={sse} /> : undefined)
+    session.setNavbarValue(session.playerNavbar ? <PlayerNavbar data={data} i18n={i18n} player={player} /> : undefined)
   }, [data, i18n.get, session.playerNavbar])
 
   return (!session.authenticate || session.havePermission(UmsPermission.web_player_browse))
@@ -276,19 +276,19 @@ const Player = ({ i18n, session, sse }: { i18n: I18nInterface, session: SessionI
               data.goal === 'play'
                 ? (
                     <Paper>
-                      <MediaPlayer sse={sse} data={data} />
+                      <MediaPlayer player={player} data={data} />
                     </Paper>
                   )
                 : data.goal === 'show'
                   ? (
-                      <MediaPanel i18n={i18n} sse={sse} data={data} refreshPage={refreshPage} setLoading={setLoading} />
+                      <MediaPanel i18n={i18n} player={player} data={data} refreshPage={refreshPage} setLoading={setLoading} />
                     )
                   : (
                       <span>
-                        <MediaSelections i18n={i18n} session={session} sse={sse} data={data} />
-                        <MediaPanel i18n={i18n} sse={sse} data={data} refreshPage={refreshPage} setLoading={setLoading} />
-                        <MediaFolders i18n={i18n} session={session} sse={sse} data={data} />
-                        <MediaGrid i18n={i18n} session={session} sse={sse} mediaArray={data.medias} />
+                        <MediaSelections i18n={i18n} session={session} player={player} data={data} />
+                        <MediaPanel i18n={i18n} player={player} data={data} refreshPage={refreshPage} setLoading={setLoading} />
+                        <MediaFolders i18n={i18n} session={session} player={player} data={data} />
+                        <MediaGrid i18n={i18n} session={session} player={player} mediaArray={data.medias} />
                       </span>
                     )
             }

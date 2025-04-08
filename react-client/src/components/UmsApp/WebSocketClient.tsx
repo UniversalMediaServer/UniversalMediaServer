@@ -14,16 +14,17 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { showNotification } from '@mantine/notifications'
 import { useEffect } from 'react'
 import useWebSocket from 'react-use-websocket'
 
+import { RendererAction } from '../../services/home-service'
 import { I18nInterface } from '../../services/i18n-service'
+import { PlayerInterface, PlayerRemoteAction } from '../../services/player-service'
 import { SessionInterface, UmsMemory, UmsNotificationData } from '../../services/session-service'
 import { wsApiUrl } from '../../utils'
-import { showNotification } from '@mantine/notifications'
-import { RendererAction } from '../../services/home-service'
 
-const WebSocketClient = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
+const WebSocketClient = ({ i18n, session, player }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface }) => {
   const { lastJsonMessage, readyState: serverWebSocketReadyState, sendJsonMessage } = useWebSocket(
     wsApiUrl,
     {
@@ -48,6 +49,7 @@ const WebSocketClient = ({ i18n, session }: { i18n: I18nInterface, session: Sess
     console.log('WebSocket connection state changed ' + serverWebSocketReadyState)
     i18n.setServerReadyState(serverWebSocketReadyState)
     if (serverWebSocketReadyState == 1) {
+      session.setSendJsonMessage(sendJsonMessage)
       sendJsonMessage({ action: 'token', data: session.token })
       sendJsonMessage({ action: 'subscribe', data: session.subscribe })
       sendJsonMessage({ action: 'uuid', data: session.uuid })
@@ -76,6 +78,9 @@ const WebSocketClient = ({ i18n, session }: { i18n: I18nInterface, session: Sess
       case 'renderer_delete':
       case 'renderer_update':
         session.addRendererAction(lastJsonMessage as RendererAction)
+        break
+      case 'player':
+        player.onRemoteAction(message.data as PlayerRemoteAction)
         break
       case 'set_configuration_changed':
         if (message.data) {

@@ -14,10 +14,18 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.webguiserver;
+import { Context, createContext } from 'react'
+import { PlayerInterface, PlayerRemoteAction } from '../services/player-service'
 
-public interface IEventSourceClient {
-	public void close();
-	public boolean isOpened();
-	public boolean sendMessage(String message);
-}
+const PlayerContext: Context<PlayerInterface> = createContext({
+  uuid: '',
+  reqId: '0',
+  reqType: 'browse',
+  askReqId: (_id: string, _type: string) => { },
+  askBrowseId: (_id: string) => { },
+  askPlayId: (_id: string) => { },
+  askShowId: (_id: string) => { },
+  onRemoteAction: (_data: PlayerRemoteAction) => { },
+})
+
+export default PlayerContext

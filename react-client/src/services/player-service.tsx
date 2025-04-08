@@ -14,9 +14,35 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Icon, IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadge4k, IconBadgeHd, IconBadgeSd, IconBrandYoutube, IconCalendar, IconDeviceTv, IconDisc, IconEye, IconFolder, IconHeart, IconInfoSquare, IconLoader2, IconMovie, IconMusic, IconPhoto, IconQuestionMark, IconSettings, IconVideo, IconWorldWww } from '@tabler/icons-react'
-import { I18nInterface } from './i18n-service'
 import { createElement } from 'react'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
+import { Icon, IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadge4k, IconBadgeHd, IconBadgeSd, IconBrandYoutube, IconCalendar, IconDeviceTv, IconDisc, IconEye, IconFolder, IconHeart, IconInfoSquare, IconLoader2, IconMovie, IconMusic, IconPhoto, IconQuestionMark, IconSettings, IconVideo, IconWorldWww } from '@tabler/icons-react'
+
+import { I18nInterface } from './i18n-service'
+
+export interface PlayerInterface {
+  uuid: string
+  reqId: string
+  reqType: string
+  askReqId: (id: string, type: string) => void
+  askBrowseId: (id: string) => void
+  askPlayId: (id: string) => void
+  askShowId: (id: string) => void
+  onRemoteAction: (_data: PlayerRemoteAction) => void
+}
+
+export interface PlayerRemoteAction {
+  request: string
+  arg0?: string
+  arg1?: string
+}
+
+export interface VideoPlayerOption {
+  media: VideoMedia | AudioMedia
+  uuid: string
+  askPlayId: (id: string) => void
+  sendJsonMessage: SendJsonMessage
+}
 
 export interface BaseMedia {
   goal?: string

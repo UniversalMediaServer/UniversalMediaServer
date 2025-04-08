@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Context, createContext } from 'react'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 
 import { SessionInterface, UmsMemory } from '../services/session-service'
 import { RendererAction } from '../services/home-service'
@@ -81,6 +82,8 @@ const SessionContext: Context<SessionInterface> = createContext({
   setMemory: (_memory: UmsMemory) => { },
   updateAccounts: false,
   setUpdateAccounts: (_updateAccounts: boolean) => { },
+  sendJsonMessage: (_jsonMessage: unknown, _keep?: boolean) => { },
+  setSendJsonMessage: (_sendJsonMessage: SendJsonMessage) => { },
 } as SessionInterface)
 
 export default SessionContext

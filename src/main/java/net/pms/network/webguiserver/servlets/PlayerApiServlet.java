@@ -56,12 +56,10 @@ import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.StartStopListener;
-import net.pms.network.webguiserver.EventSourceClient;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebGuiRenderer;
-import net.pms.renderers.devices.players.WebGuiPlayer;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
@@ -104,8 +102,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					String uuid = ConnectedRenderers.getRandomUUID();
 					respond(req, resp, "{\"uuid\":\"" + uuid + "\"}", 200, "application/json");
 				}
-			} else if (path.startsWith("/sse/")) {
-				sendServerSentEvents(req, resp);
 			} else if (path.startsWith("/thumbnail/")) {
 				sendThumbnail(req, resp);
 			} else if (path.startsWith("/image/")) {
@@ -265,14 +261,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						}
 					}
 					respondBadRequest(req, resp);
-				}
-				case "/status" -> {
-					if (action.has("uuid")) {
-						((WebGuiPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
-						respond(req, resp, "", 200, "application/json");
-					} else {
-						respondBadRequest(req, resp);
-					}
 				}
 				case "/getMediaInfo" -> {
 					if (action.has("id")) {
@@ -1321,34 +1309,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		} catch (IOException ex) {
 			respondInternalServerError(req, resp);
 		}
-	}
-
-	private static void sendServerSentEvents(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String path = req.getPathInfo();
-		String[] pathData = path.split("/");
-		WebGuiRenderer renderer = getValidRendererOrRespondError(req, resp, pathData, 3, Permissions.WEB_PLAYER_BROWSE);
-		if (renderer == null) {
-			return;
-		}
-		resp.setHeader("Server", MediaServer.getServerName());
-		resp.setHeader("Connection", "close");
-		resp.setHeader("Cache-Control", "no-transform");
-		resp.setHeader("Charset", "UTF-8");
-		resp.setContentType("text/event-stream");
-		resp.setStatus(HttpServletResponse.SC_OK);
-		resp.flushBuffer();
-		AsyncContext async = req.startAsync();
-		async.setTimeout(0);
-		EventSourceClient sse = new EventSourceClient(async, () -> {
-			try {
-				Thread.sleep(2000);
-				renderer.updateServerSentEventsActive();
-			} catch (InterruptedException ex) {
-				Thread.currentThread().interrupt();
-			}
-		});
-		renderer.setActive(true);
-		renderer.addServerSentEvents(sse);
 	}
 
 	private static void sendThumbnail(HttpServletRequest req, HttpServletResponse resp) throws IOException {

@@ -726,13 +726,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/fetch-event-source@npm:2.0.1":
-  version: 2.0.1
-  resolution: "@microsoft/fetch-event-source@npm:2.0.1"
-  checksum: 10c0/38c69e9b9990e6cee715c7bbfa2752f943b42575acadb36facf19bb831f1520c469f854277439154258e0e1dc8650cc85038230d1f451e3f6b62e8faeaa1126c
-  languageName: node
-  linkType: hard
-
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -4721,7 +4714,6 @@ __metadata:
     "@mantine/hooks": "npm:7.17.3"
     "@mantine/modals": "npm:7.17.3"
     "@mantine/notifications": "npm:7.17.3"
-    "@microsoft/fetch-event-source": "npm:2.0.1"
     "@playwright/test": "npm:1.51.1"
     "@stylistic/eslint-plugin": "npm:4.2.0"
     "@tabler/icons-react": "npm:^3.31.0"

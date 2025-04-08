@@ -15,26 +15,25 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { BaseBrowse, VideoMedia } from '../../services/player-service'
+import { BaseBrowse, PlayerInterface, VideoMedia } from '../../services/player-service'
 import MediaMetadataPanel from './MediaMetadataPanel'
 import MediaShowPanel from './MediaShowPanel'
 import MediaPanelMenu from './MediaPanelMenu'
 
-export default function MediaPanel({ i18n, sse, data, refreshPage, setLoading }: { i18n: I18nInterface, sse: PlayerEventInterface, data: BaseBrowse, refreshPage: () => void, setLoading: (loading: boolean) => void }) {
+export default function MediaPanel({ i18n, player, data, refreshPage, setLoading }: { i18n: I18nInterface, player: PlayerInterface, data: BaseBrowse, refreshPage: () => void, setLoading: (loading: boolean) => void }) {
   const media = data.goal === 'show' ? data.medias[0] : data.breadcrumbs[data.breadcrumbs.length - 1]
   const metadata = data.goal === 'show' ? (media as BaseBrowse | VideoMedia).metadata : data.metadata
 
   return metadata
     ? (
-        <MediaMetadataPanel i18n={i18n} sse={sse} media={media} metadata={metadata}>
-          <MediaPanelMenu i18n={i18n} sse={sse} data={data} refreshPage={refreshPage} setLoading={setLoading} />
+        <MediaMetadataPanel i18n={i18n} player={player} media={media} metadata={metadata}>
+          <MediaPanelMenu i18n={i18n} player={player} data={data} refreshPage={refreshPage} setLoading={setLoading} />
         </MediaMetadataPanel>
       )
     : data.goal === 'show'
       ? (
-          <MediaShowPanel i18n={i18n} sse={sse} media={media}>
-            <MediaPanelMenu i18n={i18n} sse={sse} data={data} refreshPage={refreshPage} setLoading={setLoading} />
+          <MediaShowPanel i18n={i18n} player={player} media={media}>
+            <MediaPanelMenu i18n={i18n} player={player} data={data} refreshPage={refreshPage} setLoading={setLoading} />
           </MediaShowPanel>
         )
 

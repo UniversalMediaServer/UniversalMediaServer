@@ -47,6 +47,7 @@ public class WebSocketDispatcher {
 	private static final List<String> ACCOUNT_SESSIONS = Collections.synchronizedList(new LinkedList<>());
 	private static final List<String> HOME_SESSIONS = Collections.synchronizedList(new LinkedList<>());
 	private static final List<String> LOGS_SESSIONS = Collections.synchronizedList(new LinkedList<>());
+	private static final List<String> PLAYER_SESSIONS = Collections.synchronizedList(new LinkedList<>());
 	private static final List<String> SETTINGS_SESSIONS = Collections.synchronizedList(new LinkedList<>());
 	private static final List<String> SHARED_SESSIONS = Collections.synchronizedList(new LinkedList<>());
 	private static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
@@ -78,6 +79,8 @@ public class WebSocketDispatcher {
 		String action = jsonMessage.get(ACTION_STRING).getAsString();
 		JsonElement data = jsonMessage.get(DATA_STRING);
 		switch (action) {
+			case "player_status" ->
+				playerStatusHandler(session.getId(), data);
 			case "subscribe" ->
 				subscribeHandler(session.getId(), data);
 			case "token" ->
@@ -311,14 +314,16 @@ public class WebSocketDispatcher {
 		ACCOUNT_SESSIONS.remove(id);
 		HOME_SESSIONS.remove(id);
 		LOGS_SESSIONS.remove(id);
+		PLAYER_SESSIONS.remove(id);
 		SETTINGS_SESSIONS.remove(id);
 		SHARED_SESSIONS.remove(id);
 	}
 
 	private static void subscribeHandler(String id, JsonElement data) {
 		unsubscribe(id);
+		String subscribing = null;
 		if (data != null && data.isJsonPrimitive()) {
-			String subscribing = data.getAsString();
+			subscribing = data.getAsString();
 			switch (subscribing) {
 				case "" ->
 					LOGGER.debug("unsubscribing for session '{}'", id);
@@ -330,6 +335,8 @@ public class WebSocketDispatcher {
 					HOME_SESSIONS.add(id);
 				case "Logs" ->
 					LOGS_SESSIONS.add(id);
+				case "Player" ->
+					PLAYER_SESSIONS.add(id);
 				case "ServerSettings" ->
 					SETTINGS_SESSIONS.add(id);
 				case "SharedContent" ->
@@ -338,6 +345,15 @@ public class WebSocketDispatcher {
 					LOGGER.debug("Unhandled subscribing '{}' for session '{}'", subscribing, id);
 			}
 		}
+		sessionSubscribe(id, subscribing);
+	}
+
+	private static void sessionSubscribe(String id, String subscribing) {
+		WebSocketSession session = WS_SESSIONS.get(id);
+		if (session == null) {
+			return;
+		}
+		session.setSubscribe(subscribing);
 	}
 
 	private static void tokenHandler(String id, JsonElement data) {
@@ -362,6 +378,17 @@ public class WebSocketDispatcher {
 			uuid = data.getAsString();
 		}
 		session.setPlayerUuid(uuid);
+	}
+
+	private static void playerStatusHandler(String id, JsonElement data) {
+		WebSocketSession session = WS_SESSIONS.get(id);
+		if (session == null) {
+			return;
+		}
+		if (data != null) {
+			Map<String, String> status = GSON.fromJson(data, HashMap.class);
+			session.setPlayerStatus(status);
+		}
 	}
 
 	private static JsonObject jsonObjectFromString(String str) {

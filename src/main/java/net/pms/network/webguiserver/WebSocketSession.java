@@ -19,18 +19,28 @@ package net.pms.network.webguiserver;
 import jakarta.websocket.Session;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
+import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.devices.WebGuiRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Surf@ceS
  */
 public class WebSocketSession {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketDispatcher.class);
+
 	private final Session session;
 	private final String remoteAddress;
 	private final boolean isLocalhost;
+	private String subscribe;
 	private Account account;
+	private String playerUuid;
+	private WebGuiRenderer renderer;
 
 	public WebSocketSession(Session session) {
 		this.session = session;
@@ -60,12 +70,62 @@ public class WebSocketSession {
 		this.session.getBasicRemote().sendText(text);
 	}
 
+	public void sendMessage(String message) {
+		try {
+			sendText(message);
+		} catch (IOException e) {
+			LOGGER.debug("Error sending message to '{}' with message : {}", session.getId(), message);
+			LOGGER.trace("", e);
+		}
+	}
+
+	public void setSubscribe(String subscribe) {
+		this.subscribe = subscribe;
+		if (getWebGuiRenderer() != null) {
+			renderer.updateWebSocketPlayer();
+		}
+	}
+
 	public void setToken(String token) {
 		account = AuthService.getAccountLoggedIn(token, remoteAddress, isLocalhost);
 	}
 
 	public void setPlayerUuid(String uuid) {
-		//to implement
+		if (this.playerUuid != null && !this.playerUuid.equals(uuid) && renderer != null) {
+			renderer.setWebSocketSession(null);
+			renderer = null;
+		}
+		this.playerUuid = uuid;
+		getWebGuiRenderer();
+	}
+
+	private WebGuiRenderer getWebGuiRenderer() {
+		if (renderer != null) {
+			return renderer;
+		}
+		if (playerUuid == null) {
+			return null;
+		}
+		if (ConnectedRenderers.hasWebPlayerRenderer(playerUuid)) {
+			renderer = ConnectedRenderers.getWebPlayerRenderer(playerUuid);
+			renderer.setWebSocketSession(this);
+			renderer.updateWebSocketPlayer();
+		}
+		return renderer;
+	}
+
+	public void setPlayerStatus(Map<String, String> status) {
+		if (getWebGuiRenderer() != null) {
+			renderer.setPlayerStatus(status);
+		}
+	}
+
+	public boolean isOpen() {
+		return this.session.isOpen();
+	}
+
+	public boolean isPlayerOpen() {
+		return isOpen() && "Player".equals(subscribe);
 	}
 
 }

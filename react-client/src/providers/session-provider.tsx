@@ -19,7 +19,8 @@ import { hideNotification } from '@mantine/notifications'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { jwtDecode, JwtPayload } from 'jwt-decode'
 import _ from 'lodash'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 
 import SessionContext from '../contexts/session-context'
 import { accountHavePermission } from '../services/accounts-service'
@@ -56,6 +57,7 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
   const [rendererActions] = useState<RendererAction[]>([])
   const [hasNewLogLine, setNewLogLine] = useState(false)
   const [newLogLines] = useState([] as string[])
+  const sendJsonMessageInternal = useRef<SendJsonMessage>(undefined)
   const [playerNavbar, setPlayerNavbar] = useLocalStorage<boolean>({
     key: 'player-navbar',
     defaultValue: true,
@@ -401,6 +403,16 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
     setServerConfigurationInternal(configuration)
   }
 
+  const setSendJsonMessage = (sendJsonMessage: SendJsonMessage) => {
+    sendJsonMessageInternal.current = sendJsonMessage
+  }
+
+  const sendJsonMessage = (jsonMessage: unknown, keep?: boolean) => {
+    if (sendJsonMessageInternal.current != undefined) {
+      sendJsonMessageInternal.current(jsonMessage, keep)
+    }
+  }
+
   useEffect(() => {
     updateSwitchUsers()
   }, [localUsers])
@@ -544,6 +556,8 @@ const SessionProvider = ({ children, i18n }: { children?: ReactNode, i18n: I18nI
       setMemory: setMemory,
       updateAccounts: updateAccounts,
       setUpdateAccounts: setUpdateAccounts,
+      sendJsonMessage: sendJsonMessage,
+      setSendJsonMessage: setSendJsonMessage,
     }}
     >
       {children}

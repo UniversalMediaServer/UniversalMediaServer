@@ -20,11 +20,10 @@ import { ReactNode } from 'react'
 import ReactCountryFlag from 'react-country-flag'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { BaseMedia, MediaRating, VideoMetadata } from '../../services/player-service'
+import { BaseMedia, MediaRating, PlayerInterface, VideoMetadata } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
 
-export default function MediaMetadataPanel({ i18n, sse, media, metadata, children }: { i18n: I18nInterface, sse: PlayerEventInterface, media: BaseMedia, metadata: VideoMetadata, children?: ReactNode }) {
+export default function MediaMetadataPanel({ i18n, player, media, metadata, children }: { i18n: I18nInterface, player: PlayerInterface, media: BaseMedia, metadata: VideoMetadata, children?: ReactNode }) {
   const imdbSvg = <svg aria-hidden="true" width="1.5em" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" color="#e0ac00"><path fill="currentColor" d="M350.5 288.7c0 5.4 1.6 14.4-6.2 14.4-1.6 0-3-.8-3.8-2.4-2.2-5.1-1.1-44.1-1.1-44.7 0-3.8-1.1-12.7 4.9-12.7 7.3 0 6.2 7.3 6.2 12.7v32.7zM265 229.9c0-9.7 1.6-16-10.3-16v83.7c12.2.3 10.3-8.7 10.3-18.4v-49.3zM448 80v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48zM21.3 228.8c-.1.1-.2.3-.3.4h.3v-.4zM97 192H64v127.8h33V192zm113.3 0h-43.1l-7.6 59.9c-2.7-20-5.4-40.1-8.7-59.9h-42.8v127.8h29v-84.5l12.2 84.5h20.6l11.6-86.4v86.4h28.7V192zm86.3 45.3c0-8.1.3-16.8-1.4-24.4-4.3-22.5-31.4-20.9-49-20.9h-24.6v127.8c86.1.1 75 6 75-82.5zm85.9 17.3c0-17.3-.8-30.1-22.2-30.1-8.9 0-14.9 2.7-20.9 9.2V192h-31.7v127.8h29.8l1.9-8.1c5.7 6.8 11.9 9.8 20.9 9.8 19.8 0 22.2-15.2 22.2-30.9v-36z"></path></svg>
   const tmdbSvg = (
     <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" viewBox="0 0 185.04 133.4">
@@ -122,7 +121,7 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
     }
     if (!poster && media && media.id) {
       const updateId = media.updateId ? '?update=' + media.updateId : ''
-      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} alt="thumbnail" />)
+      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + player.uuid + '/' + media.id + updateId} alt="thumbnail" />)
     }
     return { logo, poster }
   }
@@ -144,7 +143,7 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
     }
   }
 
-  const MetadataBaseMediaList = ({ i18n, sse, title, mediaList }: { i18n: I18nInterface, sse: PlayerEventInterface, title: string, mediaList?: BaseMedia[] }) => {
+  const MetadataBaseMediaList = ({ i18n, player, title, mediaList }: { i18n: I18nInterface, player: PlayerInterface, title: string, mediaList?: BaseMedia[] }) => {
     if (mediaList && mediaList.length > 0) {
       return (
         <Group gap="xs" mt="sm" style={{ color: 'var(--mantine-color-bright)' }}>
@@ -160,7 +159,7 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
                 className={media.id ? 'fake-button-default-hover' : 'fake-button-default'}
                 onClick={() => {
                   if (media.id) {
-                    sse.askBrowseId(media.id)
+                    player.askBrowseId(media.id)
                   }
                 }}
               >
@@ -173,13 +172,13 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
     }
   }
 
-  const MetadataBaseMedia = ({ i18n, sse, title, media }: { i18n: I18nInterface, sse: PlayerEventInterface, title: string, media?: BaseMedia }) => {
+  const MetadataBaseMedia = ({ i18n, player, title, media }: { i18n: I18nInterface, player: PlayerInterface, title: string, media?: BaseMedia }) => {
     return media && media.name
-      ? <MetadataBaseMediaList i18n={i18n} sse={sse} title={title} mediaList={[media]} />
+      ? <MetadataBaseMediaList i18n={i18n} player={player} title={title} mediaList={[media]} />
       : undefined
   }
 
-  function MetadataCountryList({ i18n, sse, mediaList }: { i18n: I18nInterface, sse: PlayerEventInterface, mediaList?: BaseMedia[] }) {
+  function MetadataCountryList({ i18n, player, mediaList }: { i18n: I18nInterface, player: PlayerInterface, mediaList?: BaseMedia[] }) {
     return (mediaList && mediaList.length > 0)
       ? (
           <Group gap="xs" mt="sm" style={{ color: 'var(--mantine-color-bright)' }}>
@@ -199,7 +198,7 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
                   }}
                   onClick={() => {
                     if (media.id) {
-                      sse.askBrowseId(media.id)
+                      player.askBrowseId(media.id)
                     }
                   }}
                 />
@@ -291,13 +290,13 @@ export default function MediaMetadataPanel({ i18n, sse, media, metadata, childre
               {children}
               <MetadataTagLine mediaString={metadata.tagline} />
               <MetadataOriginalTitle title={metadata.originalTitle} language={metadata.originalLanguage} />
-              <MetadataBaseMediaList i18n={i18n} sse={sse} title="Actors" mediaList={metadata.actors} />
+              <MetadataBaseMediaList i18n={i18n} player={player} title="Actors" mediaList={metadata.actors} />
               <MetadataString i18n={i18n} title="Awards" mediaString={metadata.awards} />
-              <MetadataCountryList i18n={i18n} sse={sse} mediaList={metadata.countries} />
-              <MetadataBaseMediaList i18n={i18n} sse={sse} title="Director" mediaList={metadata.directors} />
-              <MetadataBaseMediaList i18n={i18n} sse={sse} title="Genres" mediaList={metadata.genres} />
+              <MetadataCountryList i18n={i18n} player={player} mediaList={metadata.countries} />
+              <MetadataBaseMediaList i18n={i18n} player={player} title="Director" mediaList={metadata.directors} />
+              <MetadataBaseMediaList i18n={i18n} player={player} title="Genres" mediaList={metadata.genres} />
               <MetadataString i18n={i18n} title="Plot" mediaString={metadata.overview} />
-              <MetadataBaseMedia i18n={i18n} sse={sse} title="Rated" media={metadata.rated} />
+              <MetadataBaseMedia i18n={i18n} player={player} title="Rated" media={metadata.rated} />
               <MetadataRatingList ratingsList={metadata.ratings} rating={metadata.rating} />
               <MetadataString i18n={i18n} title="YearStarted" mediaString={metadata.startYear} />
               <MetadataString i18n={i18n} title="TotalSeasons" mediaString={metadata.totalSeasons ? metadata.totalSeasons.toString() : undefined} />

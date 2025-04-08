@@ -18,18 +18,17 @@ import { Card, Grid, Image, Text } from '@mantine/core'
 import { ReactNode } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { BaseMedia } from '../../services/player-service'
+import { BaseMedia, PlayerInterface } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
 
-export default function MediaShowPanel({ i18n, sse, media, children }: { i18n: I18nInterface, sse: PlayerEventInterface, media: BaseMedia, children?: ReactNode }) {
+export default function MediaShowPanel({ i18n, player, media, children }: { i18n: I18nInterface, player: PlayerInterface, media: BaseMedia, children?: ReactNode }) {
   const updateId = media.updateId ? '?update=' + media.updateId : ''
   return (
     <Grid mb="md">
       <Grid.Col span={12}>
         <Grid columns={20} justify="center">
           <Grid.Col span={{ base: 0, xs: 6 }}>
-            <Image style={{ maxHeight: 500 }} radius="md" fit="contain" src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} />
+            <Image style={{ maxHeight: 500 }} radius="md" fit="contain" src={playerApiUrl + 'thumbnail/' + player.uuid + '/' + media.id + updateId} />
           </Grid.Col>
           <Grid.Col span={{ base: 20, xs: 12 }}>
             <Card shadow="sm" p="lg" radius="md" bg="transparentBg">

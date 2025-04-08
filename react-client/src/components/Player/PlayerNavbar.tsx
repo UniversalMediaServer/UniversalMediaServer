@@ -18,16 +18,15 @@ import { Button } from '@mantine/core'
 import { IconFolder } from '@tabler/icons-react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { BaseBrowse, getMediaIcon } from '../../services/player-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
+import { BaseBrowse, getMediaIcon, PlayerInterface } from '../../services/player-service'
 
-export default function PlayerNavbar({ i18n, sse, data }: { i18n: I18nInterface, sse: PlayerEventInterface, data: BaseBrowse }) {
+export default function PlayerNavbar({ i18n, player, data }: { i18n: I18nInterface, player: PlayerInterface, data: BaseBrowse }) {
   const FoldersButtons = () => {
     return data.folders.map((folder) => {
       return (
         <Button
           key={folder.id}
-          onClick={() => sse.askBrowseId(folder.id)}
+          onClick={() => player.askBrowseId(folder.id)}
           color="gray"
           variant="subtle"
           size="compact-md"
@@ -44,7 +43,7 @@ export default function PlayerNavbar({ i18n, sse, data }: { i18n: I18nInterface,
       return (
         <Button
           key={folder.id}
-          onClick={() => sse.askBrowseId(folder.id)}
+          onClick={() => player.askBrowseId(folder.id)}
           color="gray"
           variant="subtle"
           size="compact-md"

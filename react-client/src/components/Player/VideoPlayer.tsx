@@ -14,12 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import axios from 'axios'
 import { useEffect } from 'react'
 import videojs from 'video.js'
 import 'video.js/dist/video-js.min.css'
 
-import { AudioMedia, BaseMedia, VideoMedia } from '../../services/player-service'
+import { BaseMedia, VideoMedia, VideoPlayerOption } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
 import HlsQualitySelector from './VideoJs/HlsQualitySelector'
 import { VideoJsPlayer, VideoJsPlayerOptions } from './VideoJs/VideoJs'
@@ -82,12 +81,12 @@ const VideoPlayer = (vpOptions: VideoPlayerOption) => {
       const sub = { kind: 'chapters', src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id + '/chapters.vtt', default: true }
       options.tracks.push(sub)
     }
-    const status = { uuid: vpOptions.uuid, id: vpOptions.media.id } as { [key: string]: string }
+    const status = { uuid: vpOptions.uuid, id: vpOptions.media.id } as Record<string, string>
     const setStatus = (key: string, value: string, wait: boolean) => {
       if (status[key] !== value) {
         status[key] = value
         if (!wait) {
-          axios.post(playerApiUrl + 'status', status)
+          vpOptions.sendJsonMessage({ action: 'player_status', data: status })
         }
       }
     }
@@ -190,12 +189,6 @@ const VideoPlayer = (vpOptions: VideoPlayerOption) => {
     <div id="videodiv">
     </div>
   )
-}
-
-interface VideoPlayerOption {
-  media: VideoMedia | AudioMedia
-  uuid: string
-  askPlayId: (id: string) => void
 }
 
 export default VideoPlayer
