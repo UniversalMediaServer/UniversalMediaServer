@@ -27,7 +27,7 @@ import ScrollbarSize from './ScrollbarSize'
 
 const Customize = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   useEffect(() => {
-    session.stopSse()
+    session.unsubscribe()
     session.stopPlayerSse()
     session.setDocumentI18nTitle('Customize')
     session.setNavbarManage(Customize.name)

@@ -20,7 +20,6 @@ import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { ServerEventInterface } from '../../services/server-event-service'
 import { Feed, Folder, getFeedName, ITunes, NamedSharedContent, SharedContentConfiguration, SharedContentData, SharedContentInterface, Stream, VirtualFolder } from '../../services/shared-service'
 import SharedContentModal from './SharedContentModal'
 import SharedContentList from './SharedContentList'
@@ -30,13 +29,13 @@ import ScanSharedFoldersButton from './ScanSharedFoldersButton'
 export default function SharedContentSettings({
   i18n,
   canModify,
-  sse,
+  scan,
   configuration,
   sharedContents,
   setSharedContents,
 }: {
   i18n: I18nInterface
-  sse: ServerEventInterface
+  scan: boolean
   canModify: boolean
   configuration: SharedContentConfiguration
   sharedContents: SharedContentInterface[]
@@ -178,7 +177,7 @@ export default function SharedContentSettings({
     <>
       <Group mb="md">
         <NewSharedContentButton i18n={i18n} openEditModal={openEditModal} />
-        <ScanSharedFoldersButton i18n={i18n} sse={sse} sharedContents={sharedContents} canModify={canModify} />
+        <ScanSharedFoldersButton i18n={i18n} scan={scan} sharedContents={sharedContents} canModify={canModify} />
       </Group>
       <SharedContentModal i18n={i18n} canModify={canModify} opened={editOpened} setOpened={setEditOpened} form={modalForm} configuration={configuration} save={saveModal} />
       <SharedContentList

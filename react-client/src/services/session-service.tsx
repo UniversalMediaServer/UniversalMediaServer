@@ -1,3 +1,5 @@
+import { RendererAction } from './home-service'
+
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
@@ -82,6 +84,21 @@ export const UmsPermission = {
   all: -1,
 }
 
+export interface UmsMemory {
+  max: number
+  used: number
+  dbcache: number
+  buffer: number
+}
+
+export interface UmsNotificationData {
+  id?: string
+  color?: string
+  title?: string
+  message?: string
+  autoClose?: boolean
+}
+
 export interface SessionInterface extends UmsSession {
   initialized: boolean
   havePermission(permission: number): boolean
@@ -98,9 +115,9 @@ export interface SessionInterface extends UmsSession {
   resetLogout: () => void
   removeLocalUser: (id: number) => void
   lastUserId: number
-  sseAs: string
-  useSseAs: (name: string) => void
-  stopSse: () => void
+  subscribe: string
+  subscribeTo: (name: string) => void
+  unsubscribe: () => void
   usePlayerSse: boolean
   startPlayerSse: () => void
   stopPlayerSse: () => void
@@ -123,4 +140,20 @@ export interface SessionInterface extends UmsSession {
   setStatusLine: (statusLine: string) => void
   navbarManage: string
   setNavbarManage: (navbarManage: string) => void
+  serverConfiguration: Record<string, unknown> | null
+  setServerConfiguration: (configuration: Record<string, unknown> | null) => void
+  addLogLine: (line: string) => void
+  hasNewLogLine: boolean
+  getNewLogLine: () => string | undefined
+  addRendererAction: (rendererAction: RendererAction) => void
+  hasRendererAction: boolean
+  getRendererAction: () => RendererAction | undefined
+  mediaScan: boolean
+  setMediaScan: (mediaScan: boolean) => void
+  reloadable: boolean
+  setReloadable: (reloadable: boolean) => void
+  memory: UmsMemory
+  setMemory: (memory: UmsMemory) => void
+  updateAccounts: boolean
+  setUpdateAccounts: (updateAccounts: boolean) => void
 }

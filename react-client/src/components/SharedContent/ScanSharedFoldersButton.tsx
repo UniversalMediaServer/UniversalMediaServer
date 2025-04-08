@@ -17,19 +17,19 @@
 import { Button } from '@mantine/core'
 import { IconListSearch, IconLoader } from '@tabler/icons-react'
 import { useState } from 'react'
+
 import { sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SharedContentInterface } from '../../services/shared-service'
-import { ServerEventInterface } from '../../services/server-event-service'
 
 export default function ScanSharedFoldersButton({
   i18n,
-  sse,
+  scan,
   sharedContents,
   canModify,
 }: {
   i18n: I18nInterface
-  sse: ServerEventInterface
+  scan: boolean
   sharedContents: SharedContentInterface[]
   canModify: boolean
 }) {
@@ -63,11 +63,11 @@ export default function ScanSharedFoldersButton({
           disabled={!canModify || isLoading}
           leftSection={<IconListSearch />}
           variant="outline"
-          color={sse.mediaScan ? 'red' : 'blue'}
-          onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
+          color={scan ? 'red' : 'blue'}
+          onClick={() => scan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
         >
-          {i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
-          {sse.mediaScan && (<IconLoader />)}
+          {i18n.get(scan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
+          {scan && (<IconLoader />)}
         </Button>
       )
     : undefined

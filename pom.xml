@@ -101,7 +101,7 @@
 		-->
 		<jackson.version>2.18.3</jackson.version>
 
-		<surefire-version>3.5.2</surefire-version>
+		<surefire-version>3.5.3</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -533,7 +533,7 @@
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>6.2.1</version>
+			<version>6.3.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>

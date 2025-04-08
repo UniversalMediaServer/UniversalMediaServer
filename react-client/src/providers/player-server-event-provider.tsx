@@ -23,8 +23,7 @@ import videojs from 'video.js'
 
 import PlayerEventContext from '../contexts/player-server-event-context'
 import { I18nInterface } from '../services/i18n-service'
-import { SseNotificationData } from '../services/server-event-service'
-import { SessionInterface } from '../services/session-service'
+import { SessionInterface, UmsNotificationData } from '../services/session-service'
 import { playerApiUrl } from '../utils'
 import { showError, showWarning } from '../utils/notifications'
 
@@ -156,7 +155,7 @@ const PlayerEventProvider = ({ children, i18n, session }: { children?: ReactNode
       }
     }
 
-    const addNotification = (datas: SseNotificationData) => {
+    const addNotification = (datas: UmsNotificationData) => {
       showNotification({
         id: datas.id ? datas.id : 'sse-notification',
         color: datas.color,

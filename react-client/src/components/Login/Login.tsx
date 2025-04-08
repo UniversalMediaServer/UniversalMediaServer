@@ -26,7 +26,7 @@ import UsersLogin from './UsersLogin'
 export default function Login({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
   useEffect(() => {
     session.setDocumentI18nTitle('Login')
-    session.stopSse()
+    session.unsubscribe()
     session.stopPlayerSse()
     session.setNavbarValue(undefined)
   }, [])

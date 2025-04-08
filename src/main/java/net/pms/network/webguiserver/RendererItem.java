@@ -277,10 +277,11 @@ public class RendererItem implements IRendererGuiListener {
 	}
 
 	private void sendRendererAction(String action) {
-		if (EventSourceServer.hasHomeServerSentEvents()) {
-			JsonObject result = toJsonObject();
+		if (WebSocketDispatcher.hasHomeSession()) {
+			JsonObject result = new JsonObject();
 			result.addProperty("action", action);
-			EventSourceServer.broadcastHomeMessage(result.toString());
+			result.add("data", toJsonObject());
+			WebSocketDispatcher.broadcastHomeMessage(result.toString());
 		}
 	}
 

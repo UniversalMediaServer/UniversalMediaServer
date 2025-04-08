@@ -152,7 +152,7 @@ const Renderers = (
     return ''
   }
 
-  const renderersCards = renderers.map((renderer: Renderer) => allowed == renderer.isAllowed && (
+  const renderersCards = renderers && renderers.map((renderer: Renderer) => allowed == renderer.isAllowed && (
     <Grid.Col span={{ base: 12, xs: 6 }} key={renderer.id}>
       <Card shadow="sm" p="lg" radius="md" withBorder>
         <Card.Section withBorder inheritPadding py="xs">

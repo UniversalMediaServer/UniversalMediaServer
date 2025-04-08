@@ -24,7 +24,6 @@ import { useEffect, useState } from 'react'
 import { IconCheck } from '@tabler/icons-react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { SelectionSettingsData } from '../../services/settings-service'
 import { settingsApiUrl } from '../../utils'
@@ -34,7 +33,7 @@ import NavigationSettings from './NavigationSettings'
 import RenderersSettings from './RenderersSettings'
 import TranscodingSettings from './TranscodingSettings'
 
-export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) {
+export default function ServerSettings({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
   const [advancedSettings, setAdvancedSettings] = useLocalStorage<boolean>({
     key: 'show-advanced-settings',
     defaultValue: false,
@@ -61,21 +60,21 @@ export default function ServerSettings({ i18n, session, sse }: { i18n: I18nInter
   })
 
   useEffect(() => {
-    session.useSseAs(ServerSettings.name)
+    session.subscribeTo('ServerSettings')
     session.stopPlayerSse()
     session.setDocumentI18nTitle('ServerSettings')
     session.setNavbarManage(ServerSettings.name)
   }, [])
 
   useEffect(() => {
-    if (sse.userConfiguration === null) {
+    if (session.serverConfiguration === null) {
       return
     }
-    const userConfig = _.merge({}, configuration, sse.userConfiguration)
-    sse.setUserConfiguration(null)
+    const userConfig = _.merge({}, configuration, session.serverConfiguration)
+    session.setServerConfiguration(null)
     setConfiguration(userConfig)
     form.setValues(userConfig)
-  }, [configuration, sse])
+  }, [configuration, session.serverConfiguration, session.setServerConfiguration])
 
   useEffect(() => {
     if (canView) {

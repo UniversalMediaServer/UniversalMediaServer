@@ -20,14 +20,13 @@ import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { ServerEventInterface } from '../../services/server-event-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { SharedContentConfiguration, SharedContentInterface } from '../../services/shared-service'
 import { sharedApiUrl } from '../../utils'
 import { showError, showInfo } from '../../utils/notifications'
 import SharedContentSettings from './SharedContentSettings'
 
-export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterface, session: SessionInterface, sse: ServerEventInterface }) {
+export default function SharedContent({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
   const [isLoading, setLoading] = useState(true)
   const [configuration, setConfiguration] = useState<SharedContentConfiguration>()
   const [sharedContents, setSharedContents] = useState<SharedContentInterface[]>()
@@ -36,28 +35,28 @@ export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterf
   const canView = canModify || session.havePermission(UmsPermission.settings_view)
 
   useEffect(() => {
-    session.useSseAs(SharedContent.name)
+    session.subscribeTo('SharedContent')
     session.stopPlayerSse()
     session.setDocumentI18nTitle('SharedContent')
     session.setNavbarManage(SharedContent.name)
   }, [])
 
   useEffect(() => {
-    if (sse.userConfiguration === null) {
+    if (session.serverConfiguration === null) {
       return
     }
 
     const currentConfiguration = _.cloneDeep(configuration)
     // set a fresh state for shared_content
-    if (sse.userConfiguration['shared_content'] && currentConfiguration !== undefined) {
+    if (session.serverConfiguration['shared_content'] && currentConfiguration !== undefined) {
       currentConfiguration.shared_content = []
     }
 
-    const newConfiguration = _.merge({}, currentConfiguration, sse.userConfiguration)
-    sse.setUserConfiguration(null)
+    const newConfiguration = _.merge({}, currentConfiguration, session.serverConfiguration)
+    session.setServerConfiguration(null)
     setConfiguration(newConfiguration)
     setSharedContents(newConfiguration.shared_content)
-  }, [configuration, sse])
+  }, [configuration, session.serverConfiguration])
 
   useEffect(() => {
     if (canView) {
@@ -130,7 +129,7 @@ export default function SharedContent({ i18n, session, sse }: { i18n: I18nInterf
         <Box style={{ maxWidth: 1024 }} mx="auto">
           <Text size="lg" mb="md">{i18n.get('SharedContent')}</Text>
           {sharedContents && configuration && (
-            <SharedContentSettings i18n={i18n} canModify={canModify} sse={sse} sharedContents={sharedContents} setSharedContents={setSharedContents} configuration={configuration} />
+            <SharedContentSettings i18n={i18n} canModify={canModify} scan={session.mediaScan} sharedContents={sharedContents} setSharedContents={setSharedContents} configuration={configuration} />
           )}
           {canModify && modified && (
             <Box h={50}>
