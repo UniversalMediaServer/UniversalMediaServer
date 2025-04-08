@@ -27,7 +27,6 @@
     "@mantine/hooks": "7.17.3",
     "@mantine/modals": "7.17.3",
     "@mantine/notifications": "7.17.3",
-    "@microsoft/fetch-event-source": "2.0.1",
     "@tabler/icons-react": "^3.31.0",
     "axios": "1.8.4",
     "jwt-decode": "4.0.0",

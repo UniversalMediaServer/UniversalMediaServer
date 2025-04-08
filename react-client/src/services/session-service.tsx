@@ -1,5 +1,3 @@
-import { RendererAction } from './home-service'
-
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
@@ -16,6 +14,10 @@ import { RendererAction } from './home-service'
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
+
+import { RendererAction } from './home-service'
+
 export interface UmsUser {
   id: number
   username: string
@@ -156,4 +158,6 @@ export interface SessionInterface extends UmsSession {
   setMemory: (memory: UmsMemory) => void
   updateAccounts: boolean
   setUpdateAccounts: (updateAccounts: boolean) => void
+  sendJsonMessage: SendJsonMessage
+  setSendJsonMessage: (sendJsonMessage: SendJsonMessage) => void
 }

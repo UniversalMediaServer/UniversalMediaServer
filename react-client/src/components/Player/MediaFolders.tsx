@@ -15,22 +15,21 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { BaseBrowse } from '../../services/player-service'
+import { BaseBrowse, PlayerInterface } from '../../services/player-service'
 import { SessionInterface } from '../../services/session-service'
 import MediaGrid from './MediaGrid'
 
-export default function MediaFolders({ i18n, session, sse, data }: { i18n: I18nInterface, session: SessionInterface, sse: PlayerEventInterface, data: BaseBrowse }) {
+export default function MediaFolders({ i18n, session, player, data }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface, data: BaseBrowse }) {
   return !session.playerNavbar
     ? data.mediaLibraryFolders && data.mediaLibraryFolders.length > 0
       ? (
           <>
-            <MediaGrid i18n={i18n} session={session} sse={sse} mediaArray={data.mediaLibraryFolders} title="MediaLibrary" />
-            <MediaGrid i18n={i18n} session={session} sse={sse} mediaArray={data.folders} title="YourFolders" />
+            <MediaGrid i18n={i18n} session={session} player={player} mediaArray={data.mediaLibraryFolders} title="MediaLibrary" />
+            <MediaGrid i18n={i18n} session={session} player={player} mediaArray={data.folders} title="YourFolders" />
           </>
         )
       : (
-          <MediaGrid i18n={i18n} session={session} sse={sse} mediaArray={data.folders} />
+          <MediaGrid i18n={i18n} session={session} player={player} mediaArray={data.folders} />
         )
     : undefined
 }

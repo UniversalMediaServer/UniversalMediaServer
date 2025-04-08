@@ -20,7 +20,7 @@ import { IconServer, IconServerOff } from '@tabler/icons-react'
 import { Route, Routes, Navigate } from 'react-router-dom'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
+import { PlayerInterface } from '../../services/player-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import About from '../About/About'
 import Accounts from '../Accounts/Accounts'
@@ -40,7 +40,7 @@ import StatusLine from './StatusLine'
 import UserMenu from './UserMenu'
 import WebSocketClient from './WebSocketClient'
 
-export default function UmsAppShell({ i18n, session, playersse }: { i18n: I18nInterface, session: SessionInterface, playersse: PlayerEventInterface }) {
+export default function UmsAppShell({ i18n, session, player }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface }) {
   const { dir } = useDirection()
   const [navbarWidthSmall] = useLocalStorage<number>({
     key: 'mantine-navbar-width-sm',
@@ -56,7 +56,7 @@ export default function UmsAppShell({ i18n, session, playersse }: { i18n: I18nIn
   })
   return (
     <div dir={dir} className="bodyBackgroundImageScreen">
-      <WebSocketClient i18n={i18n} session={session} />
+      <WebSocketClient i18n={i18n} session={session} player={player} />
       <AppShell
         padding="md"
         navbar={session.hasNavbar
@@ -103,9 +103,9 @@ export default function UmsAppShell({ i18n, session, playersse }: { i18n: I18nIn
                       <Routes>
                         <Route path="about" element={<About i18n={i18n} session={session} />}></Route>
                         <Route path="customize" element={<BrowserSettings i18n={i18n} session={session} />}></Route>
-                        <Route path="player" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
-                        <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
-                        <Route index element={<Player i18n={i18n} session={session} sse={playersse} />} />
+                        <Route path="player" element={<Player i18n={i18n} session={session} player={player} />}></Route>
+                        <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} player={player} />}></Route>
+                        <Route index element={<Player i18n={i18n} session={session} player={player} />} />
                       </Routes>
                     )
                   : (
@@ -120,13 +120,13 @@ export default function UmsAppShell({ i18n, session, playersse }: { i18n: I18nIn
                     <Route path="actions" element={<Actions i18n={i18n} session={session} />}></Route>
                     <Route path="customize" element={<BrowserSettings i18n={i18n} session={session} />}></Route>
                     <Route path="logs" element={<Logs i18n={i18n} session={session} />}></Route>
-                    <Route path="player" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
-                    <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} sse={playersse} />}></Route>
+                    <Route path="player" element={<Player i18n={i18n} session={session} player={player} />}></Route>
+                    <Route path="player/:req/:id" element={<Player i18n={i18n} session={session} player={player} />}></Route>
                     <Route path="settings" element={<ServerSettings i18n={i18n} session={session} />}></Route>
                     <Route path="shared" element={<SharedContent i18n={i18n} session={session} />}></Route>
                     {session.havePermission(UmsPermission.settings_view)
                       ? <Route index element={<Home i18n={i18n} session={session} />} />
-                      : <Route index element={<Player i18n={i18n} session={session} sse={playersse} />} />}
+                      : <Route index element={<Player i18n={i18n} session={session} player={player} />} />}
                     <Route
                       path="/*"
                       element={<Navigate replace to="/" />}

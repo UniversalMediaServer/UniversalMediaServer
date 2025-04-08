@@ -19,21 +19,20 @@ import { IconInfoSmall } from '@tabler/icons-react'
 import { MouseEvent } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { BaseMedia, getMediaIcon } from '../../services/player-service'
+import { BaseMedia, getMediaIcon, PlayerInterface } from '../../services/player-service'
 import { SessionInterface } from '../../services/session-service'
 import { playerApiUrl } from '../../utils'
 
-export default function MediaCard({ i18n, session, sse, media }: { i18n: I18nInterface, session: SessionInterface, sse: PlayerEventInterface, media: BaseMedia }) {
+export default function MediaCard({ i18n, session, player, media }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface, media: BaseMedia }) {
   const onInfoPress = session.playerDirectPlay && media.goal === 'show'
     ? (e: MouseEvent) => {
-        sse.askReqId(media.id, 'show')
+        player.askReqId(media.id, 'show')
         e.stopPropagation()
       }
     : undefined
-  const onClick = () => sse.askReqId(media.id, media.goal ? (media.goal === 'show' && session.playerDirectPlay) ? 'play' : media.goal : 'browse')
+  const onClick = () => player.askReqId(media.id, media.goal ? (media.goal === 'show' && session.playerDirectPlay) ? 'play' : media.goal : 'browse')
 
-  const MediaImage = ({ i18n, sse, media }: { i18n: I18nInterface, sse: PlayerEventInterface, media: BaseMedia }) => {
+  const MediaImage = ({ i18n, player, media }: { i18n: I18nInterface, player: PlayerInterface, media: BaseMedia }) => {
     const icon = getMediaIcon(media, i18n, 185)
     if (icon) {
       return <Center>{icon}</Center>
@@ -41,7 +40,7 @@ export default function MediaCard({ i18n, session, sse, media }: { i18n: I18nInt
     const updateId = media.updateId ? '?update=' + media.updateId : ''
     return (
       <Image
-        src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId}
+        src={playerApiUrl + 'thumbnail/' + player.uuid + '/' + media.id + updateId}
         alt={media.name}
         maw="auto"
         fit="contain"
@@ -61,7 +60,7 @@ export default function MediaCard({ i18n, session, sse, media }: { i18n: I18nInt
       withBorder
     >
       <Card.Section h={185}>
-        <MediaImage i18n={i18n} sse={sse} media={media} />
+        <MediaImage i18n={i18n} player={player} media={media} />
       </Card.Section>
       {onInfoPress && (
         <Card.Section h={0} mt={-185} mb={185} ms={50} ta="end">

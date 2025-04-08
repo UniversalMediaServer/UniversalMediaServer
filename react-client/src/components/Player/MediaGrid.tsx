@@ -17,16 +17,15 @@
 import { CSSProperties, Title } from '@mantine/core'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { BaseMedia } from '../../services/player-service'
+import { BaseMedia, PlayerInterface } from '../../services/player-service'
 import { SessionInterface } from '../../services/session-service'
 import MediaCard from './MediaCard'
 
-export default function MediaGrid({ i18n, session, sse, mediaArray, title, fixed }: { i18n: I18nInterface, session: SessionInterface, sse: PlayerEventInterface, mediaArray: BaseMedia[], title?: string, fixed?: boolean }) {
-  const MediaCards = ({ i18n, sse, mediaArray }: { i18n: I18nInterface, sse: PlayerEventInterface, mediaArray: BaseMedia[] }) => {
+export default function MediaGrid({ i18n, session, player, mediaArray, title, fixed }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface, mediaArray: BaseMedia[], title?: string, fixed?: boolean }) {
+  const MediaCards = ({ i18n, player, mediaArray }: { i18n: I18nInterface, player: PlayerInterface, mediaArray: BaseMedia[] }) => {
     return mediaArray?.map((media) => {
       return (
-        <MediaCard key={media.id} i18n={i18n} session={session} sse={sse} media={media} />
+        <MediaCard key={media.id} i18n={i18n} session={session} player={player} media={media} />
       )
     })
   }
@@ -38,9 +37,9 @@ export default function MediaGrid({ i18n, session, sse, mediaArray, title, fixed
       ? (
           <>
             <Title mb="md" size="h4" fw={400}>{i18n.get(title)}</Title>
-            <div className={className} style={style}><MediaCards i18n={i18n} sse={sse} mediaArray={mediaArray} /></div>
+            <div className={className} style={style}><MediaCards i18n={i18n} player={player} mediaArray={mediaArray} /></div>
           </>
         )
-      : <div className={className}><MediaCards i18n={i18n} sse={sse} mediaArray={mediaArray} /></div>
+      : <div className={className}><MediaCards i18n={i18n} player={player} mediaArray={mediaArray} /></div>
     : undefined
 }

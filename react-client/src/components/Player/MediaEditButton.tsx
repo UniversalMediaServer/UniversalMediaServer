@@ -15,19 +15,19 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Button, Menu } from '@mantine/core'
+import { IconEdit, IconRecordMail, IconRecordMailOff } from '@tabler/icons-react'
 import axios, { AxiosError } from 'axios'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerEventInterface } from '../../services/player-server-event-service'
-import { IconEdit, IconRecordMail, IconRecordMailOff } from '@tabler/icons-react'
+import { PlayerInterface } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
 import VideoMetadataEditButton from './VideoMetadataEditButton'
 import { showError } from '../../utils/notifications'
 
-export default function MediaEditButton({ i18n, sse, fullyplayed, videoMetadataEditable, refreshPage, setLoading, setShowVideoMetadataEdit }: { i18n: I18nInterface, sse: PlayerEventInterface, fullyplayed?: boolean, videoMetadataEditable?: boolean, refreshPage: () => void, setLoading: (loading: boolean) => void, setShowVideoMetadataEdit: (loading: boolean) => void }) {
+export default function MediaEditButton({ i18n, player, fullyplayed, videoMetadataEditable, refreshPage, setLoading, setShowVideoMetadataEdit }: { i18n: I18nInterface, player: PlayerInterface, fullyplayed?: boolean, videoMetadataEditable?: boolean, refreshPage: () => void, setLoading: (loading: boolean) => void, setShowVideoMetadataEdit: (loading: boolean) => void }) {
   const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
     setLoading(true)
-    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: sse.uuid, id, fullyPlayed }, { headers: { Player: sse.uuid } })
+    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: player.uuid, id, fullyPlayed }, { headers: { Player: player.uuid } })
       .then(function () {
         refreshPage()
       })
@@ -59,7 +59,7 @@ export default function MediaEditButton({ i18n, sse, fullyplayed, videoMetadataE
             <Menu.Item
               color="blue"
               leftSection={<IconRecordMail />}
-              onClick={() => setFullyPlayed(sse.reqId, true)}
+              onClick={() => setFullyPlayed(player.reqId, true)}
             >
               {i18n.get('MarkContentsFullyPlayed')}
             </Menu.Item>
@@ -69,7 +69,7 @@ export default function MediaEditButton({ i18n, sse, fullyplayed, videoMetadataE
             <Menu.Item
               color="green"
               leftSection={<IconRecordMailOff />}
-              onClick={() => setFullyPlayed(sse.reqId, false)}
+              onClick={() => setFullyPlayed(player.reqId, false)}
             >
               {i18n.get('MarkContentsUnplayed')}
             </Menu.Item>
