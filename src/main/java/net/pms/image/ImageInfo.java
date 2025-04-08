@@ -17,6 +17,7 @@
 package net.pms.image;
 
 import com.drew.metadata.Metadata;
+import com.google.gson.JsonObject;
 import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import java.io.Serializable;
@@ -941,6 +942,17 @@ public abstract class ImageInfo implements Serializable {
 	public abstract ImageInfo copy();
 
 	protected abstract void buildToString(StringBuilder sb);
+
+	public JsonObject toJson() {
+		JsonObject result = new JsonObject();
+		result.addProperty("format", getFormat().toString());
+		String widthStr = (getWidth() == UNKNOWN) ? "Unknown" : Integer.toString(getWidth());
+		String heightStr = (getHeight() == UNKNOWN) ? "Unknown" : Integer.toString(getHeight());
+		result.addProperty("resolution", widthStr + "x" + heightStr);
+		result.addProperty("size", getSize());
+		result.addProperty("bitDepth", getBitDepth());
+		return result;
+	}
 
 	@Override
 	public String toString() {

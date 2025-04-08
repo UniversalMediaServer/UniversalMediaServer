@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.12.0-SNAPSHOT</version>
+	<version>15.0.0-ALPHA</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.12.0</project.version.short>
+		<project.version.short>15.0.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -569,9 +569,29 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.ee10.websocket</groupId>
+			<artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
+			<version>12.0.18</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jakarta.annotation</groupId>
+					<artifactId>jakarta.annotation-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.0.16</version>
+			<version>12.0.18</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -582,7 +602,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.0.16</version>
+			<version>12.0.18</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -593,7 +613,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.0.16</version>
+			<version>12.0.18</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
