@@ -101,7 +101,8 @@ public class WebSocketDispatcher {
 	}
 
 	/**
-	 * Broadcast a message to sessions that have account with the requested permission.
+	 * Broadcast a message to sessions that have account with the requested
+	 * permission.
 	 *
 	 * @param message
 	 * @param permission
@@ -224,7 +225,7 @@ public class WebSocketDispatcher {
 	}
 
 	public static void setReloadable(boolean value) {
-		broadcastMessage("{\"action\":\"set_reloadable\",\"data\":" + (value ? "true" : "false") + "}");
+		broadcastMessageWithPermission("{\"action\":\"set_reloadable\",\"data\":" + (value ? "true" : "false") + "}", Permissions.SETTINGS_VIEW);
 	}
 
 	public static void setConfigurationChanged(String key) {
@@ -241,14 +242,14 @@ public class WebSocketDispatcher {
 	}
 
 	public static void setMediaScanStatus(boolean running) {
-		broadcastMessage("{\"action\":\"set_media_scan_status\",\"data\":" + (running ? "true" : "false") + "}");
+		broadcastMessageWithPermission("{\"action\":\"set_media_scan_status\",\"data\":" + (running ? "true" : "false") + "}", Permissions.SETTINGS_VIEW);
 	}
 
 	public static void setStatusLine(String line) {
 		JsonObject result = new JsonObject();
 		result.addProperty(ACTION_STRING, "set_status_line");
 		result.addProperty(DATA_STRING, line);
-		broadcastMessage(result.toString());
+		broadcastMessageWithPermission(result.toString(), Permissions.SETTINGS_VIEW);
 	}
 
 	public static void appendLog(String msg) {
@@ -260,13 +261,13 @@ public class WebSocketDispatcher {
 		}
 	}
 
-	public static void notify(String id, String message, String title, String color, boolean autoClose) {
+	public static void notifyAll(String msgId, String message, String title, String color, boolean autoClose) {
 		if (hasSession()) {
 			JsonObject jsonMessage = new JsonObject();
 			jsonMessage.addProperty(ACTION_STRING, "notify");
 			JsonObject data = new JsonObject();
-			if (!StringUtils.isEmpty(id) && !StringUtils.isBlank(id)) {
-				data.addProperty("id", id);
+			if (!StringUtils.isEmpty(msgId) && !StringUtils.isBlank(msgId)) {
+				data.addProperty("id", msgId);
 			}
 			if (!StringUtils.isEmpty(message)) {
 				data.addProperty("message", message);

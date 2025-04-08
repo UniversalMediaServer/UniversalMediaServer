@@ -622,7 +622,7 @@ public class PMS {
 	// see the comment above HttpMediaServer.stop()
 	public void resetMediaServer() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
-			WebSocketDispatcher.notify("server-restart", "Server is restarting", "Server status", "red", true);
+			WebSocketDispatcher.notifyAll("server-restart", "Server is restarting", "Server status", "red", true);
 			MediaServer.stop();
 			resetRenderers(true);
 
@@ -645,7 +645,7 @@ public class PMS {
 	 */
 	public void shutdownComputer() {
 		TaskRunner.getInstance().submitNamed("shutdown", true, () -> {
-			WebSocketDispatcher.notify("computer-shutdown", "Shutting down computer", "Server status", "red", true);
+			WebSocketDispatcher.notifyAll("computer-shutdown", "Shutting down computer", "Server status", "red", true);
 			ProcessUtil.shutDownComputer();
 		});
 	}
