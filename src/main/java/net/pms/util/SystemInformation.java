@@ -16,6 +16,7 @@
  */
 package net.pms.util;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -94,6 +95,11 @@ public class SystemInformation extends Thread {
 			.append(System.getProperty("sun.arch.data.model")).append("-bit) by ")
 			.append(System.getProperty("java.vendor"));
 		result.add(sb.toString());
+		sb.setLength(0);
+		sb.append("JVM args: ");
+		for (String jvmArg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+			sb.append(StringUtil.quoteArg(jvmArg)).append(" ");
+		}
 		sb.setLength(0);
 		sb.append("Language: ")
 		.append(WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
