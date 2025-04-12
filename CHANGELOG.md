@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### General
+- Fixed videos not being marked as fully played (#5373) (thanks, Fredo1650!)
+
 ### Dependencies
 - Bump `@mantine/core` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
 - Bump `@mantine/dropzone` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
@@ -11,6 +14,7 @@
 - Bump `@mantine/notifications` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
 - Bump `@types/react` from 19.0.10 to 19.0.12 ([#5404](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5404))
 - Bump `@stylistic/eslint-plugin` from 4.1.0 to 4.2.0 ([#5428](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5428))
+- Bump `@types/react` from 19.0.10 to 19.0.12 ([#5404](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5404))
 - Bump `ch.qos.logback:logback-classic` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
 - Bump `ch.qos.logback:logback-core` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
 - Bump `com.zaxxer:HikariCP` from 6.2.1 to 6.3.0 ([#5444](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5444))
@@ -27,7 +31,7 @@
 - Bump `typescript-eslint` from 8.27.0 to 8.29.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))
 - Bump `vite` from 6.2.2 to 6.2.4 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433))
 - Bump `yarn` from 4.6.0 to 4.7.0
-- Bump `vite` from 6.2.2 to 6.2.5 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433), [#5441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5441))
+- Bump `vite` from 6.2.2 to 6.2.6 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433), [#5441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5441), [#5454](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5454))
 
 ## [14.12.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.11.0...14.12.0) (2025-03-26)
 
