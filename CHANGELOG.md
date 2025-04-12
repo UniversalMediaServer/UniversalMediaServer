@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### General
+- Fixed videos not being marked as fully played (#5373) (thanks, Fredo1650!)
+
 ### Dependencies
 - Bump `@mantine/core` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
 - Bump `@mantine/dropzone` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
@@ -16,7 +19,6 @@
 - Bump `com.zaxxer:HikariCP` from 6.2.1 to 6.3.0 ([#5444](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5444))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.4 to 0.12.12 ([#5430](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5430))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.1.0 to 3.1.1 ([#5431](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5431))
-- Bump `eslint` from 9.22.0 to 9.23.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
 - Bump `eslint` from 9.22.0 to 9.23.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.2 to 3.5.3 ([#5442](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5442))
 - Bump `react-dom` from 19.0.0 to 19.1.0 ([#5427](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5427))
