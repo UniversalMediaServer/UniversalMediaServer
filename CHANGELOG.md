@@ -19,10 +19,10 @@
 - Bump `eslint` from 9.22.0 to 9.23.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
 - Bump `eslint` from 9.22.0 to 9.23.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.2 to 3.5.3 ([#5442](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5442))
-- Bump `react` from 19.0.0 to 19.1.0 ([#5426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5426))
 - Bump `react-dom` from 19.0.0 to 19.1.0 ([#5427](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5427))
+- Bump `react` from 19.0.0 to 19.1.0 ([#5426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5426))
 - Bump `typescript-eslint` from 8.27.0 to 8.28.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))
-- Bump `vite` from 6.2.2 to 6.2.5 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433), [#5441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5441))
+- Bump `vite` from 6.2.2 to 6.2.6 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433), [#5441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5441), [#5454](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5454))
 
 ## [14.12.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.11.0...14.12.0) (2025-03-26)
 
