@@ -211,7 +211,7 @@ public class StoreResourceSorter {
 
 	private static int compareToNormalizedString(String str1, String str2, boolean asc) {
 		if (str2 == null) {
-			return 1;
+			return str1 == null ? 0 : 1;
 		} else if (str1 == null) {
 			return -1;
 		}
