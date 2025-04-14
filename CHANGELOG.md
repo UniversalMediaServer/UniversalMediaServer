@@ -21,6 +21,8 @@
 - Bump `de.sfuhrm:radiobrowser4j` from 3.1.0 to 3.1.1 ([#5431](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5431))
 - Bump `eslint` from 9.22.0 to 9.23.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.2 to 3.5.3 ([#5442](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5442))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
 - Bump `react-dom` from 19.0.0 to 19.1.0 ([#5427](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5427))
 - Bump `react` from 19.0.0 to 19.1.0 ([#5426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5426))
 - Bump `typescript-eslint` from 8.27.0 to 8.28.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))
