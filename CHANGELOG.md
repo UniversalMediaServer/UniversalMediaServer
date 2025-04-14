@@ -6,12 +6,12 @@
 - Fixed videos not being marked as fully played (#5373) (thanks, Fredo1650!)
 
 ### Dependencies
-- Bump `@mantine/core` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
-- Bump `@mantine/dropzone` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
-- Bump `@mantine/form` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
-- Bump `@mantine/hooks` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
-- Bump `@mantine/modals` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
-- Bump `@mantine/notifications` from 7.17.2 to 7.17.3 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424))
+- Bump `@mantine/core` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
+- Bump `@mantine/dropzone` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
+- Bump `@mantine/form` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
+- Bump `@mantine/hooks` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
+- Bump `@mantine/modals` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
+- Bump `@mantine/notifications` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
 - Bump `@stylistic/eslint-plugin` from 4.1.0 to 4.2.0 ([#5428](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5428))
 - Bump `@types/react` from 19.0.10 to 19.0.12 ([#5404](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5404))
 - Bump `ch.qos.logback:logback-classic` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
