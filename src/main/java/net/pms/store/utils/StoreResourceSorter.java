@@ -17,6 +17,10 @@
 package net.pms.store.utils;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.List;
@@ -163,29 +167,51 @@ public class StoreResourceSorter {
 	}
 
 	public static void sortResourcesByModifiedDate(List<StoreResource> resources, boolean asc) {
-		Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
-			if (resources1 instanceof SystemFileResource systemFileResource1 && resources2 instanceof SystemFileResource systemFileResource2) {
-				if (resources1 instanceof StoreItem && resources2 instanceof StoreContainer) {
-					return 1;
-				} else if (resources1 instanceof StoreContainer && resources2 instanceof StoreItem) {
-					return -1;
-				}
-				File file1 = systemFileResource1.getSystemFile();
-				File file2 = systemFileResource2.getSystemFile();
-				if (file2 == null) {
-					return file1 == null ? 0 : 1;
-				} else if (file1 == null) {
-					return -1;
-				}
-				if (asc) {
-					return Long.compare(file1.lastModified(), file2.lastModified());
+		try {
+			Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
+				if (resources1 instanceof SystemFileResource systemFileResource1 && resources2 instanceof SystemFileResource systemFileResource2) {
+					if (resources1 instanceof StoreItem && resources2 instanceof StoreContainer) {
+						return 1;
+					} else if (resources1 instanceof StoreContainer && resources2 instanceof StoreItem) {
+						return -1;
+					}
+					File file1 = systemFileResource1.getSystemFile();
+					File file2 = systemFileResource2.getSystemFile();
+					if (file2 == null) {
+						return file1 == null ? 0 : 1;
+					} else if (file1 == null) {
+						return -1;
+					}
+					long lastModified1 = getFileLastModifiedTime(file1);
+					long lastModified2 = getFileLastModifiedTime(file2);
+					if (asc) {
+						return Long.compare(lastModified1, lastModified2);
+					} else {
+						return Long.compare(lastModified2, lastModified1);
+					}
 				} else {
-					return Long.compare(file2.lastModified(), file1.lastModified());
+					return 0;
 				}
-			} else {
-				return 0;
-			}
-		});
+			});
+		} catch (IllegalArgumentException e) {
+			LOGGER.trace("sortResourcesByModifiedDate error: {}", e.getMessage());
+		}
+	}
+
+	private static long getFileLastModifiedTime(File file) {
+		Path path;
+		try {
+			path = file.toPath();
+		} catch (InvalidPathException e) {
+			LOGGER.trace("Invalid path for file \"{}\": {}", file.toString(), e.getMessage());
+			return 0;
+		}
+		try {
+			return Files.getLastModifiedTime(path).toMillis();
+		} catch (IOException | SecurityException e) {
+			LOGGER.trace("getLastModifiedTime thrown an error for \"{}\" ({}): {}", path.toString(), file.toString(), e.getMessage());
+			return 0;
+		}
 	}
 
 	public static void sortResourcesByUpnpClass(List<StoreResource> resources, boolean asc, String lang) {
