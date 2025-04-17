@@ -3,7 +3,13 @@
 ## [Unreleased]
 
 ### General
-- Fixed videos not being marked as fully played (#5373) (thanks, Fredo1650!)
+- Added status page to readme
+- Fixed videos not being marked as fully played (#5373) (thanks, @Fredo1650!)
+- Fixed adding YouTube channels from handle URLs (URLs with @ in them)
+- Fixed handling special characters on Linux (#5100) (thanks, @LaTeteDansLesEtoiles!)
+- Fixed directory browsing crash (#5189) (thanks, @jt-gilkeson!)
+- Fixed FFmpeg on Linux x86_64 and arm64 (#5465) (thanks, @KanjiMonster!)
+- Improved logging
 
 ### Dependencies
 - Bump `@mantine/core` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
