@@ -45,6 +45,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	public FileTranscodeVirtualFolder(Renderer renderer, StoreItem resource) {
 		super(renderer, resource.getDisplayNameBase());
 		originalResource = resource;
+		setSortable(false);
 	}
 
 	/**

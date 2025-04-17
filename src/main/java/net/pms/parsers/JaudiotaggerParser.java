@@ -41,6 +41,7 @@ import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.NullBoxIdException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.tag.FieldKey;
@@ -199,7 +200,7 @@ public class JaudiotaggerParser {
 			}
 			addMusicBrainzIDs(af, audioMetadata);
 			addAudioTrackRating(af, audioMetadata);
-		} catch (IOException | CannotReadException | InvalidAudioFrameException | ReadOnlyFileException | TagException e) {
+		} catch (IOException | CannotReadException | InvalidAudioFrameException | NullBoxIdException | ReadOnlyFileException | TagException e) {
 			LOGGER.debug("Could not parse audio file");
 		}
 	}
