@@ -190,6 +190,19 @@ public class StoreResourceSorter {
 						return Long.compare(lastModified2, lastModified1);
 					}
 				} else {
+					if (resources1 instanceof StoreItem && resources2 instanceof StoreContainer) {
+						return 1;
+					} else if (resources1 instanceof StoreContainer && resources2 instanceof StoreItem) {
+						return -1;
+					}
+					if (!resources1.isSortable()) {
+						if (!resources2.isSortable()) {
+							return 0;
+						}
+						return asc ? -1 : 1;
+					} else if (!resources2.isSortable()) {
+						return asc ? 1 : -1;
+					}
 					return 0;
 				}
 			});
