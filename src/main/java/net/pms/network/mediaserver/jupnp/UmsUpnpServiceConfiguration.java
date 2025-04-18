@@ -478,7 +478,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 
 	private static void resetLoggingMode() {
 		Level mediaServerLevel = CONFIGURATION.isUpnpDebugMediaServer() ? Level.TRACE : Level.INFO;
-		Level basicLevel = CONFIGURATION.isUpnpDebugBasic() ? Level.TRACE : Level.INFO;
+		Level basicLevel = CONFIGURATION.isUpnpDebugBasic() ? Level.TRACE : Level.ERROR;
 		Level fullLevel = CONFIGURATION.isUpnpDebugFull() ? Level.TRACE : Level.ERROR;
 		if (fullLevel == Level.TRACE) {
 			LOGGER.debug("Upnp log mode: full");

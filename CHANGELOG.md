@@ -29,11 +29,17 @@
 - Bump `de.sfuhrm:radiobrowser4j` from 3.1.0 to 3.1.1 ([#5431](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5431))
 - Bump `eslint` from 9.22.0 to 9.23.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.2 to 3.5.3 ([#5442](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5442))
+- Bump `org.eclipse.jetty:jetty-client` from 12.0.16 to 12.0.18 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.16 to 12.0.18 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.16 to 12.0.18 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
-- Bump `react-dom` from 19.0.0 to 19.1.0 ([#5427](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5427))
 - Bump `react` from 19.0.0 to 19.1.0 ([#5426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5426))
-- Bump `typescript-eslint` from 8.27.0 to 8.28.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))
+- Bump `react-dom` from 19.0.0 to 19.1.0 ([#5427](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5427))
+- Bump `react-router-dom` from 7.3.0 to 7.4.1
+- Bump `typescript-eslint` from 8.27.0 to 8.29.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))
+- Bump `vite` from 6.2.2 to 6.2.4 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433))
+- Bump `yarn` from 4.6.0 to 4.9.1
 - Bump `vite` from 6.2.2 to 6.2.6 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433), [#5441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5441), [#5454](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5454))
 
 ## [14.12.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.11.0...14.12.0) (2025-03-26)
@@ -72,7 +78,7 @@
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.2 to 2.18.3 ([#5350](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5350))
 - Bump `com.github.oshi:oshi-core` from 6.6.6 to 6.8.0 ([#5351](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5351), [#5400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5400))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.21.1 to 10.21.4 ([#5348](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5348))
-- Bump `eslint` from 9.21.0 to 9.22.0 ([#5384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5384))
+- Bump `eslint` from 9.21.0 to 9.23.0 ([#5384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5384), [#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
 - Bump `FFmpeg` from `20250103 nightlies` to `7.1.1` including on Windows x86
 - Bump `jna-version` from 5.16.0 to 5.17.0 ([#5380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5380))
 - Bump `org.jsoup:jsoup` from 1.18.3 to 1.19.1 ([#5349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5349))
@@ -84,7 +90,7 @@
 - Bump `typescript` from 5.7.3 to 5.8.2 ([#5346](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5346))
 - Bump `video.js` from 8.21.0 to 8.22.0 ([#5385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5385))
 - Bump `vite` from 6.2.0 to 6.2.2 ([#5383](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5383))
-- Bump youtube-dl from 2025.01.01 to 2025.02.28
+- Bump `youtube-dl` from 2025.01.01 to 2025.02.28
 
 ## [14.11.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.1...14.11.0) (2025-03-08)
 

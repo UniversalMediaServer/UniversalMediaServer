@@ -25,10 +25,12 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.servlets.AboutApiServlet;
 import net.pms.network.webguiserver.servlets.I18nApiServlet;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
+import net.pms.network.webguiserver.servlets.WebSocketServlet;
 import net.pms.network.webplayerserver.servlets.PlayerAuthApiServlet;
 import net.pms.network.webplayerserver.servlets.WebPlayerServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -67,6 +69,8 @@ public class WebPlayerServerJetty extends WebPlayerServer {
 		addServlet(servletHandler, PlayerApiServlet.class);
 		addServlet(servletHandler, PlayerAuthApiServlet.class);
 		addServlet(servletHandler, WebPlayerServlet.class);
+		JakartaWebSocketServletContainerInitializer.configure(servletHandler, null);
+		addServlet(servletHandler, WebSocketServlet.class);
 		server.setHandler(servletHandler);
 		try {
 			start();
