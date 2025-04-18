@@ -499,7 +499,7 @@ public class WindowsUtils extends PlatformUtils {
 			}
 			vlcPath = Paths.get(Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, ""));
 			vlcVersion = new Version(Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, "Version"));
-		} catch (Win32Exception e) {
+		} catch (InvalidPathException | Win32Exception e) {
 			LOGGER.debug("Could not get VLC information from Windows registry: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}

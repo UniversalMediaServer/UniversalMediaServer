@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +42,8 @@ public class GuiConfiguration implements Serializable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GuiConfiguration.class);
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+	private static final String ERROR_CONF_FILE = "Error in gui configuration file : ";
+
 	private String graphicsDevice;
 	private Rectangle screenBounds;
 	private Insets screenInsets;
@@ -159,15 +162,22 @@ public class GuiConfiguration implements Serializable {
 	 */
 	public static GuiConfiguration getConfiguration() {
 		GuiConfiguration conf = null;
-		Path path = Paths.get(UmsConfiguration.getProfileDirectory()).resolve("GUI.conf");
+		Path path = null;
 		try {
+			path = Paths.get(UmsConfiguration.getProfileDirectory()).resolve("GUI.conf");
 			if (Files.exists(path)) {
 				LOGGER.info("Getting gui configuration file : " + path);
 				String json = Files.readString(path, StandardCharsets.UTF_8);
 				conf = GSON.fromJson(json, GuiConfiguration.class);
 			}
-		} catch (IOException | JsonSyntaxException ex) {
-			LOGGER.info("Error in gui configuration file : " + ex.getMessage());
+		} catch (IOException ex) {
+			LOGGER.info(ERROR_CONF_FILE + ex.getMessage());
+			LOGGER.debug(null, ex);
+		} catch (InvalidPathException ex) {
+			LOGGER.info(ERROR_CONF_FILE + "invalid path");
+			LOGGER.debug(null, ex);
+		} catch (JsonSyntaxException ex) {
+			LOGGER.info(ERROR_CONF_FILE + "json is malformed");
 			LOGGER.debug(null, ex);
 		}
 		if (conf == null) {
