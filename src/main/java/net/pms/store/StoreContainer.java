@@ -456,7 +456,7 @@ public class StoreContainer extends StoreResource {
 		}
 	}
 
-	protected void sortChildrenIfNeeded() {
+	protected synchronized void sortChildrenIfNeeded() {
 		if (isChildrenSorted()) {
 			StoreResourceSorter.sortResourcesByDefault(children);
 		}

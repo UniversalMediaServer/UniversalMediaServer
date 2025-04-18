@@ -133,11 +133,11 @@ public class StoreResourceSorter {
 		sortResourcesByTitle(resources, true, null);
 	}
 
-	public static void sortResourcesByTitle(List<StoreResource> resources, String lang) {
+	private static void sortResourcesByTitle(List<StoreResource> resources, String lang) {
 		sortResourcesByTitle(resources, true, lang);
 	}
 
-	public static void sortResourcesByTitle(List<StoreResource> resources, boolean asc, String lang) {
+	private static void sortResourcesByTitle(List<StoreResource> resources, boolean asc, String lang) {
 		Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
 			if (resources1 instanceof StoreResource && resources2 instanceof StoreResource) {
 				if (resources1 instanceof StoreItem && resources2 instanceof StoreContainer) {
@@ -166,7 +166,7 @@ public class StoreResourceSorter {
 		});
 	}
 
-	public static void sortResourcesByModifiedDate(List<StoreResource> resources, boolean asc) {
+	private static void sortResourcesByModifiedDate(List<StoreResource> resources, boolean asc) {
 		try {
 			Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
 				if (resources1 instanceof SystemFileResource systemFileResource1 && resources2 instanceof SystemFileResource systemFileResource2) {
@@ -195,35 +195,11 @@ public class StoreResourceSorter {
 					} else if (resources1 instanceof StoreContainer && resources2 instanceof StoreItem) {
 						return -1;
 					}
-					if (!resources1.isSortable()) {
-						if (!resources2.isSortable()) {
-							return 0;
-						}
-						return asc ? -1 : 1;
-					} else if (!resources2.isSortable()) {
-						return asc ? 1 : -1;
-					}
 					return 0;
 				}
 			});
 		} catch (IllegalArgumentException e) {
 			LOGGER.trace("sortResourcesByModifiedDate error: {}", e.getMessage());
-		}
-	}
-
-	private static long getFileLastModifiedTime(File file) {
-		Path path;
-		try {
-			path = file.toPath();
-		} catch (InvalidPathException e) {
-			LOGGER.trace("Invalid path for file \"{}\": {}", file.toString(), e.getMessage());
-			return 0;
-		}
-		try {
-			return Files.getLastModifiedTime(path).toMillis();
-		} catch (IOException | SecurityException e) {
-			LOGGER.trace("getLastModifiedTime thrown an error for \"{}\" ({}): {}", path.toString(), file.toString(), e.getMessage());
-			return 0;
 		}
 	}
 
@@ -246,6 +222,22 @@ public class StoreResourceSorter {
 	public static void sortResourcesByGenre(List<StoreResource> resources, boolean asc, String lang) {
 		//todo implement lang
 		Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> compareToNormalizedString(resources1.getGenre(), resources2.getGenre(), asc));
+	}
+
+	private static long getFileLastModifiedTime(File file) {
+		Path path;
+		try {
+			path = file.toPath();
+		} catch (InvalidPathException e) {
+			LOGGER.trace("Invalid path for file \"{}\": {}", file.toString(), e.getMessage());
+			return 0;
+		}
+		try {
+			return Files.getLastModifiedTime(path).toMillis();
+		} catch (IOException | SecurityException e) {
+			LOGGER.trace("getLastModifiedTime thrown an error for \"{}\" ({}): {}", path.toString(), file.toString(), e.getMessage());
+			return 0;
+		}
 	}
 
 	private static int compareToNormalizedString(String str1, String str2, boolean asc) {
