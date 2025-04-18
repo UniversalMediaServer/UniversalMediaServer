@@ -24,6 +24,7 @@
 - Bump `ch.qos.logback:logback-classic` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
 - Bump `ch.qos.logback:logback-core` from 1.5.17 to 1.5.18 ([#5399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5399))
 - Bump `com.google.code.gson:gson` from 2.12.1 to 2.13.0 ([#5462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5462))
+- Bump `com.ibm.icu:icu4j` from 75.1 to 77.1 ([#5381](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5381))
 - Bump `com.zaxxer:HikariCP` from 6.2.1 to 6.3.0 ([#5444](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5444))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.4 to 0.12.12 ([#5430](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5430))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.1.0 to 3.1.1 ([#5431](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5431))
