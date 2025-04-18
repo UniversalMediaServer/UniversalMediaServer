@@ -3,7 +3,13 @@
 ## [Unreleased]
 
 ### General
-- Fixed videos not being marked as fully played (#5373) (thanks, Fredo1650!)
+- Added status page to readme
+- Fixed videos not being marked as fully played (#5373) (thanks, @Fredo1650!)
+- Fixed adding YouTube channels from handle URLs (URLs with @ in them)
+- Fixed handling special characters on Linux (#5100) (thanks, @LaTeteDansLesEtoiles!)
+- Fixed directory browsing crash (#5189) (thanks, @jt-gilkeson!)
+- Fixed FFmpeg on Linux x86_64 and arm64 (#5465) (thanks, @KanjiMonster!)
+- Improved logging
 
 ### Dependencies
 - Bump `@mantine/core` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
@@ -26,6 +32,7 @@
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
 - Bump `react-dom` from 19.0.0 to 19.1.0 ([#5427](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5427))
+- Bump `react-router-dom` from 7.3.0 to 7.5.0 ([#5447](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5447))
 - Bump `react` from 19.0.0 to 19.1.0 ([#5426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5426))
 - Bump `typescript-eslint` from 8.27.0 to 8.28.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))
 - Bump `vite` from 6.2.2 to 6.2.6 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433), [#5441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5441), [#5454](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5454))
