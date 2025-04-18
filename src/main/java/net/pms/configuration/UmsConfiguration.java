@@ -1008,6 +1008,15 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_AUDIO_UPDATE_RATING_TAG, false);
 	}
 
+	public boolean setAudioUpdateTag(boolean newAudioUpdateTag) {
+		if (newAudioUpdateTag == isAudioUpdateTag()) {
+			return false;
+		} else {
+			configuration.setProperty(KEY_AUDIO_UPDATE_RATING_TAG, newAudioUpdateTag);
+			return true;
+		}
+	}
+
 	/**
 	 * Returns the configured {@link ProgramExecutableType} for the specified
 	 * {@link Engine}. Note that this can be different from the
@@ -4826,6 +4835,15 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_NEXTCP_AUDIO_LIKES_IN_ROOT_FOLDER, false);
 	}
 
+	public boolean setDisplayAudioLikesInRootFolder(boolean newDisplayAudioLikesInRootFolder) {
+		if (newDisplayAudioLikesInRootFolder == displayAudioLikesInRootFolder()) {
+			return false;
+		} else {
+			configuration.setProperty(KEY_NEXTCP_AUDIO_LIKES_IN_ROOT_FOLDER, newDisplayAudioLikesInRootFolder);
+			return true;
+		}
+	}
+
 	public int getLiveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
 	}
@@ -5379,11 +5397,29 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_UPNP_CDS_WRITE, false);
 	}
 
+	public boolean setUpnpCdsWrite(boolean newUpnpCdsWrite) {
+		if (newUpnpCdsWrite == isUpnpCdsWrite()) {
+			return false;
+		} else {
+			configuration.setProperty(KEY_UPNP_CDS_WRITE, newUpnpCdsWrite);
+			return true;
+		}
+	}
+
 	/**
 	 * This allow anonymous remote devices to add/replace files and folders.
 	 */
 	public boolean isAnonymousDevicesWrite() {
 		return getBoolean(KEY_ANONYMOUS_DEVICES_WRITE, false);
+	}
+
+	public boolean setAnonymousDevicesWrite(boolean newAnonymousDevicesWrite) {
+		if (newAnonymousDevicesWrite == isAnonymousDevicesWrite()) {
+			return false;
+		} else {
+			configuration.setProperty(KEY_ANONYMOUS_DEVICES_WRITE, newAnonymousDevicesWrite);
+			return true;
+		}
 	}
 
 	public String getRootLogLevel() {
