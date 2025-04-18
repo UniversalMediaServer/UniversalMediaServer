@@ -53,3 +53,5 @@ docker/jre*
 # Playwright test outputs
 react-client/test-results/
 ums-testserver.jar
+
+.fake
