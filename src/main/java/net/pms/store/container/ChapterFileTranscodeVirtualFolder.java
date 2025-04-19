@@ -46,6 +46,7 @@ public class ChapterFileTranscodeVirtualFolder extends LocalizedStoreContainer {
 		super(renderer, "ChapterX", null, name);
 		this.interval = interval;
 		addChildInternal(child);
+		setSortable(false);
 	}
 
 	/* (non-Javadoc)
