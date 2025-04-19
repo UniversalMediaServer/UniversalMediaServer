@@ -40,14 +40,10 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
-import org.jaudiotagger.audio.exceptions.NullBoxIdException;
-import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
-import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v11Tag;
@@ -158,7 +154,7 @@ public class JaudiotaggerParser {
 					LOGGER.error("Error reading audio tag for \"{}\": {}", file.getName(), e.getMessage());
 					LOGGER.trace("", e);
 				}
-			} catch (IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
+			} catch (Exception e) {
 				LOGGER.debug("Error parsing audio file tag for \"{}\": {}", file.getName(), e.getMessage());
 				LOGGER.trace("", e);
 			}
@@ -200,7 +196,7 @@ public class JaudiotaggerParser {
 			}
 			addMusicBrainzIDs(af, audioMetadata);
 			addAudioTrackRating(af, audioMetadata);
-		} catch (IOException | CannotReadException | InvalidAudioFrameException | NullBoxIdException | ReadOnlyFileException | TagException e) {
+		} catch (Exception e) {
 			LOGGER.debug("Could not parse audio file");
 		}
 	}
@@ -225,7 +221,7 @@ public class JaudiotaggerParser {
 					LOGGER.error("Error reading audio tag for \"{}\": {}", file.getName(), e.getMessage());
 					LOGGER.trace("", e);
 				}
-			} catch (IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
+			} catch (Exception e) {
 				LOGGER.debug("Error parsing audio file tag for \"{}\": {}", file.getName(), e.getMessage());
 				LOGGER.trace("", e);
 			}
