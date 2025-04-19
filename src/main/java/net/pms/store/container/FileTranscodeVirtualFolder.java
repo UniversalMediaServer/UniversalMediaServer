@@ -16,6 +16,7 @@
  */
 package net.pms.store.container;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,13 +32,14 @@ import net.pms.renderers.Renderer;
 import net.pms.store.LibraryItemSorter;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
+import net.pms.store.SystemFileResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * This class populates the file-specific transcode folder with content.
  */
-public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
+public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder implements SystemFileResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
 	private final StoreItem originalResource;
@@ -48,58 +50,12 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 		setSortable(false);
 	}
 
-	/**
-	 * Create a copy of the provided original resource and optionally set the
-	 * copy's audio track, subtitle track and engine.
-	 *
-	 * @param original The original {@link StoreResource} to create a copy of.
-	 * @param audio The audio track to use.
-	 * @param subtitle The subtitle track to use.
-	 * @param engine The engine to use.
-	 * @return The copy.
-	 */
-	private static StoreItem createResourceWithAudioSubtitleEngine(
-			StoreItem original,
-			MediaAudio audio,
-			MediaSubtitle subtitle,
-			TranscodingSettings transcodingSettings) {
-		// FIXME clone is broken. should be e.g. original.newInstance()
-		StoreItem copy = original.clone();
-		copy.setMediaInfo(original.getMediaInfo());
-		copy.setNoName(true);
-		copy.setMediaAudio(audio);
-		copy.setMediaSubtitle(subtitle);
-		copy.setTranscodingSettings(transcodingSettings);
-
-		return copy;
-	}
-
-	private void addChapterFolder(StoreItem resource) {
-		if (!resource.getFormat().isVideo()) {
-			return;
+	@Override
+	public File getSystemFile() {
+		if (originalResource instanceof SystemFileResource resource) {
+			return resource.getSystemFile();
 		}
-
-		int chapterInterval = renderer.getUmsConfiguration().isChapterSupport() ?
-				renderer.getUmsConfiguration().getChapterInterval() : -1;
-
-		if ((chapterInterval > 0) && resource.isTimeSeekable()) {
-			// don't add a chapter folder if the duration of the video
-			// is less than the chapter length.
-			double duration = resource.getMediaInfo().getDurationInSeconds(); // 0 if the duration is unknown
-			if (duration != 0 && duration <= (chapterInterval * 60)) {
-				return;
-			}
-
-			StoreResource copy = resource.clone();
-			copy.setNoName(true);
-			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
-					renderer,
-					resource.getDisplayName(),
-					copy,
-					chapterInterval);
-
-			addChildInternal(chapterFolder);
-		}
+		return null;
 	}
 
 	@Override
@@ -243,7 +199,6 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 						resource.getMediaAudio(),
 						resource.getMediaSubtitle(),
 						resource.getTranscodingSettings() != null ? resource.getTranscodingSettings().toString() : null);
-
 				addChildInternal(resource);
 				addChapterFolder(resource);
 			}
@@ -267,6 +222,60 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			filterChain = originalResource.addSubtitlesFlagFilter(filterChain);
 		}
 		return filterChain;
+	}
+
+	private void addChapterFolder(StoreItem resource) {
+		if (!resource.getFormat().isVideo()) {
+			return;
+		}
+
+		int chapterInterval = renderer.getUmsConfiguration().isChapterSupport() ?
+				renderer.getUmsConfiguration().getChapterInterval() : -1;
+
+		if ((chapterInterval > 0) && resource.isTimeSeekable()) {
+			// don't add a chapter folder if the duration of the video
+			// is less than the chapter length.
+			double duration = resource.getMediaInfo().getDurationInSeconds(); // 0 if the duration is unknown
+			if (duration != 0 && duration <= (chapterInterval * 60)) {
+				return;
+			}
+
+			StoreResource copy = resource.clone();
+			copy.setNoName(true);
+			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
+					renderer,
+					resource.getDisplayName(),
+					copy,
+					chapterInterval);
+
+			addChildInternal(chapterFolder);
+		}
+	}
+
+	/**
+	 * Create a copy of the provided original resource and optionally set the
+	 * copy's audio track, subtitle track and engine.
+	 *
+	 * @param original The original {@link StoreResource} to create a copy of.
+	 * @param audio The audio track to use.
+	 * @param subtitle The subtitle track to use.
+	 * @param engine The engine to use.
+	 * @return The copy.
+	 */
+	private static StoreItem createResourceWithAudioSubtitleEngine(
+			StoreItem original,
+			MediaAudio audio,
+			MediaSubtitle subtitle,
+			TranscodingSettings transcodingSettings) {
+		// FIXME clone is broken. should be e.g. original.newInstance()
+		StoreItem copy = original.clone();
+		copy.setMediaInfo(original.getMediaInfo());
+		copy.setNoName(true);
+		copy.setMediaAudio(audio);
+		copy.setMediaSubtitle(subtitle);
+		copy.setTranscodingSettings(transcodingSettings);
+
+		return copy;
 	}
 
 }
