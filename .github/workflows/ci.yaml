@@ -295,6 +295,7 @@ jobs:
     if: |
       github.actor == 'dependabot[bot]'
     needs:
+      - lint
       - macos-browser
     runs-on: ubuntu-latest
     permissions:
