@@ -42,8 +42,9 @@ export default function ModeButtons({ i18n, session }: { i18n: I18nInterface, se
               leftSection={playerSection}
               variant={!inPlayer ? 'default' : 'filled'}
               onClick={() => { navigate('/player') }}
+              aria-describedby={i18n.get('SwitchesToPlayerMode')}
             >
-              <Box visibleFrom="sm">{i18n.get('Play')}</Box>
+              <Box visibleFrom="sm">{i18n.get('Player')}</Box>
               <Box hiddenFrom="sm"><IconPlayerPlay size={16} /></Box>
             </Button>
             <Button
@@ -51,8 +52,9 @@ export default function ModeButtons({ i18n, session }: { i18n: I18nInterface, se
               rightSection={manageSection}
               variant={inPlayer ? 'default' : 'filled'}
               onClick={() => { navigate('/') }}
+              aria-describedby={i18n.get('SwitchesToSettingsMode')}
             >
-              <Box visibleFrom="sm">{i18n.get('Manage')}</Box>
+              <Box visibleFrom="sm">{i18n.get('Settings')}</Box>
               <Box hiddenFrom="sm"><IconSettings size={16} /></Box>
             </Button>
           </Button.Group>
