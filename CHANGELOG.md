@@ -28,6 +28,7 @@
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.4 to 0.12.12 ([#5430](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5430))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.1.0 to 3.1.1 ([#5431](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5431))
 - Bump `eslint` from 9.22.0 to 9.24.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407), [#5445](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5445))
+- Bump `org.apache.commons:commons-text` from 1.13.0 to 1.13.1 ([#5480](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5480))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.2 to 3.5.3 ([#5442](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5442))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
