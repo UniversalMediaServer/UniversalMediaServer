@@ -53,3 +53,4 @@ portable/
 react-client/test-results/
 react-client/tests/*/
 ums-testserver.jar
+/osx
