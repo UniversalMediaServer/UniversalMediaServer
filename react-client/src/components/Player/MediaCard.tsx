@@ -14,23 +14,39 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Card, Center, Image, Text } from '@mantine/core'
-import { IconInfoSmall } from '@tabler/icons-react'
-import { MouseEvent } from 'react'
+import { Card, Center, Image, Text } from '@mantine/core'
+import { KeyboardEventHandler, useRef } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { BaseMedia, getMediaIcon, PlayerInterface } from '../../services/player-service'
 import { SessionInterface } from '../../services/session-service'
 import { playerApiUrl } from '../../utils'
 
-export default function MediaCard({ i18n, session, player, media }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface, media: BaseMedia }) {
+export default function MediaCard({ i18n, session, player, media, onMediaCardKeyDown }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface, media: BaseMedia, onMediaCardKeyDown: KeyboardEventHandler<HTMLButtonElement> | undefined }) {
+  const clickCount = useRef(0)
   const onInfoPress = session.playerDirectPlay && media.goal === 'show'
-    ? (e: MouseEvent) => {
+    ? () => {
         player.askReqId(media.id, 'show')
-        e.stopPropagation()
       }
     : undefined
-  const onClick = () => player.askReqId(media.id, media.goal ? (media.goal === 'show' && session.playerDirectPlay) ? 'play' : media.goal : 'browse')
+  const onAskReqId = () => player.askReqId(media.id, media.goal ? (media.goal === 'show' && session.playerDirectPlay) ? 'play' : media.goal : 'browse')
+  const onClick = () => {
+    if (onInfoPress === undefined) {
+      onAskReqId()
+      return
+    }
+    clickCount.current++
+    if (clickCount.current > 1) {
+      clickCount.current = 0
+      onInfoPress()
+    }
+    setTimeout(() => {
+      if (clickCount.current === 1) {
+        onAskReqId()
+      }
+      clickCount.current = 0
+    }, 650)
+  }
 
   const MediaImage = ({ i18n, player, media }: { i18n: I18nInterface, player: PlayerInterface, media: BaseMedia }) => {
     const icon = getMediaIcon(media, i18n, 185)
@@ -51,31 +67,19 @@ export default function MediaCard({ i18n, session, player, media }: { i18n: I18n
 
   return (
     <Card
+      component="button"
       className="thumbnail-container color-bright-hover"
       shadow="sm"
       padding="lg"
       radius="md"
       ta="center"
       onClick={onClick}
+      onKeyDown={onMediaCardKeyDown}
       withBorder
     >
       <Card.Section h={185}>
         <MediaImage i18n={i18n} player={player} media={media} />
       </Card.Section>
-      {onInfoPress && (
-        <Card.Section h={0} mt={-185} mb={185} ms={50} ta="end">
-          <ActionIcon
-            variant="default"
-            radius="md"
-            color="grey"
-            size="xl"
-            className="color-bright-hover"
-            onClick={onInfoPress}
-          >
-            <IconInfoSmall size={70} />
-          </ActionIcon>
-        </Card.Section>
-      )}
       <Card.Section h={30} px={5} pt={5}>
         <Center>
           <Text size="sm" truncate>
