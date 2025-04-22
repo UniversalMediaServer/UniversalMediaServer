@@ -15,7 +15,7 @@
     "test:runserver:macos": "export RUNNING_TESTS=true; npm run private:removeconfig:macos;cd ..;./runtestserver.sh",
     "test:prepareserver:macos": "rm -rf ../target/ums-*-jar*;cd ../;mvn -P macos package -DskipTests -Djaronly;cd react-client;npm run private:copy-bin:macos;npm run private:copy-jar;npm run private:ensure-file-permissions",
     "test:prepareserver:macos-arm": "rm -rf ../target/ums-*-jar*;cd ../;mvn -P macos-arm package -DskipTests;cd react-client;npm run private:copy-bin:macos-arm;npm run private:copy-jar;npm run private:ensure-file-permissions",
-    "private:copy-bin:macos": "mkdir -p ../osx",
+    "private:copy-bin:macos": "mkdir -p ../osx;cp -f ../target/bin/osx/10.15/ffmpeg ../osx/ffmpeg;cp -f ../target/bin/osx/youtube-dl ../osx/youtube-dl",
     "private:copy-bin:macos-arm": "mkdir ../osx;cp -f ../target/bin/osx/arm/ffmpeg ../osx/ffmpeg;cp -f ../target/bin/osx/youtube-dl ../osx/youtube-dl",
     "private:copy-jar": "cp -f ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
     "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar",
