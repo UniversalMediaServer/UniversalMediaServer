@@ -66,7 +66,7 @@ code {
   overflow-y: hidden;
 }
 
-.thumbnail-container:hover {
+.thumbnail-container:hover, .thumbnail-container:focus {
   background-color: var(--mantine-color-default-hover);
   color: var(--mantine-color-bright);
 }
