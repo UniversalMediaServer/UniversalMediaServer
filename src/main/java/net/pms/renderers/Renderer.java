@@ -468,12 +468,11 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public void setPlayingRes(StoreItem resource) {
 		playingRes = resource;
-		getPlayer();
 		if (resource != null) {
-			player.getState().setName(resource.getDisplayName());
-			player.start();
+			getPlayer().getState().setName(resource.getDisplayName());
+			getPlayer().start();
 		} else {
-			player.reset();
+			getPlayer().reset();
 		}
 	}
 

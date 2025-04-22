@@ -48,7 +48,7 @@ public class FileUtilTest {
 
 	@BeforeEach
 	public void setUp() throws ConfigurationException, InterruptedException {
-		TestHelper.SetLoggingWarn();
+		TestHelper.setLoggingWarn();
 		try {
 			PMS.setConfiguration(new UmsConfiguration(false));
 		} catch (InterruptedException | ConfigurationException ex) {

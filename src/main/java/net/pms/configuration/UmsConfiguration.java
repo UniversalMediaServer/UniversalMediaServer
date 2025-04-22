@@ -989,7 +989,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public LogSystemInformationMode getLogSystemInformation() {
-		LogSystemInformationMode defaultValue = LogSystemInformationMode.TRACE_ONLY;
+		LogSystemInformationMode defaultValue = LogSystemInformationMode.ALWAYS;
 		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
 		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
 		return result != null ? result : defaultValue;

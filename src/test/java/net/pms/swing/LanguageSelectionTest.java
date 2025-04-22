@@ -27,7 +27,7 @@ public class LanguageSelectionTest {
 
 	@BeforeEach
 	public void setUp() throws ConfigurationException {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	@Test

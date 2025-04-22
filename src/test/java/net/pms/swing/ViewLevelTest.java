@@ -27,7 +27,7 @@ public class ViewLevelTest {
 
 	@BeforeEach
 	public void setUp() throws ConfigurationException {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	/**

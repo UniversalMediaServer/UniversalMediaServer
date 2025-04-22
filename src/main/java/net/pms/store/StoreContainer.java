@@ -457,7 +457,7 @@ public class StoreContainer extends StoreResource {
 		}
 	}
 
-	protected void sortChildrenIfNeeded() {
+	protected synchronized void sortChildrenIfNeeded() {
 		if (isChildrenSorted()) {
 			StoreResourceSorter.sortResourcesByDefault(children);
 		}
@@ -610,6 +610,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(renderer, renderer.getUmsConfiguration());
+		transcodeFolder.setChildrenSorted(isChildrenSorted);
 		addChildInternal(transcodeFolder);
 		return transcodeFolder;
 	}
