@@ -93,6 +93,12 @@ jobs:
       - name: Prepare server for Playwright tests
         working-directory: ./react-client
         run: npm run test:prepareserver:macos
+      - name: temp debugging
+        working-directory: ./target
+        run: ls -R
+      - name: temp debugging 2
+        working-directory: ./osx
+        run: ls -R
       - name: Run Playwright tests
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
