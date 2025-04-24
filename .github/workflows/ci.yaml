@@ -75,22 +75,24 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
-      - name: Cache compiled server binary
-        id: cache-compiled-server-binary
+      - name: Cache compiled server jar
+        id: cache-compiled-server-jar
         uses: actions/cache@v4
         with:
           path: ums-testserver.jar
-          key: compiled-server-binary
+          key: compiled-server-jar-${{ hashFiles('src/**', 'pom.xml', 'UMS.launch', '*.xml', '.github/workflows/ci.yaml') }}
       - name: Enable corepack
         working-directory: ./react-client
         run: corepack enable
       - name: Install dependencies
+        if: steps.cache-node-dependencies.outputs.cache-hit != 'true'
         working-directory: ./react-client
         run: yarn install
       - name: Install Playwright with dependencies
         working-directory: ./react-client
         run: yarn playwright install --with-deps
       - name: Prepare server for Playwright tests
+        if: steps.cache-compiled-server-jar.outputs.cache-hit != 'true'
         working-directory: ./react-client
         run: npm run test:prepareserver:macos
       - name: Run Playwright tests
@@ -295,7 +297,6 @@ jobs:
     if: |
       github.actor == 'dependabot[bot]'
     needs:
-      - lint
       - macos-browser
     runs-on: ubuntu-latest
     permissions:
