@@ -80,7 +80,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ums-testserver.jar
-          key: compiled-server-binary
+          key: compiled-server-binary-${{ hashFiles('pom.xml') }}
       - name: Enable corepack
         working-directory: ./react-client
         run: corepack enable
