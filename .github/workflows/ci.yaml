@@ -85,7 +85,6 @@ jobs:
         working-directory: ./react-client
         run: corepack enable
       - name: Install dependencies
-        if: steps.cache-node-dependencies.outputs.cache-hit != 'true'
         working-directory: ./react-client
         run: yarn install
       - name: Install Playwright with dependencies
