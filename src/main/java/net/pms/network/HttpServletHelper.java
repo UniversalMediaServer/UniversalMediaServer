@@ -127,7 +127,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 
 		String formattedContent = getFormattedContent(content, req.getContentType());
 		String servletName = req.getHttpServletMapping().getServletName();
-		LOGGER.trace("Received a request from {}:\n{}{}{}\n{}{}{}{}{}",
+		LOGGER.debug("Received a request from {}:\n{}{}{}\n{}{}{}{}{}",
 				remoteHost,
 				LOG_START,
 				servletName,
@@ -163,7 +163,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 		String responseCode = req.getProtocol() + " " + resp.getStatus();
 		String servletName = req.getHttpServletMapping().getServletName();
 		if ("HEAD".equalsIgnoreCase(req.getMethod())) {
-			LOGGER.trace(
+			LOGGER.debug(
 					"HEAD only response sent to {}:\n{}{}{}\n{}\n{}{}{}{}",
 					remoteHost,
 					LOG_START,
@@ -177,7 +177,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 			);
 		} else if (StringUtils.isNotEmpty(content)) {
 			String formattedContent = getFormattedContent(content, resp.getContentType());
-			LOGGER.trace("Response sent to {}:\n{}{}{}\n{}\n{}{}{}{}{}",
+			LOGGER.debug("Response sent to {}:\n{}{}{}\n{}\n{}{}{}{}{}",
 					remoteHost,
 					LOG_START,
 					servletName,
@@ -190,7 +190,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 					LOG_RESPONSE_END
 			);
 		} else if (isStream) {
-			LOGGER.trace("Transfer response sent to {}:\n{}{}{}\n{} ({})\n{}{}{}{}",
+			LOGGER.debug("Transfer response sent to {}:\n{}{}{}\n{} ({})\n{}{}{}{}",
 					remoteHost,
 					LOG_START,
 					servletName,
@@ -203,7 +203,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 					LOG_RESPONSE_END
 			);
 		} else {
-			LOGGER.trace("Empty response sent to {}:\n{}{}{}\n{}\n{}{}{}{}",
+			LOGGER.debug("Empty response sent to {}:\n{}{}{}\n{}\n{}{}{}{}",
 					remoteHost,
 					LOG_START,
 					servletName,
