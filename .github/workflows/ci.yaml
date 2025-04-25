@@ -93,7 +93,7 @@ jobs:
       - name: Prepare server for Playwright tests
         if: steps.cache-compiled-server-jar.outputs.cache-hit != 'true'
         working-directory: ./react-client
-        run: npm run test:prepareserver:macos-arm
+        run: npm run test:prepareserver:macos
       - name: temp debugging
         working-directory: ./target/bin/osx
         run: ls -R
