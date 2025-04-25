@@ -97,6 +97,9 @@ jobs:
       - name: temp debugging
         working-directory: ./target/bin/osx
         run: ls -R
+      - name: temp debugging 2
+        working-directory: ./osx
+        run: ls -R
       - name: Run Playwright tests
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
