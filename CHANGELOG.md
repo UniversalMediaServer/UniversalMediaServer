@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.12.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.0...14.12.1) (2025-04-26)
+
 ### General
 - Added status page to readme
 - Fixed videos not being marked as fully played (#5373) (thanks, @Fredo1650!)
@@ -9,7 +11,16 @@
 - Fixed handling special characters on Linux (#5100) (thanks, @LaTeteDansLesEtoiles!)
 - Fixed directory browsing crash (#5189) (thanks, @jt-gilkeson!)
 - Fixed FFmpeg on Linux x86_64 and arm64 (#5465) (thanks, @KanjiMonster!)
+- Fixed logspam like "Could not hydrate device or its services from descriptor" (#5292) (thanks, MTOakey!)
+- Fixed broken YouTube video playback
+- Fixed web interface E2E testing on CI using outdated code because of overeager caching
 - Improved logging
+
+### Translation updates via Crowdin
+- Chinese (Simplified) (59%) (thanks, 無情天!)
+- Dutch (41%) (thanks, Matthias!)
+- Hungarian (86%) (thanks, Zoltán Rózsa!)
+- Japanese (69%) (thanks, Yukihuru!)
 
 ### Dependencies
 - Bump `@mantine/core` from 7.17.2 to 7.17.4 ([#5424](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5424), [#5463](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5463))
