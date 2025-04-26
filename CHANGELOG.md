@@ -14,6 +14,7 @@
 - Fixed logspam like "Could not hydrate device or its services from descriptor" (#5292) (thanks, MTOakey!)
 - Fixed broken YouTube video playback
 - Fixed web interface E2E testing on CI using outdated code because of overeager caching
+- Fixed broken video playback when burning subtitles to H.265 via FFmpeg (#5486)
 - Improved logging
 
 ### Translation updates via Crowdin
@@ -49,7 +50,9 @@
 - Bump `react` from 19.0.0 to 19.1.0 ([#5426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5426))
 - Bump `typescript-eslint` from 8.27.0 to 8.28.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))
 - Bump `typescript` from 5.8.2 to 5.8.3 ([#5446](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5446))
-- Bump `vite` from 6.2.2 to 6.2.6 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433), [#5441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5441), [#5454](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5454))
+- Bump `vite` from 6.2.2 to 6.3.2 ([#5411](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5411), [#5433](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5433), [#5441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5441), [#5454](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5454))
+- Bump `youtube-dl` from 2025.02.28 to 2025.04.08
+- Revert `FFmpeg` from 7.1.1 to 7.1
 
 ## [14.12.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.11.0...14.12.0) (2025-03-26)
 
