@@ -9,6 +9,7 @@
 - Added a mode switcher to the web interface to make it easier to switch between Player mode and Manage mode
 - Added dynamic TV season information when viewing a season on the web player
 - Added file media info (location, types, streams, subtitles...) to the web player
+- Added accessibility linting to web interface
 - Use the custom name of the server on the web player and settings
 - Moved the settings menu from the dropdown to a side menu on the web interface
 - Moved the user avatar on the web interface to the top-right where the dropdown menu was
@@ -21,6 +22,8 @@
 - Replaced SSE (Server-sent events) with websockets on web interface
 - Fixed the scrollbar sitting on top of the last link on a long list in the left menu on the web interface
 - Fixed the Recently Added folder in the Media Library not sorting by date added (before it was the file modified time)
+- Improved development workflow
+- Added and improved notifications on web interface
 
 ### Dependencies
 - Bump `typescript-eslint` from 8.28.0 to 8.29.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))

@@ -97,6 +97,10 @@ jobs:
       - name: Run Playwright tests
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: my-artifact
+          path: screenshot.png
 
   macos-intel:
     needs: changes
