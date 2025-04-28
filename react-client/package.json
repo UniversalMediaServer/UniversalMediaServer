@@ -41,7 +41,7 @@
     "@playwright/test": "1.51.1",
     "@stylistic/eslint-plugin": "4.2.0",
     "@types/lodash": "4.17.16",
-    "@types/react": "19.1.1",
+    "@types/react": "19.1.2",
     "@types/react-dom": "19.1.2",
     "@vitejs/plugin-react": "4.3.4",
     "eslint": "9.24.0",
