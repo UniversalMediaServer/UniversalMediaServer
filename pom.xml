@@ -99,7 +99,7 @@
 				- net.pms:ums
 				- su.litvak.chromecast:api-v2
 		-->
-		<jackson.version>2.18.3</jackson.version>
+		<jackson.version>2.19.0</jackson.version>
 
 		<surefire-version>3.5.3</surefire-version>
 
