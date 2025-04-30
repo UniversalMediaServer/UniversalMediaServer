@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>15.0.0-ALPHA</version>
+	<version>15.0.0-a1</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -99,7 +99,7 @@
 				- net.pms:ums
 				- su.litvak.chromecast:api-v2
 		-->
-		<jackson.version>2.18.3</jackson.version>
+		<jackson.version>2.19.0</jackson.version>
 
 		<surefire-version>3.5.3</surefire-version>
 
@@ -3521,7 +3521,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.21.4</version>
+								<version>10.23.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>
