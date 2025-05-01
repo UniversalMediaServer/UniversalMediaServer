@@ -101,7 +101,7 @@ jobs:
         if: failure()
         with:
           name: my-artifact
-          path: screenshot.png
+          path: react-client/screenshot.png
 
   macos-intel:
     needs: changes
