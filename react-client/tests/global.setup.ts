@@ -14,7 +14,7 @@ setup('Disable authentication', async ({ page }) => {
   // if page is empty, reload until the server is ready to serve
   let html = await page.content()
   console.log('html', html)
-  while (html === '<html><head></head><body></body></html>') {
+  while (html === '<html><head></head><body></body></html>' || html.includes('404 - File Not Found')) {
     console.log('Got an empty page from server, reloading in 1 second...')
     await page.waitForTimeout(1000)
     await page.reload()
