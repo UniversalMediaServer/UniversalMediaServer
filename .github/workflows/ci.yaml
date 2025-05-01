@@ -74,7 +74,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Cache compiled server jar
         id: cache-compiled-server-jar
         uses: actions/cache@v4
@@ -131,7 +131,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run Java tests
         run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
 
@@ -163,7 +163,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run Java tests
         run: DEVELOPER_DIR=/Applications/Xcode_latest.app/Contents/Developer && mvn verify -P testing-macos
 
@@ -195,7 +195,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: mvn verify -P testing-windows
 
@@ -227,7 +227,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
@@ -265,7 +265,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
