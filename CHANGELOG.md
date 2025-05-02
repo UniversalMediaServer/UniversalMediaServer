@@ -3,12 +3,16 @@
 ## [v15 WIP changelog]
 
 ### General
-- Added the option to use pin codes on the web interface
 - Added a user switcher to the web interface
 - Added support for being logged in as multiple users on the web interface
-- Added a mode switcher to the web interface to make it easier to switch between Player mode and Manage mode
+
+  ![multiple users](./changelog-images/15.0.0-a1-user-switcher.png)
+- Added a mode switcher to the web interface to make it easier to switch between Player mode and Settings mode
+
+  ![mode switcher](./changelog-images/15.0.0-a1-mode-switcher.png)
 - Added dynamic TV season information when viewing a season on the web player
 - Added file media info (location, types, streams, subtitles...) to the web player
+- Added the option to use pin codes on the web interface
 - Added accessibility linting to web interface
 - Use the custom name of the server on the web player and settings
 - Moved the settings menu from the dropdown to a side menu on the web interface
