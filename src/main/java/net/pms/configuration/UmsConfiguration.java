@@ -4853,7 +4853,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public Level getLoggingFilterConsole() {
-		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"), Level.INFO);
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"), Level.TRACE);
 	}
 
 	public void setLoggingFilterConsole(Level value) {

@@ -7,7 +7,7 @@ jobs:
   changes:
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       )
     name: Build list of changed files
@@ -49,7 +49,7 @@ jobs:
       - changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -107,7 +107,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -139,7 +139,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -171,7 +171,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -203,7 +203,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -241,7 +241,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -277,7 +277,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
