@@ -53,6 +53,7 @@ public class WebGuiServlet extends GuiHttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		LOGGER.info("Reached doGet");
 
+
 		try {
 			String uri = req.getRequestURI();
 			if (uri == null) {
