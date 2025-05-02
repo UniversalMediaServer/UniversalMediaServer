@@ -7,6 +7,7 @@ test('should be able to navigate to Shared Content', async ({ page }) => {
   await page.getByText('Shared Content').click()
 
   await expect(page).toHaveURL(/.*shared/)
+  await expect(page).toHaveURL(/.*shared/)
 })
 
 test('should be able to add a YouTube channel as a video feed', async ({ page }) => {
