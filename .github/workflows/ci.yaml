@@ -90,6 +90,9 @@ jobs:
       - name: Install Playwright with dependencies
         working-directory: ./react-client
         run: yarn playwright install --with-deps
+      - name: Print Node version
+        working-directory: ./react-client
+        run: node -v
       - name: Prepare server for Playwright tests
         if: steps.cache-compiled-server-jar.outputs.cache-hit != 'true'
         working-directory: ./react-client
