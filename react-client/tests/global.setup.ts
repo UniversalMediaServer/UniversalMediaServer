@@ -9,6 +9,9 @@ setup('Disable authentication', async ({ page }) => {
       console.error('Browser console error:', message)
     }
   })
+
+  await page.waitForTimeout(5000)
+
   await page.goto('/')
 
   // if page is empty, reload until the server is ready to serve
