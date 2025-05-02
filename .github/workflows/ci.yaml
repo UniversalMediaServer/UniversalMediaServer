@@ -7,7 +7,7 @@ jobs:
   changes:
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       )
     name: Build list of changed files
@@ -49,7 +49,7 @@ jobs:
       - changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -74,7 +74,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Cache compiled server jar
         id: cache-compiled-server-jar
         uses: actions/cache@v4
@@ -101,13 +101,13 @@ jobs:
         if: failure()
         with:
           name: my-artifact
-          path: screenshot.png
+          path: react-client/screenshot.png
 
   macos-intel:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -131,7 +131,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run Java tests
         run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
 
@@ -139,7 +139,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -163,7 +163,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run Java tests
         run: DEVELOPER_DIR=/Applications/Xcode_latest.app/Contents/Developer && mvn verify -P testing-macos
 
@@ -171,7 +171,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -195,7 +195,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: mvn verify -P testing-windows
 
@@ -203,7 +203,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -227,7 +227,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
@@ -241,7 +241,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -265,7 +265,7 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
@@ -277,7 +277,7 @@ jobs:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||

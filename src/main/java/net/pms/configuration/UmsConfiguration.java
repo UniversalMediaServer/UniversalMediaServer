@@ -4838,7 +4838,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public Level getLoggingFilterConsole() {
-		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"), Level.INFO);
+		String defaultLoggingMode = PMS.isRunningTests() ? "TRACE" : "INFO";
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, defaultLoggingMode), Level.INFO);
 	}
 
 	public void setLoggingFilterConsole(Level value) {
@@ -4846,7 +4847,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public Level getLoggingFilterLogsTab() {
-		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"), Level.INFO);
+		String defaultLoggingMode = PMS.isRunningTests() ? "TRACE" : "INFO";
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, defaultLoggingMode), Level.INFO);
 	}
 
 	public void setLoggingFilterLogsTab(Level value) {
