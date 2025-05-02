@@ -4861,7 +4861,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public Level getLoggingFilterLogsTab() {
-		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"), Level.TRACE);
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"), Level.INFO);
 	}
 
 	public void setLoggingFilterLogsTab(Level value) {
