@@ -4,8 +4,9 @@
 
 ### Dependencies
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
-- Bump `typescript-eslint` from 8.29.0 to 8.31.0 ([#5496](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5496))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
+- Bump `react-router-dom` from 7.5.0 to 7.5.2 ([#5498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5498))
+- Bump `typescript-eslint` from 8.29.0 to 8.31.0 ([#5496](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5496))
 
 ## [14.12.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.0...14.12.1) (2025-04-26)
 
