@@ -13,6 +13,9 @@
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
 - Bump `org.apache.commons:commons-collections4` from 4.4 to 4.5.0 ([#5497](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5497))
+- Bump `org.eclipse.jetty:jetty-client` from 12.0.16 to 12.0.19 ([#5494](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5494))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.16 to 12.0.19 ([#5494](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5494))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.16 to 12.0.19 ([#5494](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5494))
 - Bump `react-router-dom` from 7.5.0 to 7.5.2 ([#5498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5498))
 - Bump `typescript-eslint` from 8.29.0 to 8.31.0 ([#5496](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5496))
 
