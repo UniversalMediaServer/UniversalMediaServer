@@ -51,6 +51,7 @@ public class WebGuiServlet extends GuiHttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		LOGGER.info("Reached doGet");
 		try {
 			String uri = req.getRequestURI();
 			if (uri == null) {
@@ -70,6 +71,7 @@ public class WebGuiServlet extends GuiHttpServlet {
 				respond(req, resp, "<html><body>404 - File Not Found: " + req.getRequestURI() + "</body></html>", 404, "text/html");
 			}
 		} catch (IOException e) {
+			LOGGER.error("Unexpected IOException in WebGuiServlet: {}", e.getMessage());
 			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
