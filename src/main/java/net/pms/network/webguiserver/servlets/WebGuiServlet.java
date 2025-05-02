@@ -56,6 +56,7 @@ public class WebGuiServlet extends GuiHttpServlet {
 
 
 
+
 		try {
 			String uri = req.getRequestURI();
 			if (uri == null) {
