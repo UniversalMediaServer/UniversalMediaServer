@@ -19,6 +19,7 @@ package net.pms.configuration;
 import ch.qos.logback.classic.Level;
 import java.io.File;
 import java.util.Locale;
+import net.pms.PMS;
 import net.pms.TestHelper;
 import net.pms.util.FileUtil;
 import net.pms.util.Languages;
@@ -54,8 +55,11 @@ public class UmsConfigurationTest {
 		file = new File(configuration.getDefaultLogFilePath());
 		assertTrue(configuration.getDefaultLogFilePath().endsWith("debug.log"), "DefaultLogFilePath");
 		assertFalse(configuration.getLoggingBuffered(), "LoggingBufferedDefault");
-		assertEquals(configuration.getLoggingFilterConsole(), Level.INFO, "LoggingFilterConsoleDefault");
-		assertEquals(configuration.getLoggingFilterLogsTab(), Level.INFO, "LoggingFilterLogsTabDefault");
+
+		Level defaultLoggingMode = PMS.isRunningTests() ? Level.TRACE : Level.INFO;
+		assertEquals(configuration.getLoggingFilterConsole(), defaultLoggingMode, "LoggingFilterConsoleDefault");
+		assertEquals(configuration.getLoggingFilterLogsTab(), defaultLoggingMode, "LoggingFilterLogsTabDefault");
+
 		assertEquals(configuration.getLoggingLogsTabLinebuffer(), 1000, "LoggingLogsTabLinebufferDefault");
 		assertTrue(configuration.getLoggingLogsTabLinebuffer() >= UmsConfiguration.getLoggingLogsTabLinebufferMin() &&
 				configuration.getLoggingLogsTabLinebuffer() <= UmsConfiguration.getLoggingLogsTabLinebufferMax(),
