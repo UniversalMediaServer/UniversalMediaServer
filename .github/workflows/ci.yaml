@@ -286,7 +286,7 @@ jobs:
 
   changelog:
     if: |
-      github.actor == 'dependabot[bot]'
+      github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
     needs:
       - macos-browser
     runs-on: ubuntu-latest
