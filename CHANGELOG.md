@@ -99,7 +99,7 @@
 - Bump `commons-io:commons-io` from 2.18.0 to 2.19.0 ([#5481](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5481))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.4 to 0.12.12 ([#5430](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5430))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.1.0 to 3.1.1 ([#5431](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5431))
-- Bump `eslint` from 9.21.0 to 9.22.0 ([#5384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5384))
+- Bump `eslint` from 9.22.0 to 9.24.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407), [#5445](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5445))
 - Bump `org.apache.commons:commons-text` from 1.13.0 to 1.13.1 ([#5480](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5480))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.2 to 3.5.3 ([#5442](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5442))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
@@ -149,7 +149,7 @@
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.2 to 2.18.3 ([#5350](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5350))
 - Bump `com.github.oshi:oshi-core` from 6.6.6 to 6.8.0 ([#5351](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5351), [#5400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5400))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.21.1 to 10.21.4 ([#5348](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5348))
-- Bump `eslint` from 9.21.0 to 9.23.0 ([#5384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5384), [#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407))
+- Bump `eslint` from 9.21.0 to 9.22.0 ([#5384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5384))
 - Bump `FFmpeg` from `20250103 nightlies` to `7.1.1` including on Windows x86
 - Bump `jna-version` from 5.16.0 to 5.17.0 ([#5380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5380))
 - Bump `org.jsoup:jsoup` from 1.18.3 to 1.19.1 ([#5349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5349))
