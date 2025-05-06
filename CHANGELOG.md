@@ -11,8 +11,12 @@
 
   ![mode switcher](./changelog-images/15.0.0-a1-mode-switcher.png)
 - Added dynamic TV season information when viewing a season on the web player
-- Added file media info (location, types, streams, subtitles...) to the web player
+
+  ![season metadata](./changelog-images/15.0.0-a1-season-metadata.png)
 - Added the option to use pin codes on the web interface
+
+  ![pin code](./changelog-images/15.0.0-a1-pin-code.png)
+- Added file media info (location, types, streams, subtitles...) to the web player
 - Added accessibility linting to web interface
 - Use the custom name of the server on the web player and settings
 - Moved the settings menu from the dropdown to a side menu on the web interface
@@ -30,7 +34,6 @@
 - Added and improved notifications on web interface
 
 ### Dependencies
-- Bump `typescript-eslint` from 8.28.0 to 8.29.0 ([#5425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5425))
 - Bump `yarn` from 4.6.0 to 4.9.1
 
 ## [Unreleased]
@@ -92,15 +95,11 @@
 - Bump `commons-io:commons-io` from 2.18.0 to 2.19.0 ([#5481](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5481))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.4 to 0.12.12 ([#5430](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5430))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.1.0 to 3.1.1 ([#5431](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5431))
-- Bump `eslint` from 9.22.0 to 9.24.0 ([#5407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5407), [#5445](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5445))
+- Bump `eslint` from 9.21.0 to 9.22.0 ([#5384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5384))
 - Bump `org.apache.commons:commons-text` from 1.13.0 to 1.13.1 ([#5480](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5480))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.2 to 3.5.3 ([#5442](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5442))
-- Bump `org.eclipse.jetty:jetty-client` from 12.0.16 to 12.0.18 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
-- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.16 to 12.0.18 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
-- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.16 to 12.0.18 ([#5347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5347))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.12.1 to 5.12.2 ([#5461](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5461))
-- Bump `react` from 19.0.0 to 19.1.0 ([#5426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5426))
 - Bump `react-dom` from 19.0.0 to 19.1.0 ([#5427](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5427))
 - Bump `react-router-dom` from 7.3.0 to 7.5.0 ([#5447](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5447))
 - Bump `react` from 19.0.0 to 19.1.0 ([#5426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5426))
