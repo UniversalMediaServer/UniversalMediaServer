@@ -34,7 +34,7 @@ public class MediaSubtitleTest {
 	 */
 	@BeforeEach
 	public final void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	@Test

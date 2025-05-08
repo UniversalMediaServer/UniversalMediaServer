@@ -38,7 +38,7 @@ public class FormatTest {
 
 	@BeforeEach
 	public void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
     /**

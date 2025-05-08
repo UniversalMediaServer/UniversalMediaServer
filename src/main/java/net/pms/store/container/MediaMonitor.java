@@ -126,6 +126,13 @@ public class MediaMonitor extends LocalizedStoreContainer {
 		return true;
 	}
 
+	@Override
+	public void doRefreshChildren() {
+		if (isDiscovered()) {
+			notifyRefresh();
+		}
+	}
+
 	/**
 	 * Performs certain actions after a video or audio file is stopped, if the
 	 * file is within a monitored directory. These actions include: - If the
@@ -199,7 +206,7 @@ public class MediaMonitor extends LocalizedStoreContainer {
 			LOGGER.trace("   getLastStartPosition: " + lastStartPosition);
 			LOGGER.trace("   currentTime: " + now);
 			LOGGER.trace("   getLastStartSystemTime: " + lastStartSystemTime);
-			LOGGER.trace("   getLastStartSystemTimeUser: " + lastStartSystemTimeUser);
+			LOGGER.trace("   lastStartSystemTimeUser: " + lastStartSystemTimeUser);
 			LOGGER.trace("   minimum play time: " + minimumPlayTime);
 			LOGGER.trace("   triggered fully played time: " + triggerPlayTime);
 			LOGGER.trace("   elapsed: " + elapsed);
@@ -323,13 +330,6 @@ public class MediaMonitor extends LocalizedStoreContainer {
 			}
 		} finally {
 			MediaDatabase.close(connection);
-		}
-	}
-
-	@Override
-	public void doRefreshChildren() {
-		if (isDiscovered()) {
-			notifyRefresh();
 		}
 	}
 

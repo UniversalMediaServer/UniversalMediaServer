@@ -28,23 +28,23 @@ public class TestHelper {
 		return context.getLogger(Logger.ROOT_LOGGER_NAME);
 	}
 
-	private static void SetLogging(Level level) {
+	private static void setLogging(Level level) {
 		getRootLogger().setLevel(level);
 	}
 
 	/**
 	 * Silence all log messages from the UMS code that are being tested.
 	 */
-	public static void SetLoggingOff() {
-		SetLogging(Level.OFF);
+	public static void setLoggingOff() {
+		setLogging(Level.OFF);
 	}
 
-	public static void SetLoggingWarn() {
-		SetLogging(Level.WARN);
+	public static void setLoggingWarn() {
+		setLogging(Level.WARN);
 	}
 
 	public static void setLoggingTrace() {
-		SetLogging(Level.TRACE);
+		setLogging(Level.TRACE);
 	}
 
 }

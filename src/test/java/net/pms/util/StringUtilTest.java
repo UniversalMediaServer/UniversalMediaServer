@@ -26,7 +26,7 @@ public class StringUtilTest {
 
 	@BeforeEach
 	public void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	@Test
