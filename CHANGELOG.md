@@ -1,6 +1,6 @@
 # Changelog
 
-## [v15 WIP changelog]
+## [15.0.0-a1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...15.0.0-a1) (2025-05-08)
 
 ### General
 - Added a user switcher to the web interface
