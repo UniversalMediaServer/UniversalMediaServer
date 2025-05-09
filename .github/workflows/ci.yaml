@@ -120,7 +120,7 @@ jobs:
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run Java tests
-        run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
+        run: mvn verify -P testing-macos
 
   macos-arm:
     needs: changes
@@ -152,7 +152,7 @@ jobs:
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run Java tests
-        run: DEVELOPER_DIR=/Applications/Xcode_latest.app/Contents/Developer && mvn verify -P testing-macos
+        run: mvn verify -P testing-macos
 
   windows-latest:
     needs: changes
@@ -220,8 +220,8 @@ jobs:
           sudo apt-get -y install libmms0
           wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.12/libmediainfo0v5_24.12-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libmediainfo0v5_24.12-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.04/libmediainfo0v5_25.04-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_25.04-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-noble:
@@ -256,8 +256,8 @@ jobs:
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.12/libmediainfo0v5_24.12-1_amd64.Ubuntu_24.04.deb
-          sudo dpkg -i libmediainfo0v5_24.12-1_amd64.Ubuntu_24.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.04/libmediainfo0v5_25.04-1_amd64.Ubuntu_24.04.deb
+          sudo dpkg -i libmediainfo0v5_25.04-1_amd64.Ubuntu_24.04.deb
           mvn verify -P testing -DdisableXmlReport=true
         
   lint:
