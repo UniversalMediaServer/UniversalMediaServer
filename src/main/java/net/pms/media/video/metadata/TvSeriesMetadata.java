@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
  * This class keeps track of the TV series metadata of media.
  */
 public class TvSeriesMetadata {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(TvSeriesMetadata.class);
 	private static final Gson GSON = new Gson();
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
@@ -586,7 +587,7 @@ public class TvSeriesMetadata {
 		if (lang == null || value == null) {
 			return;
 		}
-		if (this.translations == null)  {
+		if (this.translations == null) {
 			this.translations = new HashMap<>();
 		}
 		this.translations.put(lang.toLowerCase(), value);
@@ -642,6 +643,17 @@ public class TvSeriesMetadata {
 			return translation.getTitle();
 		}
 		return title;
+	}
+
+	public TvSeasonMetadata getSeasonMetadata(Integer seasonNumber) {
+		if (seasons != null && seasonNumber != null) {
+			for (ApiSeason season : seasons) {
+				if (season.getSeasonNumber() == seasonNumber) {
+					return new TvSeasonMetadata(tvSeriesId, tmdbId, season);
+				}
+			}
+		}
+		return null;
 	}
 
 	public void update(TvSeriesMetadata tvSeriesMetadata) {
