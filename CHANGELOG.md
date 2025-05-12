@@ -11,7 +11,7 @@
 - Bump `@mantine/notifications` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
 - Bump `@playwright/test` from 1.51.1 to 1.52.0 ([#5516](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5516))
 - Bump `@types/react-dom` from 19.1.2 to 19.1.3 ([#5509](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5509))
-- Bump `@types/react` from 19.1.1 to 19.1.2 ([#5509](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5509))
+- Bump `@types/react` from 19.1.1 to 19.1.3 ([#5509](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5509), [#5527](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5527))
 - Bump `@vitejs/plugin-react` from 4.3.4 to 4.4.1 ([#5479](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5479))
 - Bump `axios` from 1.8.4 to 1.9.0 ([#5519](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5519))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
