@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 interface MediaInfoLibrary extends Library {
 	static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoLibrary.class);
-	
+
 	public class SizeT extends IntegerType {
 		private static final long serialVersionUID = 1L;
 

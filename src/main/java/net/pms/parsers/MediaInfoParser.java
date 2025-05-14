@@ -218,7 +218,7 @@ public class MediaInfoParser {
 
 			// set Chapters
 			int menuCount = mediaInfoHelper.countGet(StreamKind.MENU);
-			if (menuCount> 0) {
+			if (menuCount > 0) {
 				Long chaptersPosBeginLong = StreamMenu.getChaptersPosBegin(mediaInfoHelper, 0);
 				Long chaptersPosEndLong = StreamMenu.getChaptersPosEnd(mediaInfoHelper, 0);
 				if (chaptersPosBeginLong != null && chaptersPosEndLong != null) {

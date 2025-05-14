@@ -232,7 +232,7 @@ public class MediaInfoHelper implements AutoCloseable {
 
 	/**
 	 * Count of Streams of a Stream kind (StreamNumber not filled).
-	 * It is the faster implementation of similar function 
+	 * It is the faster implementation of similar function
 	 * {@code String get(....., "StreamCount")}.
 	 *
 	 * @param streamType Type of Stream (general, video, audio...)
@@ -244,7 +244,7 @@ public class MediaInfoHelper implements AutoCloseable {
 
 	/**
 	 * Count of pieces of information in this Stream type and StreamNumber.
-	 * It is the faster implementation of similar function 
+	 * It is the faster implementation of similar function
 	 * {@code String get(....., "Count")}.
 	 *
 	 * @param streamType Type of Stream (general, video, audio...)
