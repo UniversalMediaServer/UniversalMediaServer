@@ -32,7 +32,9 @@ import net.pms.platform.windows.WindowsProgramPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+@SuppressWarnings({
+	"checkstyle:MethodName"
+})
 interface MediaInfoLibrary extends Library {
 	static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoLibrary.class);
 
