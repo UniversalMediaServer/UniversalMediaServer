@@ -17,6 +17,7 @@
 package net.pms.parsers.mediainfo;
 
 import com.sun.jna.FunctionMapper;
+import com.sun.jna.IntegerType;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
@@ -31,11 +32,22 @@ import net.pms.platform.windows.WindowsProgramPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings({
-	"checkstyle:MethodName"
-})
+
 interface MediaInfoLibrary extends Library {
 	static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoLibrary.class);
+	
+	public class SizeT extends IntegerType {
+		private static final long serialVersionUID = 1L;
+
+		public SizeT() {
+			super(Native.SIZE_T_SIZE, true);
+		}
+
+		public SizeT(long value) {
+			super(Native.SIZE_T_SIZE, value, true);
+		}
+	}
+
 	MediaInfoLibrary INSTANCE = createInstance();
 
 	// Constructor/Destructor
@@ -44,18 +56,18 @@ interface MediaInfoLibrary extends Library {
 	void Delete(Pointer handle);
 
 	// File
-	int Open(Pointer handle, WString file);
+	SizeT Open(Pointer handle, WString file);
 
 	void Close(Pointer handle);
 
 	// Info
 	WString Inform(Pointer handle);
 
-	WString Get(Pointer handle, int streamType, int streamNumber, WString parameter, int infoType, int searchType);
+	WString Get(Pointer handle, int streamType, SizeT streamNumber, WString parameter, int infoType, int searchType);
 
-	WString GetI(Pointer handle, int streamType, int streamNumber, int parameterIndex, int infoType);
+	WString GetI(Pointer handle, int streamType, SizeT streamNumber, SizeT parameterIndex, int infoType);
 
-	int Count_Get(Pointer handle, int streamType, int streamNumber);
+	SizeT Count_Get(Pointer handle, int streamType, SizeT streamNumber);
 
 	// Options
 	WString Option(Pointer handle, WString option, WString value);
