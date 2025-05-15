@@ -147,7 +147,7 @@ Nullsoft Install System %s
 # ^DeleteOnReboot
 "Выдаленне пасля перазапуску камп'ютара: "
 # ^ErrorCreatingShortcut
-"Памылка стварэння ярлыка: " 
+"Памылка стварэння ярлыка: "
 # ^ErrorCreating
 "Памылка стварэння: "
 # ^ErrorDecompressing
@@ -155,7 +155,7 @@ Nullsoft Install System %s
 # ^ErrorRegistering
 Немагчыма зарэгістраваць бібліятэку (DLL)
 # ^ExecShell
-"Выкананне каманды абалонкі: " 
+"Выкананне каманды абалонкі: "
 # ^Exec
 "Выкананне: "
 # ^Extract
@@ -165,7 +165,7 @@ Nullsoft Install System %s
 # ^InvalidOpcode
 дыстрыбутыў пашкоджаны: код памылкi
 # ^NoOLE
-"Няма OLE для: " 
+"Няма OLE для: "
 # ^OutputFolder
 "Папка усталявання: "
 # ^RemoveFolder

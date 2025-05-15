@@ -296,7 +296,7 @@ ${If} ${Errors}
 	MessageBox MB_IconStop 'Error: Unable to open "$0"!'
 ${EndIf}
 !ifdef QUIT_ON_EXECUTE
-${IfThen} $9 < 0 ${|} SendMessage $hWndParent ${WM_CLOSE} 0 0 ${|}
+${IfThen} $9 & 0x8000 ${|} SendMessage $hWndParent ${WM_CLOSE} 0 0 ${|}
 !endif
 FunctionEnd
 
