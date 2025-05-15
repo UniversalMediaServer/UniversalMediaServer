@@ -28,6 +28,7 @@
 - Bump `org.jsoup:jsoup` from 1.19.1 to 1.20.1 ([#5513](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5513))
 - Bump `react-router-dom` from 7.5.0 to 7.6.0 ([#5498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5498), [#5530](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5530))
 - Bump `typescript-eslint` from 8.29.0 to 8.31.0 ([#5496](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5496))
+- Bump `vite` from 6.3.4 to 6.3.5 ([#5529](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5529))
 
 ## [14.12.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.0...14.12.1) (2025-04-26)
 

@@ -50,6 +50,6 @@
     "eslint-plugin-react-refresh": "0.4.20",
     "typescript": "5.8.3",
     "typescript-eslint": "8.31.1",
-    "vite": "6.3.4"
+    "vite": "6.3.5"
   }
 }
