@@ -1,12 +1,25 @@
 import { test as setup } from '@playwright/test'
 
-setup('global setup', async ({ page }) => {
+setup('Disable authentication', async ({ page }) => {
+  page.on('pageerror', (err) => {
+    console.error('Browser page error:', err.message)
+  })
+  page.on('console', (message) => {
+    if (message.type() === 'error') {
+      console.error('Browser console error:', message)
+    }
+  })
   await page.goto('/')
 
-  // todo: fix the need for this initial delay/reload
-  await page.waitForTimeout(1000)
-  await page.reload()
+  // if page is empty, reload until the server is ready to serve
+  let html = await page.content()
+  while (html === '<html><head></head><body></body></html>') {
+    console.log('Got an empty page from server, reloading in 1 second...')
+    await page.waitForTimeout(1000)
+    await page.reload()
+    html = await page.content()
+  }
 
-  await page.getByText('Disable authentication').click()
-  await page.getByText('Confirm').click()
+  await page.getByRole('button', { name: 'Disable authentication' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
 })

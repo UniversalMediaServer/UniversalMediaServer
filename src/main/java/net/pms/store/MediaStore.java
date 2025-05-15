@@ -20,9 +20,6 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -61,7 +58,6 @@ import net.pms.store.container.RealFolder;
 import net.pms.store.container.SearchFolder;
 import net.pms.store.container.ServerSettingsFolder;
 import net.pms.store.container.SevenZipFile;
-import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.container.UmsPlaylist;
 import net.pms.store.container.UnattachedFolder;
 import net.pms.store.container.UserVirtualFolder;
@@ -73,7 +69,6 @@ import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.IOList;
 import net.pms.util.FileUtil;
-import net.pms.util.SimpleThreadFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -192,13 +187,14 @@ public class MediaStore extends StoreContainer {
 			mon = new MediaMonitor(renderer, dirs);
 		}
 
-		if (renderer.isLimitFolders() && renderer.getUmsConfiguration().getFolderLimit()) {
+		if (renderer.getUmsConfiguration().getFolderLimit() &&
+				renderer.isLimitFolders()) {
 			lim = new FolderLimit(renderer);
 			addChild(lim);
 		}
 
-		if (dynamicPls != null && backupChildren.contains(dynamicPls)) {
-			if (renderer.getUmsConfiguration().isDynamicPls()) {
+		if (renderer.getUmsConfiguration().isDynamicPls()) {
+			if (dynamicPls != null && backupChildren.contains(dynamicPls)) {
 				addChildInternal(dynamicPls, false);
 				backupChildren.remove(dynamicPls);
 			} else {
@@ -219,14 +215,16 @@ public class MediaStore extends StoreContainer {
 
 		setSharedContents();
 
-		StoreResource serverSettingsFolder = findSystemNameInResources(backupChildren, "ServerSettings");
-		if (serverSettingsFolder != null && renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
-			addChildInternal(serverSettingsFolder, false);
-			backupChildren.remove(serverSettingsFolder);
-		} else {
-			serverSettingsFolder = ServerSettingsFolder.getServerSettingsFolder(renderer);
+		if (renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
+			StoreResource serverSettingsFolder = findSystemNameInResources(backupChildren, "ServerSettings");
 			if (serverSettingsFolder != null) {
-				addChild(serverSettingsFolder);
+				addChildInternal(serverSettingsFolder, false);
+				backupChildren.remove(serverSettingsFolder);
+			} else {
+				serverSettingsFolder = ServerSettingsFolder.getServerSettingsFolder(renderer);
+				if (serverSettingsFolder != null) {
+					addChild(serverSettingsFolder);
+				}
 			}
 		}
 
@@ -665,16 +663,6 @@ public class MediaStore extends StoreContainer {
 						if (count > 0) {
 							String systemName = storeContainer.getSystemName();
 							LOGGER.trace("Start of analysis for " + systemName);
-							ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
-
-							int nParallelThreads = 3;
-							if (storeContainer instanceof DVDISOFile) {
-								// Some DVD drives die with 3 parallel threads
-								nParallelThreads = 1;
-							}
-
-							ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
-									new SimpleThreadFactory("LibraryResource resolver thread", true));
 
 							if (shouldDoAudioTrackSorting(storeContainer)) {
 								sortChildrenWithAudioElements(storeContainer);
@@ -682,21 +670,10 @@ public class MediaStore extends StoreContainer {
 							for (int i = 0; i < storeContainer.getChildren().size(); i++) {
 								final StoreResource child = storeContainer.getChildren().get(i);
 								if (child != null) {
-									if (child instanceof TranscodeVirtualFolder) {
-										tpe.execute(child);
-									}
 									resources.add(child);
 								} else {
 									LOGGER.warn("null child at index {} in {}", i, systemName);
 								}
-							}
-
-							try {
-								tpe.shutdown();
-								tpe.awaitTermination(20, TimeUnit.SECONDS);
-							} catch (InterruptedException e) {
-								LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
-								Thread.currentThread().interrupt();
 							}
 
 							LOGGER.trace("End of analysis for " + systemName);
@@ -761,14 +738,14 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 		String lcFilename = file.getName().toLowerCase();
-		if ((lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
+		if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
 			return findResourceFromFile(resources, file, ZippedFile.class);
-		} else if ((lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
+		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
 			return findResourceFromFile(resources, file, RarredFile.class);
-		} else if ((lcFilename.endsWith(".tar") ||
+		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") ||
 				lcFilename.endsWith(".gzip") ||
 				lcFilename.endsWith(".gz") ||
-				lcFilename.endsWith(".7z")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
+				lcFilename.endsWith(".7z"))) {
 			return findResourceFromFile(resources, file, SevenZipFile.class);
 		} else if (lcFilename.endsWith(".iso") ||
 				lcFilename.endsWith(".img")) {
@@ -823,14 +800,14 @@ public class MediaStore extends StoreContainer {
 		} else {
 			lcFilename = lcFilename.toLowerCase();
 		}
-		if ((lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
+		if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
 			return new ZippedFile(renderer, file);
-		} else if ((lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
+		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
 			return new RarredFile(renderer, file);
-		} else if ((lcFilename.endsWith(".tar") ||
+		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") ||
 				lcFilename.endsWith(".gzip") ||
 				lcFilename.endsWith(".gz") ||
-				lcFilename.endsWith(".7z")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
+				lcFilename.endsWith(".7z"))) {
 			return new SevenZipFile(renderer, file);
 		} else if (lcFilename.endsWith(".iso") ||
 				lcFilename.endsWith(".img") || (file.isDirectory() &&
@@ -850,7 +827,7 @@ public class MediaStore extends StoreContainer {
 			List<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
 
 			/* Optionally ignore empty directories */
-			if (file.isDirectory() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration()) && renderer.getUmsConfiguration().isHideEmptyFolders()) {
+			if (file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
 				LOGGER.debug("Ignoring empty/non-relevant directory: " + file.toString());
 				return null;
 			} else if (file.isDirectory() && !"".equals(lcFilename) && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {

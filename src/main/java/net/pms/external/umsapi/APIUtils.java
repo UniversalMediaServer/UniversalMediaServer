@@ -1134,8 +1134,10 @@ public class APIUtils {
 				if (tmdbId != null && tmdbId > 0) {
 					getParameters.add("tmdbID=" + tmdbId);
 				}
-				if (season != null && isNotBlank(episode)) {
+				if (season != null) {
 					getParameters.add("season=" + URLEncoder.encode(season.toString(), StandardCharsets.UTF_8.toString()));
+				}
+				if (isNotBlank(episode)) {
 					getParameters.add("episode=" + URLEncoder.encode(episode, StandardCharsets.UTF_8.toString()));
 				}
 				String getParametersJoined = StringUtils.join(getParameters, "&");
