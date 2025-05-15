@@ -217,7 +217,8 @@ public class MediaInfoParser {
 			}
 
 			// set Chapters
-			if (mediaInfoHelper.countGet(StreamKind.MENU, 0) > 0) {
+			int menuCount = mediaInfoHelper.countGet(StreamKind.MENU);
+			if (menuCount > 0) {
 				Long chaptersPosBeginLong = StreamMenu.getChaptersPosBegin(mediaInfoHelper, 0);
 				Long chaptersPosEndLong = StreamMenu.getChaptersPosEnd(mediaInfoHelper, 0);
 				if (chaptersPosBeginLong != null && chaptersPosEndLong != null) {
@@ -269,8 +270,8 @@ public class MediaInfoParser {
 			}
 
 			// set Video
-			Long videoTrackCount = StreamVideo.getStreamCount(mediaInfoHelper, 0);
-			if (videoTrackCount != null && videoTrackCount > 0) {
+			int videoTrackCount = mediaInfoHelper.countGet(StreamKind.VIDEO);
+			if (videoTrackCount > 0) {
 				for (int i = 0; i < videoTrackCount; i++) {
 					// check for DXSA and DXSB subtitles (subs in video format)
 					if (StreamVideo.getTitle(mediaInfoHelper, i).startsWith("Subtitle")) {
@@ -395,8 +396,8 @@ public class MediaInfoParser {
 			}
 
 			// set Audio
-			Long audioTracks = StreamAudio.getStreamCount(mediaInfoHelper, 0);
-			if (audioTracks != null && audioTracks > 0) {
+			int audioTracks = mediaInfoHelper.countGet(StreamKind.AUDIO);
+			if (audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
 					currentAudioTrack = new MediaAudio();
 					currentAudioTrack.setId(i);
@@ -478,8 +479,8 @@ public class MediaInfoParser {
 			}
 
 			// set Subs in text format
-			Long subTrackCount = StreamSubtitle.getStreamCount(mediaInfoHelper, 0);
-			if (subTrackCount != null && subTrackCount > 0) {
+			int subTrackCount = mediaInfoHelper.countGet(StreamKind.TEXT);
+			if (subTrackCount > 0) {
 				for (int i = 0; i < subTrackCount; i++) {
 					currentSubTrack = new MediaSubtitle();
 					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamSubtitle.getCodecID(mediaInfoHelper, i),
