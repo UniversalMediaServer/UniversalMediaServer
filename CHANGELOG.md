@@ -17,6 +17,7 @@
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
 - Bump `com.github.oshi:oshi-core` from 6.8.0 to 6.8.1 ([#5511](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5511))
+- Bump `com.google.code.gson:gson` from 2.13.0 to 2.13.1 ([#5524](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5524))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.23.0 to 10.23.1 ([#5512](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5512))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.12 to 0.12.14 ([#5525](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5525))
 - Bump `eslint-plugin-react-refresh` from 0.4.19 to 0.4.20 ([#5517](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5517))
