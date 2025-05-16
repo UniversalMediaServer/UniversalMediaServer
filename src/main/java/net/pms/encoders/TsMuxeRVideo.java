@@ -603,6 +603,8 @@ public class TsMuxeRVideo extends Engine {
 					if (ac3Remux) {
 						// AC-3 remux takes priority
 						type = "A_AC3";
+					} else if (audio.isMP3()) {
+						type = "A_MP3";
 					} else {
 						if (pcm) {
 							type = "A_LPCM";
