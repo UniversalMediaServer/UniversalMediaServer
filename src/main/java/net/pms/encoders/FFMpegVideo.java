@@ -226,7 +226,7 @@ public class FFMpegVideo extends Engine {
 					}
 				} else if (
 					params.getSid().isEmbedded() &&
-					isRendererSupportsSoftSubsForThisVideo(renderer, defaultVideoTrack, params)
+					isRendererSupportsSoftSubsForThisVideo(renderer, resource, params)
 				) {
 					/**
 					 * For some reason, FFmpeg loads faster if it looks for the subtitles in a
@@ -357,7 +357,7 @@ public class FFMpegVideo extends Engine {
 		final Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
-		final EncodingFormat encodingFormat = item.getTranscodingSettings().getEncodingFormat();
+		EncodingFormat encodingFormat = item.getTranscodingSettings().getEncodingFormat();
 		if (
 			(
 				encodingFormat.isTranscodeToWMV() &&
@@ -844,10 +844,12 @@ public class FFMpegVideo extends Engine {
 		return true;
 	}
 
-	private boolean isRendererSupportsSoftSubsForThisVideo(Renderer renderer, MediaVideo defaultVideoTrack, OutputParams params) {
+	private boolean isRendererSupportsSoftSubsForThisVideo(Renderer renderer, StoreItem item, OutputParams params) {
 		if (!params.getSid().getType().isText()) {
 			return false;
 		}
+
+		MediaVideo defaultVideoTrack = item.getMediaInfo().getDefaultVideoTrack();
 
 		int frameRate = 0;
 		if (defaultVideoTrack.getFrameRate() != null) {
@@ -863,7 +865,7 @@ public class FFMpegVideo extends Engine {
 				LOGGER.trace("", e);
 			}
 		}
-		return renderer.isTranscodeToMP4H265AC3() &&
+		return item.getTranscodingSettings().getEncodingFormat().isTranscodeToMP4H265AC3() &&
 			renderer.getFormatConfiguration().isFileCompatible(
 				FormatConfiguration.MP4,
 				defaultVideoTrack.getCodec(),
@@ -994,7 +996,7 @@ public class FFMpegVideo extends Engine {
 					params.getSid().getType().isText() ||
 					params.getSid().getType() == SubtitleType.VOBSUB
 				) &&
-				!isRendererSupportsSoftSubsForThisVideo(renderer, defaultVideoTrack, params)
+				!isRendererSupportsSoftSubsForThisVideo(renderer, item, params)
 			) &&
 			!(defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))
 		) {
@@ -1014,7 +1016,7 @@ public class FFMpegVideo extends Engine {
 			} else if (item.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
-			} else if (params.getSid() != null && !isRendererSupportsSoftSubsForThisVideo(renderer, defaultVideoTrack, params)) {
+			} else if (params.getSid() != null && !isRendererSupportsSoftSubsForThisVideo(renderer, item, params)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "we need to burn subtitles.");
 			} else if (isAviSynthEngine()) {
@@ -1053,7 +1055,7 @@ public class FFMpegVideo extends Engine {
 					renderer
 				) != null;
 				if (videoWouldBeCompatibleInTsContainer) {
-					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
+					canMuxVideoWithFFmpeg = true;
 				}
 				LOGGER.debug(prependFfmpegTraceReason + "the file is Dolby Vision and FFmpeg only outputs Dolby Vision metadata to MP4 containers as of FFmpeg 7.0.1 (worth re-checking periodically).");
 			}
