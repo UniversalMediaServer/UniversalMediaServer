@@ -31,9 +31,11 @@ import oshi.hardware.HardwareAbstractionLayer;
  * @author Tim Cox (mail@tcox.org)
  */
 public class AutoUpdaterServerProperties {
-
 	private static final String KEY_LATEST_VERSION = "LatestVersion2";
+	private static final String KEY_LATEST_VERSION_PATREON = "LatestVersionPatreon";
+	private static final String KEY_PATREON_DOWNLOAD_URL = "PatreonDownloadUrl";
 	private static final String DEFAULT_LATEST_VERSION = "0";
+	private static final String DEFAULT_PATREON_URL = "https://www.patreon.com/c/universalmediaserver";
 	private static final String KEY_DOWNLOAD_URL = "DownloadUrl2";
 	private static final String DEFAULT_DOWNLOAD_URL = "";
 
@@ -51,6 +53,14 @@ public class AutoUpdaterServerProperties {
 
 	public Version getLatestVersion() {
 		return new Version(getStringWithDefault(KEY_LATEST_VERSION, DEFAULT_LATEST_VERSION));
+	}
+
+	public Version getLatestVersionPatreon() {
+		return new Version(getStringWithDefault(KEY_LATEST_VERSION_PATREON, DEFAULT_LATEST_VERSION));
+	}
+
+	public String getPatreonDownloadUrl() {
+		return getStringWithDefault(KEY_PATREON_DOWNLOAD_URL, DEFAULT_PATREON_URL);
 	}
 
 	public String getDownloadUrl() {
@@ -71,7 +81,7 @@ public class AutoUpdaterServerProperties {
 	private String getPlatformSpecificKey(String key) {
 		String os = operatingSystem.toString();
 		if (os.startsWith("windows")) {
-			os = operatingSystem.getPlatformName();
+			os = operatingSystem.toString();
 		} else if (os.startsWith("mac")) {
 			os = operatingSystem.getPlatformName();
 

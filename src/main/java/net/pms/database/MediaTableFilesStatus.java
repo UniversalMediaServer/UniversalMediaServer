@@ -16,7 +16,6 @@
  */
 package net.pms.database;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -122,7 +121,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
@@ -230,7 +228,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				COL_LASTPLAYBACKPOSITION   + DOUBLE_PRECISION      + DEFAULT_0D       +
 			")",
 			CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_USERID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + ")",
-			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ISFULLYPLAYED + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ISFULLYPLAYED + ")"
+			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ISFULLYPLAYED + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ISFULLYPLAYED + ")"
 		);
 	}
 

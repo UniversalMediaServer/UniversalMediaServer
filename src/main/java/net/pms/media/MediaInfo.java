@@ -474,6 +474,17 @@ public class MediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @param videoTrack the videoTrack to add
+	 * @param id the array id to replace
+	 */
+	public synchronized void replaceVideoTrack(MediaVideo videoTrack, int id) {
+		this.videoTracks.set(id, videoTrack);
+		if (defaultVideoTrack == null || (!defaultVideoTrack.isDefault() && videoTrack.isDefault())) {
+			defaultVideoTrack = videoTrack;
+		}
+	}
+
+	/**
 	 * @return the audioTracks
 	 * @since 1.60.0
 	 */

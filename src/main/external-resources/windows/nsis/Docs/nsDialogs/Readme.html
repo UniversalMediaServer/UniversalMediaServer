@@ -97,7 +97,7 @@ NSD_CB_DelString,
 NSD_CB_DelItem, 
 NSD_CB_Clear, 
 <a href="#mref-cbgetcount">NSD_CB_GetCount</a>, 
-<a href="#mref-cbselectstring">NSD_CB_SelectString</a>
+<a href="#mref-cbselectstring">NSD_CB_SelectString</a>, NSD_CB_SelectStringExact, NSD_CB_FindStringExact
 </li>
 <li>ListBox: 
 <a href="#mref-lbaddstring">NSD_LB_AddString</a>, 
@@ -701,7 +701,9 @@ StrCmp $0 "" ...
 
 <h3><a name="mref-cbselectstring"></a>NSD_CB_SelectString</h3>
 <p><code>${NSD_CB_SelectString} <i>combo_HWND</i> <i>string</i></code></p>
-<p>Selects a string in a combo box.</p>
+<span class="inlcod">
+<p>Selects an item that begins with the characters in the string. Use <i>NSD_CB_SelectStringExact</i> to match the complete string.</p>
+</span>
 
 <h3><a name="mref-cbgetcount">NSD_CB_GetCount</a></h3>
 <p><code>${NSD_CB_GetCount} <i>combo_HWND</i> <i>$output_variable</i></code></p>

@@ -35,24 +35,65 @@ ShowInstDetails nevershow
 !insertmacro VersionCompare
 !include "x64.nsh"
 
+Var HEAPMEM
+
 Section ""
 	Pop $R0
 
-	ReadRegStr $R3 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
+	; first check portable heapmem value.
+	ClearErrors
+	FileOpen $1 "$EXEDIR\portable\data\heapmem.conf" r
+	IfErrors filenotfound
+	FileRead $1 $HEAPMEM
+	FileClose $1
+	filenotfound:
 
-	${If} $R3 == ""  ; no value found
-		StrCpy $R3 "1280"
+	SetRegView 64
+	; next check user registry heapmem value.
+	${If} $HEAPMEM == ""  ; no value found
+		ReadRegStr $HEAPMEM HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
 	${EndIf}
 
-	StrCpy $R4 "M"
-	StrCpy $R3 "-Xmx$R3$R4"
+	; next check system registry heapmem value.
+	${If} $HEAPMEM == ""  ; no value found
+		ReadRegStr $HEAPMEM HKLM "${REG_KEY_SOFTWARE}" "HeapMem"
+	${EndIf}
+
+	${If} ${RunningX64}
+		SetRegView 32
+		; next check user registry heapmem value.
+		${If} $HEAPMEM == ""  ; no value found
+			SetRegView 64
+			ReadRegStr $HEAPMEM HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
+		${EndIf}
+
+		; next check system registry heapmem value.
+		${If} $HEAPMEM == ""  ; no value found
+			ReadRegStr $HEAPMEM HKLM "${REG_KEY_SOFTWARE}" "HeapMem"
+		${EndIf}
+		SetRegView 64
+	${EndIf}
+
+	; finally set default heapmem value.
+	${If} $HEAPMEM == ""  ; no value found
+		StrCpy $HEAPMEM "1280"
+	${EndIf}
+
+	; sanitize number.
+	IntOp $HEAPMEM $HEAPMEM + 1
+	IntOp $HEAPMEM $HEAPMEM - 1
+	${If} $HEAPMEM == "0"  ; wrong value found
+		StrCpy $HEAPMEM "1280"
+	${EndIf}
+
+	StrCpy $HEAPMEM "-Xmx$HEAPMEMM"
 
 	; Change for your purpose (-jar etc.)
 	${GetParameters} $1
 
 	StrCpy $R0 "jre${PROJECT_JRE_VERSION}\bin\${JAVAEXE}"
 
-	StrCpy $0 '"$R0" -classpath update.jar;${PROJECT_JARFILE} $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=${PROJECT_ENCODING} ${PROJECT_MAIN_CLASS} $1'
+	StrCpy $0 '"$R0" -classpath update.jar;${PROJECT_JARFILE} $HEAPMEM -Djava.net.preferIPv4Stack=true -Dfile.encoding=${PROJECT_ENCODING} ${PROJECT_MAIN_CLASS} $1'
 	SetOutPath $EXEDIR
 	Exec $0
 SectionEnd

@@ -16,18 +16,17 @@
  */
 import { TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
-import { useContext, useState } from 'react';
-import { User, Lock } from 'tabler-icons-react';
+import { useEffect, useState } from 'react';
+import { IconUser, IconLock } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
-import { clearJwt, create, disable, login } from '../../services/auth-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { SessionInterface } from '../../services/session-service';
+import { create, disable, login } from '../../services/auth-service';
 import { allowHtml } from '../../utils';
+import { showError } from '../../utils/notifications';
 
-const Login = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
+const Login = ({ i18n, main, session }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface }) => {
   const [opened, setOpened] = useState(false);
   const form = useForm({
     initialValues: {
@@ -40,15 +39,13 @@ const Login = () => {
     const { username, password } = values;
     login(username, password).then(
       () => {
-        window.location.reload();
+        session.refresh();
       },
       () => {
-        showNotification({
+        showError({
           id: 'pwd-error',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('ErrorLoggingIn'),
-          autoClose: 3000,
         });
       }
     );
@@ -58,15 +55,13 @@ const Login = () => {
     const { username, password } = values;
     create(username, password).then(
       () => {
-        window.location.reload();
+        session.refresh();
       },
       () => {
-        showNotification({
+        showError({
           id: 'user-creation-error',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('NewUserNotCreated'),
-          autoClose: 3000,
         });
       }
     );
@@ -75,20 +70,25 @@ const Login = () => {
   const handleAuthDisable = () => {
     disable().then(
       () => {
-        clearJwt();
-        window.location.reload();
+        session.logout()
       },
       () => {
-        showNotification({
+        showError({
           id: 'auth-disable-error',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('AuthenticationServiceNotDisabled'),
-          autoClose: 3000,
         });
       }
     );
   };
+
+  //set the document Title to Login
+  useEffect(() => {
+    document.title="Universal Media Server - Login";
+    session.stopSse()
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
+  }, []);
 
   return (
     <Box style={{ maxWidth: 300 }} mx='auto'>
@@ -99,14 +99,14 @@ const Login = () => {
         <TextInput
           required
           label={i18n.get('Username')}
-          leftSection={<User size={14} />}
+          leftSection={<IconUser size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
           label={i18n.get('Password')}
           type='password'
-          leftSection={<Lock size={14} />}
+          leftSection={<IconLock size={14} />}
           {...form.getInputProps('password')}
         />
         <Group justify='flex-end' mt='md'>

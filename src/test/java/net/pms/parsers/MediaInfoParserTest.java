@@ -17,6 +17,7 @@
 package net.pms.parsers;
 
 import java.io.File;
+import net.pms.TestHelper;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -87,6 +88,7 @@ public class MediaInfoParserTest {
 		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)-32 (0x80)"), 32);
 		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)"), 189);
 		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)-"), 189);
+		assertEquals(MediaInfoParser.getSpecificID("1-CC1"), 331);
 	}
 
 	@Test
@@ -119,8 +121,9 @@ public class MediaInfoParserTest {
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
 		assertTrue(
-			MediaInfoParser.isValid(),
-			"\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n"
+				MediaInfoParser.isValid(),
+				"\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n" +
+				 "\r\n" + MediaInfoParser.LOADING_ERROR + "\r\n"
 		);
 
 		//video
@@ -239,6 +242,10 @@ public class MediaInfoParserTest {
 		assertEquals(
 			"Container: MPEGTS, Size: 16063660, Overall Bitrate: 28310726, Duration: 0:00:04.539, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Duration: 0:00:04.504, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision), HDR Format Compatibility: HLG (hlg)], Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.12.ts").toString()
+		);
+		assertEquals(
+			"Container: MKV, Size: 19121021, Overall Bitrate: 14663360, Duration: 0:00:10.432, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: main, Stream Order: 0, Duration: 0:00:10.427, Resolution: 3840 x 1608, Display Aspect Ratio: 2.39:1, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2094 App 4 (dolbyvision), HDR Format Compatibility: HDR10 / HDR10+ Profile B (hdr10)], Audio Tracks: 1 [Audio Id: 0, Title: DDP 7.1, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 1536000, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			getTestFileMediaInfo("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex.mkv").toString()
 		);
 		assertEquals(
 			"Container: MKV, Size: 11413502, Overall Bitrate: 6110012, Duration: 0:00:14.944, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5, Format Tier: main, Stream Order: 0, Duration: 0:00:14.920, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 25.0, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), HDR Format Compatibility: HDR10 / HDR10 (hdr10)], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 768000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",

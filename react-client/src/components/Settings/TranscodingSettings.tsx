@@ -16,24 +16,24 @@
  */
 import { Accordion, ActionIcon, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay } from 'tabler-icons-react';
+import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, IconExclamationMark, IconPlayerPlay } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
-import { mantineSelectData } from './Settings';
 
 export default function TranscodingSettings(
+  i18n:I18nInterface,
+  session:SessionInterface,
   form: any,
   defaultConfiguration: any,
   selectionSettings: any,
 ) {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
   const [transcodingContent, setTranscodingContent] = useState('common');
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
@@ -91,7 +91,7 @@ export default function TranscodingSettings(
       return (
         <Tooltip label={allowHtml(i18n.get('ThereIsProblemTranscodingEngineX')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
           <ActionIcon variant='transparent' size={20}>
-            <ExclamationMark color={'orange'} strokeWidth={3} size={14} />
+            <IconExclamationMark color={'orange'} strokeWidth={3} size={14} />
           </ActionIcon>
         </Tooltip>
       )
@@ -109,7 +109,7 @@ export default function TranscodingSettings(
               e.stopPropagation();
             }}
           >
-            <PlayerPlay strokeWidth={2} color={'green'} size={14} />
+            <IconPlayerPlay strokeWidth={2} color={'green'} size={14} />
           </ActionIcon>
         </Tooltip>
       )
@@ -126,7 +126,7 @@ export default function TranscodingSettings(
             e.stopPropagation();
           }}
         >
-          <Ban color={'red'} size={14} />
+          <IconBan color={'red'} size={14} />
         </ActionIcon>
       </Tooltip>
     )
@@ -154,7 +154,7 @@ export default function TranscodingSettings(
             leftSection={
               <>
                 <ActionIcon variant='transparent' data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
-                  {engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+                  {engines.indexOf(value) === 0 ? (<IconArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<IconArrowNarrowUp />) : (<IconArrowsVertical />)}
                 </ActionIcon>
                 {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
               </>
@@ -387,6 +387,7 @@ export default function TranscodingSettings(
                 />
               </Tooltip>
               <DirectoryChooser
+                i18n={i18n}
                 disabled={!canModify}
                 size='xs'
                 path={form.getInputProps('alternate_subtitles_folder').value}
@@ -408,6 +409,7 @@ export default function TranscodingSettings(
                 {...form.getInputProps('mencoder_subfribidi', { type: 'checkbox' })}
               />
               <DirectoryChooser
+                i18n={i18n}
                 disabled={!canModify}
                 size='xs'
                 tooltipText={i18n.get('ToUseFontMustBeRegistered')}
@@ -572,7 +574,7 @@ export default function TranscodingSettings(
         <>
           <Title my='sm' order={5}>{currentEngine.name}</Title>
           <Stack gap='xs'>
-            <Text size='xs'><ExclamationMark color={'orange'} strokeWidth={3} size={14} /> {i18n.get('ThisEngineNotLoaded')}</Text>
+            <Text size='xs'><IconExclamationMark color={'orange'} strokeWidth={3} size={14} /> {i18n.get('ThisEngineNotLoaded')}</Text>
             <Text size='xs'>{i18n.getI18nFormat(currentEngine.statusText)}</Text>
           </Stack>
         </>

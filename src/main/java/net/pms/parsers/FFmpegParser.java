@@ -78,18 +78,18 @@ public class FFmpegParser {
 
 			boolean ffmpegParsing = true;
 
-			if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
+			if (file != null && type == Format.AUDIO || ext instanceof AudioAsVideo) {
 				ffmpegParsing = false;
 				JaudiotaggerParser.parse(media, file, ext);
 			}
 
-			if (type == Format.IMAGE && file != null) {
+			if (type == Format.IMAGE) {
 				try {
 					ffmpegParsing = false;
-					MetadataExtractorParser.parse(file, media);
+					MetadataExtractorParser.parse(inputFile, media);
 					media.setImageCount(media.getImageCount() + 1);
 				} catch (IOException e) {
-					LOGGER.debug("Error parsing image \"{}\", switching to FFmpeg: {}", file.getAbsolutePath(), e.getMessage());
+					LOGGER.debug("Error parsing image \"{}\", switching to FFmpeg: {}", inputFile.getFilename(), e.getMessage());
 					LOGGER.trace("", e);
 					ffmpegParsing = true;
 				}
@@ -138,7 +138,7 @@ public class FFmpegParser {
 
 		String input;
 		if (inputFile.getFile() != null) {
-			input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
+			input = ProcessUtil.getSystemPathName(inputFile.getFile().getAbsolutePath());
 		} else {
 			input = "-";
 		}
@@ -227,7 +227,7 @@ public class FFmpegParser {
 		args.add("-i");
 
 		if (inputFile.getFile() != null) {
-			args.add(ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath()));
+			args.add(ProcessUtil.getSystemPathName(inputFile.getFile().getAbsolutePath()));
 		} else {
 			args.add("-");
 		}
@@ -305,7 +305,7 @@ public class FFmpegParser {
 				if (line.startsWith("Output")) {
 					matches = false;
 				} else if (line.startsWith("Input")) {
-					if (line.contains(input)) {
+					if (line.contains(input) || line.contains("from 'fd:':")) {
 						matches = true;
 						media.setContainer(line.substring(10, line.indexOf(',', 11)).trim());
 
@@ -322,7 +322,16 @@ public class FFmpegParser {
 							LOGGER.trace("Setting container to " + media.getContainer() + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
 						}
 						if ("matroska".equals(media.getContainer())) {
-							media.setContainer(FormatConfiguration.MKV);
+							if (line.contains("matroska,webm, ")) {
+								media.setContainer(line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim());
+								LOGGER.trace("Setting container to " + media.getContainer() + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
+							} else {
+								media.setContainer(FormatConfiguration.MKV);
+							}
+						}
+						if ("asf".equals(media.getContainer())) {
+							media.setContainer(line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim());
+							LOGGER.trace("Setting container to " + media.getContainer() + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
 						}
 					} else {
 						matches = false;
@@ -402,6 +411,12 @@ public class FFmpegParser {
 										} else if (token.contains("(HE-AAC)")) {
 											codec = FormatConfiguration.HE_AAC;
 										}
+									} else if (codec.startsWith("adpcm_ms")) {
+										codec = FormatConfiguration.ADPCM;
+									} else if (codec.startsWith("wma")) {
+										codec = FormatConfiguration.WMA;
+									} else if (token.contains("DTS-HD")) {
+										codec = FormatConfiguration.DTSHD;
 									}
 								} else {
 									codec = token.substring(positionAfterAudioString);
@@ -423,7 +438,9 @@ public class FFmpegParser {
 								audio.setNumberOfChannels(1);
 							} else if (token.equals("stereo")) {
 								audio.setNumberOfChannels(2);
-							} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels")) {
+							} else if (token.equals("7.1")) {
+								audio.setNumberOfChannels(8);
+							} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels") || token.equals("5.1(side)")) {
 								audio.setNumberOfChannels(6);
 							} else if (token.equals("5 channels")) {
 								audio.setNumberOfChannels(5);
@@ -437,6 +454,11 @@ public class FFmpegParser {
 								audio.setBitDepth(24);
 							} else if (token.equals("s16")) {
 								audio.setBitDepth(16);
+							} else if (token.endsWith(" kb/s") || token.endsWith(" kb/s (default)")) {
+								// parse the bitrate from e.g. "112 kb/s"
+								String[] splitString = token.split("\\s+");
+								int bitrateAsInt = Integer.parseInt(splitString[0] + "000");
+								audio.setBitRate(bitrateAsInt);
 							}
 						}
 						int fFmpegMetaDataNr = fFmpegMetaData.nextIndex();
@@ -463,7 +485,7 @@ public class FFmpegParser {
 							}
 						}
 						media.addAudioTrack(audio);
-					} else if (line.contains("Video:")) {
+					} else if (line.contains("Video:") && !line.contains("(attached pic)")) {
 						MediaVideo video = new MediaVideo();
 						video.setId(videoId++);
 						video.setStreamOrder(getStreamOrder(line));
@@ -478,11 +500,38 @@ public class FFmpegParser {
 								//get the codec
 								int positionAfterVideoString = token.indexOf(videoString) + videoString.length();
 								String codec = token.substring(positionAfterVideoString);
+
 								// Check whether there are more details after the video string
 								int profilePos = codec.indexOf(" (");
 								if (profilePos > -1) {
-									video.setFormatProfile(getFormatProfile(codec));
+									String formatProfile = getFormatProfile(codec);
+									video.setFormatProfile(formatProfile);
+
+									// Attempt to parse the bit depth from the profile name, e.g. "main 10"
+									if (formatProfile != null) {
+										if (formatProfile.endsWith(" 10")) {
+											video.setBitDepth(10);
+										} else if (formatProfile.endsWith(" 12")) {
+											video.setBitDepth(12);
+										}
+									}
+
 									codec = codec.substring(0, profilePos).trim();
+								}
+
+								if (codec.equalsIgnoreCase("flv1")) {
+									codec = FormatConfiguration.SORENSON;
+								} else if (codec.equalsIgnoreCase("hevc")) {
+									codec = FormatConfiguration.H265;
+								} else if (codec.equalsIgnoreCase("mpeg4") || codec.equalsIgnoreCase("msmpeg4v2")) {
+									// DivX video codec is printed as "mpeg4 (Advanced Simple Profile) (XVID / 0x44495658)"
+									if (token.contains("mpeg4 (Advanced Simple Profile) (XVID")) {
+										codec = FormatConfiguration.DIVX;
+									} else {
+										codec = FormatConfiguration.MP4;
+									}
+								} else if (codec.equalsIgnoreCase("wmv2")) {
+									codec = FormatConfiguration.WMV;
 								}
 								video.setCodec(codec);
 							} else if ((token.contains("tbc") || token.contains("tb(c)"))) {
@@ -527,6 +576,9 @@ public class FFmpegParser {
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf('x') + 1) + "\"");
 								}
+							} else if (token.contains("smpte2084")) {
+								video.setHDRFormat("HDR10");
+								video.setHDRFormatCompatibility("HDR10");
 							}
 						}
 						media.addVideoTrack(video);
@@ -669,6 +721,29 @@ public class FFmpegParser {
 							ffmpegChapters.add(chapter);
 						}
 						media.setChapters(ffmpegChapters);
+					} else if (line.contains("DOVI configuration record")) {
+						// e.g. DOVI configuration record: version: 1.0, profile: 8, level: 6, rpu flag: 1, el flag: 0, bl flag: 1, compatibility id: 1
+
+						// find the relevant video track and modify the HDR metadata, then replace the video track
+						int previousVideoId = videoId - 1;
+						for (MediaVideo videoTrack : media.getVideoTracks()) {
+							if (videoTrack.getId() == previousVideoId) {
+								String hdrFormat = "Dolby Vision";
+								if (line.contains("compatibility id: 2")) {
+									videoTrack.setHDRFormatCompatibility("SDR");
+								} else if (line.contains("compatibility id: 4")) {
+									videoTrack.setHDRFormatCompatibility("HLG");
+								} else if (line.contains("compatibility id: 6")) {
+									videoTrack.setHDRFormatCompatibility("Blu-ray / HDR10");
+									hdrFormat += " / SMPTE ST 2086";
+								} else if (videoTrack.getHDRFormatCompatibility() != null && videoTrack.getHDRFormatCompatibility().equals("HDR10")) {
+									hdrFormat += " / SMPTE ST 2086";
+								}
+								videoTrack.setHDRFormat(hdrFormat);
+								media.replaceVideoTrack(videoTrack, previousVideoId);
+								break;
+							}
+						}
 					}
 				}
 			}

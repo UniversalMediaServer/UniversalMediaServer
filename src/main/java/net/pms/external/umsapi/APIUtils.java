@@ -276,8 +276,8 @@ public class APIUtils {
 			return false;
 		}
 
-		if (!CONFIGURATION.isUseInfoFromIMDb()) {
-			LOGGER.trace("Not doing background API lookup because isUseInfoFromIMDb is disabled");
+		if (!CONFIGURATION.isUseInfoFromUmsAPI()) {
+			LOGGER.trace("Not doing background API lookup because isUseInfoFromUmsAPI is disabled");
 			return false;
 		}
 
@@ -1132,7 +1132,7 @@ public class APIUtils {
 					getParameters.add("imdbID=" + URLEncoder.encode(imdbId, StandardCharsets.UTF_8.toString()));
 				}
 				if (tmdbId != null && tmdbId > 0) {
-					getParameters.add("tmdbId=" + tmdbId);
+					getParameters.add("tmdbID=" + tmdbId);
 				}
 				if (season != null && isNotBlank(episode)) {
 					getParameters.add("season=" + URLEncoder.encode(season.toString(), StandardCharsets.UTF_8.toString()));

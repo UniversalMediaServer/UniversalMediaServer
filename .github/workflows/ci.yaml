@@ -7,7 +7,7 @@ jobs:
   changes:
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       )
     name: Build list of changed files
@@ -49,7 +49,7 @@ jobs:
       - changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -57,7 +57,7 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS web browser tests
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -66,24 +66,15 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache Node dependencies
-        id: cache-node-dependencies
-        uses: actions/cache@v4
+      - uses: actions/setup-node@v4
         with:
-          path: |
-            react-client/.yarn
-            react-client/node
-            react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Cache compiled server binary
-        id: cache-compiled-server-binary
-        uses: actions/cache@v4
-        with:
-          path: ums-testserver.jar
-          key: compiled-server-binary
+          node-version: 22
+      - name: Enable corepack
+        working-directory: ./react-client
+        run: corepack enable
       - name: Install dependencies
         working-directory: ./react-client
-        run: yarn
+        run: yarn install
       - name: Install Playwright with dependencies
         working-directory: ./react-client
         run: yarn playwright install --with-deps
@@ -93,23 +84,24 @@ jobs:
       - name: Run Playwright tests
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: my-artifact
+          path: react-client/screenshot.png
 
-  macos:
+  macos-intel:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
         needs.changes.outputs.cifile == 'true'
       )
-    name: macOS Java tests
+    name: macOS Intel Java tests
     runs-on: macos-13
-    strategy:
-      matrix:
-        # test against two different xcode version on MacOS
-        xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -126,15 +118,47 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run Java tests (XCode ${{ matrix.xcode }})
-        run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
+      - name: Run Java tests
+        run: mvn verify -P testing-macos
+
+  macos-arm:
+    needs: changes
+    if: |
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
+      )
+    name: macOS ARM Java tests
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
+      - name: Run Java tests
+        run: mvn verify -P testing-macos
 
   windows-latest:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -158,53 +182,15 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: mvn verify -P testing-windows
-
-  linux-focal:
-    needs: changes
-    if: |
-      (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-        (github.event_name == 'pull_request')
-      ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
-      )
-    name: Linux 20.04
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'liberica'
-          java-version: 17
-          cache: 'maven'
-      - name: Cache Node dependencies
-        id: cache-node-dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            react-client/.yarn
-            react-client/node
-            react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run tests
-        run: |
-          sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.06/libmediainfo0v5_24.06-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libmediainfo0v5_24.06-1_amd64.xUbuntu_20.04.deb
-          mvn verify -P testing -DdisableXmlReport=true
 
   linux-jammy:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
@@ -228,28 +214,64 @@ jobs:
             react-client/.yarn
             react-client/node
             react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
           wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.06/libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.04/libmediainfo0v5_25.04-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_25.04-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
-  lint:
+  linux-noble:
     needs: changes
     if: |
       (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
         needs.changes.outputs.cifile == 'true'
       )
-    name: Lint
-    runs-on: ubuntu-22.04
+    name: Linux 24.04
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
+      - name: Run tests
+        run: |
+          sudo apt-get -y install libmms0
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.04/libmediainfo0v5_25.04-1_amd64.Ubuntu_24.04.deb
+          sudo dpkg -i libmediainfo0v5_25.04-1_amd64.Ubuntu_24.04.deb
+          mvn verify -P testing -DdisableXmlReport=true
+        
+  lint:
+    needs: changes
+    if: |
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
+      )
+    name: Lint server files
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -264,7 +286,7 @@ jobs:
 
   changelog:
     if: |
-      github.actor == 'dependabot[bot]'
+      github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
     needs:
       - macos-browser
     runs-on: ubuntu-latest
@@ -274,7 +296,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: dangoslen/dependabot-changelog-helper@v3
+      - uses: dangoslen/dependabot-changelog-helper@v4
         with:
           activationLabels: 'dependencies'
           sort: 'alpha'

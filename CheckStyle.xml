@@ -36,7 +36,6 @@ Checkstyle configuration for Universal Media Server.
 		</module>
 		<module name="JavadocVariable">
 			<property name="severity" value="warning"/>
-			<property name="scope" value="protected"/>
 		</module>
 		<module name="JavadocStyle">
 			<property name="severity" value="warning"/>

@@ -147,7 +147,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 */
 	public Long getLongId() {
 		try {
-		return Long.valueOf(getId());
+			return Long.valueOf(getId());
 		} catch (NumberFormatException e) {
 			return null;
 		}
@@ -643,7 +643,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * @param lastModified The timestamp to set.
 	 * @since 1.71.0
 	 */
-	protected void setLastModified(long lastModified) {
+	protected final void setLastModified(long lastModified) {
 		this.lastModified = lastModified;
 	}
 
@@ -925,6 +925,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 			if (s == null) {
 				return "";
 			}
+			s = StringUtils.stripAccents(s).replaceAll("[^\\w.]+", "-");
 			return URLEncoder.encode(s, StandardCharsets.UTF_8);
 		} catch (IllegalArgumentException e) {
 			LOGGER.debug("Error while URL encoding \"{}\": {}", s, e.getMessage());

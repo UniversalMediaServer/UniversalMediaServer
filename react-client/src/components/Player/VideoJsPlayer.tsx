@@ -20,11 +20,11 @@ import videojs from 'video.js';
 import Player, { PlayerReadyCallback } from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.min.css';
 
+import { AudioMedia, BaseMedia, VideoMedia } from '../../services/player-service';
 import { playerApiUrl } from '../../utils';
-import { AudioMedia, BaseMedia, VideoMedia } from './Player';
 import './HlsQualitySelector/HlsQualitySelectorPlugin';
 
-export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
+const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     const videoElem = document.createElement('video');
     videoElem.id = 'player';
@@ -35,6 +35,35 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
     const options = {} as any;
     options.liveui = true;
     options.controls = true;
+    options.userActions = {
+      hotkeys: function(event: any) {
+        if (event.which === 32) {
+          if (this.paused()) {
+            this.play();
+          } else {
+            this.pause();
+          }
+        }
+        if (event.which === 37) {
+          this.currentTime(Math.max(0, this.currentTime() - 15));
+        }
+        if (event.which === 39) {
+          const duration = this.liveTracker && this.liveTracker.isLive() ? this.liveTracker.seekableEnd() : this.duration();
+          this.currentTime(Math.min(this.currentTime() + 15), duration);
+        }
+        if (event.which === 70) {
+          if (this.isFullscreen() === true) {
+            if (!this.isFullWindow) {
+              this.exitFullscreen();
+            } else {
+              this.exitFullWindow();
+            }
+          } else {
+            this.requestFullscreen(false);
+          }
+        }
+      }
+    };
     options.sources = [{ src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id, type: vpOptions.media.mime }];
     options.poster = playerApiUrl + 'thumbnail/' + vpOptions.uuid + '/' + vpOptions.media.id;
     if (vpOptions.media.mediaType === 'audio') {
@@ -138,8 +167,10 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   );
 };
 
-export interface VideoPlayerOption {
+interface VideoPlayerOption {
   media: VideoMedia | AudioMedia,
   uuid: string,
   askPlayId: (id: string) => void;
 }
+
+export default VideoJsPlayer;

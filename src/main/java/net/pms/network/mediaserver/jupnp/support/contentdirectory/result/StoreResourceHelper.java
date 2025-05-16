@@ -18,7 +18,6 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory.result;
 
 import com.google.common.primitives.UnsignedInteger;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +38,7 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Desc;
@@ -60,6 +60,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP.AlbumArtURI;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -168,6 +169,15 @@ public class StoreResourceHelper {
 				result.addResource(getImageRes(container, resElement));
 				// Offering AlbumArt here breaks the standard, but some renderers
 				// need it
+				if (renderer.needAlbumArtHack() || result instanceof MusicAlbum) {
+					AlbumArtURI albumArtURI = getAlbumArtURI(container, resElement);
+					if (albumArtURI != null) {
+						result.addProperty(albumArtURI);
+					}
+				}
+			}
+		} else if (result instanceof MusicAlbum) {
+			for (DLNAImageResElement resElement : getThumbnailResElements(container, mediaType)) {
 				AlbumArtURI albumArtURI = getAlbumArtURI(container, resElement);
 				if (albumArtURI != null) {
 					result.addProperty(albumArtURI);
@@ -238,6 +248,12 @@ public class StoreResourceHelper {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual
 			// folder ids.
 			resourceId += "$";
+		}
+		if (renderer.needVersionedObjectId()) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(item.getLongId());
+			if (updateId != null) {
+				resourceId += "#" + updateId;
+			}
 		}
 		result.setId(resourceId);
 
@@ -369,6 +385,12 @@ public class StoreResourceHelper {
 				if (subsAreValidForStreaming && mediaSubtitle != null && renderer.offerSubtitlesByProtocolInfo() && !renderer.useClosedCaption()) {
 					res.getDependentProperties().add(new PV.SubtitleFileType(mediaSubtitle.getType().getExtension().toUpperCase()));
 					res.getDependentProperties().add(new PV.SubtitleFileUri(item.getSubsURL(mediaSubtitle)));
+				}
+				if (renderer.getUmsConfiguration().isUpnpCdsWrite() &&
+						renderer.getUmsConfiguration().isAnonymousDevicesWrite() &&
+						(item.getRendererMimeType().toLowerCase().startsWith("audio") || item.getRendererMimeType().toLowerCase().startsWith("video"))) {
+					String url = new StringBuilder(MediaServer.getURL()).append("/import?id=").append(item.getId()).toString();
+					res.getDependentProperties().add(new Res.ImportUri(URI.create(url)));
 				}
 
 				if (format != null && format.isVideo() && mediaInfo != null && mediaInfo.isMediaParsed()) {
@@ -564,11 +586,13 @@ public class StoreResourceHelper {
 			}
 			for (DLNAImageResElement resElement : getThumbnailResElements(item, mediaType)) {
 				result.addResource(getImageRes(item, resElement));
-				// Offering AlbumArt here breaks the standard, but some renderers
-				// need it
-				AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
-				if (albumArtURI != null) {
-					result.addProperty(albumArtURI);
+				if (renderer.needAlbumArtHack()) {
+					// Offering AlbumArt here breaks the standard, but some renderers
+					// need it
+					AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
+					if (albumArtURI != null) {
+						result.addProperty(albumArtURI);
+					}
 				}
 			}
 		} else {
@@ -576,9 +600,11 @@ public class StoreResourceHelper {
 				result.addResource(getImageRes(item, resElement));
 				// Offering AlbumArt here breaks the standard, but some renderers
 				// need it
-				AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
-				if (albumArtURI != null) {
-					result.addProperty(albumArtURI);
+				if (renderer.needAlbumArtHack()) {
+					AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
+					if (albumArtURI != null) {
+						result.addProperty(albumArtURI);
+					}
 				}
 			}
 		}
@@ -791,6 +817,9 @@ public class StoreResourceHelper {
 	}
 
 	private static Res getImageRes(StoreResource resource, DLNAImageResElement resElement) {
+		if (resource == null) {
+			throw new NullPointerException("resource cannot be null");
+		}
 		if (resElement == null) {
 			throw new NullPointerException("resElement cannot be null");
 		}
@@ -829,11 +858,15 @@ public class StoreResourceHelper {
 				resElement.getProfile() + ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000";
 			ProtocolInfo protocolInfo = new ProtocolInfo(protocolInfoStr);
 			res.setProtocolInfo(protocolInfo);
-			try {
-				res.setValue(new URI(url));
-			} catch (URISyntaxException ex) {
-				LOGGER.trace("Res fail with url: {}", url);
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && url != null) {
+				if (url.contains("?")) {
+					url += "&update=" + updateId;
+				} else {
+					url += "?update=" + updateId;
+				}
 			}
+			res.setValue(URI.create(url));
 			return res;
 		}
 		return null;
@@ -841,6 +874,10 @@ public class StoreResourceHelper {
 
 	private static AlbumArtURI getAlbumArtURI(StoreResource resource, DLNAImageResElement resElement) {
 		DLNAImageProfile imageProfile = resElement.getProfile();
+		String rendererProfile = resource.getDefaultRenderer().getAlbumArtProfile();
+		if (StringUtils.isNotBlank(rendererProfile) && !rendererProfile.equalsIgnoreCase(imageProfile.toString())) {
+			return null;
+		}
 		switch (imageProfile.toInt()) {
 			case DLNAImageProfile.GIF_LRG_INT,
 				DLNAImageProfile.JPEG_SM_INT,
@@ -848,13 +885,26 @@ public class StoreResourceHelper {
 				DLNAImageProfile.PNG_LRG_INT,
 				DLNAImageProfile.PNG_TN_INT
 				-> {
-					String albumArtURL = resource.getThumbnailURL(imageProfile);
-					if (StringUtils.isNotBlank(albumArtURL)) {
-						UPNP.AlbumArtURI albumArtURI = new UPNP.AlbumArtURI(URI.create(albumArtURL));
-						albumArtURI.setProfileID(imageProfile.toString());
-						return albumArtURI;
-					}
+					return getAlbumArtURI(resource, imageProfile);
 				}
+		}
+		return null;
+	}
+
+	private static AlbumArtURI getAlbumArtURI(StoreResource resource, DLNAImageProfile imageProfile) {
+		String albumArtURL = resource.getThumbnailURL(imageProfile);
+		if (StringUtils.isNotBlank(albumArtURL)) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && albumArtURL != null) {
+				if (albumArtURL.contains("?")) {
+					albumArtURL += "&update=" + updateId;
+				} else {
+					albumArtURL += "?update=" + updateId;
+				}
+			}
+			UPNP.AlbumArtURI albumArtURI = new UPNP.AlbumArtURI(URI.create(albumArtURL));
+			albumArtURI.setProfileID(imageProfile.toString());
+			return albumArtURI;
 		}
 		return null;
 	}

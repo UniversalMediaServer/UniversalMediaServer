@@ -688,7 +688,8 @@ public class FormatConfiguration {
 		}
 		if (media.getDefaultAudioTrack() == null) {
 			// no sound
-			return getMatchedMIMEtype(media.getContainer(),
+			return getMatchedMIMEtype(
+				media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				null,
 				0,
@@ -719,7 +720,8 @@ public class FormatConfiguration {
 			* track needs to be checked.
 			*/
 			MediaAudio audio = media.getDefaultAudioTrack();
-			return getMatchedMIMEtype(media.getContainer(),
+			return getMatchedMIMEtype(
+				media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				audio.getCodec(),
 				audio.getNumberOfChannels(),
@@ -741,7 +743,8 @@ public class FormatConfiguration {
 		String finalMimeType = null;
 
 		for (MediaAudio audio : media.getAudioTracks()) {
-			String mimeType = getMatchedMIMEtype(media.getContainer(),
+			String mimeType = getMatchedMIMEtype(
+				media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				audio.getCodec(),
 				audio.getNumberOfChannels(),
@@ -818,6 +821,23 @@ public class FormatConfiguration {
 			params.getSid().isExternal(),
 			null
 		);
+	}
+
+
+	/**
+	 * Checks if renderer supports a specific mime type.
+	 * @param mimeType
+	 * @return
+	 */
+	public boolean supportsMimeType(String mimeType) {
+		for (SupportSpec supportSpec : supportSpecs) {
+			if (supportSpec.mimeType.equalsIgnoreCase(mimeType)) {
+				LOGGER.debug("renderer supports mime type {}", mimeType);
+				return true;
+			}
+		}
+		LOGGER.debug("renderer doesn't support mime type {}", mimeType);
+		return false;
 	}
 
 	public String getMatchedMIMEtype(

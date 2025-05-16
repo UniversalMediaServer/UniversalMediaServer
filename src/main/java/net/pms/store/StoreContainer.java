@@ -103,7 +103,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		child.setParent(this);
-		if (isAddGlobally && renderer.getUmsConfiguration().useCode() && !PMS.get().masterCodeValid()) {
+		if (isAddGlobally && renderer.getUmsConfiguration().useCode() && !PMS.get().masterCodeValid() && PMS.get().codeDb() != null) {
 			String code = PMS.get().codeDb().getCode(child);
 			if (StringUtils.isNotEmpty(code)) {
 				StoreResource cobj = child.isCoded();
@@ -119,6 +119,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (child instanceof StoreItem storeItem) {
+			child.resolve();
 			addChildItem(storeItem, isNew, isAddGlobally);
 		} else if (child instanceof StoreContainer storeContainer) {
 			addChildContainer(storeContainer, isNew, isAddGlobally);
@@ -455,7 +456,7 @@ public class StoreContainer extends StoreResource {
 		}
 	}
 
-	protected void sortChildrenIfNeeded() {
+	protected synchronized void sortChildrenIfNeeded() {
 		if (isChildrenSorted()) {
 			StoreResourceSorter.sortResourcesByDefault(children);
 		}
@@ -603,6 +604,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(renderer, renderer.getUmsConfiguration());
+		transcodeFolder.setChildrenSorted(isChildrenSorted);
 		addChildInternal(transcodeFolder);
 		return transcodeFolder;
 	}

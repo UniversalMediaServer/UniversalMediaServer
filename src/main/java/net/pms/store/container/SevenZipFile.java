@@ -17,47 +17,14 @@
 package net.pms.store.container;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
-import net.pms.store.item.SevenZipEntry;
-import net.sf.sevenzipjbinding.IInArchive;
-import net.sf.sevenzipjbinding.SevenZip;
-import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
-import net.sf.sevenzipjbinding.simple.ISimpleInArchive;
-import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.store.SystemFileResource;
 
-public class SevenZipFile extends StoreContainer {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipFile.class);
-	private File file;
-	private IInArchive arc;
+public class SevenZipFile extends SevenZipFolder implements SystemFileResource {
 
-	public SevenZipFile(Renderer renderer, File f) {
-		super(renderer, f.getName(), null);
-		file = f;
+	public SevenZipFile(Renderer renderer, File file) {
+		super(renderer, file, "");
 		setLastModified(file.lastModified());
-		try {
-			RandomAccessFile rf = new RandomAccessFile(f, "r");
-			arc = SevenZip.openInArchive(null, new RandomAccessFileInStream(rf));
-			ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
-
-			for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {
-				LOGGER.debug("found " + item.getPath() + " in arc " + file.getAbsolutePath());
-
-				// Skip folders for now
-				if (item.isFolder()) {
-					continue;
-				}
-				addChild(new SevenZipEntry(renderer, f, item.getPath(), item.getSize()));
-			}
-		} catch (IOException e) {
-			LOGGER.error("Error reading archive file", e);
-		} catch (NullPointerException e) {
-			LOGGER.error("Caught 7-Zip Null-Pointer Exception", e);
-		}
 	}
 
 	@Override
@@ -66,12 +33,18 @@ public class SevenZipFile extends StoreContainer {
 	}
 
 	@Override
+	public long length() {
+		return file.length();
+	}
+
+	@Override
 	public String getSystemName() {
 		return file.getAbsolutePath();
 	}
 
 	@Override
-	public boolean isValid() {
-		return file.exists();
+	public File getSystemFile() {
+		return file;
 	}
+
 }

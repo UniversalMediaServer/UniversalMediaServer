@@ -16,20 +16,21 @@
  */
 import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip } from '@mantine/core';
 import axios from 'axios';
-import { useContext, useEffect, useState } from 'react';
-import { Power, Refresh, RefreshAlert, Report, DevicesPcOff } from 'tabler-icons-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import { sendAction } from '../../services/actions-service';
+import { ActionsValues, sendAction } from '../../services/actions-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { SessionInterface } from '../../services/session-service';
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils';
 
-const Actions = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
+const Actions = ({ i18n, main, session }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface }) => {
   const canModify = havePermission(session, Permissions.settings_modify);
   const [actionsValues, setActionsValues] = useState<ActionsValues>({ canShutdownComputer: false });
+  const navigate = useNavigate();
 
   const canRestartServer = havePermission(session, Permissions.server_restart);
   const [restartServerOpened, setRestartServerOpened] = useState(false);
@@ -54,6 +55,14 @@ const Actions = () => {
   const shutdownApplication = async () => {
     await sendAction('Process.Exit');
   };
+
+  //set the document Title to Tools
+  useEffect(() => {
+    document.title="Universal Media Server - Tools";
+    session.stopSse()
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
+  }, []);
 
   useEffect(() => {
     axios.get(actionsApiUrl)
@@ -148,35 +157,31 @@ const Actions = () => {
       }
       <Stack>
         {canModify && (
-          <Button variant='default' leftSection={<Report />} onClick={() => { window.location.href = '/logs'; }}>View Logs</Button>
+          <Button variant='default' leftSection={<IconReport />} onClick={() => { navigate('/logs'); }}>View Logs</Button>
         )}
         {canRestartServer && (
           <Tooltip label={i18n.get('ThisRestartsMediaServices')} {...defaultTooltipSettings}>
-            <Button variant='default' leftSection={<Refresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get('RestartServer')}</Button>
+            <Button variant='default' leftSection={<IconRefresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get('RestartServer')}</Button>
           </Tooltip>
         )}
         {canRestartApplication && (
           <Tooltip label={i18n.get('ThisStopsRestartsApp')} {...defaultTooltipSettings}>
-            <Button variant='default' leftSection={<RefreshAlert />} onClick={() => { setRestartApplicationOpened(true) }}>{i18n.get('RestartApplication')}</Button>
+            <Button variant='default' leftSection={<IconRefreshAlert />} onClick={() => { setRestartApplicationOpened(true) }}>{i18n.get('RestartApplication')}</Button>
           </Tooltip>
         )}
         {canShutdownApplication && (
           <Tooltip label={i18n.get('ThisClosesApp')} {...defaultTooltipSettings}>
-            <Button variant='default' leftSection={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true) }}>{i18n.get('ShutdownApplication')}</Button>
+            <Button variant='default' leftSection={<IconPower strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true) }}>{i18n.get('ShutdownApplication')}</Button>
           </Tooltip>
         )}
         {canShutdownComputer && (
           <Tooltip label={i18n.get('ThisShutDownComputer')} {...defaultTooltipSettings}>
-            <Button variant='default' leftSection={<DevicesPcOff strokeWidth={2} color={'red'} />} onClick={() => { setShutdownComputerOpened(true) }}>{i18n.get('ShutDownComputer')}</Button>
+            <Button variant='default' leftSection={<IconDevicesPcOff strokeWidth={2} color={'red'} />} onClick={() => { setShutdownComputerOpened(true) }}>{i18n.get('ShutDownComputer')}</Button>
           </Tooltip>
         )}
       </Stack>
     </Box>
   );
 };
-
-export interface ActionsValues {
-  canShutdownComputer: boolean,
-}
 
 export default Actions;

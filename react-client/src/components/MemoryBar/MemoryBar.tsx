@@ -16,10 +16,10 @@
  */
 import { Group, Progress, Text, Tooltip } from '@mantine/core';
 
-import { I18nInterface } from '../../contexts/i18n-context';
-import { UmsMemory } from '../../contexts/server-event-context';
+import { I18nInterface } from '../../services/i18n-service';
+import { UmsMemory } from '../../services/server-event-service';
 
-export const MemoryBar = ({ decorate, memory, i18n }: { decorate?: boolean, memory: UmsMemory, i18n: I18nInterface }) => {
+const MemoryBar = ({ decorate, memory, i18n }: { decorate?: boolean, memory: UmsMemory, i18n: I18nInterface }) => {
   const MaxMemLabel = () => { return memory.max.toString(); }
   const UsedMem = () => { return Math.max(0, memory.used - memory.dbcache - memory.buffer); }
   const UsedMemPercent = () => { return Math.ceil((UsedMem() / memory.max) * 100); }

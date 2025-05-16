@@ -134,7 +134,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 				COL_MBID         + VARCHAR_36                      + COMMA +
 				COL_COVER        + BLOB                            +
 			")",
-			CREATE_INDEX + TABLE_NAME + COL_MBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_MBID + ")"
+			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + COL_MBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_MBID + ")"
 		);
 	}
 

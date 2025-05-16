@@ -19,6 +19,7 @@ package net.pms.platform;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
 import com.vdurmont.semver4j.Semver;
+import dev.dirs.UserDirectories;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -95,7 +96,7 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public String getShortPathNameW(String longPathName) {
+	public String getSystemPathName(String longPathName) {
 		return longPathName;
 	}
 
@@ -239,18 +240,21 @@ public class PlatformUtils implements IPlatformUtils {
 			if (defaultFolders == null) {
 				// Lazy initialization
 				List<Path> result = new ArrayList<>();
-				result.add(Paths.get("").toAbsolutePath());
-				String userHome = System.getProperty("user.home");
-				if (StringUtils.isNotBlank(userHome)) {
-					result.add(Paths.get(userHome));
+				UserDirectories userDirs = UserDirectories.get();
+				if (userDirs.videoDir != null) {
+					result.add(Paths.get(userDirs.videoDir));
+					if (userDirs.audioDir != null) {
+						result.add(Paths.get(userDirs.audioDir));
+					}
+					if (userDirs.pictureDir != null) {
+						result.add(Paths.get(userDirs.pictureDir));
+					}
+					if (userDirs.publicDir != null) {
+						result.add(Paths.get(userDirs.publicDir));
+					}
+				} else {
+					result.add(Paths.get(userDirs.homeDir));
 				}
-				//TODO: (Nad) Implement xdg-user-dir for Linux when EnginesRegistration is merged:
-				// xdg-user-dir DESKTOP
-				// xdg-user-dir DOWNLOAD
-				// xdg-user-dir PUBLICSHARE
-				// xdg-user-dir MUSIC
-				// xdg-user-dir PICTURES
-				// xdg-user-dir VIDEOS
 				defaultFolders = Collections.unmodifiableList(result);
 			}
 			return defaultFolders;

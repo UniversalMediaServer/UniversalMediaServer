@@ -26,7 +26,7 @@ public class Issue1278 {
 
 	@BeforeEach
     public void setUp() {
-        TestHelper.SetLoggingOff();
+        TestHelper.setLoggingOff();
 	}
 
 	@Test

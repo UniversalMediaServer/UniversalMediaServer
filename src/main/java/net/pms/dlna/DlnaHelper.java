@@ -16,6 +16,7 @@
  */
 package net.pms.dlna;
 
+import net.pms.configuration.FormatConfiguration;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
 import net.pms.encoders.EncodingFormat;
@@ -128,7 +129,7 @@ public class DlnaHelper {
 		String dlnaOrgOpFlags = "01"; // seek by byte (exclusive)
 		final Renderer renderer = item.getDefaultRenderer();
 
-		if (renderer.isSeekByTime() && item.isTranscoded() && item.getTranscodingSettings().getEngine().isTimeSeekable()) {
+		if (renderer.isTranscodeSeekByTime() && item.isTranscoded() && item.getTranscodingSettings().getEngine().isTimeSeekable()) {
 			/**
 			 * Some renderers - e.g. the PS3 and Panasonic TVs - behave
 			 * erratically when transcoding if we keep the default seek-by-byte
@@ -155,7 +156,7 @@ public class DlnaHelper {
 			 *
 			 * SeekByTime = both
 			 */
-			if (renderer.isSeekByTimeExclusive()) {
+			if (renderer.isTranscodeSeekByTimeExclusive()) {
 				dlnaOrgOpFlags = "10"; // seek by time (exclusive)
 			} else {
 				dlnaOrgOpFlags = "11"; // seek by both
@@ -271,12 +272,14 @@ public class DlnaHelper {
 							 * Note: This is an oversimplified duplicate of the engine logic, that
 							 * should be fixed.
 							 */
-							if (resolvedSubtitle == null &&
-									!item.hasExternalSubtitles() &&
-									mediaInfo != null &&
-									mediaInfo.getDvdtrack() == null &&
-									Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
-									renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, transcodingSettings.getEncodingFormat())) {
+							if (
+								resolvedSubtitle == null &&
+								!item.hasExternalSubtitles() &&
+								mediaInfo != null &&
+								mediaInfo.getDvdtrack() == null &&
+								Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
+								renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, transcodingSettings.getEncodingFormat(), FormatConfiguration.MPEGTS)
+							) {
 								isOutputtingMPEGTS = true;
 							}
 						}
@@ -304,9 +307,17 @@ public class DlnaHelper {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, !item.isTranscoded());
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MP4_TYPEMIME)) {
-					if (!item.isTranscoded() && defaultVideoTrack != null && defaultVideoTrack.isH265() && defaultAudioTrack != null &&
-						(defaultAudioTrack.isAC3() || defaultAudioTrack.isEAC3() ||
-							defaultAudioTrack.isHEAAC())) {
+					if (
+						!item.isTranscoded() &&
+						defaultVideoTrack != null &&
+						defaultVideoTrack.isH265() &&
+						defaultAudioTrack != null &&
+						(
+							defaultAudioTrack.isAC3() ||
+							defaultAudioTrack.isEAC3() ||
+							defaultAudioTrack.isHEAAC()
+						)
+					) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=DASH_HEVC_MP4_UHD_NA";
 					} else if (!item.isTranscoded() && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMp4H264OrgPN(mediaInfo, encodingFormat);

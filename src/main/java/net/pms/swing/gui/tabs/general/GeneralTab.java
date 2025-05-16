@@ -23,9 +23,8 @@ import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -34,7 +33,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.configuration.NetworkConfiguration;
-import net.pms.network.mediaserver.MediaServer;
 import net.pms.platform.windows.WindowsUtils;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
@@ -373,31 +371,6 @@ public class GeneralTab {
 			builder.addSeparator(Messages.getGuiString("AdvancedHttpSystemSettings")).at(FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 			ypos += 2;
 
-			builder.addLabel(Messages.getGuiString("MediaServerEngine")).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			final KeyedComboBoxModel<Integer, String> mediaServerEngineKcbm = new KeyedComboBoxModel<>();
-			mediaServerEngineKcbm.add(0, Messages.getGuiString("Default"));
-			for (Entry<Integer, String> upnpEngineVersion : MediaServer.VERSIONS.entrySet()) {
-				mediaServerEngineKcbm.add(upnpEngineVersion.getKey(), upnpEngineVersion.getValue());
-			}
-			JComboBox<String> serverEngine = new JComboBox<>(mediaServerEngineKcbm);
-			serverEngine.setToolTipText(Messages.getGuiString("DefaultOptionIsHighlyRecommended"));
-			serverEngine.setEditable(false);
-			mediaServerEngineKcbm.setSelectedKey(configuration.getServerEngine());
-			if (serverEngine.getSelectedIndex() == -1) {
-				serverEngine.setSelectedIndex(0);
-			}
-			serverEngine.addItemListener((ItemEvent e) -> {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setServerEngine((int) mediaServerEngineKcbm.getSelectedKey());
-					LOGGER.info(
-						"Setting default media server engine version to \"{}\"",
-						mediaServerEngineKcbm.getSelectedValue()
-					);
-				}
-			});
-			builder.add(serverEngine).at(FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
-			ypos += 2;
-
 			boolean preventSleepSupported = SleepManager.isPreventSleepSupported();
 			if (preventSleepSupported) {
 				builder.addLabel(Messages.getGuiString("PreventSleep")).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
@@ -451,11 +424,11 @@ public class GeneralTab {
 			});
 			builder.add(extNetBox).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			ypos += 2;
-			isUseInfoFromAPI = new JCheckBox(Messages.getGuiString("UseInfoFromOurApi"), configuration.isUseInfoFromIMDb());
+			isUseInfoFromAPI = new JCheckBox(Messages.getGuiString("UseInfoFromOurApi"), configuration.isUseInfoFromUmsAPI());
 			isUseInfoFromAPI.setToolTipText(Messages.getGuiString("UsesInformationApiAllowBrowsing"));
 			isUseInfoFromAPI.setContentAreaFilled(false);
 			isUseInfoFromAPI.setEnabled(configuration.getExternalNetwork());
-			isUseInfoFromAPI.addItemListener((ItemEvent e) -> configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED)));
+			isUseInfoFromAPI.addItemListener((ItemEvent e) -> configuration.setUseInfoFromUmsAPI((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(isUseInfoFromAPI).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			ypos += 2;
 			useInfoFromTMDB = new JCheckBox(Messages.getGuiString("UseInfoFromTMDB"), configuration.isUseInfoFromTMDB());

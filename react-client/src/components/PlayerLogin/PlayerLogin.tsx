@@ -16,15 +16,25 @@
  */
 import { TextInput, Button, Group, Box, Text, Space } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
-import { useContext } from 'react';
-import { User, Lock } from 'tabler-icons-react';
+import { IconUser, IconLock } from '@tabler/icons-react';
+import { useEffect } from 'react';
 
-import I18nContext from '../../contexts/i18n-context';
 import { login } from '../../services/auth-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { SessionInterface } from '../../services/session-service';
+import { showError } from '../../utils/notifications';
 
-const Login = () => {
-  const i18n = useContext(I18nContext);
+const Login = ({ i18n, main, session }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface }) => {
+
+  //set the document Title to Login
+  useEffect(() => {
+    document.title="Universal Media Server - Login";
+    session.stopSse()
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
+  }, []);
+
   const form = useForm({
     initialValues: {
       username: '',
@@ -36,15 +46,13 @@ const Login = () => {
     const { username, password } = values;
     login(username, password).then(
       () => {
-        window.location.reload();
+        session.refresh();
       },
       () => {
-        showNotification({
+        showError({
           id: 'pwd-error',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('ErrorLoggingIn'),
-          autoClose: 3000,
         });
       }
     );
@@ -59,14 +67,14 @@ const Login = () => {
         <TextInput
           required
           label={i18n.get('Username')}
-          leftSection={<User size={14} />}
+          leftSection={<IconUser size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
           label={i18n.get('Password')}
           type='password'
-          leftSection={<Lock size={14} />}
+          leftSection={<IconLock size={14} />}
           {...form.getInputProps('password')}
         />
         <Group justify='flex-end' mt='md'>

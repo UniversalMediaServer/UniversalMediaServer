@@ -33,9 +33,9 @@ import net.pms.PMS;
 import net.pms.database.MediaTableContainerFiles;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.parsers.WebStreamParser;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.parsers.WebStreamParser;
 import net.pms.renderers.Renderer;
 import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
@@ -87,7 +87,7 @@ public final class PlaylistFolder extends StoreContainer {
 
 	@Override
 	public String getSystemName() {
-		return isweb ? uri : ProcessUtil.getShortFileNameIfWideChars(uri);
+		return isweb ? uri : ProcessUtil.getSystemPathName(uri);
 	}
 
 	@Override

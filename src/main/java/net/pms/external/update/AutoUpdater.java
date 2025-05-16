@@ -24,11 +24,11 @@ import java.util.concurrent.Executors;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
-import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.external.JavaHttpClient;
 import net.pms.external.ProgressCallback;
 import net.pms.util.Version;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +38,7 @@ import org.slf4j.LoggerFactory;
  * @author Tim Cox (mail@tcox.org)
  */
 public class AutoUpdater implements ProgressCallback {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final EventListenerList LISTENERS = new EventListenerList();
 	private static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 
@@ -51,7 +49,6 @@ public class AutoUpdater implements ProgressCallback {
 	private final String serverUrl;
 	private final Object stateLock = new Object();
 	private final Version currentVersion;
-	private final String binariesRevision;
 	private final Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
 	private Throwable errorStateCause;
@@ -76,7 +73,6 @@ public class AutoUpdater implements ProgressCallback {
 	public AutoUpdater(String updateServerUrl, String currentVersion, String binariesRevision) {
 		this.serverUrl = updateServerUrl; // may be null if updating is disabled
 		this.currentVersion = new Version(currentVersion);
-		this.binariesRevision = binariesRevision;
 	}
 
 	public void pollServer() {
@@ -155,7 +151,7 @@ public class AutoUpdater implements ProgressCallback {
 
 	private void launchExe() throws UpdateException {
 		try {
-			File exe = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
+			File exe = new File(UmsConfiguration.getProfileDirectory(), getTargetFilename());
 			Desktop desktop = Desktop.getDesktop();
 			desktop.open(exe);
 		} catch (IOException e) {
@@ -210,14 +206,13 @@ public class AutoUpdater implements ProgressCallback {
 	private void downloadUpdate() throws UpdateException {
 		String downloadUrl = SERVER_PROPERTIES.getDownloadUrl();
 
-		File target = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
-
+		File target = new File(UmsConfiguration.getProfileDirectory(), getTargetFilename());
 		try {
 			JavaHttpClient.getFile(target, downloadUrl, this);
 		} catch (IOException e) {
 			// when the file download is canceled by user or an error happens
 			// during downloading than delete the partially downloaded file
-			target.delete();
+			FileUtils.deleteQuietly(target);
 			wrapException("Cannot download update", e);
 		}
 	}
@@ -283,6 +278,14 @@ public class AutoUpdater implements ProgressCallback {
 
 	public Version getLatestVersion() {
 		return SERVER_PROPERTIES.getLatestVersion();
+	}
+
+	public Version getLatestVersionPatreon() {
+		return SERVER_PROPERTIES.getLatestVersionPatreon();
+	}
+
+	public String getPatreonDownloadUrl() {
+		return SERVER_PROPERTIES.getPatreonDownloadUrl();
 	}
 
 	private static String getTargetFilename() {

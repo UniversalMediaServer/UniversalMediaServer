@@ -63,6 +63,7 @@ import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.item.DVDISOTitle;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.VirtualVideoAction;
+import net.pms.store.item.WebStream;
 import net.pms.util.ByteRange;
 import net.pms.util.FileUtil;
 import net.pms.util.IPushOutput;
@@ -442,6 +443,20 @@ public abstract class StoreItem extends StoreResource {
 			return null;
 		}
 
+		// WebStreams should be checked against the mime-type of the stream
+		if (this instanceof WebStream ws) {
+			if (getMediaInfo() != null && renderer.getFormatConfiguration() != null) {
+				if (StringUtils.isAllBlank(getMediaInfo().getMimeType())) {
+					LOGGER.warn("cannot read MIME-TYPE of stream {} ...", ws.getUrl());
+				}
+				LOGGER.debug("checking if renderer supports MIME-TYPE {}", getMediaInfo().getMimeType());
+				if (renderer.getFormatConfiguration().supportsMimeType(getMediaInfo().getMimeType())) {
+					LOGGER.debug("MIME-TYPE is supported. No transcoding.", getMediaInfo().getMimeType());
+					return null;
+				}
+			}
+		}
+
 		// Use device-specific conf, if any
 		boolean parserV2 = mediaInfo != null && renderer.isUseMediaInfo();
 		TranscodingSettings resolvedTranscodingSettings;
@@ -504,8 +519,13 @@ public abstract class StoreItem extends StoreResource {
 				LOGGER.debug(prependTranscodingReason + "it is not supported by the renderer {}", getName(),
 						renderer.getRendererName());
 			} else if (renderer.getUmsConfiguration().isEncodedAudioPassthrough()) {
-				if (mediaAudio != null && (FormatConfiguration.AC3.equals(mediaAudio.getAudioCodec()) ||
-						FormatConfiguration.DTS.equals(mediaAudio.getAudioCodec()))) {
+				if (
+					mediaAudio != null &&
+					(
+						FormatConfiguration.AC3.equals(mediaAudio.getAudioCodec()) ||
+						FormatConfiguration.DTS.equals(mediaAudio.getAudioCodec())
+					)
+				) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the audio will use the encoded audio passthrough feature", getName());
 				} else {
@@ -600,7 +620,6 @@ public abstract class StoreItem extends StoreResource {
 	 * all the StartStopListener objects available.
 	 *
 	 * @param rendererId
-	 * @param incomingRenderer
 	 *
 	 * @see StartStopListener
 	 */
@@ -628,7 +647,7 @@ public abstract class StoreItem extends StoreResource {
 						LOGGER.debug(
 								"The full filename of which is: " + getFileName() + " and the address of the renderer is: " + rendererId);
 					}
-					lastStartSystemTime = System.currentTimeMillis();
+					setLastStartSystemTime();
 				};
 				new Thread(r, "StartPlaying Event").start();
 			}
@@ -645,7 +664,7 @@ public abstract class StoreItem extends StoreResource {
 		final StoreResource self = this;
 		final String requestId = getRequestId(rendererId);
 		Runnable defer = () -> {
-			long start = lastStartSystemTime;
+			final long start = getLastStartSystemTime();
 			if (isLogPlayEvents()) {
 				LOGGER.trace("Stop playing {} on {} if no request under {} ms", getName(), renderer.getRendererName(), STOP_PLAYING_DELAY);
 			}
@@ -661,7 +680,7 @@ public abstract class StoreItem extends StoreResource {
 				assert refCount != null;
 				assert refCount > 0;
 				requestIdToRefcount.put(requestId, refCount - 1);
-				if (start != lastStartSystemTime) {
+				if (start != getLastStartSystemTime()) {
 					if (isLogPlayEvents()) {
 						LOGGER.trace("Continue playing {} on {}", getName(), renderer.getRendererName());
 					}
@@ -706,11 +725,9 @@ public abstract class StoreItem extends StoreResource {
 
 	/**
 	 * Sets the system time when the resource was last (re)started.
-	 *
-	 * @param startTime the system time to set
 	 */
-	public void setLastStartSystemTime(long startTime) {
-		lastStartSystemTime = startTime;
+	public void setLastStartSystemTime() {
+		lastStartSystemTime = System.currentTimeMillis();
 
 		double fileDuration = 0;
 		if (mediaInfo != null && (mediaInfo.isAudio() || mediaInfo.isVideo())) {
@@ -722,7 +739,7 @@ public abstract class StoreItem extends StoreResource {
 		 * was within 2 seconds of the end of the video.
 		 */
 		if (fileDuration < 2.0 || lastStartPosition < (fileDuration - 2.0)) {
-			lastStartSystemTimeUser = startTime;
+			lastStartSystemTimeUser = lastStartSystemTime;
 		}
 	}
 
@@ -750,6 +767,13 @@ public abstract class StoreItem extends StoreResource {
 		return lastStartPosition;
 	}
 
+	/**
+	 * Sets the most recently requested time offset in seconds.
+	 */
+	public void setLastStartPosition(double value) {
+		lastStartPosition = value;
+	}
+
 	public abstract InputStream getInputStream() throws IOException;
 
 	/**
@@ -774,12 +798,9 @@ public abstract class StoreItem extends StoreResource {
 	 * @throws IOException
 	 */
 	public synchronized InputStream getInputStream(Range range, HlsHelper.HlsConfiguration hlsConfiguration) throws IOException {
-		// Use device-specific UMS conf, if any
-		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and engine " + getTranscodingSettings());
+		LOGGER.trace("Asked stream chunk: " + range + " of " + getName() + " and engine " + getTranscodingSettings());
 
-		// shagrath: small fix, regression on chapters
 		boolean timeseekAuto = false;
-		// Ditlew - WDTV Live
 		// Ditlew - We convert byteoffset to timeoffset here. This needs the
 		// stream to be CBR!
 		int cbrVideoBitrate = renderer.getCBRVideoBitrate();
@@ -803,20 +824,19 @@ public abstract class StoreItem extends StoreResource {
 				int rewindSecs = renderer.getByteToTimeseekRewindSeconds();
 				timeRange.rewindStart(rewindSecs);
 
-				// shagrath:
 				timeseekAuto = true;
 			}
 		}
 
 		if (low > 0 && mediaInfo.getBitRate() > 0) {
-			lastStartPosition = (low * 8) / (double) mediaInfo.getBitRate();
+			setLastStartPosition((low * 8) / (double) mediaInfo.getBitRate());
 			LOGGER.trace("Estimating seek position from byte range:");
 			LOGGER.trace("   media.getBitrate: " + mediaInfo.getBitRate());
 			LOGGER.trace("   low: " + low);
-			LOGGER.trace("   lastStartPosition: " + lastStartPosition);
+			LOGGER.trace("   lastStartPosition: " + getLastStartPosition());
 		} else {
-			lastStartPosition = timeRange.getStartOrZero();
-			LOGGER.trace("Setting lastStartPosition from time-seeking: " + lastStartPosition);
+			setLastStartPosition(timeRange.getStartOrZero());
+			LOGGER.trace("Setting lastStartPosition from time-seeking: " + getLastStartPosition());
 		}
 
 		// Determine source of the stream
@@ -831,7 +851,6 @@ public abstract class StoreItem extends StoreResource {
 					fis.skip(low);
 				}
 
-				setLastStartSystemTime(System.currentTimeMillis());
 				return wrap(fis, high, low);
 			}
 
@@ -843,12 +862,11 @@ public abstract class StoreItem extends StoreResource {
 				}
 
 				fis = wrap(fis, high, low);
-				if (timeRange.getStartOrZero() > 0 && this instanceof RealFile) {
-					fis.skip(MpegUtil.getPositionForTimeInMpeg(((RealFile) this).getFile(), (int) timeRange.getStartOrZero()));
+				if (timeRange.getStartOrZero() > 0 && this instanceof RealFile realFile) {
+					fis.skip(MpegUtil.getPositionForTimeInMpeg(realFile.getFile(), (int) timeRange.getStartOrZero()));
 				}
 			}
 
-			setLastStartSystemTime(System.currentTimeMillis());
 			return fis;
 		}
 
@@ -890,7 +908,6 @@ public abstract class StoreItem extends StoreResource {
 		if (externalProcess == null || externalProcess.isDestroyed() || hlsConfiguration != null) {
 			// First playback attempt => start new transcoding process
 			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + mediaInfo);
-			setLastStartSystemTime(System.currentTimeMillis());
 
 			if (params.getTimeSeek() > 0) {
 				// This must be a resume - so need to set lastTimeSeek to avoid a restart of the process
@@ -925,13 +942,8 @@ public abstract class StoreItem extends StoreResource {
 
 				params.setMinBufferSize(1);
 
-				Runnable r = () -> {
-					externalProcess.stopProcess();
-				};
+				new Thread(() -> externalProcess.stopProcess(), "External Process Stopper").start();
 
-				new Thread(r, "External Process Stopper").start();
-
-				setLastStartSystemTime(System.currentTimeMillis());
 				ProcessWrapper newExternalProcess = getTranscodingSettings().getEngine().launchTranscode(this, mediaInfo, params);
 
 				try {
@@ -1124,7 +1136,7 @@ public abstract class StoreItem extends StoreResource {
 
 		notifyRefresh();
 		if (resume != null) {
-			resume.stop(lastStartSystemTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
+			resume.stop(getLastStartSystemTime(), (long) (mediaInfo.getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				getParent().removeChild(this);
 			} else if (getMediaInfo() != null) {
@@ -1134,7 +1146,7 @@ public abstract class StoreItem extends StoreResource {
 		} else {
 			for (StoreResource res : getParent().getChildren()) {
 				if (res instanceof StoreItem item && item.isResume() && item.getName().equals(getName())) {
-					item.resume.stop(lastStartSystemTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
+					item.resume.stop(getLastStartSystemTime(), (long) (mediaInfo.getDurationInSeconds() * 1000));
 					if (item.resume.isDone()) {
 						getParent().removeChild(res);
 						return null;
@@ -1149,7 +1161,7 @@ public abstract class StoreItem extends StoreResource {
 				}
 			}
 
-			ResumeObj r = ResumeObj.store(this, lastStartSystemTime);
+			ResumeObj r = ResumeObj.store(this, getLastStartSystemTime());
 			if (r != null) {
 				StoreItem clone = this.clone();
 				clone.resume = r;

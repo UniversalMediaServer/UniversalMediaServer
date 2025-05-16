@@ -17,7 +17,6 @@
 package net.pms.platform.windows;
 
 import com.sun.jna.Native;
-import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.VerRsrc;
@@ -30,11 +29,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -45,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
@@ -72,7 +70,6 @@ import org.slf4j.LoggerFactory;
  */
 public class WindowsUtils extends PlatformUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsUtils.class);
-	private final Charset consoleCharset;
 
 	private final boolean kerio;
 	protected final Path psPing;
@@ -108,38 +105,25 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getShortPathNameW(String longPathName) {
-		if (longPathName == null) {
-			return null;
-		}
-		boolean unicodeChars;
-		try {
-			byte[] b1 = longPathName.getBytes(StandardCharsets.UTF_8);
-			byte[] b2 = longPathName.getBytes("cp1252");
-			unicodeChars = b1.length != b2.length;
-		} catch (UnsupportedEncodingException e) {
-			return longPathName;
-		}
-
-		if (unicodeChars) {
-			try {
-				WString pathname = new WString(longPathName);
-
-				char[] test = new char[2 + pathname.length() * 2];
-				int r = Kernel32.INSTANCE.GetShortPathNameW(pathname, test, test.length);
-				if (r > 0) {
-					String result = Native.toString(test);
-					LOGGER.trace("Using short path name of \"{}\": \"{}\"", pathname, result);
-					return result;
+	public String getSystemPathName(String path) {
+		if (path != null) {
+			File file = new File(path);
+			String resolved = file.getAbsolutePath();
+			/*
+			 * On Windows the maximum short path is 260 minus 1 (NUL) -> 259 char.
+			 * But for directories it is 260 minus 12 (8.3 file) minus 1 (NUL) to allow for the creation of a file in the directory -> 247.
+			 */
+			if (resolved.length() > 247) {
+				if (resolved.length() > 32000) {
+					LOGGER.warn("Cannot access file with path exceeding 32000 characters");
+				} else if (resolved.startsWith("\\\\")) {
+					return "\\\\?\\UNC" + resolved.substring(1, resolved.length());
+				} else {
+					return "\\\\?\\" + resolved;
 				}
-				LOGGER.debug("Can't find \"{}\"", pathname);
-				return null;
-
-			} catch (Exception e) {
-				return longPathName;
 			}
 		}
-		return longPathName;
+		return path;
 	}
 
 	private static String getWindowsDirectory() {
@@ -215,7 +199,25 @@ public class WindowsUtils extends PlatformUtils {
 	 *         or {@code null} if it couldn't be converted.
 	 */
 	public static Charset getOEMCharset() {
-		int codepage = Kernel32.INSTANCE.GetOEMCP();
+		return getCharset(Kernel32.INSTANCE.GetOEMCP());
+	}
+
+	/**
+	 * @return The result from the Windows API {@code GetConsoleOutputCP()}.
+	 */
+	public static int getConsoleOutputCP() {
+		return Kernel32.INSTANCE.GetConsoleOutputCP();
+	}
+
+	/**
+	 * @return The result of {@link #getConsoleOutputCP()} converted to a {@link Charset}
+	 *         or {@code null} if it couldn't be converted.
+	 */
+	public static Charset getConsoleOutputCharset() {
+		return getCharset(Kernel32.INSTANCE.GetOEMCP());
+	}
+
+	private static Charset getCharset(int codepage) {
 		Charset result = null;
 		String[] aliases = {"cp" + codepage, "MS" + codepage};
 		for (String alias : aliases) {
@@ -229,13 +231,6 @@ public class WindowsUtils extends PlatformUtils {
 		return result;
 	}
 
-	/**
-	 * @return The result from the Windows API {@code GetConsoleOutputCP()}.
-	 */
-	public static int getConsoleOutputCP() {
-		return Kernel32.INSTANCE.GetConsoleOutputCP();
-	}
-
 	private static String charString2String(CharBuffer buf) {
 		char[] chars = buf.array();
 		int i;
@@ -247,15 +242,10 @@ public class WindowsUtils extends PlatformUtils {
 		return new String(chars, 0, i);
 	}
 
-	/** *  Only to be instantiated by {@link PlatformUtils#createInstance()}. */
+	/**
+	 *  Only to be instantiated by {@link PlatformUtils#createInstance()}.
+	 */
 	public WindowsUtils() {
-		Charset windowsConsole;
-		try {
-			windowsConsole = Charset.forName("cp" + getOEMCP());
-		} catch (Exception e) {
-			windowsConsole = Charset.defaultCharset();
-		}
-		consoleCharset = windowsConsole;
 		setVLCRegistryInfo();
 		avsPluginsFolder = getAviSynthPluginsFolder();
 		aviSynth = avsPluginsFolder != null;
@@ -347,12 +337,23 @@ public class WindowsUtils extends PlatformUtils {
 			if (defaultFolders == null) {
 				// Lazy initialization
 				List<Path> result = new ArrayList<>();
+				//if Windows Vista or newer
 				if (OS_VERSION.isGreaterThanOrEqualTo("6.0.0")) {
-					List<GUID> knownFolders = List.of(
-						KnownFolders.FOLDERID_MUSIC,
-						KnownFolders.FOLDERID_PICTURES,
-						KnownFolders.FOLDERID_VIDEOS
-					);
+					List<GUID> knownFolders;
+					if (UmsConfiguration.isUserProfile()) {
+						knownFolders = List.of(
+							KnownFolders.FOLDERID_MUSIC,
+							KnownFolders.FOLDERID_PICTURES,
+							KnownFolders.FOLDERID_VIDEOS
+						);
+					} else {
+						knownFolders = List.of(
+							KnownFolders.FOLDERID_PUBLIC_MUSIC,
+							KnownFolders.FOLDERID_PUBLIC_PICTURES,
+							KnownFolders.FOLDERID_PUBLIC_VIDEOS
+						);
+					}
+
 					for (GUID guid : knownFolders) {
 						Path folder = getWindowsKnownFolder(guid);
 						if (folder != null) {
@@ -360,13 +361,14 @@ public class WindowsUtils extends PlatformUtils {
 						}
 					}
 				} else {
+					//Windows XP
 					CSIDL[] csidls = {
 						CSIDL.CSIDL_MYMUSIC,
 						CSIDL.CSIDL_MYPICTURES,
 						CSIDL.CSIDL_MYVIDEO
 					};
 					for (CSIDL csidl : csidls) {
-						Path folder = getWindowsFolder(csidl);
+						Path folder = CSIDL.getWindowsFolder(csidl);
 						if (folder != null) {
 							result.add(folder);
 						}
@@ -415,11 +417,6 @@ public class WindowsUtils extends PlatformUtils {
 			LOGGER.info("Could not find the My Music folder");
 		}
 		return null;
-	}
-
-	@Override
-	public Charset getDefaultCharset() {
-		return consoleCharset;
 	}
 
 	@Override
@@ -502,7 +499,7 @@ public class WindowsUtils extends PlatformUtils {
 			}
 			vlcPath = Paths.get(Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, ""));
 			vlcVersion = new Version(Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, "Version"));
-		} catch (Win32Exception e) {
+		} catch (InvalidPathException | Win32Exception e) {
 			LOGGER.debug("Could not get VLC information from Windows registry: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -596,35 +593,6 @@ public class WindowsUtils extends PlatformUtils {
 			LOGGER.debug("Default folder \"{}\" not found: {}", guid, e.getMessage());
 		} catch (InvalidPathException e) {
 			LOGGER.error("Unexpected error while resolving default Windows folder with GUID {}: {}", guid, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return null;
-	}
-
-	@Nullable
-	private static Path getWindowsFolder(@Nullable CSIDL csidl) {
-		if (csidl == null) {
-			return null;
-		}
-		try {
-			String folderPath = Shell32Util.getFolderPath(csidl.getValue());
-			if (StringUtils.isNotBlank(folderPath)) {
-				Path folder = Paths.get(folderPath);
-				FilePermissions permissions;
-				try {
-					permissions = new FilePermissions(folder);
-					if (permissions.isBrowsable()) {
-						return folder;
-					}
-					LOGGER.warn("Insufficient permissions to read default folder \"{}\"", csidl);
-				} catch (FileNotFoundException e) {
-					LOGGER.debug("Default folder \"{}\" not found", folder);
-				}
-			}
-		} catch (Win32Exception e) {
-			LOGGER.debug("Default folder \"{}\" not found: {}", csidl, e.getMessage());
-		} catch (InvalidPathException e) {
-			LOGGER.error("Unexpected error while resolving default Windows folder with id {}: {}", csidl, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return null;

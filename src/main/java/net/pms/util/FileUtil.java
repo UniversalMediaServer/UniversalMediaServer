@@ -95,12 +95,14 @@ public class FileUtil {
 	 * @since 1.90.0
 	 */
 	public static final class FileLocation {
-		private String directoryPath;
-		private String filePath;
+		private final String directoryPath;
+		private final String filePath;
+		private final boolean isCustom;
 
-		FileLocation(File directory, File file) {
+		FileLocation(File directory, File file, boolean isCustom) {
 			this.directoryPath = FilenameUtils.normalize(directory.getAbsolutePath());
 			this.filePath = FilenameUtils.normalize(file.getAbsolutePath());
+			this.isCustom = isCustom;
 		}
 
 		public String getDirectoryPath() {
@@ -109,6 +111,10 @@ public class FileUtil {
 
 		public String getFilePath() {
 			return filePath;
+		}
+
+		public boolean isCustom() {
+			return isCustom;
 		}
 	}
 
@@ -139,6 +145,7 @@ public class FileUtil {
 		File customFile = null;
 		File directory = null;
 		File file = null;
+		boolean isCustom = true;
 
 		if (isBlank(defaultBasename)) {
 			// shouldn't get here
@@ -175,9 +182,10 @@ public class FileUtil {
 		if (directory == null || file == null) {
 			directory = new File(defaultDirectory).getAbsoluteFile();
 			file = new File(directory, defaultBasename).getAbsoluteFile();
+			isCustom = false;
 		}
 
-		return new FileLocation(directory, file);
+		return new FileLocation(directory, file, isCustom);
 	}
 
 	public static final class InvalidFileSystemException extends Exception {
@@ -589,8 +597,8 @@ public class FileUtil {
 	 * one of these strings, the string and everything after them will be
 	 * removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "\\s\\[BD.*|[\\s\\(]DUBBED.*|[\\s\\(]AC3.*|[\\s\\(]NTSC.*|[\\s\\(]TVNZ\\s.*|[\\s\\(]FP\\s.*|[\\s\\(]AAC.*|[\\s\\(]REPACK.*|[\\s\\(]480p.*|[\\s\\(]720p.*|[\\s\\(]m-720p.*|[\\s\\(]900p.*|[\\s\\(]1080i.*|[\\s\\(]1080p.*|[\\s\\(]2160p.*|[\\s\\(]WEB-DL.*|[\\s\\(]HDTV.*|[\\s\\(]DSR.*|[\\s\\(]PDTV.*|[\\s\\(]SDTV.*|[\\s\\(]WS.*|[\\s\\(]HQ.*|[\\s\\(]DVDRip.*|[\\s\\(]TVRiP.*|[\\s\\(]BDRip.*|[\\s\\(]BRRip.*|[\\s\\(]WEBRip.*|[\\s\\(]BluRay.*|[\\s\\(]Blu-ray.*|[\\s\\(]SUBBED.*|[\\s\\(]x264.*|[\\s\\(]x265.*|[\\s\\(]XviD.*|[\\s\\(]Dual\\sAudio.*|[\\s\\(]HSBS.*|[\\s\\(]H-SBS.*|[\\s\\(]RERiP.*|[\\s\\(]DIRFIX.*|[\\s\\(]READNFO.*|[\\s\\(]60FPS.*|[\\s\\(]HDR.*|[\\s\\(]DV[\\s\\(].*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*\\s\\[BD.*|.*[\\s\\(]DUBBED.*|.*[\\s\\(]AC3.*|.*[\\s\\(]NTSC.*|.*[\\s\\(]TVNZ.*|.*[\\s\\(]FP.*|.*[\\s\\(]AAC.*|.*[\\s\\(]REPACK.*|.*[\\s\\(]480p.*|.*[\\s\\(]720p.*|.*[\\s\\(]m-720p.*|.*[\\s\\(]900p.*|.*[\\s\\(]1080i.*|.*[\\s\\(]1080p.*|.*[\\s\\(]2160p.*|.*[\\s\\(]WEB-DL.*|.*[\\s\\(]HDTV.*|.*[\\s\\(]DSR.*|.*[\\s\\(]PDTV.*|.*[\\s\\(]SDTV.*|.*[\\s\\(]WS.*|.*[\\s\\(]HQ.*|.*[\\s\\(]DVDRip.*|.*[\\s\\(]TVRiP.*|.*[\\s\\(]BDRip.*|.*[\\s\\(]BRRip.*|.*[\\s\\(]WEBRip.*|.*[\\s\\(]BluRay.*|.*[\\s\\(]Blu-ray.*|.*[\\s\\(]SUBBED.*|.*[\\s\\(]x264.*|.*[\\s\\(]x265.*|.*[\\s\\(]XviD.*|.*[\\s\\(]Dual\\sAudio.*|.*[\\s\\(]HSBS.*|.*[\\s\\(]H-SBS.*|.*[\\s\\(]RERiP.*|.*[\\s\\(]DIRFIX.*|.*[\\s\\(]READNFO.*|.*[\\s\\(]60FPS.*|.*[\\s\\(]HDR.*|.*[\\s\\(]DV[\\s\\(].*";
+	private static final String COMMON_FILE_ENDS = "\\s\\[BD.*|[\\s\\(]DUBBED.*|[\\s\\(]AC3.*|[\\s\\(]EAC3.*|[\\s\\(]NTSC.*|[\\s\\(]TVNZ\\s.*|[\\s\\(]FP\\s.*|[\\s\\(]AAC.*|[\\s\\(]REPACK.*|[\\s\\(]480p.*|[\\s\\(]720p.*|[\\s\\(]m-720p.*|[\\s\\(]900p.*|[\\s\\(]1080i.*|[\\s\\(]1080p.*|[\\s\\(]2160p.*|[\\s\\(]WEB-DL.*|[\\s\\(]HDTV.*|[\\s\\(]DSR.*|[\\s\\(]PDTV.*|[\\s\\(]SDTV.*|[\\s\\(]WS.*|[\\s\\(]HQ.*|[\\s\\(]DVDRip.*|[\\s\\(]TVRiP.*|[\\s\\(]BDRip.*|[\\s\\(]BRRip.*|[\\s\\(]WEBRip.*|[\\s\\(]BluRay.*|[\\s\\(]Blu-ray.*|[\\s\\(]SUBBED.*|[\\s\\(]x264.*|[\\s\\(]x265.*|[\\s\\(]XviD.*|[\\s\\(]Dual\\sAudio.*|[\\s\\(]HSBS.*|[\\s\\(]H-SBS.*|[\\s\\(]RERiP.*|[\\s\\(]DIRFIX.*|[\\s\\(]READNFO.*|[\\s\\(]60FPS.*|[\\s\\(]HDR.*|[\\s\\(]DV[\\s\\(].*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\s\\[BD.*|.*[\\s\\(]DUBBED.*|.*[\\s\\(]AC3.*|[\\s\\(]EAC3.*|.*[\\s\\(]NTSC.*|.*[\\s\\(]TVNZ.*|.*[\\s\\(]FP.*|.*[\\s\\(]AAC.*|.*[\\s\\(]REPACK.*|.*[\\s\\(]480p.*|.*[\\s\\(]720p.*|.*[\\s\\(]m-720p.*|.*[\\s\\(]900p.*|.*[\\s\\(]1080i.*|.*[\\s\\(]1080p.*|.*[\\s\\(]2160p.*|.*[\\s\\(]WEB-DL.*|.*[\\s\\(]HDTV.*|.*[\\s\\(]DSR.*|.*[\\s\\(]PDTV.*|.*[\\s\\(]SDTV.*|.*[\\s\\(]WS.*|.*[\\s\\(]HQ.*|.*[\\s\\(]DVDRip.*|.*[\\s\\(]TVRiP.*|.*[\\s\\(]BDRip.*|.*[\\s\\(]BRRip.*|.*[\\s\\(]WEBRip.*|.*[\\s\\(]BluRay.*|.*[\\s\\(]Blu-ray.*|.*[\\s\\(]SUBBED.*|.*[\\s\\(]x264.*|.*[\\s\\(]x265.*|.*[\\s\\(]XviD.*|.*[\\s\\(]Dual\\sAudio.*|.*[\\s\\(]HSBS.*|.*[\\s\\(]H-SBS.*|.*[\\s\\(]RERiP.*|.*[\\s\\(]DIRFIX.*|.*[\\s\\(]READNFO.*|.*[\\s\\(]60FPS.*|.*[\\s\\(]HDR.*|.*[\\s\\(]DV[\\s\\(].*";
 
 	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s[\\[\\(]\\d{3,4}p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|[\\s_]\\(Dual\\sAudio.*|\\s\\[VOSTFR\\].*|\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
 	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s[\\[\\(]\\d{3,4}p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*[\\s_]\\(Dual\\sAudio.*|.*\\s\\[VOSTFR\\].*|.*\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*|.*\\s\\(\\d{1,2}bit.*";
@@ -600,6 +608,8 @@ public class FileUtil {
 	private static final String MIXED_EPISODE_CONVENTION = "\\s(?:Ep|e)(?:\\s{1,2}|)(\\d{1,4})(?:\\s|$)";
 	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
 	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
+
+	private static final String SCENE_P2P_MOVIE_MATCH = "^(?!.*\\d{1,3}[\\s:][\\s-]\\s).*\\s(?:19|20)\\d{2}.*";
 
 	private static final String MINISERIES_CONVENTION = "\\s(\\d{1,2})of\\d{1,2}\\s";
 	private static final String MINISERIES_CONVENTION_MATCH = ".*" + MINISERIES_CONVENTION + ".*";
@@ -928,7 +938,13 @@ public class FileUtil {
 			isSample = true;
 		}
 
+		// change this to true to get better feedback while working on FileUtilTest
+		boolean verboseDevLogging = false;
+
 		if (formattedName.matches(SCENE_MULTI_EPISODE_CONVENTION_MATCH)) {
+			if (verboseDevLogging) {
+				System.out.println("SCENE_MULTI_EPISODE_CONVENTION_MATCH: " + formattedName);
+			}
 			// This matches scene and most p2p TV episodes that are more than one episode
 			matcher = SCENE_MULTI_EPISODE_CONVENTION_PATTERN.matcher(formattedName);
 
@@ -956,6 +972,9 @@ public class FileUtil {
 
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*" + SCENE_P2P_EPISODE_REGEX + ".*")) {
+			if (verboseDevLogging) {
+				System.out.println("SCENE_P2P_EPISODE_REGEX: " + formattedName);
+			}
 			// This matches scene and most p2p TV episodes
 			pattern = Pattern.compile(SCENE_P2P_EPISODE_REGEX);
 			matcher = pattern.matcher(formattedName);
@@ -982,6 +1001,9 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*" + SCENE_P2P_EPISODE_SPECIAL_REGEX + ".*")) {
+			if (verboseDevLogging) {
+				System.out.println("SCENE_P2P_EPISODE_SPECIAL_REGEX: " + formattedName);
+			}
 			// This matches scene and most p2p TV special episodes, e.g. episodes that have no episode number in the filename
 			pattern = Pattern.compile(SCENE_P2P_EPISODE_SPECIAL_REGEX);
 			matcher = pattern.matcher(formattedName);
@@ -1005,6 +1027,9 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[\\s-\\.](\\d{1,2})[xX]\\d\\d.*")) {
+			if (verboseDevLogging) {
+				System.out.println("older scene 1: " + formattedName);
+			}
 			// This matches older scene (like .avi releases) and some p2p TV episodes
 			// e.g. Universal Media Server - 1x02 - Mysterious Wordplay.mkv
 			pattern = Pattern.compile("[\\s-\\.](\\d{1,2})[xX](\\d\\d)");
@@ -1032,6 +1057,9 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s-\\s(\\d{3})\\s-\\s.*")) {
+			if (verboseDevLogging) {
+				System.out.println("older scene 2: " + formattedName);
+			}
 			// This matches other older scene (like .avi releases) and some p2p TV episodes
 			// e.g. Universal Media Server - 102 - Mysterious Wordplay.mkv
 			pattern = Pattern.compile("\\s-\\s(\\d{3})\\s-\\s");
@@ -1057,6 +1085,9 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(MINISERIES_CONVENTION_MATCH)) {
+			if (verboseDevLogging) {
+				System.out.println("MINISERIES_CONVENTION_MATCH: " + formattedName);
+			}
 			// This matches some episodes in miniseries, like:
 			// e.g. Universal.Media.Server.2of6.Mysterious.Wordplay.HDTV.1080i.groupname.mkv[website].mkv
 			matcher = MINISERIES_CONVENTION_PATTERN.matcher(formattedName);
@@ -1089,6 +1120,9 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(MIXED_EPISODE_CONVENTION_MATCH)) {
+			if (verboseDevLogging) {
+				System.out.println("MIXED_EPISODE_CONVENTION_MATCH: " + formattedName);
+			}
 			// This matches another mixed convention, like:
 			// e.g. Universal Media Server - Ep. 02 - Mysterious Wordplay.mp4
 			matcher = MIXED_EPISODE_CONVENTION_PATTERN.matcher(formattedName);
@@ -1118,6 +1152,9 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d{2}\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
+			if (verboseDevLogging) {
+				System.out.println("daily scene and p2p episode: " + formattedName);
+			}
 			// This matches scene and most p2p TV episodes that release several times per week
 			pattern = Pattern.compile("\\s((?:19|20)\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)\\s");
 			matcher = pattern.matcher(formattedName);
@@ -1142,10 +1179,16 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches("^(?!.*\\d{1,3}[\\s:][\\s-]).*\\s(?:19|20)\\d{2}([1-9]|1[0-2])([1-9]|[12][0-9]|3[01]).*")) {
+			if (verboseDevLogging) {
+				System.out.println("sports: " + formattedName);
+			}
 			// This matches some sports releases
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches("^(?!.*\\d{1,3}[\\s:][\\s-]).*\\s(?:19|20)\\d{2}.*")) {
+		} else if (formattedName.matches(SCENE_P2P_MOVIE_MATCH)) {
+			if (verboseDevLogging) {
+				System.out.println("SCENE_P2P_MOVIE_MATCH: " + formattedName);
+			}
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
@@ -1159,6 +1202,9 @@ public class FileUtil {
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[(19|20)\\d{2}\\].*")) {
+			if (verboseDevLogging) {
+				System.out.println("rarer movies 1: " + formattedName);
+			}
 			// This matches rarer types of movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
@@ -1167,11 +1213,17 @@ public class FileUtil {
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\((19|20)\\d{2}\\).*")) {
+			if (verboseDevLogging) {
+				System.out.println("rarer movies 2: " + formattedName);
+			}
 			// This matches rarer types of movies
 			formattedName = removeFilenameEndMetadata(formattedName);
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$") || formattedName.matches(".*\\s-\\s\\d{1,3}$") || formattedName.matches(COMMON_ANIME_FILE_ENDS_MATCH)) {
+			if (verboseDevLogging) {
+				System.out.println("anime: " + formattedName);
+			}
 			/*
 			 * This matches anime episodes that end with a hash or an episode number, or no quality/resolution.
 			 * It is quite messy because there is so much variation out there.
@@ -1225,6 +1277,9 @@ public class FileUtil {
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
+			if (verboseDevLogging) {
+				System.out.println("COMMON_FILE_ENDS_MATCH: " + formattedName);
+			}
 			// This is probably a movie that doesn't specify a year
 			isMovieWithoutYear = true;
 			formattedName = removeFilenameEndMetadata(formattedName);
@@ -1322,7 +1377,7 @@ public class FileUtil {
 			extraInformation = edition;
 		}
 
-		return new FileNameMetadata(movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName);
+		return new FileNameMetadata(movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName, isSample);
 	}
 
 	/**

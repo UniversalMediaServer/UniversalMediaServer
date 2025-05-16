@@ -32,7 +32,7 @@ public class UMSUtilsTest {
 	@SuppressWarnings("static-method")
 	@BeforeEach
 	public final void setUp() throws ConfigurationException, InterruptedException {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration(false));
 	}

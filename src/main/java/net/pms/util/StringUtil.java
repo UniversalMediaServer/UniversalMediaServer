@@ -16,7 +16,6 @@
  */
 package net.pms.util;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -707,7 +706,6 @@ public class StringUtil {
 	 * @param s the {@link String} to evaluate.
 	 * @return The converted String.
 	 */
-	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	public static String luceneEscape(final String s) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < s.length(); i++) {

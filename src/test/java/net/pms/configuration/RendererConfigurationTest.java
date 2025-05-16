@@ -40,7 +40,7 @@ public class RendererConfigurationTest {
 
 	@BeforeEach
 	public void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 
 		// Set locale to EN to ignore translations for renderers
 		Locale.setDefault(Locale.ENGLISH);
@@ -112,47 +112,62 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
 
+		testHeaders("LG LED-backlit LCD TV (2022+)", "DLNADeviceName.lge.com: %5bLG%5d%20webOS%20TV%20LQ63006LA");
+		testUPNPDetails("LG LED-backlit LCD TV (2022+)", "modelNumber=32LQ63006LA");
+
 		testUPNPDetails("LG LCD TV (2014)", "friendlyName=[TV][LG]42LB5700-ZB");
 
 		testUPNPDetails("LG LM660", "friendlyName=[TV]42LM660S-ZA");
 
 		testUPNPDetails("LG LS5700", "friendlyName=[TV]42LS5700-SB");
 
-		testUPNPDetails("LG OLED", "modelNumber=OLED65C9PUA");
-		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED65C9PUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED55E9PUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED55C9PUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED55C9AUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED55B9PUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED55B9PUB");
-		testUPNPDetails("LG OLED", "modelNumber=OLED65E9PUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED65E9AUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED65C9PUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED65C9AUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED65B9PUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED65B9PUB");
-		testUPNPDetails("LG OLED", "modelNumber=OLED77C9PUB");
-		testUPNPDetails("LG OLED", "modelNumber=OLED77C9AUB");
-		testUPNPDetails("LG OLED", "modelNumber=OLED77B9PUA");
-		testUPNPDetails("LG OLED", "modelNumber=OLED55B9SLA");
-		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED55B9SLA");
+		testUPNPDetails("LG NANO TV", "modelNumber=NANO756PR");
+
+		testUPNPDetails(
+			"LG OLED",
+			"modelNumber=OLED65C9PUA",
+			"friendlyName=[LG] webOS TV OLED65C9PUA",
+			"modelNumber=OLED55E9PUA",
+			"modelNumber=OLED55C9PUA",
+			"modelNumber=OLED55C9AUA",
+			"modelNumber=OLED55B9PUA",
+			"modelNumber=OLED55B9PUB",
+			"modelNumber=OLED65E9PUA",
+			"modelNumber=OLED65E9AUA",
+			"modelNumber=OLED65C9PUA",
+			"modelNumber=OLED65C9AUA",
+			"modelNumber=OLED65B9PUA",
+			"modelNumber=OLED65B9PUB",
+			"modelNumber=OLED77C9PUB",
+			"modelNumber=OLED77C9AUB",
+			"modelNumber=OLED77B9PUA",
+			"modelNumber=OLED55B9SLA",
+			"friendlyName=[LG] webOS TV OLED55B9SLA"
+		);
 
 		testUPNPDetails("LG OLED 2020+", "modelNumber=OLED65C24LA");
 
 // 		This does not match the OLED[0-9]{2} configuration for the LG 2023+ config ...
 //		testUPNPDetails("LG TV 2023+", "modelNumber=UR73003LA");
 
-		testUPNPDetails("LG TV 2023+", "# modelDescription=LG WebOSTV DMRplus OLED65C3AUA");
+		testUPNPDetails(
+			"LG TV 2023+",
+			"# modelDescription=LG WebOSTV DMRplus OLED65C3AUA",
+			"modelNumber=65QNED91T6A"
+		);
 
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
 
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
 
 		testHeaders    ("LG WebOS TV", "User-Agent: Linux/3.10.19-32.afro.4 UPnP/1.0 LGE WebOS TV LGE_DLNA_SDK/1.6.0/04.30.13 DLNADOC/1.50");
-		testUPNPDetails("LG WebOS TV", "modelDescription=LG WebOSTV DMRplus");
-		testUPNPDetails("LG WebOS TV", "friendlyName=LG-webOSTV");
-		testUPNPDetails("LG WebOS TV", "friendlyName=[LG] webOS TV");
-		testUPNPDetails("LG WebOS TV", "DLNADeviceName.lge.com=LG-webOSTV");
+		testUPNPDetails(
+			"LG WebOS TV",
+			"modelDescription=LG WebOSTV DMRplus",
+			"friendlyName=LG-webOSTV",
+			"friendlyName=[LG] webOS TV",
+			"DLNADeviceName.lge.com=LG-webOSTV"
+		);
 
 		testUPNPDetails("Lumin", "MyDevice:LUMIN 192.168.1.15 3c494e3e-4d8b-11e1-b76c-0015e808df4b Pixel Magic Systems Ltd. DEVICENUMVER 1.0 LUMIN https://www.luminmusic.com/ https://www.luminmusic.com/");
 		testUPNPDetails("Lumin U1 Mini", "MyDevice:LUMIN 192.168.1.15 3c494e3e-4d8b-11e1-b76c-0015e808df4b Pixel Magic Systems Ltd. U1MINI 1.0 LUMIN https://www.luminmusic.com/ https://www.luminmusic.com/");
@@ -242,89 +257,107 @@ public class RendererConfigurationTest {
 			"Samsung E+ Series",
 			"User-Agent: SEC_HHP_ Family TV/1.0",
 			"User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0",
-			"User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50",
-			"User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50"
+			"User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50"
 		);
 
 		testUPNPDetails("Samsung EH5300", "modelName=UA32EH5300");
+
+		testHeaders(
+			"Samsung ES6100",
+			"User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50"
+		);
+		testUPNPDetails("Samsung ES6100", "modelName=UE46ES6100");
 
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 
 		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
 		testUPNPDetails(
 			"Samsung LED UHD",
-			"modelName=UE88KS9810", 
-			"modelName=UE43RU7179UXZG"
+			"modelName=UA55HU7000J", // 2014 UHD (note: this string is a guess, not from logs)
+			"modelName=UA55HU9000J", // 2014 UHD (note: this string is a guess, not from logs)
+			"modelName=UN43JU6400F", // 2015 UHD (note: this string is a guess, not from logs)
+			"modelName=UN65KS8000FXZA", // 2016 SUHD
+			"modelName=UE65KS9002T", // 2016 SUHD
+			"modelName=UE88KS9810", // 2016 SUHD
+			"modelName=UE55MU6170U", // 2017 UHD
+			"modelName=UE43RU7179UXZG" // 2019 UHD
 		);
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
-		testUPNPDetails("Samsung Soundbar", "friendlyName=[AV] Samsung Soundbar Q90R");
-		testUPNPDetails("Samsung Soundbar", "modelDescription=Samsung SOUNDBAR DMR");
+		testUPNPDetails(
+			"Samsung Soundbar",
+			"friendlyName=[AV] Samsung Soundbar Q90R",
+			"modelDescription=Samsung SOUNDBAR DMR"
+		);
 
 		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
+
+		testHeaders("Samsung 2018 QLED TV", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q6 Series (65)/1.0 UPnP/1.0");
+		testUPNPDetails("Samsung 2018 QLED TV", "modelName=QN65Q6FNAFXZA"); // Q6F, 2018 Edge Lit Flat UHD QLED
+		testUPNPDetails("Samsung 2018 QLED TV", "modelName=QE55Q7FNATXXH"); // Q7F, 2018 Edge Lit Flat UHD QLED 
 
 		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
 		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
-			"modelName=QN49Q70RAFXZA",
-			"modelName=QN75Q90RAFXZA",
-			"modelName=GQ43LS03TAUXZG",
-			"modelName=QE43LS03TAUXXH",
-			"modelName=QE55LS03RAUXXH",
-			"modelName=QN32LS03TBFXZA",
-			"modelName=QA65S95BASXNZ", // 2022 starts here
-			"modelName=UA65AU7002SXNZ",
-			"modelName=QA65QN90BASXNZ",
-			"modelName=QA65QN95BASXNZ",
-			"modelName=QA65QN900BSXNZ",
-			"modelName=QA65Q80BASXNZ",
-			"modelName=QA65Q70BASXNZ",
-			"modelName=QA65QN85BASXNZ",
-			"modelName=QA65Q60BASXNZ",
-			"modelName=QA65QN800BSXNZ",
-			"modelName=UA65BU8000SXNZ",
-			"modelName=UA65BU8500SXNZ",
-			"modelName=QA65QE1CASXNZ", // 2023 starts here
-			"modelName=UA65CU8500SXNZ",
-			"modelName=QA65S90CASXNZ",
-			"modelName=UA65CU7000SXNZ",
-			"modelName=UA65CU8000SXNZ",
-			"modelName=QA65Q60CASXNZ",
-			"modelName=QA65Q70CASXNZ",
-			"modelName=QA65Q80CASXNZ",
-			"modelName=QA65S95CASXNZ",
-			"modelName=QA65QN90CASXNZ",
+			"Samsung TV 2019+",
+			"modelName=QN49Q70RAFXZA, modelDescription=Samsung TV", // 2019 starts here (R Series)
+			"modelName=QN75Q90RAFXZA, modelDescription=Samsung TV",
+			"modelName=QE55LS03RAUXXH, modelDescription=Samsung TV",
+			"modelName=QN32LS03TBFXZA, modelDescription=Samsung TV", // 2020 starts here (T Series)
+			"modelName=GQ43LS03TAUXZG, modelDescription=Samsung TV",
+			"modelName=QE43LS03TAUXXH, modelDescription=Samsung TV",
+			"friendlyName=[TV] Samsung 7 Series (43), manufacturer=Samsung Electronics, modelName=UN43TU700DFXZA, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
+			"modelName=QA65S95BASXNZ, modelDescription=Samsung TV", // 2022 starts here (B Series)
+			"modelName=QA65Q60BASXNZ, modelDescription=Samsung TV",
+			"modelName=UA65BU8000SXNZ, modelDescription=Samsung TV",
+			"modelName=UA65BU8500SXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QE1CASXNZ, modelDescription=Samsung TV", // 2023 starts here (C Series)
+			"modelName=UA65CU8500SXNZ, modelDescription=Samsung TV",
+			"modelName=UA65CU7000SXNZ, modelDescription=Samsung TV",
+			"modelName=UA65CU8000SXNZ, modelDescription=Samsung TV",
+			"modelName=QA65S90CASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65Q60CASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65S95CASXNZ, modelDescription=Samsung TV",
 			"friendlyName=Samsung Q68CA 43, manufacturer=Samsung Electronics, modelName=TQ43Q68CAUXXC, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
-			"modelName=QA65QE1DASXNZ", // 2024 starts here
-			"modelName=UA65DU8000SXNZ",
-			"modelName=UA65DU7700SXNZ",
-			"modelName=UA65DU8500SXNZ",
-			"modelName=QA65QN900DSXNZ"
+			"modelName=UA65DU7700SXNZ, modelDescription=Samsung TV", // 2024 starts here (D Series)
+			"modelName=UA65DU8000SXNZ, modelDescription=Samsung TV",
+			"modelName=UA65DU8500SXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QE1DASXNZ, modelDescription=Samsung TV"
 		);
 
 		testUPNPDetails(
-			"Samsung 2021 QLED TV",
+			"Samsung 8K TV 2019+",
+			"modelName=QN75Q900RBFXZA, modelDescription=Samsung TV"
+		);
+
+		testUPNPDetails(
+			"Samsung 2021+ QLED TV",
 			"modelName=QE50QN90AATXXC",
-			"modelName=QE75Q80AATXXC"
+			"modelName=QE75Q80AATXXC",
+			"modelName=QA65Q70BASXNZ, modelDescription=Samsung TV", // 2022 starts here (B Series)
+			"modelName=QA65Q80BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN85BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN90BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN95BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65Q70CASXNZ, modelDescription=Samsung TV", // 2023 starts here (C Series)
+			"modelName=QA65Q80CASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN90CASXNZ, modelDescription=Samsung TV"
 		);
 		testUPNPDetails(
 			"Samsung 2021 AU9/Q6/43Q7/50Q7",
 			"modelName=QE85Q60AAUXXC",
 			"modelName=UE75AU9005KXXC",
-			"modelName=QA65Q60ABSXNZ"
-		);
-		testUPNPDetails(
-			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=QA65Q60ABSXNZ",
 			"modelName=QE50Q70AAUXXC"
 		);
 		testUPNPDetails(
 			"Samsung 2021 AU8/AU7/BEA/32Q6",
 			"modelName=UE75AU7105KXXC",
 			"modelName=QN32Q60AAFXZA",
+			"modelName=UA65AU7002SXNZ, modelDescription=Samsung TV",
 			"modelName=LH85BEAHLGUXEN"
 		);
 		testUPNPDetails(
@@ -332,9 +365,12 @@ public class RendererConfigurationTest {
 			"modelName=QN32Q50AAFXZC"
 		);
 		testUPNPDetails(
-			"Samsung 2021 NEO QLED TV 8K",
+			"Samsung 2021+ NEO QLED TV 8K",
 			"modelName=QE65QN900ATXXC",
-			"modelName=QE85QN800ATXXC"
+			"modelName=QE85QN800ATXXC",
+			"modelName=QA65QN900BSXNZ, modelDescription=Samsung TV", // 2022 starts here (B Series)
+			"modelName=QA65QN800BSXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN900DSXNZ, modelDescription=Samsung TV"  // 2024 starts here (D Series)
 		);
 
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
@@ -378,10 +414,7 @@ public class RendererConfigurationTest {
 		);
 		testUPNPDetails(
 			"Sony Bravia XR",
-			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=XR-55X90K, manufacturerURL=http://www.sony.net/}"
-		);
-		testUPNPDetails(
-			"Sony Bravia XR",
+			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=XR-55X90K, manufacturerURL=http://www.sony.net/}",
 			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=K-65XR90, manufacturerURL=http://www.sony.net/}"
 		);
 
@@ -398,19 +431,28 @@ public class RendererConfigurationTest {
 
 		testHeaders("VideoWeb TV", "friendlyName.dlna.org: VideoWeb");
 
-		testHeaders("VLC for desktop", "User-Agent: 6.2.9200 2/, UPnP/1.0, Portable SDK for UPnP devices/1.6.19");
-		testHeaders("VLC for desktop", "User-Agent: Linux/3.13.0-68-generic, UPnP/1.0, Portable SDK for UPnP devices/1.6.6");
-		testHeaders("VLC for desktop", "User-Agent: 6.1.7601 2/Service Pack 1, UPnP/1.0, Portable SDK for UPnP devices/1.6.19 for VLC 64-bit version 2.2.4");
-		testHeaders("VLC for desktop", "User-Agent: UPnP/1.0, Portable SDK for UPnP devices/1.14.13on windows");
-		testHeaders("VLC for desktop", "User-Agent: VLC/3.0.19 LibVLC/3.0.19");
+		testHeaders(
+			"VLC for desktop",
+			"User-Agent: 6.2.9200 2/, UPnP/1.0, Portable SDK for UPnP devices/1.6.19",
+			"User-Agent: Linux/3.13.0-68-generic, UPnP/1.0, Portable SDK for UPnP devices/1.6.6",
+			"User-Agent: 6.1.7601 2/Service Pack 1, UPnP/1.0, Portable SDK for UPnP devices/1.6.19 for VLC 64-bit version 2.2.4",
+			"User-Agent: UPnP/1.0, Portable SDK for UPnP devices/1.14.13on windows",
+			"User-Agent: VLC/3.0.19 LibVLC/3.0.19"
+		);
 
-		testHeaders("VLC for iOS", "User-Agent: VLC%20for%20iOS/447 CFNetwork/1399 Darwin/22.1.0");
-		testHeaders("VLC for iOS", "User-Agent: Darwin/22.1.0, UPnP/1.0, Portable SDK for UPnP devices/1.14.13");
+		testHeaders(
+			"VLC for iOS or macOS",
+			"User-Agent: VLC%20for%20iOS/447 CFNetwork/1399 Darwin/22.1.0",
+			"User-Agent: Darwin/22.1.0, UPnP/1.0, Portable SDK for UPnP devices/1.14.13"
+		);
 
 		testHeaders("WD TV Live", "User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423");
 
-		testHeaders("XBMC", "User-Agent: XBMC/10.0 r35648 (Mac OS X; 11.2.0 x86_64; http://www.xbmc.org)");
-		testHeaders("XBMC", "User-Agent: Platinum/0.5.3.0, DLNADOC/1.50");
+		testHeaders(
+			"XBMC",
+			"User-Agent: XBMC/10.0 r35648 (Mac OS X; 11.2.0 x86_64; http://www.xbmc.org)",
+			"User-Agent: Platinum/0.5.3.0, DLNADOC/1.50"
+		);
 
 		testHeaders(
 			"Xbox One",
@@ -477,10 +519,8 @@ public class RendererConfigurationTest {
 	 * renderer. Set the correct renderer name to <code>null</code> to require
 	 * that nothing matches at all.
 	 *
-	 * @param correctRendererName
-	 *            The name of the renderer.
-	 * @param headerLines
-	 *            One or more raw header lines.
+	 * @param correctRendererName The name of the renderer.
+	 * @param headerLines         One or more raw header lines.
 	 */
 	private static void testHeaders(String correctRendererName, String... headerLines) {
 		SortedHeaderMap headers = new SortedHeaderMap();

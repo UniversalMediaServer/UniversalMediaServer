@@ -16,28 +16,28 @@
  */
 import { ActionIcon, Button, Card, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { CSSProperties, useContext, useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { Analyze, AnalyzeOff, ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Edit, EyeCheck, EyeOff, FolderX, ListSearch, Loader, Menu2, Plus, Share, ShareOff, SquareX, Users, ZoomCheck } from 'tabler-icons-react';
+import { IconAnalyze, IconAnalyzeOff, IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconEdit, IconEyeCheck, IconEyeOff, IconFolderX, IconListSearch, IconLoader, IconMenu2, IconPlus, IconShare, IconShareOff, IconSquareX, IconUsers, IconZoomCheck } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
 import { getGroupName, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
 import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
+import { showError, showInfo, showWarning } from '../../utils/notifications';
 
 export default function SharedContentSettings(
+  i18n:I18nInterface,
+  sse:ServerEventInterface,
+  session:SessionInterface,
   form: any,
   configuration: any,
 ) {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
   const canModify = havePermission(session, Permissions.settings_modify);
   const [sharedContents, setSharedContents] = useState([] as SharedContent[]);
   const [isLoading, setLoading] = useState(false);
@@ -75,12 +75,11 @@ export default function SharedContentSettings(
         { directory: item, isPlayed },
       );
 
-      showNotification({
+      showInfo({
         message: i18n.get('Saved'),
       })
     } catch (err) {
-      showNotification({
-        color: 'red',
+      showError({
         title: i18n.get('Error'),
         message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },
@@ -107,16 +106,14 @@ export default function SharedContentSettings(
         (sharedContentsTemp[index] as Feed).name = name;
         setSharedContents(sharedContentsTemp);
       } else {
-        showNotification({
-          color: 'orange',
+        showWarning({
           title: i18n.get('Information'),
           message: i18n.get('FeedNameNotFound'),
         })
       }
     } catch (err) {
       console.error(err);
-      showNotification({
-        color: 'red',
+      showError({
         title: i18n.get('Error'),
         message: i18n.get('DataNotReceived'),
       })
@@ -272,7 +269,7 @@ export default function SharedContentSettings(
         <Menu.Divider />
         <Menu.Item
           color='blue'
-          leftSection=<ZoomCheck />
+          leftSection=<IconZoomCheck />
           disabled={!canModify || !value.uri || isLoading}
           onClick={() => updateSharedContentFeedName(value)}
         >
@@ -288,7 +285,7 @@ export default function SharedContentSettings(
         <Menu.Divider />
         <Menu.Item
           color={value.monitored ? 'green' : 'red'}
-          leftSection={value.monitored ? <Analyze /> : <AnalyzeOff />}
+          leftSection={value.monitored ? <IconAnalyze /> : <IconAnalyzeOff />}
           disabled={!canModify}
           onClick={() => toggleFolderMonitored(value)}
         >
@@ -296,7 +293,7 @@ export default function SharedContentSettings(
         </Menu.Item>
         <Menu.Item
           color='blue'
-          leftSection=<EyeCheck />
+          leftSection=<IconEyeCheck />
           disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, true)}
         >
@@ -304,7 +301,7 @@ export default function SharedContentSettings(
         </Menu.Item>
         <Menu.Item
           color='green'
-          leftSection=<EyeOff />
+          leftSection=<IconEyeOff />
           disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, false)}
         >
@@ -362,10 +359,10 @@ export default function SharedContentSettings(
     >
       {
         sharedContents.indexOf(value) === 0 ?
-          (<ArrowNarrowDown />) :
+          (<IconArrowNarrowDown />) :
           sharedContents.indexOf(value) === sharedContents.length - 1 ?
-            (<ArrowNarrowUp />) :
-            (<ArrowsVertical />)
+            (<IconArrowNarrowUp />) :
+            (<IconArrowsVertical />)
       }
     </ActionIcon>
   }
@@ -375,13 +372,13 @@ export default function SharedContentSettings(
       <Menu zIndex={5000}>
         <Menu.Target>
           <ActionIcon variant='default' size={30}>
-            <Menu2 size={16} />
+            <IconMenu2 size={16} />
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item
             color='green'
-            leftSection=<Edit />
+            leftSection=<IconEdit />
             disabled={!canModify}
             onClick={() => editSharedContentItem(value)}
           >
@@ -389,7 +386,7 @@ export default function SharedContentSettings(
           </Menu.Item>
           <Menu.Item
             color={value.active ? 'blue' : 'orange'}
-            leftSection={value.active ? <Share /> : <ShareOff />}
+            leftSection={value.active ? <IconShare /> : <IconShareOff />}
             disabled={!canModify}
             onClick={() => toogleSharedContentItemActive(value)}
           >
@@ -399,7 +396,7 @@ export default function SharedContentSettings(
           <Menu.Divider />
           <Menu.Item
             color='red'
-            leftSection=<SquareX />
+            leftSection=<IconSquareX />
             disabled={!canModify}
             onClick={() => removeSharedContentItem(value)}
           >
@@ -472,13 +469,14 @@ export default function SharedContentSettings(
     return modalForm.values['contentChilds'].map((child: Folder, index) => (
       <Group key={index} justify='space-between' gap={0}>
         <DirectoryChooser
+          i18n={i18n}
           disabled={!canModify}
           size='xs'
           path={child.file}
           callback={(directory: string) => setSharedContentChild(directory, index)}
         ></DirectoryChooser>
         <ActionIcon variant='filled' color='red' onClick={() => removeSharedContentChild(index)}>
-          <FolderX size={18} />
+          <IconFolderX size={18} />
         </ActionIcon>
       </Group>
     ))
@@ -551,6 +549,7 @@ export default function SharedContentSettings(
         )}
         {modalForm.values['contentType'] === 'Folder' || modalForm.values['contentType'] === 'iTunes' ? (
           <DirectoryChooser
+            i18n={i18n}
             disabled={!canModify}
             label={i18n.get('Folder')}
             size='xs'
@@ -572,6 +571,7 @@ export default function SharedContentSettings(
           {getSharedContentChilds()}
           <label>{i18n.get('AddFolder')}</label>
           <DirectoryChooser
+            i18n={i18n}
             disabled={!canModify}
             size='xs'
             path={''}
@@ -579,7 +579,7 @@ export default function SharedContentSettings(
           ></DirectoryChooser>
         </>)}
         <MultiSelect
-          leftSection={<Users />}
+          leftSection={<IconUsers />}
           disabled={!canModify}
           data={getUserGroupsSelection(configuration.groups)}
           label={i18n.get('AuthorizedGroups')}
@@ -674,13 +674,13 @@ export default function SharedContentSettings(
     return haveFolder ? (
       <Button
         disabled={!canModify || isLoading}
-        leftSection={<ListSearch />}
+        leftSection={<IconListSearch />}
         variant='outline'
         color={sse.mediaScan ? 'red' : 'blue'}
         onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
       >
         {i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
-        {sse.mediaScan && (<Loader />)}
+        {sse.mediaScan && (<IconLoader />)}
       </Button>
     ) : null;
   }
@@ -709,7 +709,7 @@ export default function SharedContentSettings(
   return (
     <>
       <Group mb="md">
-        <Button leftSection={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
+        <Button leftSection={<IconPlus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
           {i18n.get('AddNewSharedContent')}
         </Button>
         {getScanSharedFoldersButton()}

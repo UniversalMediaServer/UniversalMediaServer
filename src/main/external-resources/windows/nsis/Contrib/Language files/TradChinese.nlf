@@ -141,7 +141,7 @@ $(^Name) 解除安裝
 # ^CouldNotLoad
 "無法載入: "
 # ^CreateFolder
-"建立資料夾: " 
+"建立資料夾: "
 # ^CreateShortcut
 "建立捷徑: "
 # ^CreatedUninstaller

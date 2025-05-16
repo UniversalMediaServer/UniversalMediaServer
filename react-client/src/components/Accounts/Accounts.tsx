@@ -17,27 +17,79 @@
 import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { useContext, useState } from 'react';
-import { ExclamationMark, Folder, FolderPlus, PhotoUp, PhotoX, User, UserPlus, X } from 'tabler-icons-react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { IconExclamationMark, IconFolder, IconFolderPlus, IconPhotoUp, IconPhotoX, IconUser, IconUserPlus, IconX } from '@tabler/icons-react';
 
-import AccountsContext from '../../contexts/accounts-context';
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
-import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { allowHtml } from '../../utils';
+import { getUserGroup, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { UmsAccounts } from '../../services/accounts-service';
+import { SessionInterface, UmsGroup, UmsUser } from '../../services/session-service';
+import { accountApiUrl, allowHtml } from '../../utils';
+import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications';
 
-const Accounts = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const accounts = useContext(AccountsContext);
+const Accounts = ({ i18n, main, session, sse }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:ServerEventInterface }) => {
+  const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get('None'));
   const canModifySettings = havePermission(session, Permissions.settings_modify);
   const canManageUsers = havePermission(session, Permissions.users_manage);
   const canManageGroups = havePermission(session, Permissions.groups_manage);
+  const [filled, setFilled] = useState(false);
   const [localhostOpened, setLocalhostOpened] = useState(false);
   const [authOpened, setAuthOpened] = useState(false);
   const [userOpened, setUserOpened] = useState<string | null>(null);
   const [groupOpened, setGroupOpened] = useState<string | null>(null);
+
+  //set the document Title to Accounts
+  useEffect(() => {
+    document.title="Universal Media Server - Accounts"
+    session.useSseAs('Accounts')
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
+  }, []);
+
+  useEffect(() => {
+    if (filled && !sse.updateAccounts) {
+      return;
+    }
+    setFilled(true);
+    sse.setUpdateAccounts(false);
+    axios.get(accountApiUrl + 'accounts')
+      .then(function(response: any) {
+        setAccounts(response.data);
+      })
+      .catch(function() {
+        showError({
+          title: i18n.get('Error'),
+          message: i18n.get('AccountsNotReceived'),
+        });
+      });
+  }, [sse]);
+
+  const postAccountAction = (data: any, title: string, message: string, successmessage: string, errormessage: string) => {
+    showLoading({
+      id: 'account-action',
+      title: title,
+      message: message,
+    })
+    return axios.post(accountApiUrl + 'action', data)
+      .then(function () {
+        updateSuccess({
+          id: 'account-action',
+          title: title,
+          message: successmessage,
+        })
+      })
+      .catch(function () {
+        updateError({
+          id: 'account-action',
+          title: i18n.get('Error'),
+          message: errormessage,
+        })
+      })
+  }
 
   const UserAccordionLabel = (user: UmsUser, group: UmsGroup) => {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);
@@ -46,7 +98,7 @@ const Accounts = () => {
     return (
       <Group wrap='nowrap'>
         <Avatar radius='xl' size='lg' src={user.avatar}>
-          {!user.avatar && (user.id === 0 ? (<UserPlus size={24} />) : (<User size={24} />))}
+          {!user.avatar && (user.id === 0 ? (<IconUserPlus size={24} />) : (<IconUser size={24} />))}
         </Avatar>
         <div>
           <Text>{displayName}{groupDisplayName}</Text>
@@ -178,17 +230,17 @@ const Accounts = () => {
           >
             <Group justify='center'>
               <Dropzone.Accept>
-                <PhotoUp />
+                <IconPhotoUp />
               </Dropzone.Accept>
               <Dropzone.Reject>
-                <PhotoX />
+                <IconPhotoX />
               </Dropzone.Reject>
               <Dropzone.Idle>
                 <div onClick={e => { e.stopPropagation() }}>
                   <HoverCard disabled={avatar === ''}>
                     <HoverCard.Target>
                       <Avatar radius='xl' size='lg' src={avatar !== '' ? avatar : null}>
-                        {avatar === '' && <User size={24} />}
+                        {avatar === '' && <IconUser size={24} />}
                       </Avatar>
                     </HoverCard.Target>
                     <HoverCard.Dropdown>
@@ -287,14 +339,14 @@ const Accounts = () => {
             <Button onClick={() => setOpened(false)}>
               {i18n.get('Cancel')}
             </Button>
-            <Button type='submit' color='red' leftSection={<ExclamationMark />} rightSection={<ExclamationMark />}>
+            <Button type='submit' color='red' leftSection={<IconExclamationMark />} rightSection={<IconExclamationMark />}>
               {i18n.get('Confirm')}
             </Button>
           </Group>
         ) : (
           <Group justify='flex-end' mt='md'>
             <Text c='red'>{i18n.get('DeleteUser')}</Text>
-            <Button onClick={() => setOpened(true)} color='red' leftSection={<X />}>
+            <Button onClick={() => setOpened(true)} color='red' leftSection={<IconX />}>
               {i18n.get('Delete')}
             </Button>
           </Group>
@@ -353,7 +405,7 @@ const Accounts = () => {
     return (
       <Group wrap='nowrap'>
         <Avatar radius='xl' size='lg'>
-          {group.id === 0 ? (<FolderPlus size={24} />) : (<Folder size={24} />)}
+          {group.id === 0 ? (<IconFolderPlus size={24} />) : (<IconFolder size={24} />)}
         </Avatar>
         <Text>{group.displayName}</Text>
       </Group>
@@ -441,14 +493,14 @@ const Accounts = () => {
             <Button onClick={() => setOpened(false)}>
               {i18n.get('Cancel')}
             </Button>
-            <Button type='submit' color='red' leftSection={<ExclamationMark />} rightSection={<ExclamationMark />}>
+            <Button type='submit' color='red' leftSection={<IconExclamationMark />} rightSection={<IconExclamationMark />}>
               {i18n.get('Confirm')}
             </Button>
           </Group>
         ) : (
           <Group justify='flex-end' mt='md'>
             <Text c='red'>{i18n.get('DeleteGroup')}</Text>
-            <Button onClick={() => setOpened(true)} color='red' leftSection={<X />}>
+            <Button onClick={() => setOpened(true)} color='red' leftSection={<IconX />}>
               {i18n.get('Delete')}
             </Button>
           </Group>
@@ -522,6 +574,18 @@ const Accounts = () => {
       </Accordion>
     );
   }
+
+  const postAccountAuthAction = async (data: any, errormessage: string) => {
+    try {
+          await axios.post(accountApiUrl + 'action', data);
+          await session.logout();
+      } catch {
+          showError({
+              title: 'Error',
+              message: errormessage,
+          });
+      }
+  };
 
   const handleAuthenticateLocalhostToggle = () => {
     const data = { operation: 'localhost', enabled: !accounts.localhost };

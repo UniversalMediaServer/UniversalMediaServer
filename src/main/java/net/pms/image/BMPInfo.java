@@ -19,13 +19,11 @@ package net.pms.image;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.bmp.BmpHeaderDirectory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import net.pms.util.ParseException;
 
 @SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class BMPInfo extends ImageInfo {
 	protected final CompressionType compressionType;
 
@@ -135,7 +133,6 @@ public class BMPInfo extends ImageInfo {
 		return compressionType;
 	}
 
-	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	@Override
 	protected void parseMetadata(Metadata metadata) {
 		if (metadata == null) {

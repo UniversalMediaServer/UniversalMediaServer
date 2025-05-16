@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test'
 
 /**
  * Read environment variables from file.
@@ -78,9 +78,9 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run test:runserver:macos',
-      url: 'http://localhost:9002',
+      url: 'http://localhost:9001',
       reuseExistingServer: !process.env.CI,
       timeout: 480000,
     },
   ],
-});
+})

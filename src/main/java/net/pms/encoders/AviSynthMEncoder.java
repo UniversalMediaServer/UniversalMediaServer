@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -110,7 +109,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 			File f = new File(fileName);
 			if (f.exists()) {
-				fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
+				fileName = ProcessUtil.getSystemPathName(fileName);
 			}
 
 			String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
@@ -165,7 +164,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getSystemPathName(subTrack.getExternalFile()) + "\")";
 				} else {
 					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}
@@ -177,7 +176,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 			boolean fullyManaged = false;
 			String script = configuration.getAvisynthScript();
-			StringTokenizer st = new StringTokenizer(script, PMS.AVS_SEPARATOR);
+			StringTokenizer st = new StringTokenizer(script, AVS_SEPARATOR);
 			while (st.hasMoreTokens()) {
 				String line = st.nextToken();
 				if (line.contains("<movie") || line.contains("<sub")) {

@@ -17,9 +17,6 @@
 package net.pms.store.container;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
@@ -72,6 +69,9 @@ public class VirtualFolder extends StoreContainer {
 		setLastModified(0);
 	}
 
+	/**
+	 * A to Z limit VirtualFolder
+	 */
 	public VirtualFolder(Renderer renderer, VirtualFolder virtualFile, List<File> files, String forcedName) {
 		super(renderer, null, null);
 		setChildrenSorted(true);
@@ -81,6 +81,7 @@ public class VirtualFolder extends StoreContainer {
 		this.discoverable = files;
 		this.forcedName = forcedName;
 		setLastModified(0);
+		analyzeChildren();
 	}
 
 	public List<File> getFiles() {
@@ -146,24 +147,29 @@ public class VirtualFolder extends StoreContainer {
 			}
 
 			if (directory.canRead()) {
-				File[] listFiles = directory.listFiles((File parentDirectory, String file) -> {
-					Path path = Paths.get(parentDirectory + File.separator + file);
+				File[] listFiles = directory.listFiles((File file) -> {
 					// Reject any non readable
-					if (!Files.isReadable(path)) {
+					if (!file.canRead()) {
+						LOGGER.trace("Ignoring '{}' because it is unreadable", file);
 						return false;
 					}
+					String filename = file.getName();
 					// Accept any directory
-					if (Files.isDirectory(path)) {
+					if (file.isDirectory()) {
 						// Skip if ignored
-						if (!ignoredDirectoryNames.isEmpty() && ignoredDirectoryNames.contains(file)) {
-							LOGGER.debug("Ignoring {} because it is in the ignored directories list", file);
-							return false;
+						boolean ignored = (!ignoredDirectoryNames.isEmpty() && ignoredDirectoryNames.contains(filename));
+						if (ignored) {
+							LOGGER.debug("Ignoring '{}' because it is in the ignored directories list", file);
 						}
-						return true;
+						return !ignored;
 					}
 
 					// We want to find only media files
-					return SystemFilesHelper.isPotentialMediaFile(file);
+					boolean isMediaFile = SystemFilesHelper.isPotentialMediaFile(filename);
+					if (!isMediaFile) {
+						LOGGER.trace("Ignoring '{}' because it is not a media file", file);
+					}
+					return isMediaFile;
 				});
 
 				if (listFiles == null) {
@@ -294,13 +300,15 @@ public class VirtualFolder extends StoreContainer {
 				map.put(String.valueOf(c), l);
 			}
 
-			for (Entry<String, List<File>> entry : map.entrySet()) {
-				// loop over all letters, this avoids adding
-				// empty letters
-				VirtualFolder mf = new VirtualFolder(renderer, this, entry.getValue(), entry.getKey());
-				addChild(mf, true, true);
+			if (map.size() > 1) {
+				for (Entry<String, List<File>> entry : map.entrySet()) {
+					// loop over all letters, this avoids adding
+					// empty letters
+					VirtualFolder mf = new VirtualFolder(renderer, this, entry.getValue(), entry.getKey());
+					addChild(mf, true, true);
+				}
+				return;
 			}
-			return;
 		}
 
 		for (File f : childrenFiles) {

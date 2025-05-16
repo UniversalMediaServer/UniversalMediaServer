@@ -16,7 +16,6 @@
  */
 package net.pms.database;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -116,7 +115,6 @@ public final class MediaTableThumbnails extends MediaTable {
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {

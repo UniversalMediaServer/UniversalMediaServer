@@ -829,7 +829,7 @@ Section -post
   WriteRegStr HKLM "${REG_UNINST_KEY}" "QuietUninstallString" '"$INSTDIR\uninst-nsis.exe" /S'
   WriteRegStr HKLM "${REG_UNINST_KEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "${REG_UNINST_KEY}" "DisplayName" "Nullsoft Install System${NAMESUFFIX}"
-  WriteRegStr HKLM "${REG_UNINST_KEY}" "DisplayIcon" "$INSTDIR\uninst-nsis.exe,0"
+  WriteRegStr HKLM "${REG_UNINST_KEY}" "DisplayIcon" "$INSTDIR\NSIS.exe"
   WriteRegStr HKLM "${REG_UNINST_KEY}" "DisplayVersion" "${VERSION}"
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION & VER_BUILD
   WriteRegDWORD HKLM "${REG_UNINST_KEY}" "VersionMajor" "${VER_MAJOR}" ; Required by WACK

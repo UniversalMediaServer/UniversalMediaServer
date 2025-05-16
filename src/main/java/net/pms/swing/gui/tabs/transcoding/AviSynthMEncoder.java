@@ -37,6 +37,7 @@ import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.encoders.Engine;
 import net.pms.swing.SwingUtil;
 import net.pms.swing.gui.UmsFormBuilder;
 import org.apache.commons.configuration.event.ConfigurationEvent;
@@ -110,7 +111,7 @@ public class AviSynthMEncoder {
 			clip = "";
 		}
 		StringBuilder sb = new StringBuilder();
-		StringTokenizer st = new StringTokenizer(clip, PMS.AVS_SEPARATOR);
+		StringTokenizer st = new StringTokenizer(clip, Engine.AVS_SEPARATOR);
 		int i = 0;
 		while (st.hasMoreTokens()) {
 			if (i > 0) {
@@ -128,7 +129,7 @@ public class AviSynthMEncoder {
 				int i = 0;
 				while (st.hasMoreTokens()) {
 					if (i > 0) {
-						sb.append(PMS.AVS_SEPARATOR);
+						sb.append(Engine.AVS_SEPARATOR);
 					}
 					sb.append(st.nextToken());
 					i++;

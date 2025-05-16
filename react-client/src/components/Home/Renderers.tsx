@@ -18,12 +18,12 @@ import { ActionIcon, Button, Card, Drawer, Grid, Group, Image, Menu, Modal, Prog
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Cast, DevicesPc, DevicesPcOff, Dots, Link, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
+import { IconCast, IconDevicesPc, IconDevicesPcOff, IconDots, IconLink, IconListDetails, IconPlayerPause, IconPlayerPlay, IconPlayerSkipBack, IconPlayerSkipForward, IconPlayerStop, IconPlayerTrackNext, IconPlayerTrackPrev, IconScreenShare, IconSettings, IconVolume, IconVolumeOff } from '@tabler/icons-react';
 
-import { I18nInterface } from '../../contexts/i18n-context';
+import MediaChooser from './MediaChooser';
+import { Media, Renderer, User } from '../../services/home-service';
+import { I18nInterface } from '../../services/i18n-service';
 import { renderersApiUrl } from '../../utils';
-import { Renderer, User } from './Home';
-import MediaChooser, { Media } from './MediaChooser';
 
 const Renderers = (
   { allowed, blockedByDefault, canControlRenderers, canModify, i18n, renderers, users, setAllowed, setUserId }:
@@ -159,30 +159,30 @@ const Renderers = (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
                 <ActionIcon>
-                  <Dots size={16} />
+                  <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item leftSection={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get('Info')}</Menu.Item>
+                <Menu.Item leftSection={<IconListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get('Info')}</Menu.Item>
                 {canModify && (<>
-                  <Menu.Item leftSection={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get('Settings')}</Menu.Item>
+                  <Menu.Item leftSection={<IconSettings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get('Settings')}</Menu.Item>
                   {!renderer.isAuthenticated && renderer.uuid && (
                     <Menu.Item
-                      leftSection={<Link size={14} />}
+                      leftSection={<IconLink size={14} />}
                       onClick={() => setUserChanger(renderer)}
                     >
                       {getAccountName(renderer.userId)}
                     </Menu.Item>
                   )}
                   {!renderer.isAuthenticated && !renderer.isAllowed && renderer.uuid && (
-                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(renderer.uuid, true)} color='green'>{i18n.get('Allow')}</Menu.Item>
+                    <Menu.Item leftSection={<IconDevicesPc size={14} />} onClick={() => setAllowed(renderer.uuid, true)} color='green'>{i18n.get('Allow')}</Menu.Item>
                   )}
                   {!renderer.isAuthenticated && renderer.isAllowed && renderer.uuid && (
-                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(renderer.uuid, false)} color='red'>{i18n.get('Block')}</Menu.Item>
+                    <Menu.Item leftSection={<IconDevicesPcOff size={14} />} onClick={() => setAllowed(renderer.uuid, false)} color='red'>{i18n.get('Block')}</Menu.Item>
                   )}
                 </>)}
                 {canControlRenderers && (
-                  <Menu.Item leftSection={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get('Controls')}</Menu.Item>
+                  <Menu.Item leftSection={<IconScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get('Controls')}</Menu.Item>
                 )}
               </Menu.Dropdown>
             </Menu>
@@ -240,9 +240,9 @@ const Renderers = (
           <Group gap='xs' grow mt='md'>
             <ActionIcon style={{ flexGrow: 'unset' }} variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'mute')}>
               {rendererControlled.state.mute ?
-                <VolumeOff />
+                <IconVolumeOff />
                 :
-                <Volume />
+                <IconVolume />
               }
             </ActionIcon>
             <Slider labelAlwaysOn mt='lg' style={{ maxWidth: 'unset', marginInlineEnd: '10px' }}
@@ -253,27 +253,28 @@ const Renderers = (
         }
         {((rendererControlled.controls & 2) === 2) && rendererControlled.isActive &&
           <Group justify='center'>
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><PlayerSkipBack /></ActionIcon>
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><PlayerTrackPrev /></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><IconPlayerSkipBack /></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><IconPlayerTrackPrev /></ActionIcon>
             {rendererControlled.state.playback === 1 ?
-              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'pause')}><PlayerPause /></ActionIcon>
+              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'pause')}><IconPlayerPause /></ActionIcon>
               :
-              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'play')}><PlayerPlay /></ActionIcon>
+              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'play')}><IconPlayerPlay /></ActionIcon>
             }
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'stop')}><PlayerStop /></ActionIcon>
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'next')}><PlayerTrackNext /></ActionIcon>
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><PlayerSkipForward /></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'stop')}><IconPlayerStop /></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'next')}><IconPlayerTrackNext /></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><IconPlayerSkipForward /></ActionIcon>
           </Group>
         }
         {rendererControlled.isActive && (<Group justify='center'>
           <MediaChooser
+            i18n={i18n}
             disabled={!canModify}
             size='xs'
             id={rendererControlled.id}
             media={controlMedia}
             callback={(value: Media | null) => setControlMedia(value)}
           ></MediaChooser>
-          {controlMedia && <ActionIcon onClick={() => sendRendererControl(rendererControlled.id, 'mediaid', controlMedia.value)}><Cast /></ActionIcon>}
+          {controlMedia && <ActionIcon onClick={() => sendRendererControl(rendererControlled.id, 'mediaid', controlMedia.value)}><IconCast /></ActionIcon>}
         </Group>)}
       </Stack>
     </Drawer>
@@ -288,15 +289,15 @@ const Renderers = (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
                 <ActionIcon>
-                  <Dots size={16} />
+                  <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
                 <>
                   {blockedByDefault ? (
-                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get('AllowByDefault')}</Menu.Item>
+                    <Menu.Item leftSection={<IconDevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get('AllowByDefault')}</Menu.Item>
                   ) : (
-                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get('BlockByDefault')}</Menu.Item>
+                    <Menu.Item leftSection={<IconDevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get('BlockByDefault')}</Menu.Item>
                   )}
                 </>
               </Menu.Dropdown>

@@ -16,6 +16,7 @@
  */
 package net.pms.network.mediaserver.jupnp.support.contentdirectory.result;
 
+import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
@@ -58,7 +59,10 @@ public class DlnaHelper {
 		// TODO: Determine renderer's correct localization value
 		int localizationValue = 1;
 		StringBuilder sb = new StringBuilder();
-		sb.append(getDlnaOrgPn(item, localizationValue));
+		ORG_PN pn = getDlnaOrgPn(item, localizationValue);
+		if (pn != null) {
+			sb.append(pn);
+		}
 		ORG_OP op = getDlnaOrgOp(item);
 		if (sb.length() > 0) {
 			sb.append(op.getParam());
@@ -123,7 +127,10 @@ public class DlnaHelper {
 
 	protected static String getDlnaAdditionalInfo(StoreItem item, int localizationValue) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(getDlnaOrgPn(item, localizationValue));
+		ORG_PN pn = getDlnaOrgPn(item, localizationValue);
+		if (pn != null) {
+			sb.append(pn);
+		}
 		ORG_OP op = getDlnaOrgOp(item);
 		if (sb.length() > 0) {
 			sb.append(op.getParam());
@@ -168,7 +175,7 @@ public class DlnaHelper {
 		dlnaOrgOp.setHttpRangeHeaderAccepted(true); // seek by byte (exclusive)
 		final Renderer renderer = item.getDefaultRenderer();
 
-		if (renderer.isSeekByTime() && item.isTranscoded() && item.isTimeSeekable()) {
+		if (renderer.isTranscodeSeekByTime() && item.isTranscoded() && item.isTimeSeekable()) {
 			/**
 			 * Some renderers - e.g. the PS3 and Panasonic TVs - behave
 			 * erratically when transcoding if we keep the default seek-by-byte
@@ -196,7 +203,7 @@ public class DlnaHelper {
 			 * SeekByTime = both
 			 */
 			dlnaOrgOp.setHttpTimeSeekRangeHeaderAccepted(true);
-			if (renderer.isSeekByTimeExclusive()) {
+			if (renderer.isTranscodeSeekByTimeExclusive()) {
 				// seek by time (exclusive)
 				dlnaOrgOp.setHttpRangeHeaderAccepted(false);
 			}
@@ -324,12 +331,14 @@ public class DlnaHelper {
 						 * Note: This is an oversimplified duplicate of the engine logic, that
 						 * should be fixed.
 						 */
-						if (resolvedSubtitle == null &&
-								!item.hasExternalSubtitles() &&
-								mediaInfo != null &&
-								mediaInfo.getDvdtrack() == null &&
-								Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
-								renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, encodingFormat)) {
+						if (
+							resolvedSubtitle == null &&
+							!item.hasExternalSubtitles() &&
+							mediaInfo != null &&
+							mediaInfo.getDvdtrack() == null &&
+							Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
+							renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, encodingFormat, FormatConfiguration.MPEGTS)
+						) {
 							isOutputtingMPEGTS = true;
 						}
 					}

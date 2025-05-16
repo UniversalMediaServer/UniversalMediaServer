@@ -46,7 +46,9 @@ There are a number of manual steps involved in a new version release. This list 
 
      For the remaining macOS release (ARM) I use a newer MacBook Pro with an M1 chip, which also uses Gon for signing/notarizing, and the [ums-release-macos-arm.sh](./scripts/ums-release-macos-arm.sh) script.
 
-1. Upload the releases. 
+     Lastly, download the AppImage release from GitHub Actions by going to the `Build releases` workflow run for the tag. Unzip the folder, and the two files contained in it can be uploaded in the next step.
+
+1. Upload the releases.
 
      After each of the 3 machines are done compiling, I upload the binaries directly to Patreon. The first machine you do it on will create draft post, then you can find the draft post on the remaining machines and add their binaries to that. I hope Patreon will add that ability to their API some day!
 
@@ -62,9 +64,11 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Upload the previous release binaries to GitHub and remove the `This release is available via our Patreon page, and will be available here when the next release happens.` part. Make sure you check the checkbox for `Set as the latest release` because you are now promoting it from pre-release to latest.
 
-1. The automatic updater in UMS downloads from GitHub so now you are ready to point that to the previous release you just promoted. You can do that by updating the versions on the first 14 lines of [latest_version.properties](./src/main/external-resources/update/latest_version.properties#L1-L14). Remember this is the one you just promoted to the first public release, NOT the one on Patreon.
+1. The automatic updater in UMS downloads from GitHub so now you are ready to point that to the previous release you just promoted. You can do that by updating the versions on the first 13 lines of [latest_version.properties](./src/main/external-resources/update/latest_version.properties#L1-L13). Remember this is the one you just promoted to the first public release, NOT the one on Patreon.
 
-1. Other release repositories like [Chocolatey](https://community.chocolatey.org/packages/ums) and [Homebrew](https://formulae.brew.sh/cask/universal-media-server), and third-party mirrors like [Major Geeks](https://www.majorgeeks.com/files/details/universal_media_server.html) and [VideoHelp](https://www.videohelp.com/software/Universal-Media-Server) have their own automations, so we do not have to do anything besides tag and add releases to GitHub.
+    In the same file, update the `LatestVersionPatreon` and `PatreonDownloadUrl` fields to point to the latest Patreon release.
+
+1. Nothing to do for other release repositories like [Chocolatey](https://community.chocolatey.org/packages/ums) and [Homebrew](https://formulae.brew.sh/cask/universal-media-server), and third-party mirrors like [Major Geeks](https://www.majorgeeks.com/files/details/universal_media_server.html) and [VideoHelp](https://www.videohelp.com/software/Universal-Media-Server) because they have their own automations.
 
 1. Add `-SNAPSHOT` to the `<version>` in `pom.xml` to show you are now ahead of the version you just released to Patreon.
 
@@ -72,10 +76,9 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Update the website config.php and upload to the web server (this is done manually for now, should be automated). When the file is uploaded there will be up to a 1-hour delay until it is visible on the website, because of a 60-minute cache on the front page.
 
-1. Post about the release
+1. Post about the release via:
 
-     - Twitter/X: https://twitter.com/UMS16
-     - Facebook: https://www.facebook.com/UniversalMediaServer
+     - Buffer, which posts to Bluesky, X, and Facebook: https://publish.buffer.com/all-channels
      - Our forum: https://www.universalmediaserver.com/forum/viewforum.php?f=3
 
      Follow the conventions for the previous posts. The forum announcement will automatically add an entry to the front page and the News section of our website.

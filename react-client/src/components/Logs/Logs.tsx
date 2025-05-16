@@ -17,23 +17,21 @@
 import { Box, Button, Checkbox, Code, Divider, Group, Modal, MultiSelect, Pagination, ScrollArea, SegmentedControl, Select, Stack, Switch, Text, TextInput, Tooltip } from '@mantine/core';
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
-import { Activity, FileDescription, FileZip, Filter, ListSearch } from 'tabler-icons-react';
+import { useEffect, useState } from 'react';
+import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils';
+import { showError } from '../../utils/notifications';
 
-const Logs = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
+const Logs = ({ i18n, main, session, sse }: { i18n:I18nInterface, main:MainInterface, session:SessionInterface , sse:ServerEventInterface}) => {
   const canModify = havePermission(session, Permissions.settings_modify);
   const [rootLogLevel, setRootLogLevel] = useState(0);
   const [guiLogLevel, setGuiLogLevel] = useState(0);
@@ -92,6 +90,14 @@ const Logs = () => {
     return 0;
   }
 
+  //set the document Title to Logs
+  useEffect(() => {
+    document.title="Universal Media Server - Logs";
+    session.useSseAs('Logs')
+    session.stopPlayerSse()
+    main.setNavbarValue(undefined)
+  }, []);
+
   useEffect(() => {
     if (!canModify || fileMode) {
       setLogs([]);
@@ -108,12 +114,10 @@ const Logs = () => {
         setTraceMode(response.data.traceMode);
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'logs-data-loading',
-          color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       });
   }, [i18n, canModify, fileMode]);
@@ -230,7 +234,7 @@ const Logs = () => {
   const getPackerZip = () => {
     axios.post(logsApiUrl + 'packer', { items: packerFiles }, { responseType: 'blob' })
       .then(function(response: any) {
-        const fileName = response.headers['content-disposition'].split('filename=')[1];
+        const fileName = response.headers['content-disposition'].split('filename=')[1].replaceAll('"', '');
         const type = response.headers['content-type'];
         const blob = new Blob([response.data], { type: type });
         const link = document.createElement('a');
@@ -311,7 +315,7 @@ const Logs = () => {
           </Tooltip>
           <Button
             type='submit'
-            leftSection={<ListSearch />}
+            leftSection={<IconListSearch />}
           >
             {i18n.get('Search')}
           </Button>
@@ -358,11 +362,11 @@ const Logs = () => {
           </Tooltip>
           {traceMode === 0 &&
             <Tooltip label={allowHtml(i18n.get('RestartUniversalMediaServerTrace'))} {...defaultTooltipSettings}>
-              <Button leftSection={<FileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get('CreateTraceLogs')}</Button>
+              <Button leftSection={<IconFileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get('CreateTraceLogs')}</Button>
             </Tooltip>
           }
           <Tooltip label={allowHtml(i18n.get('PackLogConfigurationFileCompressed'))} {...defaultTooltipSettings}>
-            <Button leftSection={<FileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get('PackDebugFiles')}</Button>
+            <Button leftSection={<IconFileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get('PackDebugFiles')}</Button>
           </Tooltip>
         </Stack>
       </Modal>
@@ -398,7 +402,7 @@ const Logs = () => {
           onChange={setFileMode}
           data={[{ label: i18n.get('Server'), value: '' }, { label: i18n.get('File'), value: 'file' }]}
         />
-        <Button leftSection={<Filter />} onClick={() => { setFilterOpened(true) }}>{i18n.get('Filter')}</Button>
+        <Button leftSection={<IconFilter />} onClick={() => { setFilterOpened(true) }}>{i18n.get('Filter')}</Button>
         {fileMode ?
           <Dropzone
             p={5}
@@ -408,7 +412,7 @@ const Logs = () => {
             <Text ta='center'>Drop/Select log here</Text>
           </Dropzone>
           :
-          <Button leftSection={<Activity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get('Options')}</Button>
+          <Button leftSection={<IconActivity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get('Options')}</Button>
         }
       </Group>
       <Divider my='sm' />

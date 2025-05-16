@@ -286,9 +286,13 @@ public class Feed extends StoreContainer {
 			return feedUrl;
 		}
 
-		Document doc = Jsoup.connect(url).get();
-		feedUrl = doc.select("link[type=application/rss+xml]").first().attr("href");
-		LOGGER.trace("Parsed feed URL {} from webpage {}", feedUrl, url);
+		Document doc = Jsoup.connect(url).userAgent("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)").get();
+		try {
+			feedUrl = doc.select("link[type=application/rss+xml]").first().attr("href");
+			LOGGER.trace("Parsed feed URL {} from webpage {}", feedUrl, url);
+		} catch (Exception e) {
+			LOGGER.trace("Failed to parse feed URL from {}: {}", url, doc);
+		}
 
 		if (StringUtils.isNotBlank(feedUrl)) {
 			FEED_URLS_CACHE.put(url, feedUrl);

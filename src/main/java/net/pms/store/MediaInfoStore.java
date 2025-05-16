@@ -118,7 +118,7 @@ public class MediaInfoStore {
 			if (mediaInfo != null) {
 				return mediaInfo;
 			}
-			LOGGER.trace("Store do not yet contains MediaInfo for {}", filename);
+			LOGGER.trace("Store does not yet contain MediaInfo for {}", filename);
 			Connection connection = null;
 			InputFile input = new InputFile();
 			input.setFile(file);
@@ -177,7 +177,7 @@ public class MediaInfoStore {
 						}
 					}
 				}
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
 				LOGGER.trace("", e);
 			} finally {
@@ -206,7 +206,7 @@ public class MediaInfoStore {
 			if (mediaInfo != null) {
 				return mediaInfo;
 			}
-			LOGGER.trace("Store do not yet contains MediaInfo for {}", url);
+			LOGGER.trace("Store does not yet contain MediaInfo for {}", url);
 			try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 				mediaInfo = MediaTableFiles.getMediaInfo(connection, url, 0);
 				if (mediaInfo == null) {
@@ -287,7 +287,7 @@ public class MediaInfoStore {
 			return;
 		}
 		if (tvSeriesMetadata == null) {
-			LOGGER.warn("Couldn't update Tv Series Metadata for \"{}\" because there is no media information");
+			LOGGER.warn("Couldn't update Tv Series Metadata for \"{}\" because there is no media information", tvSeriesId);
 			return;
 		}
 		Connection connection = null;
@@ -392,6 +392,8 @@ public class MediaInfoStore {
 				if (metadataFromFilename.getExtraInformation() != null) {
 					videoMetadata.setExtraInformation(metadataFromFilename.getExtraInformation());
 				}
+				videoMetadata.setIsSample(metadataFromFilename.isSample());
+
 				mediaInfo.setVideoMetadata(videoMetadata);
 
 				if (MediaDatabase.isAvailable()) {

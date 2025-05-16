@@ -114,6 +114,19 @@ public class MediaStoreIds {
 		return ids;
 	}
 
+	public static String getMediaStoreNameForId(String id) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				return MediaTableStoreIds.getMediaStoreNameForId(connection, id);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return null;
+	}
+
 	public static List<Long> getMediaStoreIdsForName(String name, String objectType) {
 		List<Long> ids = new ArrayList<>();
 		Connection connection = null;
@@ -199,6 +212,50 @@ public class MediaStoreIds {
 			}
 		}
 		return UPDATE_IDS.get(-1L);
+	}
+
+	/**
+	 * Returns the updates id for an object.
+	 *
+	 * @return The object updated id.
+	 */
+	private static synchronized UnsignedIntegerFourBytes getObjectUpdateId(Long id) {
+		if (id == null || id == -1) {
+			return getSystemUpdateId();
+		}
+		if (!UPDATE_IDS.containsKey(id)) {
+			UnsignedIntegerFourBytes value = null;
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaStoreId mediaStoreId = MediaTableStoreIds.getMediaStoreId(connection, id);
+					if (mediaStoreId != null && mediaStoreId.getUpdateId() != 0) {
+						value = new UnsignedIntegerFourBytes(mediaStoreId.getUpdateId());
+					}
+				}
+				if (value == null) {
+					value = getSystemUpdateId();
+				}
+				UPDATE_IDS.put(id, value);
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return UPDATE_IDS.get(id);
+	}
+
+	/**
+	 * Returns the updates id for an object as string.
+	 *
+	 * @return The object updated id as string.
+	 */
+	public static String getObjectUpdateIdAsString(Long id) {
+		UnsignedIntegerFourBytes result = getObjectUpdateId(id);
+		if (result == null) {
+			return null;
+		}
+		return result.toString();
 	}
 
 	/**

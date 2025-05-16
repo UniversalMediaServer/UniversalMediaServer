@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.4.0-SNAPSHOT</version>
+	<version>14.12.1-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.4.0</project.version.short>
+		<project.version.short>14.12.1</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -61,7 +61,6 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
-		<twelvemonkeys-imageio-version>3.11.0</twelvemonkeys-imageio-version>
 
 		<project.encoding>UTF-8</project.encoding>
 		<project.build.sourceEncoding>${project.encoding}</project.build.sourceEncoding>
@@ -72,13 +71,14 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>194</binary-revision>
+		<binary-revision>215</binary-revision>
 
-		<exec-maven-plugin-version>3.4.1</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.5.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
-		<git-commit-id-plugin-version>8.0.2</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>9.0.1</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
+		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -88,28 +88,20 @@
 				- com.github.junrar:junrar
 				- org.digitalmediaserver:cuelib-core
 				- su.litvak.chromecast:api-v2
-				- fm.last:coverartarchive-api
 				- com.github.oshi:oshi-core
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.16</slf4j-api-version>
-
-		<!--
-			ch.qos.logback:logback-classic and logback-core is shared with
-				- net.pms:ums
-		-->
-		<logback-version>1.5.7</logback-version>
+		<slf4j-api-version>2.0.17</slf4j-api-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
 				- net.pms:ums
 				- su.litvak.chromecast:api-v2
-				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.17.2</jackson.version>
+		<jackson.version>2.19.0</jackson.version>
 
-		<surefire-version>3.4.0</surefire-version>
+		<surefire-version>3.5.3</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -118,10 +110,8 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.14.0</jna-version>
+		<jna-version>5.17.0</jna-version>
 
-		<junit5.version>5.11.0</junit5.version>
-		<jetty.version>12.0.12</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -134,11 +124,15 @@
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
-			<version>4.4.0</version>
+			<version>4.5.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
 					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -151,22 +145,16 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
-			<version>4.4</version>
+			<version>4.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.17.1</version>
+			<version>1.17.2</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<!--
-				commons-logging:commons-logging is shared with
-					- fm.last:coverartarchive-api
-
-				Check the commons-logging:commons-logging version of the other libraries before upgrading
-			-->
 			<version>1.10</version>
 			<exclusions>
 				<exclusion>
@@ -178,28 +166,22 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.3.3</version>
+			<version>1.3.5</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<!--
-				commons-io:commons-io is shared with
-					- fm.last:coverartarchive-api
-
-				Check the commons-io:commons-io version of the libraries before upgrading
-			-->
-			<version>2.16.1</version>
+			<version>2.19.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.16.0</version>
+			<version>3.17.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.12.0</version>
+			<version>1.13.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.commons</groupId>
@@ -216,7 +198,7 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>${logback-version}</version>
+			<version>1.5.18</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -227,22 +209,24 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>${logback-version}</version>
+			<version>1.5.18</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.11.0</version>
+			<version>2.13.1</version>
 		</dependency>
-		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
-		<!-- com.sun.xml.messaging.saaj as well -->
 		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.10.6.Final</version>
-			<scope>compile</scope>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>33.4.0-jre</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.errorprone</groupId>
+					<artifactId>error_prone_annotations</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-
 		<!-- maven replacement for nsisant-1.2.jar -->
 		<dependency>
 			<groupId>maven</groupId>
@@ -269,7 +253,7 @@
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-svgrasterizer</artifactId>
-			<version>1.17</version>
+			<version>1.18</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -292,77 +276,77 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-icns</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-iff</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-hdr</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-metadata</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pcx</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pict</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pnm</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-psd</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-sgi</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tga</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>${twelvemonkeys-imageio-version}</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sejda.imageio</groupId>
@@ -431,13 +415,13 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${junit5.version}</version>
+			<version>5.12.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>${junit5.version}</version>
+			<version>5.12.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -453,7 +437,7 @@
 		<dependency>
 			<groupId>org.jupnp</groupId>
 			<artifactId>org.jupnp.support</artifactId>
-			<version>3.0.2</version>
+			<version>3.0.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -468,11 +452,11 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>su.litvak.chromecast</groupId>
-			<artifactId>api-v2</artifactId>
+			<groupId>de.sfuhrm</groupId>
+			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
-			<version>0.11.3</version>
+			<version>0.12.14</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -498,66 +482,12 @@
 			<version>75.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>annotations</artifactId>
-			<version>3.0.1u2</version>
-		</dependency>
-		<dependency>
-			<groupId>fm.last</groupId>
-			<artifactId>coverartarchive-api</artifactId>
-			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
-			<!--
-				commons-logging:commons-logging is shared with
-					- commons-configuration:commons-configuration
-
-				Check the commons-logging:commons-logging version of the other libraries before upgrading
-
-				commons-io:commons-io is shared with
-					- net.pms:ums
-
-				Check the commons-io:commons-io version before upgrading
-			-->
-			<version>2.1.1</version>
-			<exclusions>
-				<!-- This should never have been a dependency in the first place -->
-				<exclusion>
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>jsr305</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-io</groupId>
-					<artifactId>commons-io</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpclient</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>com.github.oshi</groupId>
 			<artifactId>oshi-core</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.6.2</version>
+			<version>6.8.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -578,22 +508,6 @@
 			<groupId>org.eclipse.angus</groupId>
 			<artifactId>angus-activation</artifactId>
 			<version>2.0.2</version>
-		</dependency>
-		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
-		<dependency>
-			<groupId>com.sun.xml.messaging.saaj</groupId>
-			<artifactId>saaj-impl</artifactId>
-			<version>3.0.4</version>
-			<exclusions>
-				<exclusion>
-					<groupId>jakarta.activation</groupId>
-					<artifactId>jakarta.activation-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.eclipse.angus</groupId>
-					<artifactId>angus-activation</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
@@ -619,47 +533,11 @@
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>5.1.0</version>
+			<version>6.3.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>pl.jalokim.propertiestojson</groupId>
-			<artifactId>java-properties-to-json</artifactId>
-			<version>5.3.0</version>
-			<exclusions>
-				<!-- This should never have been a dependency in the first place -->
-				<exclusion>
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>jsr305</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>annotations</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.projectlombok</groupId>
-					<artifactId>lombok</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-lang3</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.code.gson</groupId>
-					<artifactId>gson</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-io</groupId>
-					<artifactId>commons-io</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -671,7 +549,18 @@
 		<dependency>
 			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
-			<version>0.3</version>
+			<version>1.0.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.code.gson</groupId>
+					<artifactId>gson</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.universalmediaserver</groupId>
+			<artifactId>coverartarchive-api</artifactId>
+			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.code.gson</groupId>
@@ -682,7 +571,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>${jetty.version}</version>
+			<version>12.0.20</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -693,7 +582,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>${jetty.version}</version>
+			<version>12.0.20</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -704,7 +593,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>${jetty.version}</version>
+			<version>12.0.20</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -715,7 +604,7 @@
 		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>radiobrowser4j</artifactId>
-			<version>3.0.1</version>
+			<version>3.2.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -731,7 +620,12 @@
 			<!-- jsoup HTML parser library @ https://jsoup.org/ -->
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.18.1</version>
+			<version>1.20.1</version>
+		</dependency>
+		<dependency>
+			<groupId>dev.dirs</groupId>
+			<artifactId>directories</artifactId>
+			<version>26</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -839,7 +733,7 @@
 					<artifactId>crowdin-maven-plugin</artifactId>
 					<version>2.0.0</version>
 					<configuration>
-            			<projectId>123597</projectId>
+						<projectId>123597</projectId>
 						<projectName>Universal Media Server</projectName>
 						<downloadFolder>${project.basedir}/extras/crowdin</downloadFolder>
 						<crowdinServerId>crowdin-ums</crowdinServerId>
@@ -853,24 +747,60 @@
 								<targetFileName>messages_%crowdin_code_with_underscore%.properties</targetFileName>
 								<updateOption>keep_translations</updateOption>
 								<conversions>
-									<conversion><from>es-ES</from><to>es</to></conversion>
-									<conversion><from>he</from><to>iw</to></conversion>
-									<conversion><from>pt-PT</from><to>pt</to></conversion>
-									<conversion><from>sv-SE</from><to>sv</to></conversion>
-									<conversion><from>zh-CN</from><to>zh-Hans</to></conversion>
-									<conversion><from>zh-TW</from><to>zh-Hant</to></conversion>
+									<conversion>
+										<from>es-ES</from>
+										<to>es</to>
+									</conversion>
+									<conversion>
+										<from>he</from>
+										<to>iw</to>
+									</conversion>
+									<conversion>
+										<from>pt-PT</from>
+										<to>pt</to>
+									</conversion>
+									<conversion>
+										<from>sv-SE</from>
+										<to>sv</to>
+									</conversion>
+									<conversion>
+										<from>zh-CN</from>
+										<to>zh-Hans</to>
+									</conversion>
+									<conversion>
+										<from>zh-TW</from>
+										<to>zh-Hant</to>
+									</conversion>
 								</conversions>
 							</translationFileSet>
 						</translationFileSets>
 						<statusFiles>
 							<statusFile>
 								<conversions>
-									<conversion><from>es-ES</from><to>es</to></conversion>
-									<conversion><from>he</from><to>iw</to></conversion>
-									<conversion><from>pt-PT</from><to>pt</to></conversion>
-									<conversion><from>sv-SE</from><to>sv</to></conversion>
-									<conversion><from>zh-CN</from><to>zh-Hans</to></conversion>
-									<conversion><from>zh-TW</from><to>zh-Hant</to></conversion>
+									<conversion>
+										<from>es-ES</from>
+										<to>es</to>
+									</conversion>
+									<conversion>
+										<from>he</from>
+										<to>iw</to>
+									</conversion>
+									<conversion>
+										<from>pt-PT</from>
+										<to>pt</to>
+									</conversion>
+									<conversion>
+										<from>sv-SE</from>
+										<to>sv</to>
+									</conversion>
+									<conversion>
+										<from>zh-CN</from>
+										<to>zh-Hans</to>
+									</conversion>
+									<conversion>
+										<from>zh-TW</from>
+										<to>zh-Hant</to>
+									</conversion>
 								</conversions>
 								<targetFile>${project.basedir}/src/main/resources/languages.properties</targetFile>
 							</statusFile>
@@ -903,6 +833,15 @@
 				</executions>
 			</plugin>
 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin-version}</version>
+				<configuration>
+					<propertiesEncoding>${project.encoding}</propertiesEncoding>
+				</configuration>
+			</plugin>
+
 			<!--
 				Plugin to add git commit information properties.
 				These are used in the project.properties files.
@@ -929,7 +868,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.13.0</version>
+				<version>3.14.0</version>
 				<configuration>
 					<release>${project.jre-version}</release>
 					<testSource>${project.jre-version}</testSource>
@@ -957,13 +896,12 @@
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.15.0</version>
+				<version>1.15.1</version>
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
 					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
-					<nodeVersion>v20.12.2</nodeVersion>
-					<yarnVersion>v1.22.22</yarnVersion>
+					<nodeVersion>v22.15.0</nodeVersion>
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
@@ -987,26 +925,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1093,7 +1034,6 @@
 										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR-new.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true" />
@@ -1259,11 +1199,12 @@
 						Plugin to add scripts for nullsoft scriptable install system (NSIS).
 						The filtered file "target/extra.nsh", contains the definitions for
 						project variables like "${PROJECT_JRE_VERSION}" that can be used in the
-						"ums.nsi" and "setup.nsi" files.
+						"ums.nsi" and "setup-*.nsi" files.
 					-->
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
+						<version>${maven-resources-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -1298,7 +1239,7 @@
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
-						"ums.nsi" and "setup.nsi" files.
+						"ums.nsi" and "setup-*.nsi" files.
 					-->
 					<plugin>
 						<groupId>org.digitalmediaserver</groupId>
@@ -1344,10 +1285,21 @@
 								</goals>
 							</execution>
 							<execution>
-								<id>build-setup-windows</id>
+								<id>build-setup-windows-x86_64</id>
 								<configuration>
-									<outputFile>${project.build.directory}/${project.name.short}-setup.exe</outputFile>
-									<scriptFile>${project.build.directory}/setup.nsi</scriptFile>
+									<outputFile>${project.build.directory}/${project.name.short}-x86_64.exe</outputFile>
+									<scriptFile>${project.build.directory}/setup-x86_64.nsi</scriptFile>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>make</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>build-setup-windows-x86</id>
+								<configuration>
+									<outputFile>${project.build.directory}/${project.name.short}-x86.exe</outputFile>
+									<scriptFile>${project.build.directory}/setup-x86.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
 								<goals>
@@ -1376,26 +1328,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1511,26 +1466,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1646,26 +1604,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1781,26 +1742,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1879,7 +1843,6 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
@@ -1924,26 +1887,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -2022,7 +1988,6 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
@@ -2067,26 +2032,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -2142,7 +2110,6 @@
 										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR-new" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
@@ -2297,26 +2264,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -2373,7 +2343,6 @@
 										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR-new" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
@@ -2529,26 +2498,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -2603,7 +2575,6 @@
 										<get src="${project.binaries-base}/osx/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
@@ -2929,26 +2900,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -3013,8 +2987,9 @@
 						</executions>
 					</plugin>
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
+						<version>${maven-resources-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -3063,26 +3038,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -3147,8 +3125,9 @@
 						</executions>
 					</plugin>
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
+						<version>${maven-resources-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -3197,26 +3176,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -3281,8 +3263,9 @@
 					</plugin>
 					<!-- Copy Web resources -->
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
+						<version>${maven-resources-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-resources-macos</id>
@@ -3454,26 +3437,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -3510,12 +3496,12 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>3.4.0</version>
+						<version>3.6.0</version>
 						<dependencies>
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.17.0</version>
+								<version>10.23.1</version>
 							</dependency>
 						</dependencies>
 						<configuration>
@@ -3532,6 +3518,142 @@
 								<goals>
 									<goal>check</goal>
 								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>docker</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>install node and corepack</id>
+								<goals>
+									<goal>install-node-and-corepack</goal>
+								</goals>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>prepare-docker</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<mkdir dir="${project.basedir}/target/docker" />
+										<mkdir dir="${project.basedir}/target/docker/app" />
+										<mkdir dir="${project.basedir}/target/docker/app/linux" />
+										<mkdir dir="${project.basedir}/target/docker/profile" />
+										<mkdir dir="${project.basedir}/target/docker/profile/data" />
+										<mkdir dir="${project.basedir}/target/docker/profile/database" />
+										<mkdir dir="${project.basedir}/target/docker/profile/renderers" />
+										<copy file="${project.external-resources}/docker/Dockerfile"
+											  tofile="${project.basedir}/target/docker/Dockerfile" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											  tofile="${project.basedir}/target/docker/app/${project.artifactId}.jar" overwrite="true" />
+										<copy todir="${project.basedir}/target/docker/app">
+											<fileset dir="${project.external-resources}">
+												<include name="UMS.conf"/>
+												<include name="logback.headless.xml"/>
+												<include name="renderers/*"/>
+												<include name="DummyInput.ass"/>
+												<include name="DummyInput.jpg"/>
+												<include name="web/**"/>
+											</fileset>
+										</copy>
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR?p=${binary-revision}" dest="${project.basedir}/target/docker/app/linux/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.basedir}/target/docker/app/linux/youtube-dl" usetimestamp="true" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>docker-build</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<exec executable="docker" dir="${project.basedir}/target/docker">
+											<arg line="build . -t universalmediaserver/ums -t universalmediaserver/ums:${project.version}" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>docker-deploy</id>
+								<phase>install</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<exec executable="docker">
+											<arg line="push universalmediaserver/ums:${project.version}" />
+										</exec>
+									</target>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>

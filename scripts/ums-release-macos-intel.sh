@@ -12,13 +12,11 @@
 # be automated later.
 #
 # The Docker part requires permission to push to universalmediaserver/ums.
-# It also requires you to have a "linux" folder inside the ./docker folder that contains the
-# binaries to run on Alpine Linux. For now they are ffmpeg, tsMuxeR and tsMuxeR-new.
 
 cd ..
 
 # Clear the folder for a clean build
-rm UMS-.dmg
+rm UMS-macOS-*
 rm -fr target/ums*
 rm -rf target/antrun
 rm -rf target/archive-tmp
@@ -31,14 +29,12 @@ rm -rf target/test-classes
 
 mvn -P macos package -DskipTests=true
 
+mvn -P docker prepare-package -DskipTests=true
+mvn -P docker package -DskipTests=true
+mvn -P docker install -DskipTests=true
+
 ./scripts/dependencies/gon ./gon-config-prebuild.json
 ./scripts/dependencies/gon ./gon-config-build-intel.json
-
-cd docker
-ant
-docker tag ums universalmediaserver/ums
-docker push universalmediaserver/ums
-cd ..
 
 Clear the folder for a clean build
 rm UMS--pre10.15.dmg
@@ -54,4 +50,4 @@ rm -rf target/test-classes
 
 mvn -P macos-pre1015 package -DskipTests=true
 
-hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS--pre10.15.dmg
+hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS--pre10.15.dmg

@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Set;
 import net.pms.database.MediaTableCoverArtArchive;
@@ -33,6 +34,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.media.MediaLang;
 import net.pms.media.MediaType;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.parsers.FFmpegParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -82,6 +84,29 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		setLastModified(file.lastModified());
 	}
 
+	/**
+	 * Check if this this a new resource.
+	 *
+	 * @return true : File is an empty container. Upload by AV client is still missing. No need to check any formats yet.
+	 */
+	private static boolean isUploadResource(File file, int type) {
+		if (type == Format.AUDIO || type == Format.VIDEO) {
+			try {
+				//FIXME : this mean each file that has this length is valid !
+				//UmsContentDirectoryService has nothing to sit in store.
+				//Upload by AV client is still missing, so it is not a valid media.
+				//A new store item class should be added that handle this special things
+				if (Files.size(file.toPath()) == UmsContentDirectoryService.EMPTY_FILE_CONTENT.length()) {
+					LOGGER.trace("isUploadResource true for {}", file.getAbsolutePath());
+					return true;
+				}
+			} catch (Exception e) {
+				LOGGER.error("cannot check file size", e);
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public boolean isValid() {
 		if (file == null || !file.exists() || !file.isFile()) {
@@ -92,6 +117,10 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
 			return false;
+		}
+
+		if (isUploadResource(file, getType())) {
+			return true;
 		}
 
 		boolean valid = getFormat() != null;
@@ -178,7 +207,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	 */
 	@Override
 	public String getFileName() {
-		return ProcessUtil.getShortFileNameIfWideChars(getFile().getAbsolutePath());
+		return ProcessUtil.getSystemPathName(getFile().getAbsolutePath());
 	}
 
 	@Override
@@ -221,6 +250,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			}
 			InputFile input = new InputFile();
 			input.setFile(file);
+			resolveFormat();
 			setMediaInfo(MediaInfoStore.getMediaInfo(filename, file, getFormat(), getType()));
 			setMediaStatus(MediaStatusStore.getMediaStatus(renderer.getAccountUserId(), filename));
 		}

@@ -16,10 +16,13 @@
  */
 package net.pms.network.mediaserver.jupnp.transport.impl.jetty.ee10;
 
+import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.Servlet;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import net.pms.PMS;
 import net.pms.network.mediaserver.jupnp.transport.spi.JakartaServletContainerAdapter;
+import net.pms.network.mediaserver.servlets.MediaServerImportResourceServlet;
 import net.pms.network.mediaserver.servlets.MediaServerServlet;
 import net.pms.network.mediaserver.servlets.NextcpApiServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
@@ -90,6 +93,8 @@ public class JettyServletContainer implements JakartaServletContainerAdapter {
 			if (contextPath != null && !contextPath.isEmpty()) {
 				servletHandler.setContextPath(contextPath);
 			}
+
+			addImportServlet(servletHandler);
 			servletHandler.addServlet(new ServletHolder("MEDIA HTTP SERVER", new MediaServerServlet()), "/ums/*");
 			servletHandler.addServlet(new ServletHolder("NextcpApiServlet", new NextcpApiServlet()), "/api/*");
 			final ServletHolder s = new ServletHolder("UPNP HTTP SERVER", servlet);
@@ -97,6 +102,22 @@ public class JettyServletContainer implements JakartaServletContainerAdapter {
 			contextHandlers.addHandler(servletHandler);
 		} else {
 			LOGGER.trace("Server handler is not a ContextHandlerCollection");
+		}
+	}
+
+	private void addImportServlet(ServletContextHandler servletHandler) {
+		try {
+			String location = PMS.getConfiguration().getTempFolder().getAbsolutePath();
+			long maxFileSize = Long.MAX_VALUE;
+			long maxRequestSize = Long.MAX_VALUE;
+			int fileSizeThreshold = (int) (2 * 1024);
+
+			MultipartConfigElement multipartConfig = new MultipartConfigElement(location, maxFileSize, maxRequestSize, fileSizeThreshold);
+			ServletHolder importHolder = new ServletHolder("MEDIA SERVER IMPORT RESOURCE", new MediaServerImportResourceServlet());
+			importHolder.getRegistration().setMultipartConfig(multipartConfig);
+			servletHandler.addServlet(importHolder, "/import/*");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 

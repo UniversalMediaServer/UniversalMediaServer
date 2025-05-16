@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.annotation.Nonnull;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -334,7 +333,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 			File f = new File(filename);
 			if (f.exists()) {
-				filename = ProcessUtil.getShortFileNameIfWideChars(filename);
+				filename = ProcessUtil.getSystemPathName(filename);
 			}
 
 			String movieLine       		= "";
@@ -451,7 +450,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getSystemPathName(subTrack.getExternalFile()) + "\")";
 				} else {
 					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}
@@ -463,7 +462,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 			boolean fullyManaged = false;
 			String script = "<movie>\n<sub>\n";
-			StringTokenizer st = new StringTokenizer(script, PMS.AVS_SEPARATOR);
+			StringTokenizer st = new StringTokenizer(script, AVS_SEPARATOR);
 			while (st.hasMoreTokens()) {
 				String line = st.nextToken();
 				if (line.contains("<movie") || line.contains("<sub")) {

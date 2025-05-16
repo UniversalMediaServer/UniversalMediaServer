@@ -35,7 +35,6 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
@@ -364,11 +363,25 @@ public class JUPnPDeviceHelper {
 		renderer.setControls(ctrl);
 	}
 
+	private static int getDeviceControls(Device d) {
+		int ctrl = 0;
+		for (Service s : d.getServices()) {
+			String sid = s.getServiceId().getId();
+			if (sid.contains(AV_TRANSPORT_SERVICE)) {
+				ctrl |= AVT;
+			} else if (sid.contains(RENDERING_CONTROL_SERVICE)) {
+				ctrl |= RC;
+			}
+			MediaServer.upnpService.getControlPoint().execute(new UmsSubscriptionCallback(s));
+		}
+		return ctrl;
+	}
+
 	private static void rendererUpdated(Device d) {
 		String uuid = getUUID(d);
 		if (ConnectedRenderers.hasUuidRenderer(uuid)) {
 			Renderer renderer = ConnectedRenderers.getUuidRenderer(uuid);
-			if (renderer.needsRenewal()) {
+			if (renderer.needsRenewal() || getDeviceControls(d) != renderer.getControls()) {
 				LOGGER.debug("Renewing subscriptions to ", getFriendlyName(d));
 				subscribeAll(d, renderer);
 			}
@@ -819,7 +832,7 @@ public class JUPnPDeviceHelper {
 
 	public static void setAVTransportURI(Device dev, String uri, String metaData) {
 		send(dev, AV_TRANSPORT_SERVICE, "SetAVTransportURI", "CurrentURI", uri,
-			"CurrentURIMetaData", metaData != null ? DidlHelper.unEncodeXML(metaData) : null);
+			"CurrentURIMetaData", metaData != null ? unEncodeXML(metaData) : null);
 	}
 
 	/**
@@ -962,6 +975,19 @@ public class JUPnPDeviceHelper {
 		} catch (IOException | SAXException e) {
 			LOGGER.debug("Error parsing xml: " + e);
 		}
+	}
+
+	/**
+	 * Removes xml character representations.
+	 *
+	 * @param s String to be cleaned
+	 * @return Encoded String
+	 */
+	private static String unEncodeXML(String s) {
+		// Note: ampersand substitution must be first in order to undo double
+		// transformations
+		// TODO: support ' and " if/when required, see encodeXML() above
+		return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
 	}
 
 }

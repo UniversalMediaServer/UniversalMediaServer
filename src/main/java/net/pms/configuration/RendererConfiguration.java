@@ -37,7 +37,6 @@ import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.parsers.MediaInfoParser;
-import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -62,6 +61,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * renderer configuration property keys.
 	 */
 	private static final String KEY_ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
+	private static final String KEY_ALBUM_ART_PROFILE = "AlbumArtProfile";
 	private static final String KEY_AUDIO = "Audio";
 	protected static final String KEY_AUTO_PLAY_TMO = "AutoPlayTmo";
 	private static final String KEY_AVISYNTH_2D_TO_3D = "AviSynth2Dto3D";
@@ -99,7 +99,6 @@ public class RendererConfiguration extends BaseConfiguration {
 	protected static final String KEY_MEDIAPARSERV2_THUMB = "MediaParserV2_ThumbnailGeneration";
 	private static final String KEY_MIME_TYPES_CHANGES = "MimeTypesChanges";
 	private static final String KEY_MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
-	private static final String KEY_MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String KEY_MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String KEY_MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String KEY_OFFER_SUBTITLES_BY_PROTOCOL_INFO = "OfferSubtitlesByProtocolInfo";
@@ -114,6 +113,8 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_RENDERER_NAME = "RendererName";
 	private static final String KEY_RESCALE_BY_RENDERER = "RescaleByRenderer";
 	private static final String KEY_SEEK_BY_TIME = "SeekByTime";
+	private static final String KEY_NEED_ALBUM_ART_HACK = "NeedAlbumArtHack";
+	private static final String KEY_NEED_VERSIONED_OBJECT_ID = "NeedVersionedObjectId";
 	private static final String KEY_SEND_DATE_METADATA = "SendDateMetadata";
 	private static final String KEY_SEND_DATE_METADATA_YEAR_FOR_AUDIO_TAGS = "SendDateMetadataYearForAudioTags";
 	private static final String KEY_SEND_DLNA_ORG_FLAGS = "SendDLNAOrgFlags";
@@ -377,9 +378,7 @@ public class RendererConfiguration extends BaseConfiguration {
 			configuration.addProperty(KEY_SUPPORTED, "f:.+");
 		}
 
-		if (isUseMediaInfo()) {
-			formatConfiguration = new FormatConfiguration(configuration.getList(KEY_SUPPORTED));
-		}
+		formatConfiguration = new FormatConfiguration(configuration.getList(KEY_SUPPORTED));
 	}
 
 	public void reset() {
@@ -478,20 +477,28 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * one step in the process.
 	 *
 	 * @param media
+	 * @param encodingFormat the EncodingFormat for transcoding
+	 * @param transcodingContainerOverride override the transcoding container to
+	 *                                     see whether it would be compatible in
+	 *                                     another one
 	 * @return whether this renderer supports the video stream type of this
 	 *         resource inside the container it wants for transcoding.
 	 */
-	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media, EncodingFormat encodingFormat) {
+	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media, EncodingFormat encodingFormat, String transcodingContainerOverride) {
 		if (media.getDefaultVideoTrack() == null) {
 			return true;
 		}
+
 		if (getFormatConfiguration() == null) {
 			return (
 				(encodingFormat.isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
 				(encodingFormat.isTranscodeToH265() && media.getDefaultVideoTrack().isH265())
 			);
 		}
-		return getFormatConfiguration().getMatchedMIMEtype(encodingFormat.getTranscodingContainer(), media.getDefaultVideoTrack().getCodec(), null) != null;
+
+		String transcodingContainer = transcodingContainerOverride != null ? transcodingContainerOverride : encodingFormat.getTranscodingContainer();
+
+		return getFormatConfiguration().getMatchedMIMEtype(transcodingContainer, media.getDefaultVideoTrack().getCodec(), null) != null;
 	}
 
 	/**
@@ -648,41 +655,61 @@ public class RendererConfiguration extends BaseConfiguration {
 		return file;
 	}
 
+	private String getTranscodeSeekBy() {
+		return getString(KEY_SEEK_BY_TIME, "false");
+	}
+
 	/**
-	 * Returns true if SeekByTime is set to "true" or "exclusive", false otherwise.
-	 * Default value is false.
+	 * Returns true if SeekByTime is set to "false", false otherwise. Default
+	 * value is true.
 	 *
-	 * @return true if the renderer supports seek-by-time, false otherwise.
+	 * @return true if the renderer supports seek-by-byte exclusively, false
+	 * otherwise.
 	 */
-	public boolean isSeekByTime() {
-		return isSeekByTimeExclusive() || getString(KEY_SEEK_BY_TIME, "false").equalsIgnoreCase("true");
+	public boolean isTranscodeSeekByByteExclusive() {
+		return getTranscodeSeekBy().equalsIgnoreCase("false");
+	}
+
+	/**
+	 * Returns true if SeekByTime is set to "true", false otherwise. Default
+	 * value is false.
+	 *
+	 * @return true if the renderer supports seek-by-byte and seek-by-time,
+	 * false otherwise.
+	 */
+	public boolean isTranscodeSeekByBoth() {
+		return getTranscodeSeekBy().equalsIgnoreCase("true");
 	}
 
 	/**
 	 * Returns true if SeekByTime is set to "exclusive", false otherwise.
 	 * Default value is false.
 	 *
-	 * @return true if the renderer supports seek-by-time exclusively
-	 * (i.e. not in conjunction with seek-by-byte), false otherwise.
+	 * @return true if the renderer supports seek-by-time exclusively (i.e. not
+	 * in conjunction with seek-by-byte), false otherwise.
 	 */
-	public boolean isSeekByTimeExclusive() {
-		return getString(KEY_SEEK_BY_TIME, "false").equalsIgnoreCase("exclusive");
+	public boolean isTranscodeSeekByTimeExclusive() {
+		return getTranscodeSeekBy().equalsIgnoreCase("exclusive");
 	}
 
 	/**
-	 * @return {boolean} whether the renderer supports H.264 inside MPEG-TS
+	 * Returns true if SeekByTime is set to "false" or "true", false otherwise.
+	 * Default value is true.
+	 *
+	 * @return true if the renderer supports seek-by-byte, false otherwise.
 	 */
-	public boolean isMuxH264MpegTS() {
-		boolean muxCompatible = getBoolean(KEY_MUX_H264_WITH_MPEGTS, true);
-		if (isUseMediaInfo()) {
-			muxCompatible = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
-		}
+	public boolean isTranscodeSeekByByte() {
+		return isTranscodeSeekByByteExclusive() || isTranscodeSeekByBoth();
+	}
 
-		if (!PlatformUtils.INSTANCE.isTsMuxeRCompatible()) {
-			muxCompatible = false;
-		}
-
-		return muxCompatible;
+	/**
+	 * Returns true if SeekByTime is set to "exclusive" or "true", false
+	 * otherwise. Default value is false.
+	 *
+	 * @return true if the renderer supports seek-by-time, false otherwise.
+	 */
+	public boolean isTranscodeSeekByTime() {
+		return isTranscodeSeekByTimeExclusive() || isTranscodeSeekByBoth();
 	}
 
 	public boolean isDTSPlayable() {
@@ -973,6 +1000,42 @@ public class RendererConfiguration extends BaseConfiguration {
 
 	public boolean isShowSubMetadata() {
 		return getBoolean(KEY_SHOW_SUB_METADATA, true);
+	}
+
+	/**
+	 * Whether to always send the album art URI.
+	 *
+	 * Some renderers need album art URIs as thumbnail URIs.
+	 *
+	 * @return whether to always send the album art URI
+	 */
+	public boolean needAlbumArtHack() {
+		return getBoolean(KEY_NEED_ALBUM_ART_HACK, true);
+	}
+
+	/**
+	 * The only AlbumArt DLNA Profile to use.
+	 *
+	 * Some renderers only accept one AlbumArt Profile on DIDL.
+	 *
+	 * The default value is "".
+	 *
+	 * @return The only AlbumArt DLNA Profile that will be used.
+	 */
+	public String getAlbumArtProfile() {
+		return getString(KEY_ALBUM_ART_PROFILE, "");
+	}
+
+	/**
+	 * Whether to send the versioned UPnP object id.
+	 *
+	 * Some renderers are buggy getting updated info if normal id is used.
+	 * They store the first info, then keep it.
+	 *
+	 * @return whether to send the versioned UPnP object id.
+	 */
+	public boolean needVersionedObjectId() {
+		return getBoolean(KEY_NEED_VERSIONED_OBJECT_ID, false);
 	}
 
 	/**

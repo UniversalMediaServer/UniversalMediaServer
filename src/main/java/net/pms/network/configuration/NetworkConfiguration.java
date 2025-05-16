@@ -512,12 +512,17 @@ public class NetworkConfiguration {
 	/**
 	 * @return available network interfaces as a JSON array
 	 */
-	public static synchronized JsonArray getNetworkInterfacesAsJsonArray() {
-		List<String> values = getDisplayNames();
-		List<String> labels = getDisplayNamesWithAddress();
-		values.add(0, "");
-		labels.add(0, "i18n@AutoDetect");
-		return UMSUtils.getListsAsJsonArrayOfObjects(values, labels, null);
+	public static JsonArray getNetworkInterfacesAsJsonArray() {
+		Map<String, String> interfaces = new HashMap<>();
+		interfaces.put("", "i18n@AutoDetect");
+		synchronized (INTERFACES_ASSOCIATIONS) {
+			for (NetworkInterfaceAssociation i : INTERFACES_ASSOCIATIONS.values()) {
+				interfaces.put(i.getDisplayNameWithAddress(), i.getDisplayName());
+			}
+		}
+		String[] values = interfaces.values().toArray(String[]::new);
+		String[] labels = interfaces.keySet().toArray(String[]::new);
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
 	/**
@@ -639,7 +644,7 @@ public class NetworkConfiguration {
 		boolean forcedInetAddress = StringUtils.isNotBlank(CONFIGURATION.getServerHostname());
 		NetworkInterfaceAssociation ia = null;
 		if (forcedNetworkInterface) {
-			LOGGER.info("Using forced network interface: {}", CONFIGURATION.getNetworkInterface());
+			LOGGER.debug("Using forced network interface: {}", CONFIGURATION.getNetworkInterface());
 			ia = NetworkConfiguration.getAddressForNetworkInterfaceName(CONFIGURATION.getNetworkInterface());
 			if (ia == null) {
 				LOGGER.error("Forced network interface {} not found on this system", CONFIGURATION.getNetworkInterface().trim().replace('\n', ' '));
@@ -653,7 +658,7 @@ public class NetworkConfiguration {
 		String hostname = CONFIGURATION.getServerHostname();
 		//look for ip on forced address
 		if (forcedInetAddress) {
-			LOGGER.info("Using forced address: {}", hostname);
+			LOGGER.debug("Using forced address: {}", hostname);
 			InetAddress inetAddress = null;
 			try {
 				inetAddress = InetAddress.getByName(hostname);
