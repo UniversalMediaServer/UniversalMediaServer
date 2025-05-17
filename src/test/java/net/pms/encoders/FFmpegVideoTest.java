@@ -35,11 +35,6 @@ public class FFmpegVideoTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	@BeforeAll
-	public static void setUpClass() {
-		ParserTest.setUpClass();
-	}
-
 	@Test
 	public void testDolbyVisionOutput() {
 		String engine = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
