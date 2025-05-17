@@ -53,7 +53,7 @@ public class FFmpegVideoTest {
 		args.add("-hide_banner");
 		args.add("-i");
 
-		File file = ParserTest.getTestFile("video-h265_dolbyvision_p05.05-eac3_atmos.mkv");
+		File file = ParserTest.getTestFile("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-srt.mkv");
 		args.add(file.getAbsolutePath());
 
 		// args.add("-filter_complex");
