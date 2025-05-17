@@ -78,6 +78,8 @@ public class FFmpegVideoTest {
 
 		args.add("file.ts");
 
+		System.out.println(args);
+
 		UmsConfiguration configuration;
 		boolean hasDolbyVisionOutput = false;
 
