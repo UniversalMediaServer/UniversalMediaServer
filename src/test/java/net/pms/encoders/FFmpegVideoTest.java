@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
-import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.FailSafeProcessWrapper;
 import net.pms.io.OutputParams;
@@ -29,8 +28,6 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.parsers.ParserTest;
 
 public class FFmpegVideoTest {
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-
 	@Test
 	public void testDolbyVisionOutput() {
 		String engine = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
@@ -68,34 +65,41 @@ public class FFmpegVideoTest {
 
 			args.add("file.ts");
 
-			OutputParams params = new OutputParams(CONFIGURATION);
-			params.setMaxBufferSize(1);
-			params.setNoExitCheck(true);
-
-			final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
-			FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
-			fspw.runInSameThread();
-
+			UmsConfiguration configuration;
 			boolean hasDolbyVisionOutput = false;
-			if (!fspw.hasFail()) {
-				boolean hasLoopedPastOutputLine = false;
-				for (String line : pw.getResults()) {
-					line = line.trim();
 
-					System.out.println("line: " + line);
-					if (line.startsWith("Output #0, mpegts, to 'file.ts':")) {
-						hasLoopedPastOutputLine = true;
-					}
+			try {
+				configuration = new UmsConfiguration(false);
 
-					if (hasLoopedPastOutputLine) {
-						if (line.startsWith("DOVI configuration record:")) {
-							hasDolbyVisionOutput = true;
+				OutputParams params = new OutputParams(configuration);
+				params.setMaxBufferSize(1);
+				params.setNoExitCheck(true);
+
+				final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
+				FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
+				fspw.runInSameThread();
+
+				if (!fspw.hasFail()) {
+					boolean hasLoopedPastOutputLine = false;
+					for (String line : pw.getResults()) {
+						line = line.trim();
+
+						System.out.println("line: " + line);
+						if (line.startsWith("Output #0, mpegts, to 'file.ts':")) {
+							hasLoopedPastOutputLine = true;
+						}
+
+						if (hasLoopedPastOutputLine) {
+							if (line.startsWith("DOVI configuration record:")) {
+								hasDolbyVisionOutput = true;
+							}
 						}
 					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-
-			assertEquals(hasDolbyVisionOutput, true);
+				assertEquals(hasDolbyVisionOutput, true);
 		}
 	}
 }
