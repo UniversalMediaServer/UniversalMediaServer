@@ -30,84 +30,80 @@ import net.pms.parsers.ParserTest;
 public class FFmpegVideoTest {
 	@Test
 	public void testDolbyVisionOutput() {
-		String engine = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
-		if (engine == null) {
-			System.out.println("Cannot parse since the FFmpeg executable is undefined");
-			UmsConfiguration umsConfiguration;
-			try {
-				umsConfiguration = new UmsConfiguration(false);
-				System.out.println("ffmpeg path: " + umsConfiguration.getFFmpegPath());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		} else {
-			System.out.println("engine: " + engine);
-			ArrayList<String> args = new ArrayList<>();
-			args.add(engine);
-			args.add("-hide_banner");
-			args.add("-y");
-			args.add("-i");
+		System.out.println("Cannot parse since the FFmpeg executable is undefined");
+		ArrayList<String> args = new ArrayList<>();
+		UmsConfiguration umsConfiguration;
+		try {
+			umsConfiguration = new UmsConfiguration(false);
+			args.add(umsConfiguration.getFFmpegPath());
+			System.out.println("ffmpeg path: " + umsConfiguration.getFFmpegPath());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-			File file = ParserTest.getTestFile("video-h265_dolbyvision_p05.05-eac3_atmos.mkv");
-			args.add(file.getAbsolutePath());
+		args.add("-hide_banner");
+		args.add("-y");
+		args.add("-i");
 
-			// args.add("-filter_complex");
-			// args.add("[0:v][0:s:0]overlay");
-			args.add("-maxrate");
-			args.add("89000k");
-			args.add("-crf");
-			args.add("16");
-			args.add("-c:a");
-			args.add("copy");
-			args.add("-c:v");
-			args.add("libx265");
-			args.add("-preset");
-			args.add("superfast");
-			args.add("-f");
-			args.add("mpegts");
+		File file = ParserTest.getTestFile("video-h265_dolbyvision_p05.05-eac3_atmos.mkv");
+		args.add(file.getAbsolutePath());
 
-			args.add("-x265-params");
-			args.add("vbv-maxrate=30000:vbv-bufsize=30000");
-			args.add("-dolbyvision");
-			args.add("1");
+		// args.add("-filter_complex");
+		// args.add("[0:v][0:s:0]overlay");
+		args.add("-maxrate");
+		args.add("89000k");
+		args.add("-crf");
+		args.add("16");
+		args.add("-c:a");
+		args.add("copy");
+		args.add("-c:v");
+		args.add("libx265");
+		args.add("-preset");
+		args.add("superfast");
+		args.add("-f");
+		args.add("mpegts");
 
-			args.add("file.ts");
+		args.add("-x265-params");
+		args.add("vbv-maxrate=30000:vbv-bufsize=30000");
+		args.add("-dolbyvision");
+		args.add("1");
 
-			UmsConfiguration configuration;
-			boolean hasDolbyVisionOutput = false;
+		args.add("file.ts");
 
-			try {
-				configuration = new UmsConfiguration(false);
+		UmsConfiguration configuration;
+		boolean hasDolbyVisionOutput = false;
 
-				OutputParams params = new OutputParams(configuration);
-				params.setMaxBufferSize(1);
-				params.setNoExitCheck(true);
+		try {
+			configuration = new UmsConfiguration(false);
 
-				final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
-				FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
-				fspw.runInSameThread();
+			OutputParams params = new OutputParams(configuration);
+			params.setMaxBufferSize(1);
+			params.setNoExitCheck(true);
 
-				if (!fspw.hasFail()) {
-					boolean hasLoopedPastOutputLine = false;
-					for (String line : pw.getResults()) {
-						line = line.trim();
+			final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
+			FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
+			fspw.runInSameThread();
 
-						System.out.println("line: " + line);
-						if (line.startsWith("Output #0, mpegts, to 'file.ts':")) {
-							hasLoopedPastOutputLine = true;
-						}
+			if (!fspw.hasFail()) {
+				boolean hasLoopedPastOutputLine = false;
+				for (String line : pw.getResults()) {
+					line = line.trim();
 
-						if (hasLoopedPastOutputLine) {
-							if (line.startsWith("DOVI configuration record:")) {
-								hasDolbyVisionOutput = true;
-							}
+					System.out.println("line: " + line);
+					if (line.startsWith("Output #0, mpegts, to 'file.ts':")) {
+						hasLoopedPastOutputLine = true;
+					}
+
+					if (hasLoopedPastOutputLine) {
+						if (line.startsWith("DOVI configuration record:")) {
+							hasDolbyVisionOutput = true;
 						}
 					}
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
-				assertEquals(hasDolbyVisionOutput, true);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		assertEquals(hasDolbyVisionOutput, true);
 	}
 }
