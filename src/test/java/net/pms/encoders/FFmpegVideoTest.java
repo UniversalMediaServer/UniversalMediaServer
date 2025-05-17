@@ -20,10 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.util.ArrayList;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.FailSafeProcessWrapper;
@@ -32,14 +29,13 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.parsers.ParserTest;
 
 public class FFmpegVideoTest {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	@Test
 	public void testDolbyVisionOutput() {
 		String engine = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
 		if (engine == null) {
-			LOGGER.warn("Cannot parse since the FFmpeg executable is undefined");
+			System.out.println("Cannot parse since the FFmpeg executable is undefined");
 			return;
 		}
 
