@@ -3438,8 +3438,15 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
