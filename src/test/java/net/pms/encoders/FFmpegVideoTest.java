@@ -36,67 +36,66 @@ public class FFmpegVideoTest {
 		String engine = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
 		if (engine == null) {
 			System.out.println("Cannot parse since the FFmpeg executable is undefined");
-			return;
-		}
+		} else {
+			ArrayList<String> args = new ArrayList<>();
+			args.add(engine);
+			args.add("-hide_banner");
+			args.add("-y");
+			args.add("-i");
 
-		ArrayList<String> args = new ArrayList<>();
-		args.add(engine);
-		args.add("-hide_banner");
-		args.add("-y");
-		args.add("-i");
+			File file = ParserTest.getTestFile("video-h265_dolbyvision_p05.05-eac3_atmos.mkv");
+			args.add(file.getAbsolutePath());
 
-		File file = ParserTest.getTestFile("video-h265_dolbyvision_p05.05-eac3_atmos.mkv");
-		args.add(file.getAbsolutePath());
+			// args.add("-filter_complex");
+			// args.add("[0:v][0:s:0]overlay");
+			args.add("-maxrate");
+			args.add("89000k");
+			args.add("-crf");
+			args.add("16");
+			args.add("-c:a");
+			args.add("copy");
+			args.add("-c:v");
+			args.add("libx265");
+			args.add("-preset");
+			args.add("superfast");
+			args.add("-f");
+			args.add("mpegts");
 
-		// args.add("-filter_complex");
-		// args.add("[0:v][0:s:0]overlay");
-		args.add("-maxrate");
-		args.add("89000k");
-		args.add("-crf");
-		args.add("16");
-		args.add("-c:a");
-		args.add("copy");
-		args.add("-c:v");
-		args.add("libx265");
-		args.add("-preset");
-		args.add("superfast");
-		args.add("-f");
-		args.add("mpegts");
+			args.add("-x265-params");
+			args.add("vbv-maxrate=30000:vbv-bufsize=30000");
+			args.add("-dolbyvision");
+			args.add("1");
 
-		args.add("-x265-params");
-		args.add("vbv-maxrate=30000:vbv-bufsize=30000");
-		args.add("-dolbyvision");
-		args.add("1");
+			args.add("file.ts");
 
-		args.add("file.ts");
+			OutputParams params = new OutputParams(CONFIGURATION);
+			params.setMaxBufferSize(1);
+			params.setNoExitCheck(true);
 
-		OutputParams params = new OutputParams(CONFIGURATION);
-		params.setMaxBufferSize(1);
-		params.setNoExitCheck(true);
+			final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
+			FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
+			fspw.runInSameThread();
 
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
-		FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
-		fspw.runInSameThread();
+			boolean hasDolbyVisionOutput = false;
+			if (!fspw.hasFail()) {
+				boolean hasLoopedPastOutputLine = false;
+				for (String line : pw.getResults()) {
+					line = line.trim();
 
-		boolean hasDolbyVisionOutput = false;
-		if (!fspw.hasFail()) {
-			boolean hasLoopedPastOutputLine = false;
-			for (String line : pw.getResults()) {
-				line = line.trim();
+					System.out.println("line: " + line);
+					if (line.startsWith("Output #0, mpegts, to 'file.ts':")) {
+						hasLoopedPastOutputLine = true;
+					}
 
-				System.out.println("line: " + line);
-				if (line.startsWith("Output #0, mpegts, to 'file.ts':")) {
-					hasLoopedPastOutputLine = true;
-				}
-
-				if (hasLoopedPastOutputLine) {
-					if (line.startsWith("DOVI configuration record:")) {
-						hasDolbyVisionOutput = true;
+					if (hasLoopedPastOutputLine) {
+						if (line.startsWith("DOVI configuration record:")) {
+							hasDolbyVisionOutput = true;
+						}
 					}
 				}
 			}
-		}
 
-		assertEquals(hasDolbyVisionOutput, true);
+			assertEquals(hasDolbyVisionOutput, true);
+		}
 	}
 }
