@@ -3364,6 +3364,27 @@
 							</execution>
 						</executions>
 					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>process-resources-linux</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<mkdir dir="${project.binaries}" />
+										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/bin/linux/ffmpeg" usetimestamp="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
 					<!--
 						Use the antrun plugin to:
 
