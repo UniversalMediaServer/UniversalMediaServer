@@ -50,7 +50,6 @@ public class FFmpegVideoTest {
 		}
 
 		args.add("-hide_banner");
-		args.add("-y");
 		args.add("-i");
 
 		File file = ParserTest.getTestFile("video-h265_dolbyvision_p05.05-eac3_atmos.mkv");
@@ -76,7 +75,7 @@ public class FFmpegVideoTest {
 		args.add("-dolbyvision");
 		args.add("1");
 
-		args.add("file.ts");
+		args.add("-");
 
 		System.out.println(args);
 
@@ -100,7 +99,7 @@ public class FFmpegVideoTest {
 					line = line.trim();
 
 					System.out.println("line: " + line);
-					if (line.startsWith("Output #0, mpegts, to 'file.ts':")) {
+					if (line.startsWith("Output #0, mpegts, to 'pipe:':")) {
 						hasLoopedPastOutputLine = true;
 					}
 
