@@ -801,7 +801,10 @@ public class FFmpegParser {
 
 			System.out.println("formatProfile " + formatProfile);
 			// for some codecs, the first bracket is the encoding library, not the profile. so skip past that
-			if (StringUtil.isEqual(formatProfile, "libaom-av1")) {
+			if (
+				StringUtil.isEqual(formatProfile, "libaom-av1") ||
+				StringUtil.isEqual(formatProfile, "libdav1d")
+			) {
 				System.out.println("is libaom-av1");
 				int profilePos2 = codec.indexOf('(', profilePos + 1);
 				int profilePos2End = codec.indexOf(')', profilePosEnd + 1);
