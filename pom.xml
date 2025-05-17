@@ -3383,7 +3383,10 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
+										<!-- Make sure the folders exist -->
 										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/linux" />
+
 										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/ffmpeg" usetimestamp="true" />
 									</target>
 								</configuration>
