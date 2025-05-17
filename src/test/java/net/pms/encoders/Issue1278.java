@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class Issue1278Test {
+public class Issue1278 {
 
 	@BeforeEach
 	public void setUp() {
