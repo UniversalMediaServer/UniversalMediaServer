@@ -35,6 +35,9 @@ public class FFmpegVideoTest {
 		UmsConfiguration umsConfiguration;
 		try {
 			umsConfiguration = new UmsConfiguration(false);
+			if (umsConfiguration.getFFmpegPath() == null) {
+				throw new Exception("no ffmpeg");
+			}
 			args.add(umsConfiguration.getFFmpegPath());
 			System.out.println("ffmpeg path: " + umsConfiguration.getFFmpegPath());
 		} catch (Exception e) {
