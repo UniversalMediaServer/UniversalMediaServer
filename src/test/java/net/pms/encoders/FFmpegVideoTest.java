@@ -34,6 +34,7 @@ public class FFmpegVideoTest {
 		if (engine == null) {
 			System.out.println("Cannot parse since the FFmpeg executable is undefined");
 		} else {
+						System.out.println("engine: " + engine);
 			ArrayList<String> args = new ArrayList<>();
 			args.add(engine);
 			args.add("-hide_banner");
