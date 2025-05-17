@@ -113,11 +113,11 @@ public class FFmpegParserTest {
 			getTestFileMediaInfo("video-h264-aac.avi").toString()
 		);
 		assertEquals(
-			"Container: MP4, Size: 245747, Overall Bitrate: 133120, Duration: 0:00:15.040, Video Tracks: 1 [Video Id: 0, Codec: av1, Format Profile: libaom-av1, Stream Order: 1, Resolution: 960 x 540, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Stream Order: 0, Bitrate: 8000, Channel: 1, Sample Frequency: 32000 Hz], Mime Type: video/mp4",
+			"Container: MP4, Size: 245747, Overall Bitrate: 133120, Duration: 0:00:15.040, Video Tracks: 1 [Video Id: 0, Codec: av1, Format Profile: main, Stream Order: 1, Resolution: 960 x 540, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Stream Order: 0, Bitrate: 8000, Channel: 1, Sample Frequency: 32000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-av1-aac.mp4").toString()
 		);
 		assertEquals(
-			"Container: MP4, Size: 690235, Overall Bitrate: 974848, Duration: 0:00:05.800, Video Tracks: 1 [Video Id: 0, Codec: av1, Format Profile: libaom-av1, Stream Order: 0, Resolution: 480 x 270, Frame Rate: 23.98], Mime Type: video/mp4",
+			"Container: MP4, Size: 690235, Overall Bitrate: 974848, Duration: 0:00:05.800, Video Tracks: 1 [Video Id: 0, Codec: av1, Format Profile: main, Stream Order: 0, Resolution: 480 x 270, Frame Rate: 23.98], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-av1.mp4").toString()
 		);
 		assertEquals(
