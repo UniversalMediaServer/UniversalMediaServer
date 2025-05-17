@@ -3370,8 +3370,8 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
-								<phase>process-resources</phase>
+								<id>process-test-resources-linux</id>
+								<phase>process-test-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -3432,8 +3432,8 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-macos</id>
-								<phase>process-resources</phase>
+								<id>process-test-resources-macos</id>
+								<phase>process-test-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -3491,8 +3491,8 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-windows</id>
-								<phase>process-resources</phase>
+								<id>process-test-resources-windows</id>
+								<phase>process-test-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
