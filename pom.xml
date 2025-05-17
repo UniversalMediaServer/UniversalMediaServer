@@ -3364,6 +3364,12 @@
 							</execution>
 						</executions>
 					</plugin>
+
+					<!--
+						Use the antrun plugin to:
+
+						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
@@ -3382,19 +3388,6 @@
 									</target>
 								</configuration>
 							</execution>
-						</executions>
-					</plugin>
-
-					<!--
-						Use the antrun plugin to:
-
-						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
 							<execution>
 								<id>copy-jar-with-dependencies-testing</id>
 								<phase>package</phase>
