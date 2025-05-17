@@ -30,7 +30,6 @@ import net.pms.parsers.ParserTest;
 public class FFmpegVideoTest {
 	@Test
 	public void testDolbyVisionOutput() {
-		System.out.println("Cannot parse since the FFmpeg executable is undefined");
 		ArrayList<String> args = new ArrayList<>();
 		UmsConfiguration umsConfiguration;
 		try {

@@ -3388,6 +3388,9 @@
 										<mkdir dir="${project.binaries}/linux" />
 
 										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/ffmpeg" usetimestamp="true" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/linux" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
