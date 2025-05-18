@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.FailSafeProcessWrapper;
@@ -29,8 +30,7 @@ import net.pms.parsers.ParserTest;
 import net.pms.platform.PlatformUtils;
 
 public class FFmpegVideoTest {
-	@Test
-	public void testDolbyVisionOutput() {
+	public List<String> getFFmpegOutput(String filename, ArrayList<String> ffmpegArgs) {
 		ArrayList<String> args = new ArrayList<>();
 		UmsConfiguration umsConfiguration;
 		try {
@@ -39,7 +39,6 @@ public class FFmpegVideoTest {
 				throw new Exception("no ffmpeg");
 			}
 			args.add(umsConfiguration.getFFmpegPath());
-			System.out.println("ffmpeg path: " + umsConfiguration.getFFmpegPath());
 		} catch (Exception e) {
 			System.out.println("did not find ffmpeg, falling back manually");
 			// this is a lazy workaround for an error, but the error has nothing to do with the purpose of the test
@@ -53,8 +52,39 @@ public class FFmpegVideoTest {
 		args.add("-hide_banner");
 		args.add("-i");
 
-		File file = ParserTest.getTestFile("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-srt.mkv");
+		File file = ParserTest.getTestFile(filename);
 		args.add(file.getAbsolutePath());
+
+		args.addAll(ffmpegArgs);
+
+		args.add("-");
+
+		UmsConfiguration configuration;
+
+		try {
+			configuration = new UmsConfiguration(false);
+
+			OutputParams params = new OutputParams(configuration);
+			params.setMaxBufferSize(1);
+			params.setNoExitCheck(true);
+
+			final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
+			FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
+			fspw.runInSameThread();
+
+			if (!fspw.hasFail()) {
+				return pw.getResults();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	@Test
+	public void testDolbyVisionOutput() {
+		ArrayList<String> args = new ArrayList<>();
 
 		// args.add("-filter_complex");
 		// args.add("[0:v][0:s:0]overlay");
@@ -76,44 +106,26 @@ public class FFmpegVideoTest {
 		args.add("-dolbyvision");
 		args.add("1");
 
-		args.add("-");
+		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-srt.mkv", args);
 
-		System.out.println(args);
-
-		UmsConfiguration configuration;
 		boolean hasDolbyVisionOutput = false;
+		boolean hasLoopedPastOutputLine = false;
+		for (String line : ffmpegOutput) {
+			line = line.trim();
 
-		try {
-			configuration = new UmsConfiguration(false);
+			// System.out.println("line: " + line);
+			if (line.startsWith("Output #0, mpegts, to 'pipe:':")) {
+				hasLoopedPastOutputLine = true;
+			}
 
-			OutputParams params = new OutputParams(configuration);
-			params.setMaxBufferSize(1);
-			params.setNoExitCheck(true);
-
-			final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
-			FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
-			fspw.runInSameThread();
-
-			if (!fspw.hasFail()) {
-				boolean hasLoopedPastOutputLine = false;
-				for (String line : pw.getResults()) {
-					line = line.trim();
-
-					System.out.println("line: " + line);
-					if (line.startsWith("Output #0, mpegts, to 'pipe:':")) {
-						hasLoopedPastOutputLine = true;
-					}
-
-					if (hasLoopedPastOutputLine) {
-						if (line.startsWith("DOVI configuration record:")) {
-							hasDolbyVisionOutput = true;
-						}
-					}
+			if (hasLoopedPastOutputLine) {
+				if (line.startsWith("DOVI configuration record:")) {
+					hasDolbyVisionOutput = true;
+					break;
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+
 		assertEquals(hasDolbyVisionOutput, true);
 	}
 }
