@@ -49,10 +49,11 @@ public class FFmpegVideoTest {
 			}
 		}
 
-		args.add("-analyzeduration");
-		args.add("100M");
-		args.add("-probesize");
-		args.add("100M");
+		// uncomment these for files with streams that don't get parsed
+		// args.add("-analyzeduration");
+		// args.add("100M");
+		// args.add("-probesize");
+		// args.add("100M");
 
 		args.add("-i");
 		File file = ParserTest.getTestFile(filename);
@@ -109,7 +110,7 @@ public class FFmpegVideoTest {
 		args.add("-dolbyvision");
 		args.add("1");
 
-		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-hdmv_pgs.mkv", args);
+		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex.mkv", args);
 
 		boolean hasDolbyVisionOutput = false;
 		boolean hasLoopedPastOutputLine = false;
@@ -151,14 +152,14 @@ public class FFmpegVideoTest {
 		args.add("-f");
 		args.add("mpegts");
 
-		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-hdmv_pgs.mkv", args);
+		List<String> ffmpegOutput = getFFmpegOutput("video-h265-eac3-hdmv_pgs.mkv", args);
 
 		boolean finishedEncoding = false;
 		for (String line : ffmpegOutput) {
 			line = line.trim();
 
 			System.out.println("line: " + line);
-			if (line.startsWith("encoded 334 frames in")) {
+			if (line.startsWith("encoded 935 frames in")) {
 				finishedEncoding = true;
 			}
 		}
