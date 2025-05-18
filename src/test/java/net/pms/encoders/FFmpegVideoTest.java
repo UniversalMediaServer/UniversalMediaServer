@@ -106,7 +106,7 @@ public class FFmpegVideoTest {
 		args.add("-dolbyvision");
 		args.add("1");
 
-		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-srt.mkv", args);
+		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-hdmv_pgs.mkv", args);
 
 		boolean hasDolbyVisionOutput = false;
 		boolean hasLoopedPastOutputLine = false;
@@ -148,7 +148,7 @@ public class FFmpegVideoTest {
 		args.add("-f");
 		args.add("mpegts");
 
-		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-srt.mkv", args);
+		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-hdmv_pgs.mkv", args);
 
 		boolean finishedEncoding = false;
 		for (String line : ffmpegOutput) {
