@@ -128,4 +128,38 @@ public class FFmpegVideoTest {
 
 		assertEquals(hasDolbyVisionOutput, true);
 	}
+
+	@Test
+	public void testHardcodingSubtitles() {
+		ArrayList<String> args = new ArrayList<>();
+
+		args.add("-filter_complex");
+		args.add("[0:v][0:s:0]overlay");
+		args.add("-maxrate");
+		args.add("89000k");
+		args.add("-crf");
+		args.add("16");
+		args.add("-c:a");
+		args.add("copy");
+		args.add("-c:v");
+		args.add("libx265");
+		args.add("-preset");
+		args.add("superfast");
+		args.add("-f");
+		args.add("mpegts");
+
+		List<String> ffmpegOutput = getFFmpegOutput("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex-srt.mkv", args);
+
+		boolean finishedEncoding = false;
+		for (String line : ffmpegOutput) {
+			line = line.trim();
+
+			System.out.println("line: " + line);
+			if (line.startsWith("encoded 334 frames in")) {
+				finishedEncoding = true;
+			}
+		}
+
+		assertEquals(finishedEncoding, true);
+	}
 }
