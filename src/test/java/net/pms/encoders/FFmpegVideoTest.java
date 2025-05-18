@@ -49,9 +49,12 @@ public class FFmpegVideoTest {
 			}
 		}
 
-		args.add("-hide_banner");
-		args.add("-i");
+		args.add("-analyzeduration");
+		args.add("100M");
+		args.add("-probesize");
+		args.add("100M");
 
+		args.add("-i");
 		File file = ParserTest.getTestFile(filename);
 		args.add(file.getAbsolutePath());
 
