@@ -971,21 +971,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tabler/icons-react@npm:^3.31.0":
-  version: 3.31.0
-  resolution: "@tabler/icons-react@npm:3.31.0"
+"@tabler/icons-react@npm:^3.33.0":
+  version: 3.33.0
+  resolution: "@tabler/icons-react@npm:3.33.0"
   dependencies:
-    "@tabler/icons": "npm:3.31.0"
+    "@tabler/icons": "npm:3.33.0"
   peerDependencies:
     react: ">= 16"
-  checksum: 10c0/aceefe1b6c12a2e64921900f49c09c0c24bcd837dfb3d4274914065e33a5175944f1e25ce9a80d110272e5ae0fefc24062a38f1ec75a4ec79c63d40acb9d1d12
+  checksum: 10c0/1b3eac2a5029ed1509f521c17eb35ce7c0b125a76b7eb58a50d123ae6a888e0538a179f192ae38ed9988fc1b775334482bfb4722976e2208d97ae8bbb689ddf7
   languageName: node
   linkType: hard
 
-"@tabler/icons@npm:3.31.0":
-  version: 3.31.0
-  resolution: "@tabler/icons@npm:3.31.0"
-  checksum: 10c0/03fcfff0b705e1474030acee2ff0523bfa1fda7a29a33d031a9fd8e3b52ecc2e0380f9cf5e81bd054b30dc0acdb819b1e08ab746805be8d660934a08b2c3545e
+"@tabler/icons@npm:3.33.0":
+  version: 3.33.0
+  resolution: "@tabler/icons@npm:3.33.0"
+  checksum: 10c0/c31a1eb5a018b81b540715635a556bf7324fe71c2ec2c09dd4f2e9655e2339060865eb2672deb9c05ee1898b79a21116a76194b6c6156df7bf54682323b613ac
   languageName: node
   linkType: hard
 
@@ -5170,7 +5170,7 @@ __metadata:
     "@microsoft/fetch-event-source": "npm:2.0.1"
     "@playwright/test": "npm:1.52.0"
     "@stylistic/eslint-plugin": "npm:4.2.0"
-    "@tabler/icons-react": "npm:^3.31.0"
+    "@tabler/icons-react": "npm:^3.33.0"
     "@types/lodash": "npm:4.17.16"
     "@types/react": "npm:19.1.2"
     "@types/react-dom": "npm:19.1.3"
