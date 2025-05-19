@@ -25,6 +25,7 @@
 - Bump `eslint-plugin-react` from 7.37.4 to 7.37.5 ([#5518](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5518))
 - Bump `eslint` from 9.24.0 to 9.26.0 ([#5515](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5515))
 - Bump `org.apache.commons:commons-collections4` from 4.4 to 4.5.0 ([#5497](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5497))
+- Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.18 to 1.19 ([#5540](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5540))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.16 to 12.0.19 ([#5494](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5494))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.16 to 12.0.19 ([#5494](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5494))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.16 to 12.0.19 ([#5494](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5494))
