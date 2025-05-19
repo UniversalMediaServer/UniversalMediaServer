@@ -138,7 +138,7 @@ public class FFmpegVideoTest {
 		ArrayList<String> args = new ArrayList<>();
 
 		args.add("-filter_complex");
-		args.add("[0:v][0:s:0]overlay");
+		args.add("[0:v][0:s:0]overlay,format=yuv420p");
 		args.add("-maxrate");
 		args.add("89000k");
 		args.add("-crf");
