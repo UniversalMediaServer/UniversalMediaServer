@@ -187,13 +187,13 @@ public class RadioNetwork {
 			LOGGER.info("{} : no favorites filter available.", this.network.displayName);
 		}
 	}
-	
+
 	public List<String> getFilters() {
 		return filters;
 	}
 
 	private void updateChannels() {
-		LOGGER.debug("{} : updating channels ..." , this.network.displayName);
+		LOGGER.debug("{} : updating channels ...", this.network.displayName);
 		channels = new ArrayList<>();
 		ChannelFilter allFilter = getChannelByName("all");
 		if (allFilter != null) {
@@ -243,7 +243,7 @@ public class RadioNetwork {
 		for (ChannelJson channelJson : allChannels) {
 			int errorConter = 0;
 			try {
-				ContentResponse response = httpBlocking.GET(channelJson.getPlaylist());				
+				ContentResponse response = httpBlocking.GET(channelJson.getPlaylist());
 				String url = getBestUrlFromPlaylist(response.getContentAsString());
 				preferredChannels[i] = new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {
