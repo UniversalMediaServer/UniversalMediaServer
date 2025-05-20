@@ -197,7 +197,7 @@ public class RendererItem implements IRendererGuiListener {
 		isActive = renderer.isActive();
 		isAllowed = renderer.isAllowed();
 		isAuthenticated = renderer.isAuthenticated();
-		userId = renderer.getUserId();
+		userId = RendererUser.getUserId(uuid);
 		controls = renderer.getControls();
 		state = renderer.getPlayer().getState();
 	}
