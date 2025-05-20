@@ -3,12 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `@mantine/core` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
-- Bump `@mantine/dropzone` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
-- Bump `@mantine/form` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
-- Bump `@mantine/hooks` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
-- Bump `@mantine/modals` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
-- Bump `@mantine/notifications` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
+- Bump `@mantine/core` from 7.17.4 to 8.0.0 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493), [#5526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5526))
+- Bump `@mantine/dropzone` from 7.17.4 to 8.0.0 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493), [#5526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5526))
+- Bump `@mantine/form` from 7.17.4 to 8.0.0 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493), [#5526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5526))
+- Bump `@mantine/hooks` from 7.17.4 to 8.0.0 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493), [#5526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5526))
+- Bump `@mantine/modals` from 7.17.4 to 8.0.0 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493), [#5526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5526))
+- Bump `@mantine/notifications` from 7.17.4 to 8.0.0 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493), [#5526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5526))
 - Bump `@playwright/test` from 1.51.1 to 1.52.0 ([#5516](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5516))
 - Bump `@tabler/icons-react` from 3.31.0 to 3.33.0 ([#5544](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5544))
 - Bump `@types/react-dom` from 19.1.2 to 19.1.3 ([#5509](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5509))
