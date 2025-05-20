@@ -17,7 +17,7 @@
     "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar",
     "private:removeconfig:macos": "rm -rf ~/Library/'Application Support'/UMS-tests"
   },
-  "packageManager": "yarn@4.6.0",
+  "packageManager": "yarn@4.9.1",
   "dependencies": {
     "@mantine/core": "7.17.7",
     "@mantine/dropzone": "7.17.7",
