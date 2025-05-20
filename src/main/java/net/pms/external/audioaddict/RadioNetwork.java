@@ -3,17 +3,28 @@ package net.pms.external.audioaddict;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.eclipse.jetty.client.AuthenticationStore;
+import org.eclipse.jetty.client.BasicAuthentication;
+import org.eclipse.jetty.client.CompletableResponseListener;
+import org.eclipse.jetty.client.ContentResponse;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.Request;
+import org.eclipse.jetty.util.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,12 +35,6 @@ import net.pms.external.audioaddict.mapper.ChannelFilter;
 import net.pms.external.audioaddict.mapper.ChannelJson;
 import net.pms.external.audioaddict.mapper.Favorite;
 import net.pms.external.audioaddict.mapper.Root;
-import okhttp3.Call;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 public class RadioNetwork {
 
@@ -46,15 +51,17 @@ public class RadioNetwork {
 	private static String listenKey = null;
 	private static boolean authenticated = false;
 
-	private static OkHttpClient okClient = new OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build();;
-	private static OkHttpClient okClientBatch = new OkHttpClient.Builder()
-		.addInterceptor(new BasicAuthInterceptor("ephemeron", "dayeiph0ne@pp")).readTimeout(30, TimeUnit.SECONDS).build();
+	private HttpClient httpNonBlocking = new HttpClient();
+	private HttpClient httpBlocking = new HttpClient();
+	private HttpClient httpBatch = new HttpClient();
 
 	private volatile Root networkBatchRoot = null;
-	private volatile LinkedList<String> filters = null;
+	private volatile LinkedList<String> filters = new LinkedList<>();;
+	private volatile List<AudioAddictChannelDto> channels = null;
+	private volatile List<Integer> favoriteChannelId = null;
+	private volatile Channel[] channelUrls = null;
 
 	private ObjectMapper om = null;
-	private List<AudioAddictChannelDto> channels = null;
 	private StreamListQuality quality = StreamListQuality.MP3_320;
 	private LinkedHashMap<String, List<Integer>> channelsFilterMap = new LinkedHashMap<>();
 	private AudioAddictServiceConfig config = null;
@@ -64,23 +71,35 @@ public class RadioNetwork {
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
 		this.network = network;
+	}
+
+	public void start() {
+		AuthenticationStore auth = httpBatch.getAuthenticationStore();
+		URI uri = URI.create("http://api.audioaddict.com/v1");
+		auth.addAuthenticationResult(new BasicAuthentication.BasicResult(uri, "ephemeron", "dayeiph0ne@pp"));
+
+		httpBatch.setConnectTimeout(30000);
+		httpBlocking.setConnectTimeout(10000);
+		httpNonBlocking.setConnectTimeout(10000);
+
+		try {
+			httpNonBlocking.start();
+			httpBatch.start();
+			httpBlocking.start();
+		} catch (Exception e) {
+			LOGGER.error("cannot start http clients", e);
+		}
 
 		om = JsonMapper.builder().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build();
 		if (apiKey == null) {
 			authenticate();
 		}
-		initRoot();
-	}
 
-	private void initRoot() {
 		Runnable r = new Runnable() {
-
 			@Override
 			public void run() {
-				LOGGER.info("{} : reading batch update for network ...", network.name());
-				networkBatchRoot = readNetworkBatch();
-				LOGGER.info("{} : reading filters of network ... ", network.name());
-				getFilters();
+				LOGGER.info("{} : initializing ...", network.name());
+				readNetworkBatch();
 			}
 		};
 		EXEC_SERVICE.execute(r);
@@ -92,15 +111,17 @@ public class RadioNetwork {
 
 	private void authenticate() {
 		String url = "https://api.audioaddict.com/v1/di/members/authenticate";
-		RequestBody formBody = new FormBody.Builder().add("username", config.user).add("password", config.pass).build();
-		Request request = new Request.Builder().url(url).post(formBody).build();
-		Call call = okClient.newCall(request);
-		try (Response response = call.execute()) {
-			String resp = response.body().string();
-			if (response.code() != 200) {
+		Fields fields = new Fields();
+		fields.put("username", config.user);
+		fields.put("password", config.pass);
+		try {
+			ContentResponse response = httpNonBlocking.FORM(url, fields);
+			String resp = response.getContentAsString();
+			if (response.getStatus() != 200) {
 				authenticated = false;
-				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.code(), resp);
+				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.getStatus(), resp);
 			} else {
+				LOGGER.info("successfully authenticated user {}", config.user);
 				authenticated = true;
 				Matcher m = API_KEY_PATTERN.matcher(resp);
 				if (m.find()) {
@@ -115,23 +136,21 @@ public class RadioNetwork {
 					LOGGER.warn("listen-key not found!");
 				}
 			}
-		} catch (Exception e) {
-			LOGGER.error("http call failed.", e);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			LOGGER.error("authentication failed", e);
 		}
 	}
 
 	public void updateConfig(AudioAddictServiceConfig config) {
 		this.config = config;
-		initRoot();
+		start();
 	}
 
 	public List<AudioAddictChannelDto> getChannel() {
-		checkChannelAvailable();
 		return channels;
 	}
 
 	public List<AudioAddictChannelDto> getFilteredChannels(String filterName) {
-		checkChannelAvailable();
 		if (channelsFilterMap.get(filterName) == null) {
 			getFilters();
 		}
@@ -145,135 +164,69 @@ public class RadioNetwork {
 		return filtered;
 	}
 
-	private void checkChannelAvailable() {
-		if (channels == null) {
-			updateChannels();
+	private void updateFilters() {
+		LOGGER.info("{} : updating filter ...", this.network.displayName);
+		filters = new LinkedList<>();
+		for (ChannelFilter filter : networkBatchRoot.channelFilters) {
+			this.filters.add(filter.name);
+			List<Integer> filterChannelId = new ArrayList<>();
+			for (net.pms.external.audioaddict.mapper.Channel c : filter.channels) {
+				filterChannelId.add(c.id);
+				LOGGER.debug("{} : added channel id {} to filterlist {} ", this.network.displayName, c.id, filter.name);
+			}
+			channelsFilterMap.put(filter.name, filterChannelId);
+		}
+		if (favoriteChannelId.size() > 0) {
+			LOGGER.info("{} : added favorites filter with {} entries", this.network.displayName, favoriteChannelId.size());
+			LinkedHashMap<String, List<Integer>> newMap = (LinkedHashMap<String, List<Integer>>) channelsFilterMap.clone();
+			channelsFilterMap.clear();
+			channelsFilterMap.put(FAV, favoriteChannelId);
+			channelsFilterMap.putAll(newMap);
+			filters.addFirst(FAV);
+		} else {
+			LOGGER.info("{} : no favorites filter available.", this.network.displayName);
 		}
 	}
-
+	
 	public List<String> getFilters() {
-		if (networkBatchRoot == null) {
-			// not initialized yet ...
-			LOGGER.debug("{} : not initialized yet. please wait ... ");
-			return new ArrayList<>();
-		}
-		checkChannelAvailable();
-		if (filters == null) {
-			filters = new LinkedList<>();
-			List<Integer> favList = null;
-			for (ChannelFilter filter : networkBatchRoot.channelFilters) {
-				this.filters.add(filter.name);
-				List<Integer> filterChannelId = new ArrayList<>();
-				for (net.pms.external.audioaddict.mapper.Channel c : filter.channels) {
-					filterChannelId.add(c.id);
-					LOGGER.debug("{} : added channel id {} to filterlist {} ", this.network.displayName, c.id, filter.name);
-				}
-				channelsFilterMap.put(filter.name, filterChannelId);
-				if ("all".equalsIgnoreCase(filter.name)) {
-					favList = getFavorites(filter);
-				}
-			}
-			if (favList != null) {
-				LOGGER.info("{} : added favorites filter with {} entries", this.network.displayName, favList.size());
-				LinkedHashMap<String, List<Integer>> newMap = (LinkedHashMap<String, List<Integer>>) channelsFilterMap.clone();
-				channelsFilterMap.clear();
-				channelsFilterMap.put(FAV, favList);
-				channelsFilterMap.putAll(newMap);
-				filters.addFirst(FAV);
-			} else {
-				LOGGER.info("{} : no favorites filter available.", this.network.displayName);
-			}
-		}
-		LOGGER.debug("returning {} filter for network {} ", filters.size(), network.displayName);
 		return filters;
 	}
 
-	private List<Integer> getFavorites(ChannelFilter filter) {
-		List<Integer> filterChannelId = new ArrayList<>();
-		String url = String.format("https://api.audioaddict.com/v1/%s/members/1/favorites/channels?api_key=%s", network.shortName, apiKey);
-		String body = responseBodyUserPass(url);
-		LOGGER.debug("response to my favorites request : " + body);
-
-		Favorite[] favChannels;
-		try {
-			favChannels = om.readValue(body, Favorite[].class);
-			for (Favorite favorite : favChannels) {
-				LOGGER.debug("{} : favorite channel id {} added.", network.displayName, favorite.getChannelId());
-				filterChannelId.add(favorite.getChannelId());
-			}
-		} catch (JsonProcessingException e) {
-			LOGGER.warn("failed processing favorites", e);
-		}
-
-		if (filterChannelId.size() > 0) {
-			return filterChannelId;
-		}
-		LOGGER.info("{} : has no favorite channels", network.displayName);
-		return null;
-	}
-
 	private void updateChannels() {
-		Channel[] channelUrls = getChannels();
+		LOGGER.debug("{} : updating channels ..." , this.network.displayName);
 		channels = new ArrayList<>();
-		for (net.pms.external.audioaddict.mapper.Channel c : getChannelByName("all").channels) {
-			AudioAddictChannelDto dto = new AudioAddictChannelDto();
-			dto.tracklistServerId = c.tracklistServerId;
-			dto.id = c.id;
-			dto.key = c.key;
-			dto.name = c.name;
-			Optional<Channel> s = Arrays.stream(channelUrls).filter(channel -> channel.id() == c.id).findAny();
-			if (s.isPresent()) {
-				dto.streamUrl = s.get().url();
-			} else {
-				LOGGER.warn("{} : URL not present for channel {} ", this.network.displayName, c.name);
+		ChannelFilter allFilter = getChannelByName("all");
+		if (allFilter != null) {
+			for (net.pms.external.audioaddict.mapper.Channel c : allFilter.channels) {
+				AudioAddictChannelDto dto = new AudioAddictChannelDto();
+				dto.tracklistServerId = c.tracklistServerId;
+				dto.id = c.id;
+				dto.key = c.key;
+				dto.name = c.name;
+				Optional<Channel> s = Arrays.stream(channelUrls).filter(channel -> channel.id() == c.id).findAny();
+				if (s.isPresent()) {
+					dto.streamUrl = s.get().url();
+				} else {
+					LOGGER.warn("{} : URL not present for channel {} ", this.network.displayName, c.name);
+				}
+				dto.albumArt = c.assetUrl;
+				dto.descLong = c.descriptionLong;
+				dto.descShort = c.descriptionShort;
+				channels.add(dto);
 			}
-			dto.albumArt = c.assetUrl;
-			dto.descLong = c.descriptionLong;
-			dto.descShort = c.descriptionShort;
-			channels.add(dto);
+			LOGGER.info("{} : received {} channels.", this.network.displayName, channels.size());
+		} else {
+			LOGGER.warn("ALL filter unavailable. [TODO] Adjust retrieving logic for channels of this notwork.");
 		}
-		LOGGER.info("{} : updates {} channels.", this.network.displayName, channels.size());
 	}
 
 	private ChannelFilter getChannelByName(String filterName) {
 		Optional<ChannelFilter> allFilter = networkBatchRoot.channelFilters.stream()
 			.filter(filter -> filter.name.equalsIgnoreCase(filterName)).findAny();
 		if (allFilter.isEmpty()) {
-			throw new RuntimeException("ALL filter not present");
+			return null;
 		} else {
 			return allFilter.get();
-		}
-	}
-
-	private Root readNetworkBatch() {
-		String url = String.format("http://api.audioaddict.com/v1/%s/mobile/batch_update?stream_set_key=", network.shortName);
-		LOGGER.debug("{} : using batch url : {}", this.network.displayName, url);
-		String batchResponse = responseBodyBatch(url);
-		LOGGER.debug(batchResponse);
-		try {
-			Root root = om.readValue(batchResponse, Root.class);
-			LOGGER.info("{} : network initialized.", this.network.displayName);
-			return root;
-		} catch (JsonProcessingException e) {
-			LOGGER.error("{} : OR exception read batch channel exception", network.name(), e);
-		}
-		LOGGER.warn("{} : initializing network failed.", network.name());
-		return null;
-	}
-
-	/*
-	 * Get all channels on this network
-	 */
-	private Channel[] getChannels() {
-		LOGGER.debug("get channels ... ");
-		String url = String.format("%s/%s", network.listenUrl, quality.path);
-		String channelsJson = responseBodyUserPass(url);
-		try {
-			ChannelJson[] allChannels = om.readValue(channelsJson, ChannelJson[].class);
-			return convertPlsToUrl(allChannels);
-		} catch (JsonProcessingException e) {
-			LOGGER.error("read channels failed.", e);
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -288,10 +241,22 @@ public class RadioNetwork {
 		Channel[] preferredChannels = new Channel[allChannels.length];
 		int i = 0;
 		for (ChannelJson channelJson : allChannels) {
-			String url = String.format("%s?%s", getBestUrlFromPlaylist(channelJson), listenKey);
-			preferredChannels[i] = new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url);
+			int errorConter = 0;
+			try {
+				ContentResponse response = httpBlocking.GET(channelJson.getPlaylist());				
+				String url = getBestUrlFromPlaylist(response.getContentAsString());
+				preferredChannels[i] = new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url);
+			} catch (InterruptedException | ExecutionException | TimeoutException e) {
+				LOGGER.error("{} : convert playlist to url failed for item {} : {}", this.network.displayName, i, channelJson.getPlaylist(), e);
+				if (errorConter < 2) {
+					i--;
+					LOGGER.warn("couldn't read playlist. Will try again ... ");
+				}
+				errorConter++;
+			}
 			i++;
 		}
+		LOGGER.debug("{} : received {} streaming url's.", this.network.displayName, preferredChannels.length);
 		return preferredChannels;
 	}
 
@@ -301,8 +266,7 @@ public class RadioNetwork {
 	 * @param channelJson
 	 * @return
 	 */
-	private String getBestUrlFromPlaylist(ChannelJson channelJson) {
-		String body = responseBodyUserPass(channelJson.getPlaylist());
+	private String getBestUrlFromPlaylist(String body) {
 		BufferedReader sr = new BufferedReader(new StringReader(body));
 		String streamUrl = "";
 		String line = "";
@@ -328,45 +292,79 @@ public class RadioNetwork {
 		return streamUrl;
 	}
 
-	private String responseBodyUserPass(String url) {
-		Request request = new Request.Builder().url(url).build();
+	private void readFavorites() {
+		LOGGER.debug("{} : reading favorites ... ", this.network.displayName);
+		favoriteChannelId = new ArrayList<>();
+		try {
+			String url = String.format("https://api.audioaddict.com/v1/%s/members/1/favorites/channels?api_key=%s", network.shortName,
+				apiKey);
+			Request request = httpNonBlocking.newRequest(url);
+			CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, 5 * 1024 * 1024).send();
+			completable.whenComplete((response, failure) -> {
+				LOGGER.info("{} : updating favorites", network.displayName);
+				try {
+					Favorite[] favChannels = om.readValue(response.getContentAsString(), Favorite[].class);
+					for (Favorite favorite : favChannels) {
+						LOGGER.debug("{} : favorite channel id {} added.", network.displayName, favorite.getChannelId());
+						favoriteChannelId.add(favorite.getChannelId());
+					}
+				} catch (JsonProcessingException e) {
+					LOGGER.warn("failed processing favorites", e);
+				}
+				updateFilters();
+			});
+			completable.get(10, TimeUnit.SECONDS);
 
-		Call call = okClient.newCall(request);
-		try (Response response = call.execute()) {
-			String resp = response.body().string();
-			if (response.code() != 200) {
-				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.code(), resp);
-				return "";
-			}
-
-			return resp;
-		} catch (Exception e) {
-			LOGGER.error("http call failed.", e);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			LOGGER.error("{} : readFavorites failed", this.network.displayName, e);
 		}
-		return "";
 	}
 
-	private String responseBodyBatch(String url) {
-		Request request = new Request.Builder().url(url).build();
-
-		Call call = okClientBatch.newCall(request);
-		try (Response response = call.execute()) {
-			String resp = response.body().string();
-			if (response.code() != 200) {
-				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.code(), resp);
-				return "";
+	/*
+	 * Get all channels on this network
+	 */
+	private void readChannels() {
+		LOGGER.debug("{} : reading channel list ... ");
+		String url = String.format("%s/%s", network.listenUrl, quality.path);
+		Request request = httpNonBlocking.newRequest(url);
+		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, 5 * 1024 * 1024).send();
+		completable.whenComplete((response, failure) -> {
+			LOGGER.info("{} : analyzing channels ...", network.displayName);
+			try {
+				ChannelJson[] allChannels = om.readValue(response.getContentAsString(), ChannelJson[].class);
+				channelUrls = convertPlsToUrl(allChannels);
+			} catch (JsonProcessingException e) {
+				LOGGER.error("read channels failed.", e);
+				throw new RuntimeException(e);
 			}
+			updateChannels();
+			readFavorites();
+		});
+	}
 
-			return resp;
-		} catch (Exception e) {
-			LOGGER.error("http call failed.", e);
-		}
-		return "";
+	private void readNetworkBatch() {
+		String url = String.format("http://api.audioaddict.com/v1/%s/mobile/batch_update?stream_set_key=", network.shortName);
+		Request request = httpBatch.newRequest(url);
+		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, 5 * 1024 * 1024).send();
+		completable.whenComplete((response, failure) -> {
+			try {
+				LOGGER.info("{} : analyzing batch update content ...", network.displayName);
+				if (response.getStatus() != 200) {
+					LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.getStatus(),
+						response.getContentAsString());
+				} else {
+					networkBatchRoot = om.readValue(response.getContentAsString(), Root.class);
+					LOGGER.info("{} : read network root data.", this.network.displayName);
+					readChannels();
+				}
+			} catch (JsonProcessingException e) {
+				LOGGER.error("reading network failed", e);
+			}
+		});
 	}
 
 	protected void setQuality(StreamListQuality quality) {
 		this.quality = quality;
 		this.channels = null;
 	}
-
 }

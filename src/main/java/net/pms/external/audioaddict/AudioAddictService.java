@@ -19,7 +19,6 @@ public class AudioAddictService implements ConfigurationListener {
 
 	private ConcurrentHashMap<Platform, RadioNetwork> networkSettings = new ConcurrentHashMap<>();
 
-
 	public static AudioAddictService get() {
 		return singleton;
 	}
@@ -36,7 +35,6 @@ public class AudioAddictService implements ConfigurationListener {
 		conf.preferEuropeanServer = ums.isAudioAddictEuropeanServer();
 
 		networkSettings.clear();
-
 		for (Platform network : Platform.values()) {
 			getNetwork(network);
 		}
@@ -51,12 +49,13 @@ public class AudioAddictService implements ConfigurationListener {
 		return network.getChannel();
 	}
 
-	private RadioNetwork getNetwork(Platform platform) {
+	private synchronized RadioNetwork getNetwork(Platform platform) {
 		RadioNetwork network = networkSettings.get(platform);
 
 		if (network == null) {
 			network = new RadioNetwork(platform, conf);
 			networkSettings.put(platform, network);
+			network.start();
 		}
 		return network;
 	}
