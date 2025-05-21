@@ -14,89 +14,87 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Affix, Box, Button, Text } from '@mantine/core'
-import axios, { AxiosError, AxiosResponse } from 'axios'
-import _ from 'lodash'
-import { useEffect, useState } from 'react'
+import { Box, Button, Group, Text } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import axios from 'axios';
+import _ from 'lodash';
+import { useEffect, useState } from 'react';
+import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { ServerEventInterface } from '../../services/server-event-service';
+import { SessionInterface } from '../../services/session-service';
+import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
+import SharedContentSettings from './SharedContentSettings';
+import { showError, showInfo } from '../../utils/notifications';
 
-import { I18nInterface } from '../../services/i18n-service'
-import { SessionInterface, UmsPermission } from '../../services/session-service'
-import { SharedContentConfiguration, SharedContentInterface } from '../../services/shared-service'
-import { sharedApiUrl } from '../../utils'
-import { showError, showInfo } from '../../utils/notifications'
-import SharedContentSettings from './SharedContentSettings'
+export default function SharedContent({ i18n, main, sse, session }: { i18n: I18nInterface, main:MainInterface, sse: ServerEventInterface, session: SessionInterface }) {
+  const [isLoading, setLoading] = useState(true);
+  const [configuration, setConfiguration] = useState({} as any);
 
-export default function SharedContent({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) {
-  const [isLoading, setLoading] = useState(true)
-  const [configuration, setConfiguration] = useState<SharedContentConfiguration>()
-  const [sharedContents, setSharedContents] = useState<SharedContentInterface[]>()
-  const [modified, setModified] = useState(false)
-  const canModify = session.havePermission(UmsPermission.settings_modify)
-  const canView = canModify || session.havePermission(UmsPermission.settings_view)
+  const form = useForm({ initialValues: {} as Record<string, unknown> });
+  const formSetValues = form.setValues;
 
+  const canModify = havePermission(session, Permissions.settings_modify);
+  const canView = canModify || havePermission(session, Permissions.settings_view);
+
+  //set the document Title to Shared Content
   useEffect(() => {
-    session.subscribeTo('SharedContent')
+    document.title="Universal Media Server - Shared Content";
+    session.useSseAs('SharedContent')
     session.stopPlayerSse()
-    session.setDocumentI18nTitle('SharedContent')
-    session.setNavbarManage(SharedContent.name)
-  }, [])
+    main.setNavbarValue(undefined)
+  }, []);
 
   useEffect(() => {
-    if (session.serverConfiguration === null) {
-      return
+    if (sse.userConfiguration === null) {
+      return;
     }
 
-    const currentConfiguration = _.cloneDeep(configuration)
+    const currentConfiguration = _.cloneDeep(configuration);
     // set a fresh state for shared_content
-    if (session.serverConfiguration['shared_content'] && currentConfiguration !== undefined) {
-      currentConfiguration.shared_content = []
+    if (sse.userConfiguration['shared_content']) {
+      delete currentConfiguration['shared_content'];
     }
 
-    const newConfiguration = _.merge({}, currentConfiguration, session.serverConfiguration)
-    session.setServerConfiguration(null)
-    setConfiguration(newConfiguration)
-    setSharedContents(newConfiguration.shared_content)
-  }, [configuration, session.serverConfiguration])
+    const newConfiguration = _.merge({}, currentConfiguration, sse.userConfiguration);
+    sse.setUserConfiguration(null);
+    setConfiguration(newConfiguration);
+    formSetValues(newConfiguration);
+  }, [configuration, sse, formSetValues]);
 
   useEffect(() => {
     if (canView) {
       axios.get(sharedApiUrl)
-        .then(function (response: AxiosResponse) {
-          const sharedResponse = response.data as SharedContentConfiguration
-          setConfiguration(sharedResponse)
-          setSharedContents(sharedResponse.shared_content)
+        .then(function(response: any) {
+          const sharedResponse = response.data;
+          setConfiguration(sharedResponse);
+          formSetValues(sharedResponse);
         })
-        .catch(function (error: AxiosError) {
-          if (!error.response && error.request) {
-            i18n.showServerUnreachable()
-          }
-          else {
-            showError({
-              id: 'data-loading',
-              title: i18n.get('Error'),
-              message: i18n.get('ConfigurationNotReceived'),
-              message2: i18n.getReportLink(),
-            })
-          }
+        .catch(function() {
+          showError({
+            id: 'data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
+            onClick: () => { openGitHubNewIssue(); },
+          });
         })
-        .then(function () {
-          setLoading(false)
-        })
+        .then(function() {
+          setLoading(false);
+        });
     }
-  }, [canView])
+  }, [canView, formSetValues]);
 
-  useEffect(() => {
-    setModified(!_.isEqual(configuration?.shared_content, sharedContents))
-  }, [configuration, sharedContents])
-
-  const submit = async () => {
-    setLoading(true)
+  const handleSubmit = async (values: typeof form.values) => {
+    setLoading(true);
     try {
-      const changedValues: Record<string, unknown> = {}
+      const changedValues: Record<string, any> = {};
 
       // construct an object of only changed values to send
-      if (!_.isEqual(configuration?.shared_content, sharedContents)) {
-        changedValues['shared_content'] = sharedContents
+      for (const key in values) {
+        if (!_.isEqual(configuration[key], values[key])) {
+          changedValues[key] = values[key] ? values[key] : null;
+        }
       }
 
       if (_.isEmpty(changedValues)) {
@@ -104,50 +102,43 @@ export default function SharedContent({ i18n, session }: { i18n: I18nInterface, 
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationHasNoChanges'),
         })
-      }
-      else {
-        await axios.post(sharedApiUrl, changedValues)
-        setLoading(false)
+      } else {
+        await axios.post(sharedApiUrl, changedValues);
+        setConfiguration(values);
+        setLoading(false);
         showInfo({
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
         })
       }
-    }
-    catch {
+    } catch (err) {
       showError({
         title: i18n.get('Error'),
-        message: i18n.get('ConfigurationNotSaved'),
-        message2: i18n.getReportLink(),
+        message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
+        onClick: () => { openGitHubNewIssue(); },
       })
     }
-    setLoading(false)
-  }
 
-  return canView
-    ? (
-        <Box style={{ maxWidth: 1024 }} mx="auto">
-          <Text size="lg" mb="md">{i18n.get('SharedContent')}</Text>
-          {sharedContents && configuration && (
-            <SharedContentSettings i18n={i18n} canModify={canModify} scan={session.mediaScan} sharedContents={sharedContents} setSharedContents={setSharedContents} configuration={configuration} />
-          )}
-          {canModify && modified && (
-            <Box h={50}>
-              <Affix withinPortal={false} position={{ bottom: 20, right: 20 }}>
-                <Button
-                  loading={isLoading}
-                  onClick={() => submit()}
-                >
-                  {i18n.get('Save')}
-                </Button>
-              </Affix>
-            </Box>
-          )}
-        </Box>
-      )
-    : (
-        <Box style={{ maxWidth: 1024 }} mx="auto">
-          <Text c="red">{i18n.get('YouDontHaveAccessArea')}</Text>
-        </Box>
-      )
+    setLoading(false);
+  };
+
+  return canView ? (
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
+      <form onSubmit={form.onSubmit(handleSubmit)}>
+        <Text size="lg" mb="md">{i18n.get('SharedContent')}</Text>
+        {SharedContentSettings(i18n, sse, session, form, configuration)}
+        {canModify && (
+          <Group justify='flex-end' mt='md'>
+            <Button type='submit' loading={isLoading}>
+              {i18n.get('Save')}
+            </Button>
+          </Group>
+        )}
+      </form>
+    </Box>
+  ) : (
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
+      <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
+    </Box>
+  );
 }

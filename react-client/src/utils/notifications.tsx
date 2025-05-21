@@ -14,117 +14,84 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Stack } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { MouseEventHandler } from 'react'
 
-const setDuration = (key: string, defaultDuration: number, duration: number) => {
-  if (duration == defaultDuration) {
-    localStorage.removeItem(key)
-  }
-  else if (!isNaN(duration)) {
-    localStorage.setItem(key, duration.toString())
-  }
-}
-const getDuration = (key: string, defaultDuration: number) => {
-  if (!localStorage.getItem(key)) {
-    return defaultDuration
-  }
-  const duration = Number(localStorage.getItem(key))
-  return isNaN(duration) ? defaultDuration : duration
-}
-
-const keyInfoDuration = 'infoDuration'
-const defaultInfoDuration = 4000
-export const setInfoDuration = (duration: number) => {
-  setDuration(keyInfoDuration, defaultInfoDuration, duration)
-}
-export const getInfoDuration = () => {
-  return getDuration(keyInfoDuration, defaultInfoDuration)
-}
-
-const keyWarningDuration = 'warningDuration'
-const defaultWarningDuration = 8000
-export const setWarningDuration = (duration: number) => {
-  setDuration(keyWarningDuration, defaultWarningDuration, duration)
-}
-export const getWarningDuration = () => {
-  return getDuration(keyWarningDuration, defaultWarningDuration)
-}
-
-const keyErrorDuration = 'errorDuration'
-const defaultErrorDuration = 0
-export const setErrorDuration = (duration: number) => {
-  setDuration(keyErrorDuration, defaultErrorDuration, duration)
-}
 export const getErrorDuration = () => {
-  return getDuration(keyErrorDuration, defaultErrorDuration)
+  if (!localStorage.getItem('errorDuration')) {
+    return 0
+  }
+  return Number(localStorage.getItem('errorDuration'))
 }
 
-const getMessage = (message: React.ReactNode, message2?: React.ReactNode) => {
-  return message2
-    ? (
-        <Stack gap="xs">
-          <Box>{message}</Box>
-          <Box>{message2}</Box>
-        </Stack>
-      )
-    : message
+export const getWarningDuration = () => {
+  if (!localStorage.getItem('warningDuration')) {
+    return 8000
+  }
+  return Number(localStorage.getItem('warningDuration'))
 }
-export const showLoading = ({ id, message, message2, title }: { id: string, message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode }) => {
+
+export const getInfoDuration = () => {
+  if (!localStorage.getItem('infoDuration')) {
+    return 4000
+  }
+  return Number(localStorage.getItem('infoDuration'))
+}
+
+export const showLoading = ({ id, message, title }: { id: string, message: React.ReactNode, title?: React.ReactNode }) => {
   notifications.show({
     id: id,
     loading: true,
     title: title,
-    message: getMessage(message, message2),
+    message: message,
     autoClose: false,
     withCloseButton: false,
   })
 }
 
-export const showInfo = ({ id, message, message2, title }: { id?: string, message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode }) => {
+export const showInfo = ({ id, message, title }: { id?: string, message: React.ReactNode, title?: React.ReactNode }) => {
   const duration = getInfoDuration()
   notifications.show({
     id: id,
     title: title,
-    message: getMessage(message, message2),
+    message: message,
     autoClose: duration === 0 ? false : duration,
     withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
-export const showSuccess = ({ id, message, message2, title }: { id?: string, message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode }) => {
+export const showSuccess = ({ id, message, title }: { id?: string, message: React.ReactNode, title?: React.ReactNode }) => {
   const duration = getInfoDuration()
   notifications.show({
     id: id,
     color: 'teal',
     title: title,
-    message: getMessage(message, message2),
+    message: message,
     autoClose: duration === 0 ? false : duration,
     withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
-export const showWarning = ({ id, message, message2, title, onClick }: { id?: string, message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode, onClick?: MouseEventHandler | undefined }) => {
+export const showWarning = ({ id, message, title, onClick }: { id?: string, message: React.ReactNode, title?: React.ReactNode, onClick?: MouseEventHandler | undefined }) => {
   const duration = getWarningDuration()
   notifications.show({
     id: id,
     color: 'orange',
     title: title,
-    message: getMessage(message, message2),
+    message: message,
     autoClose: duration === 0 ? false : duration,
     onClick: onClick,
     withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
-export const showError = ({ id, message, message2, title, icon, onClick }: { id?: string, message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode, icon?: React.ReactNode, onClick?: MouseEventHandler | undefined }) => {
+export const showError = ({ id, message, title, icon, onClick }: { id?: string, message: React.ReactNode, title?: React.ReactNode, icon?: React.ReactNode, onClick?: MouseEventHandler | undefined }) => {
   const duration = getErrorDuration()
   notifications.show({
     id: id,
     color: 'red',
     title: title,
-    message: getMessage(message, message2),
+    message: message,
     icon: icon,
     autoClose: duration === 0 ? false : duration,
     withCloseButton: duration === 0 || duration > 5000,
@@ -132,42 +99,42 @@ export const showError = ({ id, message, message2, title, icon, onClick }: { id?
   })
 }
 
-export const updateSuccess = ({ id, message, message2, title, icon }: { id: string, message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode, icon?: React.ReactNode }) => {
+export const updateSuccess = ({ id, message, title, icon }: { id: string, message: React.ReactNode, title?: React.ReactNode, icon?: React.ReactNode }) => {
   const duration = getInfoDuration()
   notifications.update({
     id: id,
     loading: false,
     color: 'teal',
     title: title,
-    message: getMessage(message, message2),
+    message: message,
     icon: icon,
     autoClose: duration === 0 ? false : duration,
     withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
-export const updateInfo = ({ id, message, message2, title, icon }: { id: string, message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode, icon?: React.ReactNode }) => {
+export const updateInfo = ({ id, message, title, icon }: { id: string, message: React.ReactNode, title?: React.ReactNode, icon?: React.ReactNode }) => {
   const duration = getInfoDuration()
   notifications.update({
     id: id,
     loading: false,
     color: undefined,
     title: title,
-    message: getMessage(message, message2),
+    message: message,
     icon: icon,
     autoClose: duration === 0 ? false : duration,
     withCloseButton: duration === 0 || duration > 5000,
   })
 }
 
-export const updateError = ({ id, message, message2, title, icon, onClick }: { id: string, message: React.ReactNode, message2?: React.ReactNode, title?: React.ReactNode, icon?: React.ReactNode, onClick?: MouseEventHandler | undefined }) => {
+export const updateError = ({ id, message, title, icon, onClick }: { id: string, message: React.ReactNode, title?: React.ReactNode, icon?: React.ReactNode, onClick?: MouseEventHandler | undefined }) => {
   const duration = getErrorDuration()
   notifications.update({
     id: id,
     loading: false,
     color: 'red',
     title: title,
-    message: getMessage(message, message2),
+    message: message,
     icon: icon,
     autoClose: duration === 0 ? false : duration,
     withCloseButton: duration === 0 || duration > 5000,

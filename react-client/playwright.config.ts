@@ -21,7 +21,6 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'line',
-
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -34,18 +33,14 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'setup',
-      testMatch: /global.setup\.ts/,
-      teardown: 'teardown',
-    },
-    {
-      name: 'teardown',
-      testMatch: /global.teardown\.ts/,
-    },
-    {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
+      dependencies: ['global setup'],
+    },
+
+    {
+      name: 'global setup',
+      testMatch: /global\.setup\.ts/,
     },
 
     // {
@@ -83,7 +78,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run test:runserver:macos',
-      url: 'http://localhost:9002',
+      url: 'http://localhost:9001',
       reuseExistingServer: !process.env.CI,
       timeout: 480000,
     },

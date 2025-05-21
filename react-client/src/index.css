@@ -66,27 +66,9 @@ code {
   overflow-y: hidden;
 }
 
-.thumbnail-container:hover, .thumbnail-container:focus {
+.thumbnail-container:hover {
   background-color: var(--mantine-color-default-hover);
   color: var(--mantine-color-bright);
-}
-
-.color-bright-hover {
-  color: var(--mantine-color-dimmed);
-}
-
-.color-bright-hover:hover {
-  color: var(--mantine-color-bright);
-}
-
-.fake-button-default, .fake-button-default-hover {
-  background-color: var(--mantine-color-default);
-  color: var(--mantine-color-default-color);
-}
-
-.fake-button-default-hover:hover {
-  cursor: pointer;
-  background-color: var(--mantine-color-default-hover);
 }
 
 nav button .mantine-Button-inner {
@@ -111,8 +93,4 @@ nav button .mantine-Button-inner:hover {
 
 .mantine-Breadcrumbs-root .mantine-Button-inner:hover {
   color: var(--mantine-color-bright);
-}
-
-.hidden {
-  display: none;
 }

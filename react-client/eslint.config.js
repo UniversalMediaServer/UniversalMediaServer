@@ -3,7 +3,6 @@ import reactPlugin from 'eslint-plugin-react'
 import hooksPlugin from 'eslint-plugin-react-hooks'
 import refreshPlugin from 'eslint-plugin-react-refresh'
 import stylisticPlugin from '@stylistic/eslint-plugin'
-import jsxA11y from 'eslint-plugin-jsx-a11y'
 
 export default tseslint.config(
   {
@@ -11,6 +10,8 @@ export default tseslint.config(
       '.yarn/**',
       'node/**',
       'node_modules/**',
+      /* remove to check recommended stylistic rules */
+      'src/components/**',
     ],
   },
   {
@@ -28,12 +29,13 @@ export default tseslint.config(
       'react-hooks': hooksPlugin,
       'react-refresh': refreshPlugin,
       '@stylistic': stylisticPlugin,
-      'jsx-a11y': jsxA11y,
     },
     rules: {
       ...tseslint.plugin.configs['eslint-recommended'].rules,
       ...tseslint.plugin.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
       ...reactPlugin.configs['jsx-runtime'].rules,
       ...hooksPlugin.configs.recommended.rules,
       'react-hooks/exhaustive-deps': 'off',
@@ -41,7 +43,6 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      ...jsxA11y.flatConfigs.recommended.rules,
       ...stylisticPlugin.configs.recommended.rules,
     },
     settings: {

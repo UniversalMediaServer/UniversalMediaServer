@@ -29,23 +29,10 @@ export default defineConfig({
   server: {
     open: '/',
     proxy: {
-      '/v1': {
-        target: { host: 'localhost', port: 9001 },
-        configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, res, _target) => {
-            if (!res.headersSent && !res.writableEnded) {
-              res.destroy(err)
-            }
-          })
-        },
-        ws: true,
-      },
+      '/v1': 'http://localhost:9001',
     },
     watch: {
       usePolling: true,
-    },
-    sourcemapIgnoreList(sourcePath, _sourcemapPath) {
-      return sourcePath.indexOf('node_modules') > -1
     },
   },
 })
