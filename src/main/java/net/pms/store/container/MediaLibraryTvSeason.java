@@ -16,7 +16,7 @@
  */
 package net.pms.store.container;
 
-import net.pms.media.video.metadata.ApiSeason;
+import net.pms.media.video.metadata.TvSeasonMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +28,7 @@ public class MediaLibraryTvSeason extends MediaLibraryFolder {
 
 	private final Integer tvSeasonId;
 	private TvSeriesMetadata tvSeriesMetadata;
-	private String seasonName = "";
+	private TvSeasonMetadata tvSeasonMetadata;
 
 	public MediaLibraryTvSeason(Renderer renderer, String i18nName, String tvSeason, String[] sql, int[] expectedOutput) {
 		super(renderer, i18nName, sql, expectedOutput, tvSeason);
@@ -37,7 +37,7 @@ public class MediaLibraryTvSeason extends MediaLibraryFolder {
 
 	@Override
 	public String getName() {
-		return super.getName().concat(getSeasonName());
+		return super.getName().concat(getSeasonName(null));
 	}
 
 	/**
@@ -47,7 +47,7 @@ public class MediaLibraryTvSeason extends MediaLibraryFolder {
 	 */
 	@Override
 	public String getLocalizedDisplayName(String lang) {
-		return super.getLocalizedDisplayName(lang).concat(getSeasonName());
+		return super.getLocalizedDisplayName(lang).concat(getSeasonName(lang));
 	}
 
 	private TvSeriesMetadata getTvSeriesMetadata() {
@@ -64,19 +64,20 @@ public class MediaLibraryTvSeason extends MediaLibraryFolder {
 	 *
 	 * @return the season name or empty string.
 	 */
-	private synchronized String getSeasonName() {
-		if (seasonName.isEmpty() && getTvSeriesMetadata() != null && tvSeriesMetadata.getSeasons() != null && tvSeasonId != null) {
-			for (ApiSeason season : tvSeriesMetadata.getSeasons()) {
-				if (season.getSeasonNumber() == tvSeasonId) {
-					if (!StringUtils.isBlank(season.getName()) &&
-							!season.getName().equalsIgnoreCase("Season " + season.getSeasonNumber())) {
-						seasonName = ": " + season.getName();
-					}
-					break;
-				}
-			}
+	private synchronized String getSeasonName(String lang) {
+		if (getTvSeasonMetadata() != null &&
+			!tvSeasonMetadata.getName(null).equalsIgnoreCase("Season " + tvSeasonMetadata.getSeasonNumber()) &&
+			!StringUtils.isBlank(tvSeasonMetadata.getName(lang))) {
+			return ": " + tvSeasonMetadata.getName(lang);
 		}
-		return seasonName;
+		return lang == null ? "" : getSeasonName(null);
+	}
+
+	public TvSeasonMetadata getTvSeasonMetadata() {
+		if (tvSeasonMetadata == null && getTvSeriesMetadata() != null && tvSeasonId != null) {
+			tvSeasonMetadata = tvSeriesMetadata.getSeasonMetadata(tvSeasonId);
+		}
+		return tvSeasonMetadata;
 	}
 
 	private static Integer getInteger(String value) {

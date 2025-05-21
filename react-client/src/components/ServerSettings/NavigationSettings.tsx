@@ -1,0 +1,219 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core'
+import { UseFormReturnType } from '@mantine/form'
+
+import { sendAction } from '../../services/actions-service'
+import { I18nInterface } from '../../services/i18n-service'
+import { SelectionSettingsData } from '../../services/settings-service'
+import { allowHtml, defaultTooltipSettings } from '../../utils'
+import DirectoryChooser from '../DirectoryChooser/DirectoryChooser'
+
+export default function NavigationSettings({
+  i18n,
+  canModify,
+  form,
+  defaultConfiguration,
+  selectionSettings,
+}: {
+  i18n: I18nInterface
+  canModify: boolean
+  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
+  defaultConfiguration: Record<string, unknown>
+  selectionSettings: SelectionSettingsData | undefined
+}) {
+  const resetCache = async () => {
+    await sendAction('Server.ResetCache')
+  }
+
+  return (
+    <Accordion>
+      <Accordion.Item value="NavigationGeneralSettings">
+        <Accordion.Control>{i18n.get('GeneralSettings')}</Accordion.Control>
+        <Accordion.Panel>
+          <Group justify="space-between">
+            {canModify && (
+              <Tooltip label={allowHtml(i18n.get('CacheEmptiedExceptFullyPlayed'))} {...defaultTooltipSettings}>
+                <Button
+                  size="xs"
+                  onClick={() => resetCache()}
+                >
+                  {i18n.get('ResetCache')}
+                </Button>
+              </Tooltip>
+            )}
+          </Group>
+          <Stack align="flex-start" mt="xs">
+            <Tooltip label={allowHtml(i18n.get('WhenEnabledPartiallyWatchVideo'))} {...defaultTooltipSettings}>
+              <Checkbox
+                label={i18n.get('EnableVideoResuming')}
+                {...form.getInputProps('resume', { type: 'checkbox' })}
+              />
+            </Tooltip>
+            <Tooltip label={allowHtml(i18n.get('ThisMakesBrowsingSlower'))} {...defaultTooltipSettings}>
+              <Checkbox
+                label={i18n.get('HideEmptyFolders')}
+                {...form.getInputProps('hide_empty_folders', { type: 'checkbox' })}
+              />
+            </Tooltip>
+            <Tooltip label={allowHtml(i18n.get('TreatMultipleSymbolicLinks'))} {...defaultTooltipSettings}>
+              <Checkbox
+                label={i18n.get('UseTargetFileSymbolicLinks')}
+                {...form.getInputProps('use_symlinks_target_file', { type: 'checkbox' })}
+              />
+            </Tooltip>
+            <Checkbox
+              label={i18n.get('BrowseCompressedArchives')}
+              {...form.getInputProps('enable_archive_browsing', { type: 'checkbox' })}
+            />
+            <Tooltip label={allowHtml(i18n.get('IfNumberItemsFolderExceeds'))} {...defaultTooltipSettings}>
+              <NumberInput
+                label={i18n.get('MinimumItemLimitBeforeAZ')}
+                {...form.getInputProps('atz_limit')}
+              />
+            </Tooltip>
+          </Stack>
+          <Select
+            label={i18n.get('FullyPlayedAction')}
+            data={i18n.getValueLabelData(selectionSettings?.fullyPlayedActions)}
+            {...form.getInputProps('fully_played_action')}
+          />
+          {(form.values['fully_played_action'] === '3' || form.values['fully_played_action'] === '5') && (
+            <DirectoryChooser
+              i18n={i18n}
+              label={i18n.get('DestinationFolder')}
+              path={form.getInputProps('fully_played_output_directory').value}
+              callback={(directory: string) => form.setFieldValue('fully_played_output_directory', directory)}
+            />
+          )}
+        </Accordion.Panel>
+      </Accordion.Item>
+      <Accordion.Item value="NavigationThumbnails">
+        <Accordion.Control>{i18n.get('Thumbnails')}</Accordion.Control>
+        <Accordion.Panel>
+          <Checkbox
+            label={i18n.get('GenerateThumbnails')}
+            {...form.getInputProps('generate_thumbnails', { type: 'checkbox' })}
+          />
+          <NumberInput
+            label={i18n.get('ThumbnailSeekingPosition')}
+            disabled={!form.values['generate_thumbnails']}
+            placeholder={defaultConfiguration.thumbnail_seek_position?.toString()}
+            hideControls
+            {...form.getInputProps('thumbnail_seek_position')}
+          />
+          <DirectoryChooser
+            i18n={i18n}
+            path={form.getInputProps('alternate_thumb_folder').value}
+            callback={(directory: string) => form.setFieldValue('alternate_thumb_folder', directory)}
+            label={i18n.get('AlternateVideoCoverArtFolder')}
+          />
+          <Select
+            label={i18n.get('AudioThumbnailsImport')}
+            data={i18n.getValueLabelData(selectionSettings?.audioCoverSuppliers)}
+            {...form.getInputProps('audio_thumbnails_method')}
+          />
+        </Accordion.Panel>
+      </Accordion.Item>
+      <Accordion.Item value="NavigationFileSortingNaming">
+        <Accordion.Control>{i18n.get('FileSortingNaming')}</Accordion.Control>
+        <Accordion.Panel>
+          <Stack align="flex-start">
+            <Select
+              label={i18n.get('FileOrder')}
+              data={i18n.getValueLabelData(selectionSettings?.sortMethods)}
+              {...form.getInputProps('sort_method')}
+            />
+            <Checkbox
+              label={i18n.get('IgnoreArticlesATheSorting')}
+              {...form.getInputProps('ignore_the_word_a_and_the', { type: 'checkbox' })}
+            />
+            <Tooltip label={allowHtml(i18n.get('IfEnabledFilesWillAppear'))} {...defaultTooltipSettings}>
+              <Checkbox
+                label={i18n.get('PrettifyFilenames')}
+                {...form.getInputProps('prettify_filenames', { type: 'checkbox' })}
+              />
+            </Tooltip>
+            <Checkbox
+              label={i18n.get('HideFileExtensions')}
+              disabled={form.values['prettify_filenames'] === true}
+              {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
+            />
+            <Tooltip label={allowHtml(i18n.get('AddsInformationAboutSelectedSubtitles'))} {...defaultTooltipSettings}>
+              <Select
+                label={i18n.get('AddSubtitlesInformationVideoNames')}
+                data={i18n.getValueLabelData(selectionSettings?.subtitlesInfoLevels)}
+                {...form.getInputProps('subs_info_level')}
+              />
+            </Tooltip>
+            <Tooltip label={allowHtml(i18n.get('IfEnabledEngineNameDisplayed'))} {...defaultTooltipSettings}>
+              <Checkbox
+                label={i18n.get('AddEnginesNamesAfterFilenames')}
+                checked={!form.values['hide_enginenames']}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  form.setFieldValue('hide_enginenames', !event.currentTarget.checked)
+                }}
+              />
+            </Tooltip>
+          </Stack>
+        </Accordion.Panel>
+      </Accordion.Item>
+      <Accordion.Item value="NavigationVirtualFoldersFiles">
+        <Accordion.Control>{i18n.get('VirtualFoldersFiles')}</Accordion.Control>
+        <Accordion.Panel>
+          <Stack>
+            <Tooltip label={allowHtml(i18n.get('MediaLibraryFolderWillAvailable'))} {...defaultTooltipSettings}>
+              <Checkbox
+                label={i18n.get('ShowMediaLibraryFolder')}
+                {...form.getInputProps('show_media_library_folder', { type: 'checkbox' })}
+              />
+            </Tooltip>
+            <Checkbox
+              label={i18n.get('ShowRecentlyPlayedFolder')}
+              {...form.getInputProps('show_recently_played_folder', { type: 'checkbox' })}
+            />
+            <Checkbox
+              label={i18n.get('ShowServerSettingsFolder')}
+              {...form.getInputProps('show_server_settings_folder', { type: 'checkbox' })}
+            />
+            <Checkbox
+              label={i18n.get('ShowTranscodeFolder')}
+              {...form.getInputProps('show_transcode_folder', { type: 'checkbox' })}
+            />
+            <Group>
+              <Checkbox
+                disabled={!form.values['show_transcode_folder']}
+                label={i18n.get('ChaptersSupportInTranscodeFolder')}
+                {...form.getInputProps('chapter_support', { type: 'checkbox' })}
+              />
+              <NumberInput
+                disabled={!form.values['show_transcode_folder'] || !form.values['chapter_support']}
+                placeholder={defaultConfiguration.chapter_interval?.toString()}
+                hideControls
+                {...form.getInputProps('chapter_interval')}
+              />
+            </Group>
+            <Checkbox
+              label={i18n.get('ShowLiveSubtitlesFolder')}
+              {...form.getInputProps('show_live_subtitles_folder', { type: 'checkbox' })}
+            />
+          </Stack>
+        </Accordion.Panel>
+      </Accordion.Item>
+    </Accordion>
+  )
+}

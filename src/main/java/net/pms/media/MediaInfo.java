@@ -16,6 +16,8 @@
  */
 package net.pms.media;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,6 +63,7 @@ public class MediaInfo implements Cloneable {
 
 	// Stored in database
 	private Long fileId;
+	private String resourceId;
 	private String lastParser;
 	private Double durationSec;
 	private int bitrate;
@@ -110,6 +113,14 @@ public class MediaInfo implements Cloneable {
 
 	public void setFileId(Long value) {
 		fileId = value;
+	}
+
+	public String getResourceId() {
+		return resourceId;
+	}
+
+	public void setResourceId(String value) {
+		resourceId = value;
 	}
 
 	public int getVideoTrackCount() {
@@ -773,6 +784,74 @@ public class MediaInfo implements Cloneable {
 			}
 			sb.append(" [").append(subtitleTrack).append("]");
 		}
+	}
+
+	public JsonObject toJson() {
+		JsonObject result = new JsonObject();
+		if (getContainer() != null) {
+			result.addProperty("container", getContainer().toUpperCase(Locale.ROOT));
+		}
+		result.addProperty("size", getSize());
+		if (isVideo()) {
+			result.addProperty("mediaType", "video");
+			result.addProperty("bitrate", getBitRate());
+			if (StringUtils.isNotBlank(getTitle())) {
+				result.addProperty("title", getTitle());
+			}
+			if (getFrameRate() != null) {
+				result.addProperty("framerate", getFrameRate());
+			}
+			result.addProperty("duration", getDurationString());
+			if (getVideoTrackCount() > 0) {
+				JsonArray videotracks = new JsonArray();
+				for (MediaVideo video : getVideoTracks()) {
+					videotracks.add(video.toJson());
+				}
+				result.add("videotracks", videotracks);
+			}
+			if (getAudioTrackCount() > 0) {
+				JsonArray audiotracks = new JsonArray();
+				for (MediaAudio audio : getAudioTracks()) {
+					audiotracks.add(audio.toJson());
+				}
+				result.add("audiotracks", audiotracks);
+			}
+			if (getSubtitleTrackCount() > 0) {
+				JsonArray subtitlestracks = new JsonArray();
+				for (MediaSubtitle subtitlesTrack : getSubtitlesTracks()) {
+					subtitlestracks.add(subtitlesTrack.toJson());
+				}
+				result.add("subtitlestracks", subtitlestracks);
+			}
+		} else if (getAudioTrackCount() > 0) {
+			result.addProperty("mediaType", "audio");
+			result.addProperty("bitrate", getBitRate());
+			result.addProperty("duration", getDurationString());
+			JsonArray audiotracks = new JsonArray();
+			for (MediaAudio audio : getAudioTracks()) {
+				audiotracks.add(audio.toJson());
+			}
+			result.add("audiotracks", audiotracks);
+		}
+		if (getImageCount() > 0) {
+			if (getImageCount() > 1) {
+				result.addProperty("images", getImageCount());
+			}
+			if (getImageInfo() != null) {
+				result.add("image", getImageInfo().toJson());
+			} else {
+				JsonObject image = new JsonObject();
+				image.addProperty("resolution", getWidth() + "x" + getHeight());
+				result.add("image", image);
+			}
+		}
+
+		if (getThumbnail() != null && getThumbnail().getImageInfo() != null) {
+			result.add("thumbnail", getThumbnail().getImageInfo().toJson());
+		}
+
+		result.addProperty("mimetype", getMimeType());
+		return result;
 	}
 
 	@Override

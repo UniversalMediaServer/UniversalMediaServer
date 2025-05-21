@@ -18,12 +18,20 @@ import { Direction } from '@mantine/core'
 
 export interface I18nInterface {
   get: (value: string) => string
-  getI18nString: (value: string) => string
-  getI18nFormat: (value: string[]) => string
+  getString: (value: string) => string
+  getFormat: (value: string[]) => string
+  getValueLabelData: (values: ValueLabelData[] | undefined) => ValueLabelData[] | undefined
+  getLocalizedName: (value: string | undefined) => string
   language: string
   dir: Direction
   languages: LanguageValue[]
   setLanguage: (language: string) => void
+  getReportLink: () => React.ReactNode
+  showServerUnreachable: () => void
+  languageLoaded: boolean
+  serverConnected: boolean
+  serverReadyState: number
+  setServerReadyState: (readyState: number) => void
 }
 
 export interface LanguageValue {
@@ -32,4 +40,9 @@ export interface LanguageValue {
   defaultname: string
   country: string
   coverage: number
+}
+
+export interface ValueLabelData {
+  value: string
+  label: string
 }
