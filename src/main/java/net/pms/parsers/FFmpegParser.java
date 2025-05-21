@@ -793,10 +793,28 @@ public class FFmpegParser {
 	}
 
 	private static String getFormatProfile(String codec) {
+		System.out.println("codec " + codec);
 		int profilePos = codec.indexOf('(');
 		int profilePosEnd = codec.indexOf(')');
 		if (profilePos > -1 && profilePosEnd > profilePos) {
-			return codec.substring(profilePos + 1, profilePosEnd).toLowerCase();
+			String formatProfile = codec.substring(profilePos + 1, profilePosEnd).toLowerCase();
+
+			System.out.println("formatProfile " + formatProfile);
+			// for some codecs, the first bracket is the encoding library, not the profile. so skip past that
+			if (
+				StringUtil.isEqual(formatProfile, "libaom-av1") ||
+				StringUtil.isEqual(formatProfile, "libdav1d")
+			) {
+				System.out.println("is libaom-av1");
+				int profilePos2 = codec.indexOf('(', profilePos + 1);
+				int profilePos2End = codec.indexOf(')', profilePosEnd + 1);
+				if (profilePos2 > -1 && profilePos2End > profilePos2) {
+					formatProfile = codec.substring(profilePos2 + 1, profilePos2End).toLowerCase();
+					System.out.println("formatProfile2 " + formatProfile);
+				}
+			}
+
+			return formatProfile;
 		}
 		return null;
 	}

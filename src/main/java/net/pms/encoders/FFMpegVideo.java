@@ -266,13 +266,13 @@ public class FFMpegVideo extends Engine {
 				StringBuilder subsPictureFilter = new StringBuilder();
 				if (params.getSid().isEmbedded()) {
 					// Embedded
-					subsPictureFilter.append("[0:v][0:s:").append(mediaInfo.getSubtitlesTracks().indexOf(params.getSid())).append("]overlay");
+					subsPictureFilter.append("[0:v][0:s:").append(mediaInfo.getSubtitlesTracks().indexOf(params.getSid())).append("]overlay,format=yuv420p");
 					isSubsManualTiming = false;
 				} else if (params.getSid().getExternalFile() != null) {
 					// External
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.getSid().getExternalFile().getPath());
-					subsPictureFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
+					subsPictureFilter.append("[0:v][1:s]overlay,format=yuv420p"); // this assumes the sub file is single-language
 				}
 				filterChain.add(0, subsPictureFilter.toString());
 			}
