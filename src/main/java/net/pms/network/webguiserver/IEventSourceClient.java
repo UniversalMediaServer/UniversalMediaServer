@@ -14,34 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon } from '@mantine/core'
-import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical } from '@tabler/icons-react'
+package net.pms.network.webguiserver;
 
-export default function MovableActionIcon({
-  isDragged,
-  isSelected,
-  isFirst,
-  isLast,
-}: {
-  isDragged?: boolean
-  isSelected?: boolean
-  isFirst?: boolean
-  isLast?: boolean
-}) {
-  return (
-    <ActionIcon
-      data-movable-handle
-      size={24}
-      style={{ cursor: isDragged ? 'grabbing' : 'grab' }}
-      variant={isDragged || isSelected ? 'outline' : 'subtle'}
-    >
-      {
-        isFirst
-          ? (<IconArrowNarrowDown />)
-          : isLast
-            ? (<IconArrowNarrowUp />)
-            : (<IconArrowsVertical />)
-      }
-    </ActionIcon>
-  )
+public interface IEventSourceClient {
+	public void close();
+	public boolean isOpened();
+	public boolean sendMessage(String message);
 }

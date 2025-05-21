@@ -32,7 +32,6 @@ public class WebPlayerServlet extends GuiHttpServlet {
 	private static final String BASE_PATH = "/";
 	private static final String ABOUT_BASE_PATH = BASE_PATH + "about";
 	private static final String PLAYER_BASE_PATH = BASE_PATH + "player";
-
 	private static final List<String> ROUTES = List.of(
 			ABOUT_BASE_PATH,
 			PLAYER_BASE_PATH

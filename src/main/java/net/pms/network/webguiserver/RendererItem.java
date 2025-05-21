@@ -28,6 +28,7 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.RendererUser;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -197,7 +198,7 @@ public class RendererItem implements IRendererGuiListener {
 		isActive = renderer.isActive();
 		isAllowed = renderer.isAllowed();
 		isAuthenticated = renderer.isAuthenticated();
-		userId = renderer.getUserId();
+		userId = RendererUser.getUserId(uuid);
 		controls = renderer.getControls();
 		state = renderer.getPlayer().getState();
 	}
@@ -277,11 +278,10 @@ public class RendererItem implements IRendererGuiListener {
 	}
 
 	private void sendRendererAction(String action) {
-		if (WebSocketDispatcher.hasHomeSession()) {
-			JsonObject result = new JsonObject();
+		if (EventSourceServer.hasHomeServerSentEvents()) {
+			JsonObject result = toJsonObject();
 			result.addProperty("action", action);
-			result.add("data", toJsonObject());
-			WebSocketDispatcher.broadcastHomeMessage(result.toString());
+			EventSourceServer.broadcastHomeMessage(result.toString());
 		}
 	}
 

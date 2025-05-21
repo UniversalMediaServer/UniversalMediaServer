@@ -145,14 +145,11 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 					}
 					JsonObject request = getJsonObjectFromBody(req);
 					if (request.has("source")) {
-						String source = request.get("source").getAsString();
 						String webContentName;
 						try {
-							String uri = Feed.getFeedUrl(source);
+							String uri = Feed.getFeedUrl(request.get("source").getAsString());
 							webContentName = Feed.getFeedTitle(uri);
 						} catch (Exception e) {
-							LOGGER.info("FeedTitle not found for '{}'", source);
-							LOGGER.trace("", e);
 							webContentName = "";
 						}
 						respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");

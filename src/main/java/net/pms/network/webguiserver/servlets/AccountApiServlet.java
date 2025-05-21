@@ -37,8 +37,8 @@ import net.pms.iam.User;
 import net.pms.image.Image;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
+import net.pms.network.webguiserver.EventSourceServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebSocketDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +124,6 @@ public class AccountApiServlet extends GuiHttpServlet {
 										boolean enabled = action.get("enabled").getAsBoolean();
 										AuthService.setEnabled(enabled);
 										respond(req, resp, "{}", 200, "application/json");
-										WebSocketDispatcher.setUpdateAccounts();
 									} else {
 										LOGGER.trace("User '{}' try to change authentication service", account.toString());
 										respondForbidden(req, resp);
@@ -136,7 +135,6 @@ public class AccountApiServlet extends GuiHttpServlet {
 										boolean enabled = action.get("enabled").getAsBoolean();
 										AuthService.setLocalhostAsAdmin(enabled);
 										respond(req, resp, "{}", 200, "application/json");
-										WebSocketDispatcher.setUpdateAccounts();
 									} else {
 										LOGGER.trace("User '{}' try to change localhost auto admin", account.toString());
 										respondForbidden(req, resp);
@@ -192,7 +190,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 											}
 											AccountService.createUser(connection, cuUsername, cuPassword, cuName, cuGroupId);
 											respond(req, resp, "{}", 200, "application/json");
-											WebSocketDispatcher.setUpdateAccounts();
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}
@@ -263,8 +261,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 												}
 												AccountService.updateUser(connection, muUserId, muName, muGroupId, muAvatar, muPinCode, muLibraryHidden);
 												respond(req, resp, "{}", 200, "application/json");
-												WebSocketDispatcher.setRefreshSession(muUserId);
-												WebSocketDispatcher.setUpdateAccounts();
+												EventSourceServer.setRefreshSession(muUserId);
+												EventSourceServer.setUpdateAccounts();
 											} else {
 												//user does not exists
 												respondBadRequest(req, resp);
@@ -284,8 +282,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 										if (account.havePermission(Permissions.USERS_MANAGE)) {
 											AccountService.deleteUser(connection, duUserId);
 											respond(req, resp, "{}", 200, "application/json");
-											WebSocketDispatcher.setRefreshSession(duUserId);
-											WebSocketDispatcher.setUpdateAccounts();
+											EventSourceServer.setRefreshSession(duUserId);
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											LOGGER.trace("User '{}' try to delete the user with id {}", account.toString(), duUserId);
 											respondForbidden(req, resp);
@@ -301,7 +299,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 											String cgName = action.get("name").getAsString();
 											AccountService.createGroup(connection, cgName, 0);
 											respond(req, resp, "{}", 200, "application/json");
-											WebSocketDispatcher.setUpdateAccounts();
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}
@@ -319,8 +317,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 											List<Integer> userIds = AccountService.getUserIdsForGroup(mgGroupId);
 											AccountService.updateGroup(connection, mgGroupId, mgName);
 											respond(req, resp, "{}", 200, "application/json");
-											WebSocketDispatcher.setRefreshSessions(userIds);
-											WebSocketDispatcher.setUpdateAccounts();
+											EventSourceServer.setRefreshSessions(userIds);
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}
@@ -337,8 +335,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 											List<Integer> userIds = AccountService.getUserIdsForGroup(dgGroupId);
 											AccountService.deleteGroup(connection, dgGroupId);
 											respond(req, resp, "{}", 200, "application/json");
-											WebSocketDispatcher.setRefreshSessions(userIds);
-											WebSocketDispatcher.setUpdateAccounts();
+											EventSourceServer.setRefreshSessions(userIds);
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}
@@ -356,8 +354,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 											List<Integer> userIds = AccountService.getUserIdsForGroup(upGroupId);
 											AccountService.updatePermissions(connection, upGroupId, upPermissions);
 											respond(req, resp, "{}", 200, "application/json");
-											WebSocketDispatcher.setRefreshSessions(userIds);
-											WebSocketDispatcher.setUpdateAccounts();
+											EventSourceServer.setRefreshSessions(userIds);
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}

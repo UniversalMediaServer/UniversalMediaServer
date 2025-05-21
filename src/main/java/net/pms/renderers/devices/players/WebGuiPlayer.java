@@ -16,6 +16,8 @@
  */
 package net.pms.renderers.devices.players;
 
+import com.google.gson.Gson;
+import java.util.HashMap;
 import java.util.Map;
 import net.pms.network.StartStopListener;
 import net.pms.renderers.Renderer;
@@ -28,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public class WebGuiPlayer extends LogicalPlayer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiPlayer.class);
+	private static final Gson GSON = new Gson();
 
 	private StoreItem playingRes;
 
@@ -88,8 +91,9 @@ public class WebGuiPlayer extends LogicalPlayer {
 		}
 	}
 
-	public void updateStatus(Map<String, String> status) {
-		String s = status.get("playback");
+	public void setDataFromJson(String jsonData) {
+		Map<String, String> data = GSON.fromJson(jsonData, HashMap.class);
+		String s = data.get("playback");
 		if (s != null) {
 			state.setPlayback(
 				switch (s) {
@@ -100,22 +104,22 @@ public class WebGuiPlayer extends LogicalPlayer {
 				}
 			);
 		}
-		s = status.get("mute");
+		s = data.get("mute");
 		if (s != null) {
-			state.setMuted(!"0".equals(status.get("mute")));
+			state.setMuted(!"0".equals(data.get("mute")));
 		}
-		s = status.get("volume");
+		s = data.get("volume");
 		if (s != null) {
 			try {
 				state.setVolume(StringUtil.hasValue(s) ? Integer.parseInt(s) : 0);
 			} catch (NumberFormatException e) {
-				LOGGER.debug("Unexpected volume value \"{}\"", status.get("volume"));
+				LOGGER.debug("Unexpected volume value \"{}\"", data.get("volume"));
 			}
 		}
 		if (state.isStopped()) {
 			state.setPosition("");
 		} else {
-			s = status.get("position");
+			s = data.get("position");
 			if (s != null) {
 				try {
 					long seconds = Integer.parseInt(s);
@@ -125,7 +129,7 @@ public class WebGuiPlayer extends LogicalPlayer {
 						playingRes.getMediaStatus().setLastPlaybackPosition(seconds);
 					}
 				} catch (NumberFormatException e) {
-					LOGGER.debug("Unexpected position value \"{}\"", s);
+					LOGGER.debug("Unexpected position value \"{}\"", data.get("position"));
 				}
 			}
 			if ((state.isPlaying() || state.isPaused()) && playingRes != null) {
