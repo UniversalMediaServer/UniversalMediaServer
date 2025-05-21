@@ -71,7 +71,7 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>212</binary-revision>
+		<binary-revision>215</binary-revision>
 
 		<exec-maven-plugin-version>3.5.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
@@ -214,7 +214,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.13.0</version>
+			<version>2.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -253,7 +253,7 @@
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-svgrasterizer</artifactId>
-			<version>1.18</version>
+			<version>1.19</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -456,7 +456,7 @@
 			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
-			<version>0.12.12</version>
+			<version>0.12.15</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -591,7 +591,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.0.20</version>
+			<version>12.0.21</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -602,7 +602,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.0.20</version>
+			<version>12.0.21</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -613,7 +613,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.0.20</version>
+			<version>12.0.21</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -624,7 +624,7 @@
 		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>radiobrowser4j</artifactId>
-			<version>3.1.1</version>
+			<version>3.2.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
