@@ -139,6 +139,7 @@ public class MediaDatabase extends Database {
 	public static synchronized void dropAllTables(Connection connection) {
 		dropAllTablesExceptFilesStatus(connection);
 		dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
 	}
 
 	public static synchronized void dropAllTablesExceptFilesStatus(Connection connection) {
@@ -175,7 +176,6 @@ public class MediaDatabase extends Database {
 		dropTableAndConstraint(connection, MediaTableStoreIds.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableSubtracks.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideotracks.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
 	}
 
 	/**
