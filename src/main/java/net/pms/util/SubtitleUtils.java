@@ -1096,7 +1096,7 @@ public class SubtitleUtils {
 
 		String language = null;
 		boolean forced = false;
-		boolean default_ = false;
+		boolean difault = false;
 		boolean hearingImpaired = false;
 		if (suffixParts != null && !suffixParts.isEmpty()) {
 			ArrayList<String> modifiableSuffixParts = new ArrayList<>(suffixParts);
@@ -1110,7 +1110,7 @@ public class SubtitleUtils {
 				} else if (part.equals("default")) {
 					// Default: default
 					// Marks the stream as the default.
-					default_ = true;
+					difault = true;
 					iterator.remove();
 				} else if (part.equals("forced") || part.equals("foreign")) {
 					// Forced: forced, foreign
@@ -1136,7 +1136,7 @@ public class SubtitleUtils {
 		}
 
 		try {
-			subtitles.setDefault(default_);
+			subtitles.setDefault(difault);
 			subtitles.setForced(forced);
 			// TODO: support for marking a hearingImpaired subtitle track if this
 			// feature will be added in the future.
