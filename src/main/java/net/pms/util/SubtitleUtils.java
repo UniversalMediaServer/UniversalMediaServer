@@ -1079,9 +1079,9 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Creates a new instance of MediaSubtitle, populates it based on the
- incoming subtitlesFile, and attaches it to the incoming MediaInfo so
- it appears on the subtitles tracks list for that media.
+	 * Creates a new instance of MediaSubtitle, populates it based on the incoming 
+	 * subtitlesFile, and attaches it to the incoming MediaInfo so it appears on 
+	 * the subtitles tracks list for that media.
 	 *
 	 * @see MediaInfo#getSubtitleTracksList
 	 * @param subtitlesFile
@@ -1095,6 +1095,9 @@ public class SubtitleUtils {
 		subtitles.setType(SubtitleType.valueOfFileExtension(FileUtil.getExtension(subtitlesFile.getPath(), LetterCase.LOWER, Locale.ROOT)));
 
 		String language = null;
+		boolean forced = false;
+		boolean _default = false;
+		boolean hearingImpaired = false;
 		if (suffixParts != null && !suffixParts.isEmpty()) {
 			ArrayList<String> modifiableSuffixParts = new ArrayList<>(suffixParts);
 			for (Iterator<String> iterator = modifiableSuffixParts.iterator(); iterator.hasNext();) {
@@ -1104,6 +1107,28 @@ public class SubtitleUtils {
 				} else if (Iso639.isValid(part)) {
 					language = Iso639.getISO639_2Code(part);
 					iterator.remove();
+				} 
+				else if (part.equals("default")) {
+					// Default: default
+					// Marks the stream as the default.
+					_default= true;
+					iterator.remove();
+				} else if (part.equals("forced") || part.equals("foreign")) {
+					// Forced: forced, foreign
+					// Marks the subtitle stream as forced, typically used for 
+					// translation of segments of audio/text that differ from
+					// the primary language.
+					forced = true;
+					iterator.remove();
+				} else if (part.equals("sdh") || part.equals("cc")) {
+					// Hearing Impaired: sdh, cc
+					// Indicates that the subtitle stream has additional
+					// information to help viewers that are hearing impaired.
+					// Side note: this differs from Jellyfin 10.9+ that it 
+					// doesn't support "hi" as keyword. The reason is that it
+					// clashes with the ISO639_2 code for marking hindi language.
+					hearingImpaired = true;
+					iterator.remove();
 				}
 			}
 			if (!modifiableSuffixParts.isEmpty()) {
@@ -1112,6 +1137,10 @@ public class SubtitleUtils {
 		}
 
 		try {
+			subtitles.setDefault(_default);
+			subtitles.setForced(forced);
+			// TODO: support for marking a hearingImpaired subtitle track if this
+			// feature will be added in the future.
 			if (StringUtils.isNotBlank(language)) {
 				subtitles.setLang(language);
 			}
