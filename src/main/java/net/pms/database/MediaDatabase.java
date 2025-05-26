@@ -20,6 +20,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import net.pms.store.MediaScanner;
 import net.pms.swing.Splash;
+import net.pms.util.ProcessUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -254,7 +256,7 @@ public class MediaDatabase extends Database {
 	}
 
 	/**
-	 * Reset the media database cache.
+	 * Resets the media database cache and restarts the server.
 	 *
 	 * Recreate all tables related to media cache except files status.
 	 *
@@ -263,6 +265,8 @@ public class MediaDatabase extends Database {
 	public static synchronized void resetCache() throws SQLException {
 		if (instance != null) {
 			instance.reInitTablesExceptFilesStatus();
+
+			ProcessUtil.reboot();
 		}
 	}
 

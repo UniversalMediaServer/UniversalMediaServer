@@ -289,7 +289,7 @@ public class TMDB {
 		//let store know that we change media metadata
 		MediaStoreIds.incrementUpdateIdForFilename(connection, file.getAbsolutePath());
 		//advertise queue size (only when a new real lookup is done to not flood)
-		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
+		LOGGER.info("TMDB lookups remaining: {}", BACKGROUND_EXECUTOR.getQueue().size());
 	}
 
 	private static void setMovieMetadata(Connection connection, final Long fileId, final MediaInfo mediaInfo, MovieDetailsSchema movieDetails) throws SQLException {
@@ -515,7 +515,7 @@ public class TMDB {
 		//let store know that we change media metadata
 		MediaStoreIds.incrementUpdateIdForFilename(connection, file.getAbsolutePath());
 		//advertise queue size (only when a new real lookup is done to not flood)
-		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
+		LOGGER.info("TMDB lookups remaining: {}", BACKGROUND_EXECUTOR.getQueue().size());
 	}
 
 	private static void setTvEpisodeMetadata(Connection connection, final Long fileId, final MediaInfo mediaInfo, final TvEpisodeDetailsSchema tvEpisodeDetails) throws SQLException {
