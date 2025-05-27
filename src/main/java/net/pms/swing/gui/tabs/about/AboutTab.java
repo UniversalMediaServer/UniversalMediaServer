@@ -55,7 +55,7 @@ public class AboutTab {
 		rowPosition = 1;
 		FormLayout layout = new FormLayout(
 				"0:grow, pref, 0:grow",
-				"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+				"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 
 		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout).border(Paddings.DIALOG).opaque(true);
@@ -81,6 +81,12 @@ public class AboutTab {
 		lCommitLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lCommitLink.addMouseListener(commitLink);
 		builder.add(lCommitLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+
+		final LinkMouseListener knowledgeBaseLink = new LinkMouseListener("Knowledge Base", "https://support.universalmediaserver.com");
+		JLabel lKnowledgeBaseLink = FormsSetup.getComponentFactoryDefault().createLabel(knowledgeBaseLink.getLabel());
+		lKnowledgeBaseLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lKnowledgeBaseLink.addMouseListener(knowledgeBaseLink);
+		builder.add(lKnowledgeBaseLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		builder.add(buildLogoImage()).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 

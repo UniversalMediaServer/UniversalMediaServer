@@ -79,7 +79,6 @@
 				<include>WEB.conf</include>
 				<include>logback.headless.xml</include>
 				<include>logback.xml</include>
-				<include>documentation/**</include>
 				<include>renderers/*</include>
 				<include>VirtualFolders.conf</include>
 				<include>DummyInput.ass</include>
