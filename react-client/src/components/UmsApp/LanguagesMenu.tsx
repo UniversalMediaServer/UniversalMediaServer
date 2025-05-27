@@ -43,7 +43,7 @@ export default function LanguagesMenu({ i18n }: { i18n: I18nInterface }) {
   })
 
   return (
-    <Menu>
+    <Menu aria-label={i18n.get('OpensTheLanguagesMenu')}>
       <Menu.Target>
         <ActionIcon variant="default" size="input-xs">
           <IconLanguage size={16} />
