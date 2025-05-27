@@ -141,12 +141,6 @@ public class AboutTab {
 		lSVPLink.addMouseListener(svpLink);
 		builder.add(lSVPLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
-		final LinkMouseListener openSubtitlesLink = new LinkMouseListener("OpenSubtitles.org", "https://www.opensubtitles.org/");
-		JLabel lOpenSubtitlesLink = FormsSetup.getComponentFactoryDefault().createLabel(openSubtitlesLink.getLabel());
-		lOpenSubtitlesLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		lOpenSubtitlesLink.addMouseListener(openSubtitlesLink);
-		builder.add(lOpenSubtitlesLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
-
 		JScrollPane scrollPane = new JScrollPane(builder.getPanel());
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;

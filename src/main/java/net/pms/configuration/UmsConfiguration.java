@@ -322,8 +322,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_INFO_DB_RETRY = "infodb_retry";
 	private static final String KEY_JWT_SIGNER_SECRET = "jwt_secret";
 	private static final String KEY_LANGUAGE = "language";
-	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
-	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	private static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
 	private static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
 	private static final String KEY_LOGGING_BUFFERED = "logging_buffered";
@@ -406,7 +404,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARED_CONF_PATH = "shared_conf";
 	private static final String KEY_SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
-	private static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
 	private static final String KEY_SHOW_MEDIA_LIBRARY_FOLDER = "show_media_library_folder";
 	private static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
 	private static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
@@ -598,7 +595,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		KEY_HIDE_EMPTY_FOLDERS,
 		KEY_OPEN_ARCHIVES,
 		KEY_PRETTIFY_FILENAMES,
-		KEY_SHOW_LIVE_SUBTITLES_FOLDER,
 		KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 		KEY_SHOW_RECENTLY_PLAYED_FOLDER,
 		KEY_SHOW_SERVER_SETTINGS_FOLDER,
@@ -4789,44 +4785,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getString(KEY_URL_RES_ORDER, "").split(",");
 	}
 
-	/**
-	 * Whether to show the "#--LIVE SUBTITLES--#" folder on the renderer.
-	 *
-	 * @return whether the folder is shown
-	 */
-	public boolean isShowLiveSubtitlesFolder() {
-		return getBoolean(KEY_SHOW_LIVE_SUBTITLES_FOLDER, false);
-	}
-
-	/**
-	 * Whether to show the "#--LIVE SUBTITLES--#" folder on the renderer.
-	 *
-	 * @param value whether the folder is shown
-	 */
-	public void setShowLiveSubtitlesFolder(boolean value) {
-		configuration.setProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, value);
-	}
-
 	public boolean displayAudioLikesInRootFolder() {
 		return getBoolean(KEY_NEXTCP_AUDIO_LIKES_IN_ROOT_FOLDER, false);
-	}
-
-	public int getLiveSubtitlesLimit() {
-		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
-	}
-
-	public void setLiveSubtitlesLimit(int value) {
-		if (value > 0) {
-			configuration.setProperty(KEY_LIVE_SUBTITLES_LIMIT, value);
-		}
-	}
-
-	public boolean isLiveSubtitlesKeep() {
-		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, true);
-	}
-
-	public void setLiveSubtitlesKeep(boolean value) {
-		configuration.setProperty(KEY_LIVE_SUBTITLES_KEEP, value);
 	}
 
 	public boolean getLoggingBuffered() {
@@ -5786,8 +5746,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SERVER_HOSTNAME, "");
 		jObj.addProperty(KEY_IGNORE_THE_WORD_A_AND_THE, true);
 		jObj.addProperty(KEY_LANGUAGE, "en-US");
-		jObj.addProperty(KEY_LIVE_SUBTITLES_KEEP, false);
-		jObj.addProperty(KEY_LIVE_SUBTITLES_LIMIT, 20);
 		jObj.addProperty(KEY_MENCODER_ASS, true);
 		jObj.addProperty(KEY_MENCODER_CODEC_SPECIFIC_SCRIPT, "");
 		jObj.addProperty(KEY_MENCODER_CUSTOM_OPTIONS, "");
@@ -5828,7 +5786,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		allRenderers.add(RendererConfigurations.ALL_RENDERERS_KEY);
 		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
 		jObj.addProperty(KEY_SERVER_NAME, PMS.NAME);
-		jObj.addProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
 		jObj.addProperty(KEY_SHOW_RECENTLY_PLAYED_FOLDER, true);
 		jObj.addProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, false);
