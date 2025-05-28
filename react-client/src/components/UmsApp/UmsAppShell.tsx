@@ -39,6 +39,7 @@ import SharedContent from '../SharedContent/SharedContent'
 import StatusLine from './StatusLine'
 import UserMenu from './UserMenu'
 import WebSocketClient from './WebSocketClient'
+import KnowledgeBaseButton from './KnowledgeBaseButton'
 
 export default function UmsAppShell({ i18n, session, player }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface }) {
   const { dir } = useDirection()
@@ -87,8 +88,9 @@ export default function UmsAppShell({ i18n, session, player }: { i18n: I18nInter
                   />
                 )}
               <ModeButtons i18n={i18n} session={session} />
-              <ColorSchemeButton />
+              <ColorSchemeButton i18n={i18n} />
               <LanguagesMenu i18n={i18n} />
+              <KnowledgeBaseButton i18n={i18n} />
             </Group>
             <Group justify="flex-end">
               <UserMenu i18n={i18n} session={session}></UserMenu>

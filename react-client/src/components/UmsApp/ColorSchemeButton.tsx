@@ -16,13 +16,14 @@
  */
 import { ActionIcon, useComputedColorScheme, useMantineColorScheme } from '@mantine/core'
 import { IconMoonStars, IconSun } from '@tabler/icons-react'
+import { I18nInterface } from '../../services/i18n-service'
 
-export default function ColorSchemeButton() {
+export default function ColorSchemeButton({ i18n }: { i18n: I18nInterface }) {
   const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true })
   const { toggleColorScheme } = useMantineColorScheme()
 
   return (
-    <ActionIcon variant="default" onClick={() => toggleColorScheme()} size="input-xs">
+    <ActionIcon variant="default" aria-label={i18n.get('TogglesBetweenLightAndDarkModes')} onClick={() => toggleColorScheme()} size="input-xs">
       {computedColorScheme === 'dark' ? <IconSun size={16} /> : <IconMoonStars size={16} />}
     </ActionIcon>
   )

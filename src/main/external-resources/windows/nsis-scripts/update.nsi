@@ -119,7 +119,6 @@ Section "Program Files"
 	SetOverwrite on
 
 	RMDir /R /REBOOTOK "$INSTDIR\web\react-client\static"
-	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.bat"

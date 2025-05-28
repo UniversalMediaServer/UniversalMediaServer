@@ -441,7 +441,6 @@ Section "Program Files"
 
 	RMDir /R /REBOOTOK "$INSTDIR\web\react-client\static"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
-	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -746,11 +745,12 @@ Section "Uninstall"
 	${EndIf}
 	; Current files/folders
 	Delete /REBOOTOK "$INSTDIR\uninst.exe"
-	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
 	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\bin"
+	; Old files/folders
+	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 
 	Call un.DeleteCurrentRenderers
 
