@@ -86,7 +86,6 @@ public class NavigationShareTab {
 	private JCheckBox isChapterSupport;
 	private JCheckBox isShowFolderMediaLibrary;
 	private JCheckBox isShowFolderRecentlyPlayed;
-	private JCheckBox isShowFolderLiveSubtitles;
 	private JComponent component;
 
 	public NavigationShareTab(UmsConfiguration configuration, JavaGui looksFrame) {
@@ -195,7 +194,6 @@ public class NavigationShareTab {
 			builder.add(isChapterSupport).at(FormLayoutUtil.flip(cc.xy(3, 25), colSpec, orientation));
 			builder.add(chapterInterval).at(FormLayoutUtil.flip(cc.xy(7, 25), colSpec, orientation));
 
-			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderLiveSubtitles)).at(FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
 			builder.addLabel(Messages.getGuiString("MinimumItemLimitBeforeAZ")).at(FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
 			builder.add(atzLimit).at(FormLayoutUtil.flip(cc.xy(5, 27), colSpec, orientation));
 
@@ -502,10 +500,6 @@ public class NavigationShareTab {
 				}
 			}
 		});
-
-		isShowFolderLiveSubtitles = new JCheckBox(Messages.getGuiString("ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder());
-		isShowFolderLiveSubtitles.setContentAreaFilled(false);
-		isShowFolderLiveSubtitles.addItemListener((ItemEvent e) -> configuration.setShowLiveSubtitlesFolder((e.getStateChange() == ItemEvent.SELECTED)));
 
 		prettifyFilenames = new JCheckBox(Messages.getGuiString("PrettifyFilenames"), configuration.isPrettifyFilenames());
 		prettifyFilenames.setToolTipText(Messages.getGuiString("IfEnabledFilesWillAppear"));

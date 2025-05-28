@@ -207,10 +207,6 @@ export default function NavigationSettings({
                 {...form.getInputProps('chapter_interval')}
               />
             </Group>
-            <Checkbox
-              label={i18n.get('ShowLiveSubtitlesFolder')}
-              {...form.getInputProps('show_live_subtitles_folder', { type: 'checkbox' })}
-            />
           </Stack>
         </Accordion.Panel>
       </Accordion.Item>
