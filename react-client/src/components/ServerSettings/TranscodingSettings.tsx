@@ -559,25 +559,6 @@ export default function TranscodingSettings({
                     }}
                   />
                 </Group>
-                <Tooltip label={allowHtml(i18n.get('DeterminesDownloadedLiveSubtitlesDeleted'))} {...defaultTooltipSettings}>
-                  <Checkbox
-                    disabled={!canModify}
-                    size="xs"
-                    label={i18n.get('DeleteDownloadedLiveSubtitlesAfter')}
-                    checked={!form.values['live_subtitles_keep']}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                      form.setFieldValue('live_subtitles_keep', !event.currentTarget.checked)
-                    }}
-                  />
-                </Tooltip>
-                <Tooltip label={allowHtml(i18n.get('SetsMaximumNumberLiveSubtitles'))} {...defaultTooltipSettings}>
-                  <NumberInput
-                    label={i18n.get('LimitNumberLiveSubtitlesTo')}
-                    size="xs"
-                    disabled={!canModify}
-                    {...form.getInputProps('live_subtitles_limit')}
-                  />
-                </Tooltip>
                 <Select
                   disabled={!canModify}
                   size="xs"

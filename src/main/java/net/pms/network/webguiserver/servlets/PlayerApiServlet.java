@@ -670,8 +670,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		List<StoreResource> libraryVideos = renderer.getMediaStore().getResources(videoFolderChild.getId(), true);
 
 		for (StoreResource libraryVideo : libraryVideos) {
-			// Skip the #--TRANSCODE--# and \#--LIVE SUBTITLES--\# entries
-			if (!libraryVideo.getSystemName().equals("LiveSubtitles_FolderName") && !(libraryVideo instanceof TranscodeVirtualFolder)) {
+			// Skip the #--TRANSCODE--# entries
+			if (!(libraryVideo instanceof TranscodeVirtualFolder)) {
 				jLibraryVideos.add(getMediaJsonObject(libraryVideo, lang));
 				if (jLibraryVideos.size() > 5) {
 					break;
