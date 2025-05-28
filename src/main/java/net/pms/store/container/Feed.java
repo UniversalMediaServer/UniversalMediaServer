@@ -254,6 +254,10 @@ public class Feed extends StoreContainer {
 	 * @throws Exception
 	 */
 	public static String getFeedTitle(String url) throws Exception {
+		if (StringUtils.isBlank(url)) {
+			return "";
+		}
+
 		// Check cache first
 		String feedTitle = FEED_TITLES_CACHE.get(url);
 		if (feedTitle != null) {
@@ -271,7 +275,7 @@ public class Feed extends StoreContainer {
 			}
 		}
 
-		return null;
+		return "";
 	}
 
 	/**

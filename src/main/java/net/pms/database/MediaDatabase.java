@@ -108,6 +108,7 @@ public class MediaDatabase extends Database {
 				MediaTableVideoMetadataGenres.checkTable(connection);
 				MediaTableVideoMetadataRatings.checkTable(connection);
 				MediaTableVideoMetadataLocalized.checkTable(connection);
+				MediaTableTvSeasonMetadataLocalized.checkTable(connection);
 
 				// Audio Metadata
 				MediaTableAudioMetadata.checkTable(connection);
@@ -162,6 +163,7 @@ public class MediaDatabase extends Database {
 		dropTableAndConstraint(connection, MediaTableVideoMetadataGenres.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataLocalized.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableTvSeasonMetadataLocalized.TABLE_NAME);
 
 		// Audio Metadata
 		dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);

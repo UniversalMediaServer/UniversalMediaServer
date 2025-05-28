@@ -394,7 +394,7 @@ public class TMDB {
 		}
 
 		// first check if tv series is found
-		Long tvShowId = videoMetadata.getSeriesMetadata().getTmdbId();
+		Long tvShowId = videoMetadata.getSeriesMetadata() != null ? videoMetadata.getSeriesMetadata().getTmdbId() : null;
 		if (tvShowId == null) {
 			String showNameFromFilename = videoMetadata.getMovieOrShowName();
 			Integer tvSeriesStartYear = videoMetadata.getTvSeriesStartYear();
