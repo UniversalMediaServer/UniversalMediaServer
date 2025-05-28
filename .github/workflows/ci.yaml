@@ -45,17 +45,6 @@ jobs:
               - '.github/workflows/ci.yaml'
 
   macos-browser:
-    needs:
-      - changes
-    if: |
-      (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]' || github.ref_name == 'main')) ||
-        (github.event_name == 'pull_request')
-      ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.webfiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
-      )
     name: macOS web browser tests
     runs-on: macos-14
     steps:
