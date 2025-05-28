@@ -19,7 +19,6 @@ package net.pms.parsers.mediainfo;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.WString;
-import net.pms.parsers.mediainfo.MediaInfoLibrary.SizeT;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +93,7 @@ public class MediaInfoHelper implements AutoCloseable {
 	 */
 	public int openFile(String fileName) {
 		String path = ProcessUtil.getSystemPathName(fileName);
-		return MediaInfoLibrary.INSTANCE.Open(handle, new WString(path)).intValue();
+		return MediaInfoLibrary.INSTANCE.Open(handle, new WString(path));
 	}
 
 	/**
@@ -158,7 +157,7 @@ public class MediaInfoHelper implements AutoCloseable {
 	public String get(StreamKind streamType, int streamNumber, String parameter, InfoKind infoType, InfoKind searchType) {
 		return MediaInfoLibrary.INSTANCE.Get(handle,
 			streamType.getValue(),
-			new SizeT(streamNumber),
+			streamNumber,
 			new WString(parameter),
 			infoType.getValue(),
 			searchType.getValue()).toString();
@@ -191,8 +190,8 @@ public class MediaInfoHelper implements AutoCloseable {
 	public String get(StreamKind streamType, int streamNumber, int parameterIndex, InfoKind infoType) {
 		return MediaInfoLibrary.INSTANCE.GetI(handle,
 			streamType.getValue(),
-			new SizeT(streamNumber),
-			new SizeT(parameterIndex),
+			streamNumber,
+			parameterIndex,
 			infoType.getValue()).toString();
 	}
 
@@ -239,7 +238,7 @@ public class MediaInfoHelper implements AutoCloseable {
 	 * @return number of Streams of the given Stream kind
 	 */
 	public int countGet(StreamKind streamType) {
-		return countGet(streamType, -1);
+		return MediaInfoLibrary.INSTANCE.Count_Get(handle, streamType.getValue(), -1);
 	}
 
 	/**
@@ -252,7 +251,7 @@ public class MediaInfoHelper implements AutoCloseable {
 	 * @return number of pieces of the given Stream kind
 	 */
 	public int countGet(StreamKind streamType, int streamNumber) {
-		return MediaInfoLibrary.INSTANCE.Count_Get(handle, streamType.getValue(), new SizeT(streamNumber)).intValue();
+		return MediaInfoLibrary.INSTANCE.Count_Get(handle, streamType.getValue(), streamNumber);
 	}
 
 	// Options
