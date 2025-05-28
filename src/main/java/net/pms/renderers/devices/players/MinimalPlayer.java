@@ -82,6 +82,7 @@ public abstract class MinimalPlayer implements BasicPlayer {
 		} finally {
 			listenersLock.readLock().unlock();
 		}
+
 		renderer.refreshPlayerStateGui(state);
 	}
 

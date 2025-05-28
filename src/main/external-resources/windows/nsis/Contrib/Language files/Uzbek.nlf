@@ -147,7 +147,7 @@ Kopiya qilganda xato bor
 # ^DeleteOnReboot
 "Kompyuter qayta yuklash jaraonida o'chirish: "
 # ^ErrorCreatingShortcut
-"Belgini yaratish jarayonida xato: " 
+"Belgini yaratish jarayonida xato: "
 # ^ErrorCreating
 "Yaratish xatosi: "
 # ^ErrorDecompressing
@@ -155,7 +155,7 @@ Ma'lumotlarni asilga qaytarish xatosi! Distributiv ziyonlangan bulishi mumkin.
 # ^ErrorRegistering
 Kutubxonani ro'xatga olish imkoniyati yuq (DLL)
 # ^ExecShell
-"Qoplang'ich komandasini bajarish: " 
+"Qoplang'ich komandasini bajarish: "
 # ^Exec
 "Bajarish: "
 # ^Extract
@@ -165,7 +165,7 @@ Kutubxonani ro'xatga olish imkoniyati yuq (DLL)
 # ^InvalidOpcode
 Distributiv ziyonlangan: ruxsatlanmangan kod
 # ^NoOLE
-"Quydagilarga OLE yuq: " 
+"Quydagilarga OLE yuq: "
 # ^OutputFolder
 "Papkani o'rnatish: "
 # ^RemoveFolder

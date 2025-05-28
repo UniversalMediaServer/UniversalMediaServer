@@ -244,7 +244,7 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.12.ts").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 19120996, Overall Bitrate: 14663340, Duration: 0:00:10.432, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: main, Stream Order: 0, Duration: 0:00:10.427, Resolution: 3840 x 1608, Display Aspect Ratio: 2.39:1, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2094 App 4 (dolbyvision), HDR Format Compatibility: HDR10 / HDR10+ Profile B (hdr10)], Audio Tracks: 1 [Audio Id: 0, Title: DDP 7.1, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 1536000, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 19120996, Overall Bitrate: 14663340, Duration: 0:00:10.432, Video Tracks: 1 [Video Id: 0, Default, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: main, Stream Order: 0, Duration: 0:00:10.427, Resolution: 3840 x 1608, Display Aspect Ratio: 2.39:1, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2094 App 4 (dolbyvision), HDR Format Compatibility: HDR10 / HDR10+ Profile B (hdr10)], Audio Tracks: 1 [Audio Id: 0, Default, Title: DDP 7.1, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 1536000, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex.mkv").toString()
 		);
 		assertEquals(
@@ -252,11 +252,11 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.07-eac3_atmos.mkv").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 11242060, Overall Bitrate: 2296172, Duration: 0:00:39.168, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 4, Format Tier: main, Stream Order: 0, Duration: 0:00:39.164, Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: VFR (VFR), Bit Depth: 10], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Subtitle Tracks: 1 [Id: 0, Embedded, lang: eng, type: PGS], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 11242060, Overall Bitrate: 2296172, Duration: 0:00:39.168, Video Tracks: 1 [Video Id: 0, Default, Codec: h265, Format Profile: main 10, Format Level: 4, Format Tier: main, Stream Order: 0, Duration: 0:00:39.164, Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: VFR (VFR), Bit Depth: 10], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Subtitle Tracks: 1 [Id: 0, Embedded, Default, lang: eng, type: PGS], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265-eac3-hdmv_pgs.mkv").toString()
 		);
 		assertEquals(
-			"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Duration: 0:01:11.905, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: main, Format Level: 4, Stream Order: 1, Duration: 0:01:11.905, Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.97, Frame Rate Mode: CFR (CFR), Reference Frame Count: 2], Audio Tracks: 1 [Audio Id: 0, Codec: ac4, Stream Order: 0, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
+			"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Duration: 0:01:11.905, Video Tracks: 1 [Video Id: 0, Default, Language Code: eng, Codec: h264, Format Profile: main, Format Level: 4, Stream Order: 1, Duration: 0:01:11.905, Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.97, Frame Rate Mode: CFR (CFR), Reference Frame Count: 2], Audio Tracks: 1 [Audio Id: 0, Default, Codec: ac4, Stream Order: 0, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-h264-6ch-ac4.mp4").toString()
 		);
 

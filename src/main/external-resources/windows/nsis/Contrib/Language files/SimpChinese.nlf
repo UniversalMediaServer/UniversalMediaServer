@@ -139,7 +139,7 @@ $(^Name) 卸载
 # ^CouldNotLoad
 "无法加载: "
 # ^CreateFolder
-"创建文件夹: " 
+"创建文件夹: "
 # ^CreateShortcut
 "创建快捷方式: "
 # ^CreatedUninstaller

@@ -113,11 +113,11 @@ public class FFmpegParserTest {
 			getTestFileMediaInfo("video-h264-aac.avi").toString()
 		);
 		assertEquals(
-			"Container: MP4, Size: 245747, Overall Bitrate: 133120, Duration: 0:00:15.040, Video Tracks: 1 [Video Id: 0, Codec: av1, Format Profile: main, Stream Order: 1, Resolution: 960 x 540, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Stream Order: 0, Bitrate: 8000, Channel: 1, Sample Frequency: 32000 Hz], Mime Type: video/mp4",
+			"Container: MP4, Size: 245747, Overall Bitrate: 133120, Duration: 0:00:15.040, Video Tracks: 1 [Video Id: 0, Default, Codec: av1, Format Profile: main, Stream Order: 1, Resolution: 960 x 540, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Default, Codec: AAC-LC, Stream Order: 0, Bitrate: 8000, Channel: 1, Sample Frequency: 32000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-av1-aac.mp4").toString()
 		);
 		assertEquals(
-			"Container: MP4, Size: 690235, Overall Bitrate: 974848, Duration: 0:00:05.800, Video Tracks: 1 [Video Id: 0, Codec: av1, Format Profile: main, Stream Order: 0, Resolution: 480 x 270, Frame Rate: 23.98], Mime Type: video/mp4",
+			"Container: MP4, Size: 690235, Overall Bitrate: 974848, Duration: 0:00:05.800, Video Tracks: 1 [Video Id: 0, Default, Codec: av1, Format Profile: main, Stream Order: 0, Resolution: 480 x 270, Frame Rate: 23.98], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-av1.mp4").toString()
 		);
 		assertEquals(
@@ -181,7 +181,7 @@ public class FFmpegParserTest {
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.12.ts").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 19120996, Overall Bitrate: 15014912, Duration: 0:00:10.430, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 3840 x 1608, Frame Rate: 23.98, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), HDR Format Compatibility: HDR10 (hdr10)], Audio Tracks: 1 [Audio Id: 0, Title: DDP 7.1, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 1536000, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 19120996, Overall Bitrate: 15014912, Duration: 0:00:10.430, Video Tracks: 1 [Video Id: 0, Default, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 3840 x 1608, Frame Rate: 23.98, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), HDR Format Compatibility: HDR10 (hdr10)], Audio Tracks: 1 [Audio Id: 0, Default, Title: DDP 7.1, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 1536000, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.06-eac3_dolby_surround_ex.mkv").toString()
 		);
 		assertEquals(
@@ -189,11 +189,11 @@ public class FFmpegParserTest {
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.07-eac3_atmos.mkv").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 11242060, Overall Bitrate: 2351104, Duration: 0:00:39.170, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 1920 x 1080, Frame Rate: 23.81, Bit Depth: 10], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Subtitle Tracks: 1 [Id: 0, Embedded, lang: eng, type: UNKNOWN, Stream Order: 2], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 11242060, Overall Bitrate: 2351104, Duration: 0:00:39.170, Video Tracks: 1 [Video Id: 0, Default, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 1920 x 1080, Frame Rate: 23.81, Bit Depth: 10], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Subtitle Tracks: 1 [Id: 0, Embedded, Default, lang: eng, type: UNKNOWN, Stream Order: 2], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265-eac3-hdmv_pgs.mkv").toString()
 		);
 		assertEquals(
-			"Container: MP4, Size: 23449234, Overall Bitrate: 2670592, Duration: 0:01:11.910, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: main, Stream Order: 1, Resolution: 1280 x 720, Frame Rate: 29.97], Audio Tracks: 1 [Audio Id: 0, Codec: ac4, Stream Order: 0, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
+			"Container: MP4, Size: 23449234, Overall Bitrate: 2670592, Duration: 0:01:11.910, Video Tracks: 1 [Video Id: 0, Default, Language Code: eng, Codec: h264, Format Profile: main, Stream Order: 1, Resolution: 1280 x 720, Frame Rate: 29.97], Audio Tracks: 1 [Audio Id: 0, Default, Codec: ac4, Stream Order: 0, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-h264-6ch-ac4.mp4").toString()
 		);
 
