@@ -520,6 +520,7 @@ public class FFMpegVideo extends Engine {
 				}
 			}
 
+
 			if (!customFFmpegOptions.contains("-f")) {
 				// Output file format
 				transcodeOptions.add("-f");
