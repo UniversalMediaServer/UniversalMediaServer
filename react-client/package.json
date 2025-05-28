@@ -40,7 +40,6 @@
     "react-movable": "3.4.1",
     "react-router-dom": "7.6.0",
     "react-use-websocket": "4.13.0",
-    "ums-gui": "file:",
     "video.js": "8.22.0"
   },
   "devDependencies": {
