@@ -553,8 +553,6 @@ public class JavaGui extends JFrame implements IGui {
 		tabbedPane.setComponentAt(tabIndex, sharedContentTab.build());
 		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("TranscodingSettings"));
 		tabbedPane.setComponentAt(tabIndex, transcodingTab.build());
-		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("Help"));
-		//help is not translated
 		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("About"));
 		tabbedPane.setComponentAt(tabIndex, aboutTab.build());
 	}
