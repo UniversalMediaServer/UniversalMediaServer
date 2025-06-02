@@ -26,7 +26,7 @@
 - Bump `de.sfuhrm:radiobrowser4j` from 3.1.1 to 3.2.1 ([#5523](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5523), [#5558](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5558))
 - Bump `eslint-plugin-react-refresh` from 0.4.19 to 0.4.20 ([#5517](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5517))
 - Bump `eslint-plugin-react` from 7.37.4 to 7.37.5 ([#5518](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5518))
-- Bump `eslint` from 9.24.0 to 9.27.0 ([#5515](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5515), [#5543](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5543))
+- Bump `eslint` from 9.24.0 to 9.28.0 ([#5515](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5515), [#5543](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5543), [#5573](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5573))
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 9.0.1 to 9.0.2 ([#5559](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5559))
 - Bump `org.apache.commons:commons-collections4` from 4.4 to 4.5.0 ([#5497](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5497))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.18 to 1.19 ([#5540](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5540))
