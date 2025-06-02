@@ -141,11 +141,7 @@ public class FFmpegParserTest {
 			getTestFileMediaInfo("video-h264-eac3.mkv").toString()
 		);
 		assertEquals(
-			"Container: AVI, Size: 1282694, Overall Bitrate: 813056, Duration: 0:00:12.920, Video Tracks: 1 [Video Id: 0, Codec: divx, Format Profile: advanced simple profile, Stream Order: 0, Resolution: 720 x 400, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Title: video-mpeg4-aac, Codec: MP3, Stream Order: 0, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi",
-			getTestFileMediaInfo("video-xvid-mp3.avi").toString()
-		);
-		assertEquals(
-			"Container: MKV, Size: 8925360, Overall Bitrate: 12152832, Duration: 0:00:06.020, Video Tracks: 1 [Video Id: 0, Default, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 1920 x 1080, Frame Rate: 59.94, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision)], Audio Tracks: 1 [Audio Id: 0, Default, Codec: Enhanced AC-3, Stream Order: 0, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 8925360, Overall Bitrate: 12152832, Duration: 0:00:06.020, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 1920 x 1080, Frame Rate: 59.94, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision)], Audio Tracks: 1 [Audio Id: 0, Codec: Enhanced AC-3, Stream Order: 0, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p05.05-eac3_atmos.mkv").toString()
 		);
 		assertEquals(
@@ -195,6 +191,31 @@ public class FFmpegParserTest {
 		assertEquals(
 			"Container: MP4, Size: 23449234, Overall Bitrate: 2670592, Duration: 0:01:11.910, Video Tracks: 1 [Video Id: 0, Default, Language Code: eng, Codec: h264, Format Profile: main, Stream Order: 1, Resolution: 1280 x 720, Frame Rate: 29.97], Audio Tracks: 1 [Audio Id: 0, Default, Codec: ac4, Stream Order: 0, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-h264-6ch-ac4.mp4").toString()
+		);
+
+		assertEquals(
+			"Container: AVI, Size: 572158, Overall Bitrate: 465920, Duration: 0:00:10.040, Video Tracks: 1 [Video Id: 0, Codec: mp4, Format Profile: advanced simple profile, Stream Order: 0, Resolution: 480 x 272, Frame Rate: 29.97], Audio Tracks: 1 [Audio Id: 0, Codec: MP3, Stream Order: 0, Bitrate: 128000, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/avi",
+			getTestFileMediaInfo("video-xvid_advancedsimple_l1_qpel-mp3.avi").toString()
+		);
+		assertEquals(
+			"Container: AVI, Size: 1282694, Overall Bitrate: 813056, Duration: 0:00:12.920, Video Tracks: 1 [Video Id: 0, Codec: divx, Format Profile: advanced simple profile, Stream Order: 0, Resolution: 720 x 400, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Title: video-mpeg4-aac, Codec: MP3, Stream Order: 0, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi",
+			getTestFileMediaInfo("video-xvid_advancedsimple_l5_bvop2-mp3.avi").toString()
+		);
+		assertEquals(
+			"Container: AVI, Size: 3319346, Overall Bitrate: 2257920, Duration: 0:00:12.040, Video Tracks: 1 [Video Id: 0, Codec: mp4, Format Profile: xvid / 0x44495658, Stream Order: 0, Resolution: 704 x 304, Frame Rate: 25.0], Mime Type: video/avi",
+			getTestFileMediaInfo("video-xvid_matrixmpeg.avi").toString()
+		);
+		assertEquals(
+			"Container: AVI, Size: 1921894, Overall Bitrate: 497664, Duration: 0:00:31.630, Video Tracks: 1 [Video Id: 0, Codec: divx, Format Profile: advanced simple profile, Stream Order: 0, Resolution: 720 x 480, Frame Rate: 29.97], Audio Tracks: 1 [Audio Id: 0, Codec: MP3, Stream Order: 0, Bitrate: 128000, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/avi",
+			getTestFileMediaInfo("video-xvid_simple_l1_bvop3-mp3.avi").toString()
+		);
+		assertEquals(
+			"Container: AVI, Size: 6089516, Overall Bitrate: 3832832, Duration: 0:00:13.010, Video Tracks: 1 [Video Id: 0, Codec: mp4, Format Profile: simple profile, Stream Order: 0, Resolution: 640 x 368, Frame Rate: 23.98], Audio Tracks: 1 [Audio Id: 0, Codec: AC3, Stream Order: 0, Bitrate: 192000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi",
+			getTestFileMediaInfo("video-xvid_simple_l3_bvop4_packedbitstream-ac3.avi").toString()
+		);
+		assertEquals(
+			"Container: AVI, Size: 728924, Overall Bitrate: 593920, Duration: 0:00:10.040, Video Tracks: 1 [Video Id: 0, Codec: divx, Format Profile: advanced simple profile, Stream Order: 0, Resolution: 512 x 384, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Codec: MP3, Stream Order: 0, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi",
+			getTestFileMediaInfo("video-xvid_simple_l3_bvop1_gmc2-mp3.avi").toString()
 		);
 
 		//should fallback to JaudiotaggerParser for audio
