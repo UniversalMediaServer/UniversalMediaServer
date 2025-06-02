@@ -14,7 +14,7 @@
 - Bump `@tabler/icons-react` from 3.31.0 to 3.33.0 ([#5544](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5544))
 - Bump `@types/lodash` from 4.17.16 to 4.17.17 ([#5554](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5554))
 - Bump `@types/react-dom` from 19.1.2 to 19.1.5 ([#5509](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5509), [#5554](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5554))
-- Bump `@types/react` from 19.1.1 to 19.1.5 ([#5509](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5509), [#5527](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5527), [#5554](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5554))
+- Bump `@types/react` from 19.1.1 to 19.1.6 ([#5509](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5509), [#5527](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5527), [#5554](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5554), [#5572](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5572))
 - Bump `@vitejs/plugin-react` from 4.3.4 to 4.5.0 ([#5479](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5479), [#5555](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5555))
 - Bump `axios` from 1.8.4 to 1.9.0 ([#5519](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5519))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
