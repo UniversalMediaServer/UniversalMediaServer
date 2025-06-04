@@ -141,7 +141,7 @@ public class FFmpegParserTest {
 			getTestFileMediaInfo("video-h264-eac3.mkv").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 8925360, Overall Bitrate: 12152832, Duration: 0:00:06.020, Video Tracks: 1 [Video Id: 0, Default, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 1920 x 1080, Frame Rate: 59.94, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision)], Audio Tracks: 1 [Audio Id: 0, Default, Codec: Enhanced AC-3, Stream Order: 0, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 8925360, Overall Bitrate: 12152832, Duration: 0:00:06.020, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 1920 x 1080, Frame Rate: 59.94, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision)], Audio Tracks: 1 [Audio Id: 0, Codec: Enhanced AC-3, Stream Order: 0, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p05.05-eac3_atmos.mkv").toString()
 		);
 		assertEquals(
