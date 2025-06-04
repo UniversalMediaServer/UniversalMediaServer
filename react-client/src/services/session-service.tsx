@@ -14,6 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
+
+import { RendererAction } from './home-service'
+
 export interface UmsUser {
   id: number
   username: string
@@ -42,21 +46,118 @@ export interface UmsAccount {
   group: UmsGroup
 }
 
+export interface UmsUserLogin {
+  id: number
+  username: string
+  displayName: string
+  avatar?: string
+  login: string
+  token?: string
+}
+
 export interface UmsSession {
   noAdminFound: boolean
   account?: UmsAccount
   authenticate: boolean
   player: boolean
+  users?: UmsUserLogin[]
+}
+
+export interface LocalUser {
+  id: number
+  displayName: string
+  token: string
+  avatar?: string
+}
+
+export const UmsPermission = {
+  users_manage: 1,
+  groups_manage: 1 << 1,
+  settings_view: 1 << 10,
+  settings_modify: 1 << 11,
+  devices_control: 1 << 12,
+  server_restart: 1 << 20,
+  application_restart: 1 << 21,
+  application_shutdown: 1 << 22,
+  computer_shutdown: 1 << 23,
+  web_player_browse: 1 << 25,
+  web_player_download: 1 << 26,
+  web_player_edit: 1 << 27,
+  all: -1,
+}
+
+export interface UmsMemory {
+  max: number
+  used: number
+  dbcache: number
+  buffer: number
+}
+
+export interface UmsNotificationData {
+  id?: string
+  color?: string
+  title?: string
+  message?: string
+  autoClose?: boolean
 }
 
 export interface SessionInterface extends UmsSession {
   initialized: boolean
+  havePermission(permission: number): boolean
+  users?: UmsUserLogin[]
+  isDefaultUser: boolean
+  canSwitchUser: boolean
   refresh: () => void
-  logout: () => Promise<void>
-  sseAs: string
-  useSseAs: (name: string) => void
-  stopSse: () => void
+  token: string
+  setToken: (token: string) => void
+  login: (username: string, password: string) => Promise<void>
+  loginPin: (id: number, pin: string) => Promise<void>
+  logout: (keepLocal: boolean) => Promise<void>
+  isLogout: boolean
+  resetLogout: () => void
+  removeLocalUser: (id: number) => void
+  lastUserId: number
+  subscribe: string
+  subscribeTo: (name: string) => void
+  unsubscribe: () => void
   usePlayerSse: boolean
   startPlayerSse: () => void
   stopPlayerSse: () => void
+  uuid: string
+  setUuid: (uuid: string) => void
+  serverName: string
+  setServerName: (serverName: string) => void
+  setDocumentTitle: (documentTitle: string) => void
+  setDocumentI18nTitle: (documentTitle: string) => void
+  playerNavbar: boolean
+  setPlayerNavbar: (playerNavbar: boolean) => void
+  playerDirectPlay: boolean
+  setPlayerDirectPlay: (playerDirectPlay: boolean) => void
+  hasNavbar: boolean
+  navbarValue: React.ReactNode
+  setNavbarValue: (navbarValue: React.ReactNode) => void
+  navbarOpened: boolean
+  setNavbarOpened: (navbarOpened: boolean) => void
+  statusLine: string
+  setStatusLine: (statusLine: string) => void
+  navbarManage: string
+  setNavbarManage: (navbarManage: string) => void
+  serverConfiguration: Record<string, unknown> | null
+  setServerConfiguration: (configuration: Record<string, unknown> | null) => void
+  addLogLine: (line: string) => void
+  hasNewLogLine: boolean
+  getNewLogLine: () => string | undefined
+  addRendererAction: (rendererAction: RendererAction) => void
+  hasRendererAction: boolean
+  getRendererAction: () => RendererAction | undefined
+  mediaScan: boolean
+  setMediaScan: (mediaScan: boolean) => void
+  reloadable: boolean
+  setReloadable: (reloadable: boolean) => void
+  memory: UmsMemory
+  setMemory: (memory: UmsMemory) => void
+  updateAccounts: boolean
+  setUpdateAccounts: (updateAccounts: boolean) => void
+  sendJsonMessage: SendJsonMessage
+  setSendJsonMessage: (sendJsonMessage: SendJsonMessage) => void
 }

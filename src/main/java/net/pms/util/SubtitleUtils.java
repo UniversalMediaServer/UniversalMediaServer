@@ -253,7 +253,7 @@ public class SubtitleUtils {
 		}
 
 		if (params.getSid().isExternal() && params.getSid().getExternalFile() == null) {
-			// This happens when for example OpenSubtitles fail to download
+			// This should not happen now that we do not have live subtitles anymore, but it can stay for defensiveness
 			return null;
 		}
 
