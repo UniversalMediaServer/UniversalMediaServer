@@ -1390,6 +1390,7 @@ public class RendererConfiguration extends BaseConfiguration {
 			null,
 			subtitle.getType().getShortName().toUpperCase(Locale.ROOT),
 			true,
+			null,
 			this
 		) != null;
 	}
