@@ -33,7 +33,7 @@
 - Bump `axios` from 1.8.4 to 1.9.0 ([#5519](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5519))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.3 to 2.19.0 ([#5495](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5495))
-- Bump `com.github.oshi:oshi-core` from 6.8.0 to 6.8.1 ([#5511](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5511))
+- Bump `com.github.oshi:oshi-core` from 6.8.0 to 6.8.2 ([#5511](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5511), [#5577](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5577))
 - Bump `com.google.code.gson:gson` from 2.13.0 to 2.13.1 ([#5524](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5524))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.23.0 to 10.24.0 ([#5512](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5512), [#5560](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5560))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.12 to 0.12.15 ([#5525](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5525), [#5541](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5541))
