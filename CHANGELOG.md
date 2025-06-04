@@ -54,7 +54,7 @@
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.12.2 to 5.13.0 ([#5575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5575))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.12.2 to 5.13.0 ([#5575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5575))
 - Bump `react-router-dom` from 7.5.0 to 7.6.1 ([#5498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5498), [#5530](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5530), [#5556](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5556))
-- Bump `typescript-eslint` from 8.29.0 to 8.32.0 ([#5496](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5496), [#5528](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5528))
+- Bump `typescript-eslint` from 8.29.0 to 8.33.0 ([#5496](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5496), [#5528](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5528), [#5574](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5574))
 - Bump `vite` from 6.3.4 to 6.3.5 ([#5529](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5529))
 - Bump `yarn` from 4.6.0 to 4.9.1
 - Bumped all subdependencies
