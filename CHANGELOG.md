@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### General
+- Added the ability for renderers to specify support for file muxing mode
+- Fixed renderers forgetting user account assignments (#4834)
+- Fixed AV1 codec parsing
+- Fixed sending API requests with not enough data to succeed
+- Performance improvements
+- Many improvements and additions to automated tests
+- Logging improvements
+
+### Media players
+- Added support for Linkplay WiiM devices (WiiM Mini, Pro and Pro Plus) (thanks, boessu!)
+- Fixed support for some AVI files on LG TVs
+- Cleaned up Panasonic TV configs
+
 ### Dependencies
 - Bump `@mantine/core` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
 - Bump `@mantine/dropzone` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
@@ -28,6 +42,9 @@
 - Bump `eslint-plugin-react` from 7.37.4 to 7.37.5 ([#5518](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5518))
 - Bump `eslint` from 9.24.0 to 9.27.0 ([#5515](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5515), [#5543](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5543))
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 9.0.1 to 9.0.2 ([#5559](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5559))
+- Bump `JRE` from 17.0.13+12 to 17.0.15+10
+- Bump `MediaInfo` from 24.12 to 25.04
+- Bump `NSIS` from 3.10 to 3.11
 - Bump `org.apache.commons:commons-collections4` from 4.4 to 4.5.0 ([#5497](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5497))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.18 to 1.19 ([#5540](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5540))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.16 to 12.0.21 ([#5494](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5494), [#5539](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5539))
@@ -37,6 +54,8 @@
 - Bump `react-router-dom` from 7.5.0 to 7.6.1 ([#5498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5498), [#5530](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5530), [#5556](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5556))
 - Bump `typescript-eslint` from 8.29.0 to 8.32.0 ([#5496](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5496), [#5528](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5528))
 - Bump `vite` from 6.3.4 to 6.3.5 ([#5529](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5529))
+- Bump `yarn` from 4.6.0 to 4.9.1
+- Bumped all subdependencies
 
 ## [14.12.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.0...14.12.1) (2025-04-26)
 
