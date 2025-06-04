@@ -640,7 +640,7 @@ public class APIUtils {
 				JsonObject seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, startYear);
 				if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.has("statusCode")) {
 					if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.has("statusCode") && "500".equals(seriesMetadataFromAPI.get("statusCode").getAsString())) {
-						LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
+						LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb ID {}", titleFromFilename, seriesIMDbIDFromAPI);
 					} else {
 						LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
 						MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "No API result - expected ", false);
@@ -827,8 +827,10 @@ public class APIUtils {
 		Path path;
 		String apiResult;
 		String imdbID = null;
+		String pathString = "";
 		if (file != null) {
 			path = file.toPath();
+			pathString = path.toString();
 			imdbID = ImdbUtil.extractImdbId(path, false);
 			if (isBlank(movieOrTVSeriesTitle)) {
 				movieOrTVSeriesTitle = FileUtil.getFileNameWithoutExtension(file.getName());
@@ -845,11 +847,16 @@ public class APIUtils {
 			movieOrTVSeriesTitle = movieOrTVSeriesTitle.substring(0, yearIndex);
 		}
 
+		if (isBlank(imdbID) && isBlank(movieOrTVSeriesTitle)) {
+			LOGGER.trace("Title or IMDb ID required, we have: {} {} {} {} {}", movieOrTVSeriesTitle, year, season, episode, imdbID, pathString);
+			return null;
+		}
+
 		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID);
 
 		String notFoundPartialMessage = "Metadata not found";
 		if (apiResult == null || StringUtils.contains(apiResult, notFoundPartialMessage)) {
-			LOGGER.trace("no result for " + movieOrTVSeriesTitle + ", received: " + apiResult);
+			LOGGER.trace("No result for {}, received: {}", movieOrTVSeriesTitle, apiResult);
 			return null;
 		}
 
@@ -887,6 +894,12 @@ public class APIUtils {
 		}
 
 		apiResult = getInfoFromAllExtractedData(formattedName, true, startYear, null, null, imdbID);
+
+		String notFoundPartialMessage = "Metadata not found";
+		if (apiResult == null || StringUtils.contains(apiResult, notFoundPartialMessage)) {
+			LOGGER.trace("No result for {}, received: {}", formattedName, apiResult);
+			return null;
+		}
 
 		JsonObject data = null;
 		try {
