@@ -1,0 +1,12 @@
+[playlist]
+NumberOfEntries=3
+File1=http://prem2.rockradio.com:80/00srock
+Title1=ROCKRADIO.COM - 00s Rock
+Length1=0
+File2=http://prem1.rockradio.com:80/00srock
+Title2=ROCKRADIO.COM - 00s Rock
+Length2=0
+File3=http://prem4.rockradio.com:80/00srock
+Title3=ROCKRADIO.COM - 00s Rock
+Length3=0
+Version=2
