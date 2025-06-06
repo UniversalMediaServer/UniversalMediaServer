@@ -383,7 +383,7 @@ public class JUPnPDeviceHelper {
 			Renderer renderer = ConnectedRenderers.getUuidRenderer(uuid);
 			if (renderer.needsRenewal() || getDeviceControls(d) != renderer.getControls()) {
 				LOGGER.debug("Renewing subscriptions to ", getFriendlyName(d));
-				subscribeAll(d, renderer);
+				// subscribeAll(d, renderer);
 			}
 			renderer.setActive(true);
 		}
