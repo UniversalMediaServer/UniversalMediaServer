@@ -249,19 +249,15 @@ public class MediaMonitor extends LocalizedStoreContainer {
 						try {
 							fileWillMove(fullPathToFile, newPathToFile);
 							Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newPathToFile), StandardCopyOption.REPLACE_EXISTING);
-							LOGGER.debug("Moved {} because it has been fully played", newFilename);
+							LOGGER.info("Moved {} because it has been fully played", newFilename);
 						} catch (IOException e) {
 							LOGGER.debug("Moving {} failed, trying again in 3 seconds: {}", newFilename, e.getMessage());
 							try {
 								Thread.sleep(3000);
 								Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newPathToFile), StandardCopyOption.REPLACE_EXISTING);
-								LOGGER.debug("Moved {} because it has been fully played", newFilename);
+								LOGGER.info("Moved {} because it has been fully played", newFilename);
 							} catch (InterruptedException e2) {
-								LOGGER.debug(
-										"Abandoning moving of {} because the thread was interrupted, probably due to program shutdown: {}",
-										newFilename,
-										e2.getMessage()
-								);
+								LOGGER.debug("Abandoning moving of {} because the thread was interrupted, probably due to program shutdown: {}", newFilename, e2.getMessage());
 								fileMoveFail(newPathToFile);
 								Thread.currentThread().interrupt();
 							} catch (IOException e3) {
@@ -269,28 +265,20 @@ public class MediaMonitor extends LocalizedStoreContainer {
 							}
 						}
 					} else if (StringUtils.isBlank(newDirectory)) {
-						LOGGER.warn(
-								"Failed to move \"{}\" after being fully played because the folder to move to isn't configured",
-								playedFile.getName()
-						);
+						LOGGER.warn("Failed to move \"{}\" after being fully played because the folder to move to isn't configured", playedFile.getName());
 					} else {
-						LOGGER.trace(
-								"Not moving \"{}\" after being fully played since it's already in the target folder \"{}\"",
-								playedFile.getName(),
-								newDirectory
-						);
+						LOGGER.trace("Not moving \"{}\" after being fully played since it's already in the target folder \"{}\"", playedFile.getName(), newDirectory);
 					}
 				} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
 					try {
 						PlatformUtils.INSTANCE.moveToTrash(playedFile);
+						LOGGER.info("Moved {} to trash because it has been fully played", playedFile.getName());
 					} catch (IOException e) {
-						LOGGER.warn(
-								"Failed to move file \"{}\" to recycler/trash after it has been fully played: {}",
-								playedFile.getAbsoluteFile(),
-								e.getMessage()
-						);
+						LOGGER.warn("Failed to move file \"{}\" to recycler/trash after it has been fully played: {}", playedFile.getAbsoluteFile(), e.getMessage());
 						LOGGER.trace("", e);
 					}
+				} else if (fullyPlayedAction != FullyPlayedAction.NO_ACTION) {
+					LOGGER.info("{} was fully played", playedFile.getName());
 				}
 
 				/**
@@ -300,8 +288,6 @@ public class MediaMonitor extends LocalizedStoreContainer {
 				if (fullyPlayedAction != FullyPlayedAction.NO_ACTION) {
 					notifyRefresh();
 				}
-
-				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
 			MediaStatusStore.setLastPlayed(fullPathToFile, userId, elapsed);
