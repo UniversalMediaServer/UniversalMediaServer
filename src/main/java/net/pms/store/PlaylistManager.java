@@ -89,10 +89,8 @@ public class PlaylistManager {
 		} else {
 			relativePath = calculateRelativeEntryPath(Paths.get(filenameToRemove), playlistPath);
 		}
-		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 
-		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
-			writePlaylistToDisk(playlistEntries, playlistPath);
+		if (playlistFolder.deleteEntry(filenameToRemove) || playlistFolder.deleteEntry(relativePath)) {
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
 			Long containerId = MediaTableFiles.getFileId(playlistPath.toString());
 			Long entryId = MediaTableFiles.getFileId(filenameToRemove);
