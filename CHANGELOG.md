@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.13.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...14.13.0) (2025-06-08)
+
 ### General
 - Added the ability for renderers to specify support for file muxing mode
 - Fixed renderers forgetting user account assignments (#4834)
@@ -15,6 +17,9 @@
 - Added support for Linkplay WiiM devices (WiiM Mini, Pro and Pro Plus) (thanks, boessu!)
 - Fixed support for some AVI files on LG TVs
 - Cleaned up Panasonic TV configs
+
+### Translation updates via Crowdin
+- Norwegian (59%) (thanks, elislays08!)
 
 ### Dependencies
 - Bump `@mantine/core` from 7.17.4 to 7.17.5 ([#5493](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5493))
