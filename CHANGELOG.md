@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `@types/react-dom` from 19.1.5 to 19.1.6 ([#5584](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5584))
+
 ## [14.13.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...14.13.0) (2025-06-08)
 
 ### General
