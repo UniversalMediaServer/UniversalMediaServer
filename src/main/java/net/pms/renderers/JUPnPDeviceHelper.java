@@ -37,7 +37,6 @@ import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
 import net.pms.util.XmlUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -372,7 +371,7 @@ public class JUPnPDeviceHelper {
 			} else if (sid.contains(RENDERING_CONTROL_SERVICE)) {
 				ctrl |= RC;
 			}
-			MediaServer.upnpService.getControlPoint().execute(new UmsSubscriptionCallback(s));
+			// MediaServer.upnpService.getControlPoint().execute(new UmsSubscriptionCallback(s));
 		}
 		return ctrl;
 	}
