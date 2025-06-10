@@ -347,20 +347,20 @@ public class JUPnPDeviceHelper {
 	}
 
 	private static void subscribeAll(Device d, Renderer renderer) {
-		String name = getFriendlyName(d);
-		int ctrl = 0;
-		for (Service s : d.getServices()) {
-			String sid = s.getServiceId().getId();
-			LOGGER.debug("Subscribing to " + sid + " service on " + name);
-			if (sid.contains(AV_TRANSPORT_SERVICE)) {
-				ctrl |= AVT;
-			} else if (sid.contains(RENDERING_CONTROL_SERVICE)) {
-				ctrl |= RC;
-			}
-			MediaServer.upnpService.getControlPoint().execute(new UmsSubscriptionCallback(s));
-		}
-		renderer.setRenew(false);
-		renderer.setControls(ctrl);
+//		String name = getFriendlyName(d);
+//		int ctrl = 0;
+//		for (Service s : d.getServices()) {
+//			String sid = s.getServiceId().getId();
+//			LOGGER.debug("Subscribing to " + sid + " service on " + name);
+//			if (sid.contains(AV_TRANSPORT_SERVICE)) {
+//				ctrl |= AVT;
+//			} else if (sid.contains(RENDERING_CONTROL_SERVICE)) {
+//				ctrl |= RC;
+//			}
+//			MediaServer.upnpService.getControlPoint().execute(new UmsSubscriptionCallback(s));
+//		}
+//		renderer.setRenew(false);
+//		renderer.setControls(ctrl);
 	}
 
 	private static int getDeviceControls(Device d) {
