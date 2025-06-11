@@ -115,7 +115,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				LOGGER.debug("Renderer not identified by header. Using default.");
 				renderer = RendererConfigurations.getDefaultRenderer();
 			}
-			LOGGER.info("Using {} renderer for this request", renderer.getRendererName());
+			LOGGER.trace("Using {} renderer for this request", renderer.getRendererName());
 
 			if (req.getHeader("X-PANASONIC-DMP-Profile") != null) {
 				PanasonicDmpProfiles.parsePanasonicDmpProfiles(req.getHeader("X-PANASONIC-DMP-Profile"), renderer);
