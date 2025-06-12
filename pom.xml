@@ -69,7 +69,7 @@
 		<project.mainclass>${project.groupId}.PMS</project.mainclass>
 		<project.name.short>UMS</project.name.short>
 
-		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
+		<project.binaries-base>https://www.universalmediaserver.com/binaries</project.binaries-base>
 
 		<binary-revision>218</binary-revision>
 
