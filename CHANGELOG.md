@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@types/react-dom` from 19.1.5 to 19.1.6 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
+- Bump `@types/react` from 19.1.6 to 19.1.8 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
