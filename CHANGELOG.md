@@ -8,6 +8,7 @@
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
 - Bump `react-router-dom` from 7.6.1 to 7.6.2 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585))
 - Bump `react-router-dom` from 7.6.1 to 7.6.2 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585))
+- Bump `typescript-eslint` from 8.33.0 to 8.33.1 ([#5587](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5587))
 
 ## [14.13.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...14.13.0) (2025-06-08)
 
