@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.0 to 3.5.1 ([#5590](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5590))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
