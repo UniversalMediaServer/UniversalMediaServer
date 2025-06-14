@@ -6,6 +6,8 @@
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.13.0 to 5.13.1 ([#5589](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5589))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.13.0 to 5.13.1 ([#5589](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5589))
 - Bump `react-router-dom` from 7.6.1 to 7.6.2 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585))
 - Bump `react-router-dom` from 7.6.1 to 7.6.2 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585))
 
