@@ -1,0 +1,267 @@
+{
+    "activated": true,
+    "active": true,
+    "amember_id": null,
+    "api_key": "SECRET",
+    "api_key_created_at": "2025-02-07T13:37:38-35:00",
+    "banned": false,
+    "billing_country_id": null,
+    "clevertap_uploaded_at": "2025-02-07T13:38:46-35:00",
+    "company_name": "",
+    "confirmation_token": "SECRET",
+    "confirmed": false,
+    "confirmed_at": null,
+    "created_at": "2025-02-07T13:37:38-35:00",
+    "delete_token": null,
+    "email": "SECRET",
+    "email_campaigns": [
+        {
+            "id": 1,
+            "name": "Monthly Newsletter",
+            "sailthru_name": "di Monthly Newsletter",
+            "key": "di_newsletter",
+            "position": 1,
+            "auto_opt_in": true,
+            "created_at": "2013-08-07T00:09:59-34:00",
+            "updated_at": "2013-08-07T00:09:59-34:00",
+            "network": {
+                "id": 1,
+                "name": "DI.FM",
+                "key": "di",
+                "url": "https://www.di.fm",
+                "description": null,
+                "created_at": "2010-03-16T18:02:42-34:00",
+                "updated_at": "2021-12-06T11:52:38-35:00",
+                "active": true,
+                "listen_url": "http://listen.di.fm",
+                "service_key": "di-premium",
+                "active_channel_count": 100
+            }
+        },
+        {
+            "id": 2,
+            "name": "Offers and Promotions",
+            "sailthru_name": "di Offers and Promotions",
+            "key": "di_offers",
+            "position": 2,
+            "auto_opt_in": true,
+            "created_at": "2013-08-07T00:09:59-34:00",
+            "updated_at": "2013-08-07T00:09:59-34:00",
+            "network": {
+                "id": 1,
+                "name": "DI.FM",
+                "key": "di",
+                "url": "https://www.di.fm",
+                "description": null,
+                "created_at": "2010-03-16T18:02:42-34:00",
+                "updated_at": "2021-12-06T11:52:38-35:00",
+                "active": true,
+                "listen_url": "http://listen.di.fm",
+                "service_key": "di-premium",
+                "active_channel_count": 100
+            }
+        },
+        {
+            "id": 3,
+            "name": "Special Event Alerts",
+            "sailthru_name": "di Special Event Alerts",
+            "key": "di_alerts",
+            "position": 3,
+            "auto_opt_in": true,
+            "created_at": "2013-08-07T00:09:59-34:00",
+            "updated_at": "2013-08-07T00:09:59-34:00",
+            "network": {
+                "id": 1,
+                "name": "DI.FM",
+                "key": "di",
+                "url": "https://www.di.fm",
+                "description": null,
+                "created_at": "2010-03-16T18:02:42-34:00",
+                "updated_at": "2021-12-06T11:52:38-35:00",
+                "active": true,
+                "listen_url": "http://listen.di.fm",
+                "service_key": "di-premium",
+                "active_channel_count": 100
+            }
+        }
+    ],
+    "failed_login_count": 0,
+    "feature_events": {
+        "first_time_skip": true,
+        "first_time_votedown": false,
+        "first_time_live_show_skip": false,
+        "media_controls_with_skip_announcement": false,
+        "stream_interrupted_email_sent": false
+    },
+    "feature_flags": [],
+    "first_name": null,
+    "fraudulent": null,
+    "free_content_exhausted": true,
+    "has_set_password": true,
+    "id": 16253802,
+    "last_login_attempt": null,
+    "last_name": null,
+    "listen_key": "SECRET_LISTEN_KEY",
+    "locale": "en_US",
+    "network_favorite_channels": [
+        {
+            "channel_id": 353,
+            "position": 0
+        },
+        {
+            "channel_id": 14,
+            "position": 1
+        },
+        {
+            "channel_id": 288,
+            "position": 2
+        },
+        {
+            "channel_id": 278,
+            "position": 5
+        },
+        {
+            "channel_id": 474,
+            "position": 6
+        },
+        {
+            "channel_id": 210,
+            "position": 7
+        },
+        {
+            "channel_id": 349,
+            "position": 8
+        },
+        {
+            "channel_id": 504,
+            "position": 9
+        },
+        {
+            "channel_id": 13,
+            "position": 10
+        },
+        {
+            "channel_id": 180,
+            "position": 11
+        },
+        {
+            "channel_id": 520,
+            "position": 12
+        },
+        {
+            "channel_id": 10,
+            "position": 13
+        },
+        {
+            "channel_id": 522,
+            "position": 14
+        },
+        {
+            "channel_id": 66,
+            "position": 15
+        },
+        {
+            "channel_id": 142,
+            "position": 16
+        },
+        {
+            "channel_id": 505,
+            "position": 17
+        },
+        {
+            "channel_id": 36,
+            "position": 18
+        },
+        {
+            "channel_id": 400,
+            "position": 19
+        },
+        {
+            "channel_id": 1,
+            "position": 20
+        }
+    ],
+    "network_id": 1,
+    "password_reset_token": null,
+    "signup_country_id": 57,
+    "signup_ip_address": "1.62.35.81",
+    "subscriptions": [{
+        "id": 12345,
+        "created_at": "2024-02-07T13:42:21-35:00",
+        "updated_at": "2024-02-07T13:42:21-35:00",
+        "auto_renew": true,
+        "billable": true,
+        "currency": "EUR",
+        "status": "active",
+        "renewal_type": 0,
+        "price": "12.0",
+        "term_duration": 2,
+        "term_unit": "year",
+        "trial": false,
+        "plan": {
+            "id": 16,
+            "allow_trial": false,
+            "availability_ends_at": null,
+            "availability_starts_at": "2024-12-23T16:07:11-35:00",
+            "key": "premium-pre-po-dec23",
+            "mobile_only": false,
+            "name": "Premium Radio December 2023",
+            "priority": 5,
+            "trial_duration_days": null,
+            "created_at": "2023-12-23T16:07:11-35:00",
+            "updated_at": "2023-12-23T16:07:11-35:00"
+        },
+        "plan_id": 16,
+        "starts_on": "2024-02-05",
+        "expires_on": "2026-02-05",
+        "first_purchase_at": "2024-02-07T13:42:21-35:00",
+        "first_trial_at": null,
+        "member_id": 12345,
+        "network_id": 1,
+        "payment_type_id": 13,
+        "retention": false,
+        "services": [
+            {
+                "id": 1,
+                "key": "di-premium",
+                "name": "Digitally Imported Premium Radio"
+            },
+            {
+                "id": 2,
+                "key": "sky-premium",
+                "name": "SKY.FM Premium Radio"
+            },
+            {
+                "id": 3,
+                "key": "jazzradio-premium",
+                "name": "JAZZRADIO.com Premium Radio"
+            },
+            {
+                "id": 4,
+                "key": "rockradio-premium",
+                "name": "ROCKRADIO.com Premium Radio"
+            },
+            {
+                "id": 5,
+                "key": "radiotunes-premium",
+                "name": "RadioTunes.com Premium Radio"
+            },
+            {
+                "id": 6,
+                "key": "classicalradio-premium",
+                "name": "ClassicalRadio.com Premium Radio"
+            },
+            {
+                "id": 7,
+                "key": "zenradio-premium",
+                "name": "ZenRadio.com Premium Radio"
+            }
+        ]
+    }],
+    "timezone": "Eastern Time (US & Canada)",
+    "updated_at": "2025-03-12T09:53:49-34:00",
+    "user_type": "premium",
+    "vat_number": "",
+    "webplayer_preferences": null,
+    "unregistered": false
+}
