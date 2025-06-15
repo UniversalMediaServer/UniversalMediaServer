@@ -30,6 +30,9 @@ import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
 import net.pms.store.StoreItem;
+import net.pms.store.ThumbnailSource;
+import net.pms.store.ThumbnailStore;
+import net.pms.store.container.PlaylistFolder;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,9 +187,12 @@ public class WebStream extends StoreItem {
 		if (getMediaInfo() == null || !getMediaInfo().isMediaParsed()) {
 			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
 		}
-		if (directives != null && directives.containsKey("RADIOBROWSERUUID")) {
+		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID)) {
 			// Attempt to enhance the metadata via RADIOBROWSER API.
-			RadioBrowser4j.backgroundLookupAndAddMetadata(url, directives.get("RADIOBROWSERUUID"), mediaInfo);
+			RadioBrowser4j.backgroundLookupAndAddMetadata(url, directives.get(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID), mediaInfo);
+		}
+		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_ALBUMART_URI)) {
+			ThumbnailStore.updateThumbnailByURI(directives.get(PlaylistFolder.DIRECTIVE_ALBUMART_URI), getFileName(), ThumbnailSource.PLAYLIST);
 		}
 	}
 
