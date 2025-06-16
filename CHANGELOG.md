@@ -8,6 +8,7 @@
 - Bump `@types/react` from 19.1.6 to 19.1.8 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
 - Bump `@vitejs/plugin-react` from 4.5.0 to 4.5.1 ([#5586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5586))
 - Bump `axios` from 1.9.0 to 1.10.0 ([#5605](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5605))
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.19.0 to 2.19.1 ([#5600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5600))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.0 to 3.5.1 ([#5590](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5590))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
