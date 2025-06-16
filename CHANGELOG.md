@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@playwright/test` from 1.52.0 to 1.53.0 ([#5604](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5604))
 - Bump `@types/react-dom` from 19.1.5 to 19.1.6 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
 - Bump `@types/react` from 19.1.6 to 19.1.8 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
 - Bump `@vitejs/plugin-react` from 4.5.0 to 4.5.1 ([#5586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5586))
