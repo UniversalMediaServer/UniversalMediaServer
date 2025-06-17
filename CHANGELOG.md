@@ -39,8 +39,21 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `@playwright/test` from 1.52.0 to 1.53.0 ([#5604](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5604))
+- Bump `@stylistic/eslint-plugin` from 4.4.0 to 4.4.1 ([#5602](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5602))
+- Bump `@types/react-dom` from 19.1.5 to 19.1.6 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
+- Bump `@types/react` from 19.1.6 to 19.1.8 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
+- Bump `@vitejs/plugin-react` from 4.5.0 to 4.5.1 ([#5586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5586))
+- Bump `axios` from 1.9.0 to 1.10.0 ([#5605](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5605))
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.0 to 3.5.1 ([#5590](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5590))
+- Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.21 to 12.0.22 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.13.0 to 5.13.1 ([#5589](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5589))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.13.0 to 5.13.1 ([#5589](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5589))
 - Bump `react-router-dom` from 7.6.1 to 7.6.2 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585))
+- Bump `react-router-dom` from 7.6.1 to 7.6.2 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585))
+- Bump `typescript-eslint` from 8.33.0 to 8.33.1 ([#5587](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5587))
 
 ## [14.13.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...14.13.0) (2025-06-08)
 
