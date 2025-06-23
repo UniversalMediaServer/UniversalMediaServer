@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `@playwright/test` from 1.52.0 to 1.53.0 ([#5604](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5604))
+- Bump `@playwright/test` from 1.52.0 to 1.53.1 ([#5604](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5604), [#5608](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5608))
 - Bump `@stylistic/eslint-plugin` from 4.4.0 to 4.4.1 ([#5602](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5602))
 - Bump `@tabler/icons-react` from 3.33.0 to 3.34.0 ([#5603](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5603))
 - Bump `@types/react-dom` from 19.1.5 to 19.1.6 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
