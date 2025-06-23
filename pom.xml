@@ -456,7 +456,7 @@
 			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
-			<version>0.12.15</version>
+			<version>0.12.16</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
