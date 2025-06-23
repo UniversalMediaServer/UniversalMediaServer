@@ -35,7 +35,7 @@
     "react-dom": "19.1.0",
     "react-movable": "3.4.1",
     "react-router-dom": "7.6.2",
-    "video.js": "8.22.0"
+    "video.js": "8.23.3"
   },
   "devDependencies": {
     "@playwright/test": "1.53.0",
