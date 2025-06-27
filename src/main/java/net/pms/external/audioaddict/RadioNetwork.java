@@ -48,7 +48,9 @@ public class RadioNetwork {
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
 
 	private static String apiKey = null;
+
 	private static String listenKey = null;
+
 	private static boolean authenticated = false;
 
 	private HttpClient httpNonBlocking = new HttpClient();
@@ -96,6 +98,7 @@ public class RadioNetwork {
 		}
 
 		Runnable r = new Runnable() {
+
 			@Override
 			public void run() {
 				LOGGER.info("{} : initializing ...", network.name());
@@ -122,22 +125,26 @@ public class RadioNetwork {
 				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.getStatus(), resp);
 			} else {
 				LOGGER.info("successfully authenticated user {}", config.user);
-				authenticated = true;
-				Matcher m = API_KEY_PATTERN.matcher(resp);
-				if (m.find()) {
-					apiKey = m.group(1);
-				} else {
-					LOGGER.warn("api-key not found!");
-				}
-				m = LISTEN_KEY_PATTERN.matcher(resp);
-				if (m.find()) {
-					listenKey = m.group(1);
-				} else {
-					LOGGER.warn("listen-key not found!");
-				}
+				extractAuthInfo(resp);
 			}
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			LOGGER.error("authentication failed", e);
+		}
+	}
+
+	protected void extractAuthInfo(String resp) {
+		authenticated = true;
+		Matcher m = API_KEY_PATTERN.matcher(resp);
+		if (m.find()) {
+			apiKey = m.group(1);
+		} else {
+			LOGGER.warn("api-key not found!");
+		}
+		m = LISTEN_KEY_PATTERN.matcher(resp);
+		if (m.find()) {
+			listenKey = m.group(1);
+		} else {
+			LOGGER.warn("listen-key not found!");
 		}
 	}
 
@@ -243,11 +250,14 @@ public class RadioNetwork {
 		for (ChannelJson channelJson : allChannels) {
 			int errorConter = 0;
 			try {
-				ContentResponse response = httpBlocking.GET(channelJson.getPlaylist());
-				String url = getBestUrlFromPlaylist(response.getContentAsString());
+				String plsRequest = String.format("%s?listen_key=%s", channelJson.getPlaylist(), listenKey);
+				ContentResponse response = httpBlocking.GET(plsRequest);
+				String pls = response.getContentAsString();
+				String url = getBestUrlFromPlaylist(pls);
 				preferredChannels[i] = new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {
-				LOGGER.error("{} : convert playlist to url failed for item {} : {}", this.network.displayName, i, channelJson.getPlaylist(), e);
+				LOGGER.error("{} : convert playlist to url failed for item {} : {}", this.network.displayName, i, channelJson.getPlaylist(),
+					e);
 				if (errorConter < 2) {
 					i--;
 					LOGGER.warn("couldn't read playlist. Will try again ... ");
@@ -266,7 +276,7 @@ public class RadioNetwork {
 	 * @param channelJson
 	 * @return
 	 */
-	private String getBestUrlFromPlaylist(String body) {
+	protected String getBestUrlFromPlaylist(String body) {
 		BufferedReader sr = new BufferedReader(new StringReader(body));
 		String streamUrl = "";
 		String line = "";
@@ -366,5 +376,13 @@ public class RadioNetwork {
 	protected void setQuality(StreamListQuality quality) {
 		this.quality = quality;
 		this.channels = null;
+	}
+
+	protected static String getApiKey() {
+		return apiKey;
+	}
+
+	protected static String getListenKey() {
+		return listenKey;
 	}
 }
