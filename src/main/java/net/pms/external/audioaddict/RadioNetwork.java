@@ -50,6 +50,7 @@ public class RadioNetwork {
 	private static String apiKey = null;
 
 	private static String listenKey = null;
+
 	private static boolean authenticated = false;
 
 	private HttpClient httpNonBlocking = new HttpClient();
@@ -249,8 +250,10 @@ public class RadioNetwork {
 		for (ChannelJson channelJson : allChannels) {
 			int errorConter = 0;
 			try {
-				ContentResponse response = httpBlocking.GET(channelJson.getPlaylist());
-				String url = getBestUrlFromPlaylist(response.getContentAsString());
+				String plsRequest = String.format("%s?listen_key=%s", channelJson.getPlaylist(), listenKey);
+				ContentResponse response = httpBlocking.GET(plsRequest);
+				String pls = response.getContentAsString();
+				String url = getBestUrlFromPlaylist(pls);
 				preferredChannels[i] = new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {
 				LOGGER.error("{} : convert playlist to url failed for item {} : {}", this.network.displayName, i, channelJson.getPlaylist(),
