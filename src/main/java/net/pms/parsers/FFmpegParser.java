@@ -138,7 +138,7 @@ public class FFmpegParser {
 
 		String input;
 		if (inputFile.getFile() != null) {
-			input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
+			input = ProcessUtil.getSystemPathName(inputFile.getFile().getAbsolutePath());
 		} else {
 			input = "-";
 		}
@@ -227,7 +227,7 @@ public class FFmpegParser {
 		args.add("-i");
 
 		if (inputFile.getFile() != null) {
-			args.add(ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath()));
+			args.add(ProcessUtil.getSystemPathName(inputFile.getFile().getAbsolutePath()));
 		} else {
 			args.add("-");
 		}
@@ -796,7 +796,21 @@ public class FFmpegParser {
 		int profilePos = codec.indexOf('(');
 		int profilePosEnd = codec.indexOf(')');
 		if (profilePos > -1 && profilePosEnd > profilePos) {
-			return codec.substring(profilePos + 1, profilePosEnd).toLowerCase();
+			String formatProfile = codec.substring(profilePos + 1, profilePosEnd).toLowerCase();
+
+			// for some codecs, the first bracket is the encoding library, not the profile. so skip past that
+			if (
+				StringUtil.isEqual(formatProfile, "libaom-av1") ||
+				StringUtil.isEqual(formatProfile, "libdav1d")
+			) {
+				int profilePos2 = codec.indexOf('(', profilePos + 1);
+				int profilePos2End = codec.indexOf(')', profilePosEnd + 1);
+				if (profilePos2 > -1 && profilePos2End > profilePos2) {
+					formatProfile = codec.substring(profilePos2 + 1, profilePos2End).toLowerCase();
+				}
+			}
+
+			return formatProfile;
 		}
 		return null;
 	}

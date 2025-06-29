@@ -16,21 +16,20 @@
  */
 import { Accordion, Anchor, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { useContext } from 'react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
-import { mantineSelectData } from './Settings';
 
 export default function GeneralSettings(
+  i18n:I18nInterface,
+  session:SessionInterface,
   form: any,
   defaultConfiguration: any,
   selectionSettings: any,
 ) {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
   const [advancedSettings, setAdvancedSettings] = useLocalStorage<boolean>({
     key: 'mantine-advanced-settings',
@@ -255,7 +254,7 @@ export default function GeneralSettings(
               <Checkbox
                 disabled={!canModify}
                 label={i18n.get('UseInfoFromOurApi')}
-                {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
+                {...form.getInputProps('use_api_info', { type: 'checkbox' })}
               />
             </Tooltip>
             <Checkbox

@@ -16,7 +16,6 @@
  */
 package net.pms.database;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -122,7 +121,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {

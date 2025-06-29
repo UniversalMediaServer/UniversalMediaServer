@@ -30,7 +30,7 @@ public class FormatFactoryTest {
 	 */
 	@BeforeEach
 	public final void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	/**

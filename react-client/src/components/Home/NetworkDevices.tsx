@@ -20,9 +20,9 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { IconCodePlus, IconDevicesPc, IconDevicesPcOff, IconDots, IconRefresh, IconSettingsOff } from '@tabler/icons-react';
 
-import { NetworkDevice, NetworkDevicesFilter } from './Home';
+import { NetworkDevice, NetworkDevicesFilter } from '../../services/home-service';
+import { I18nInterface } from '../../services/i18n-service';
 import { defaultTooltipSettings } from '../../utils';
-import { I18nInterface } from '../../contexts/i18n-context';
 
 const NetworkDevices = (
   { blockedByDefault, isLocalhost, canModify, currentTime, i18n, networkDeviceFilters, refreshDeviceData, setAllowed, reset }:

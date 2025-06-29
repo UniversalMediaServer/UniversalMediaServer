@@ -16,24 +16,24 @@
  */
 import { Accordion, ActionIcon, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { arrayMove, List } from 'react-movable';
 import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, IconExclamationMark, IconPlayerPlay } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { SessionInterface } from '../../services/session-service';
+import { mantineSelectData } from '../../services/settings-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
-import { mantineSelectData } from './Settings';
 
 export default function TranscodingSettings(
+  i18n:I18nInterface,
+  session:SessionInterface,
   form: any,
   defaultConfiguration: any,
   selectionSettings: any,
 ) {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
   const [transcodingContent, setTranscodingContent] = useState('common');
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
@@ -387,6 +387,7 @@ export default function TranscodingSettings(
                 />
               </Tooltip>
               <DirectoryChooser
+                i18n={i18n}
                 disabled={!canModify}
                 size='xs'
                 path={form.getInputProps('alternate_subtitles_folder').value}
@@ -408,6 +409,7 @@ export default function TranscodingSettings(
                 {...form.getInputProps('mencoder_subfribidi', { type: 'checkbox' })}
               />
               <DirectoryChooser
+                i18n={i18n}
                 disabled={!canModify}
                 size='xs'
                 tooltipText={i18n.get('ToUseFontMustBeRegistered')}

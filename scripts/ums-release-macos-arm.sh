@@ -12,7 +12,7 @@
 cd ..
 
 # Clear the folder for a clean build
-rm UMS--arm.dmg
+rm UMS-macOS-*
 rm -fr target/ums*
 rm -rf target/antrun
 rm -rf target/archive-tmp

@@ -27,7 +27,7 @@ public class TextAreaFIFOTest {
 
 	@BeforeEach
 	public void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	@Test

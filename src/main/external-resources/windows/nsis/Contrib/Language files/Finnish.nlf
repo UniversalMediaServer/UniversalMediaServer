@@ -16,13 +16,13 @@ NLF v6
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
-$(^Name) -ohjelman asennus
+$(^Name) -asennus
 # ^UninstallCaption
-$(^Name) -ohjelman poisto
+$(^Name) -poisto
 # ^LicenseSubCaption
 : Lisenssisopimus
 # ^ComponentsSubCaption
-: Asennusvaihtoehdot
+: Asennusvalinnat
 # ^DirSubCaption
 : Asennuskansio
 # ^InstallingSubCaption
@@ -30,7 +30,7 @@ $(^Name) -ohjelman poisto
 # ^CompletedSubCaption
 : Valmis
 # ^UnComponentsSubCaption
-: Poistovaihtoehdot
+: Poistovalinnat
 # ^UnDirSubCaption
 : Poistokansio
 # ^ConfirmSubCaption
@@ -40,7 +40,7 @@ $(^Name) -ohjelman poisto
 # ^UnCompletedSubCaption
 : Valmis
 # ^BackBtn
-< &Takaisin
+< &Edellinen
 # ^NextBtn
 &Seuraava >
 # ^AgreeBtn
@@ -62,71 +62,71 @@ S&elaa...
 # ^ShowDetailsBtn
 &Näytä tiedot
 # ^ClickNext
-Valitse Seuraava jatkaaksesi.
+Jatka valitsemalla Seuraava.
 # ^ClickInstall
-Valitse Asenna aloittaaksesi asennuksen.
+Aloita asennus valitsemalla Asenna.
 # ^ClickUninstall
-Valitse Poista poistaaksesi asennuksen.
+Aloita asennuksen poisto valitsemalla Poista.
 # ^Name
 Nimi
 # ^Completed
 Valmis
 # ^LicenseText
-Lue lisenssisopimus ennen asentamista. Jos hyväksyt sopimuksen kaikki ehdot, valitse Hyväksyn.
+Lue lisenssisopimus ennen asennusta ja jos hyväksyt sopimuksen kaikki ehdot, valitse Hyväksyn.
 # ^LicenseTextCB
-Lue lisenssisopimus ennen asentamista. Jos hyväksyt sopimuksen kaikki ehdot, laita rasti ruutuun. $_CLICK
+Lue lisenssisopimus ennen asennusta ja jos hyväksyt sopimuksen kaikki ehdot, laita rasti ruutuun. $_CLICK
 # ^LicenseTextRB
-Lue lisenssisopimus ennen asentamista. Jos hyväksyt sopimuksen kaikki ehdot, valitse ensimmäinen vaihtoehto alapuolelta. $_CLICK
+Lue lisenssisopimus ennen asennusta ja jos hyväksyt sopimuksen kaikki ehdot, valitse alta ensimmäinen valinta. $_CLICK
 # ^UnLicenseText
-Lue lisenssisopimus ennen poistamista. Jos hyväksyt sopimuksen kaikki ehdot, valitse Hyväksyn.
+Lue lisenssisopimus ennen asennuksen poistoa ja jos hyväksyt sopimuksen kaikki ehdot, valitse Hyväksyn.
 # ^UnLicenseTextCB
-Lue lisenssisopimus ennen poistamista. Jos hyväksyt sopimuksen kaikki ehdot, laita rasti ruutuun. $_CLICK
+Lue lisenssisopimus ennen asennuksen poistoa ja jos hyväksyt sopimuksen kaikki ehdot, laita rasti ruutuun. $_CLICK
 # ^UnLicenseTextRB
-Lue lisenssisopimus ennen poistamista. Jos hyväksyt sopimuksen kaikki ehdot, valitse ensimmäinen vaihtoehto alapuolelta. $_CLICK
+Lue lisenssisopimus ennen asennuksen poistoa ja jos hyväksyt sopimuksen kaikki ehdot, valitse alta ensimmäinen valinta. $_CLICK
 # ^Custom
-Oma
+Mukautettu
 # ^ComponentsText
-Valitse komponentit, jotka haluat asentaa, ja poista valinta komponenteista, joita et halua asentaa. $_CLICK
+Valitse asennettavat komponentit ja poista valinnat niistä, joita et halua asentaa. $_CLICK
 # ^ComponentsSubText1
 Valitse asennustyyppi:
 # ^ComponentsSubText2_NoInstTypes
 Valitse asennettavat komponentit:
 # ^ComponentsSubText2
-Tai, valitse valinnaiset komponentit, jotka haluat asentaa:
+Tai valitse valinnaiset komponentit, jotka haluat asentaa:
 # ^UnComponentsText
-Valitse komponentit, jotka haluat poistaa, ja poista valinta komponenteista, joita et haluat poistaa. $_CLICK
+Valitse poistettavat komponentit ja poista valinnat niistä, joita et haluat poistaa. $_CLICK
 # ^UnComponentsSubText1
 Valitse poistotyyppi:
 # ^UnComponentsSubText2_NoInstTypes
 Valitse poistettavat komponentit:
 # ^UnComponentsSubText2
-Tai, valitse valinnaiset komponentit, jotka haluat poistaa
+Tai valitse valinnaiset komponentit, jotka haluat poistaa
 # ^DirText
-$(^NameDA) -ohjelma asennetaan seuraavaan kansioon. Jos haluat asentaa sen johonkin muuhun kansioon, valitse Selaa, ja valitse toinen kansio. $_CLICK
+$(^NameDA) -asennetaan seuraavaan kansioon. Jos haluat asentaa sen eri kansioon, valitse kansio painamalla Selaa. $_CLICK
 # ^DirSubText
 Kohdekansio
 # ^DirBrowseText
-Valitse kansio, johon haluat asentaa ohjelman $(^NameDA):
+Valitse kansio, johon $(^NameDA) asennetaan:
 # ^UnDirText
-Poistetaan ohjelman $(^NameDA) seuraavasta kansiosta. Jos haluat poistaa sen jostakin muusta kansiosta, valitse Selaa, ja valitse toinen kansio. $_CLICK
+$(^NameDA) poistetaan seuraavasta kansiosta. Jos haluat poistaa sen eri kansiosta, valitse kansio painamalla Selaa. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Valitse kansio, josta haluat poistaa ohjelman $(^NameDA):
+Valitse kansio, josta $(^NameDA) poistetaan:
 # ^SpaceAvailable
 "Tilaa vapaana: "
 # ^SpaceRequired
 "Tarvittava tila: "
 # ^UninstallingText
-Tämä ohjelma poistaa ohjelman $(^NameDA) tietokoneelta. $_CLICK
+Tämä asentaja poistaa $(^NameDA) -asennuksen tietokoneelta. $_CLICK
 # ^UninstallingSubText
 Poistetaan kansiosta:
 # ^FileError
-Tiedostoon ei voitu kirjoittaa: \r\n\t"$0"\r\nLopeta asennus valitsemalla Hylkää,\r\nyritä uudelleen valitsemalla Uudelleen, tai\r\nohita tiedosto valitsemalla Ohita
+Tiedostomuutoksia ei voida tallentaa: \r\n\t"$0"\r\nLopeta asennus valitsemalla Keskeytä,\r\nyritä uudelleen valitsemalla Uudelleen, tai\r\nohita tiedosto valitsemalla Ohita.
 # ^FileError_NoIgnore
-Tiedostoon ei voitu kirjoittaa: \r\n\t"$0"\r\nYritä uudelleen valitsemalla Uudelleen, tai\r\nlopeta asennus valitsemalla Hylkää
+Tiedostomuutoksia ei voida tallentaa: \r\n\t"$0"\r\nYritä uudelleen valitsemalla Uudelleen tai\r\nlopeta asennus valitsemalla Keskeytä.
 # ^CantWrite
-"Ei voi kirjoittaa: "
+"Tiedostomuutoksia ei voida tallentaa: "
 # ^CopyFailed
 Kopiointi epäonnistui
 # ^CopyTo
@@ -138,25 +138,25 @@ Kopiointi epäonnistui
 # ^SymbolNotFound
 "Symbolia ei löytynyt: "
 # ^CouldNotLoad
-"Ei voitu ladata: "
+"Lataus epäonnistui: "
 # ^CreateFolder
 "Luo kansio: "
 # ^CreateShortcut
 "Luo pikakuvake: "
 # ^CreatedUninstaller
-"Poisto-ohjelma luotiin: "
+"Asennuksen poisto luotiin: "
 # ^Delete
 "Poista: "
 # ^DeleteOnReboot
-"Poista käynnistyksen yhteydessä: "
+"Poista uudelleenkäynnistyksen yhteydessä: "
 # ^ErrorCreatingShortcut
 "Virhe luotaessa pikakuvaketta: "
 # ^ErrorCreating
 "Virhe luotaessa: "
 # ^ErrorDecompressing
-Pakettia ei voitu purkaa. Korruptoitunut asennusohjelma?
+Pakettia ei voitu purkaa. Onko asennuksen poisto vioittunut?
 # ^ErrorRegistering
-Virhe rekisteröidessä DLL-tiedostoa
+Virhe rekisteröitäessä DLL-tiedostoa
 # ^ExecShell
 "ExecShell: "
 # ^Exec
@@ -164,19 +164,19 @@ Virhe rekisteröidessä DLL-tiedostoa
 # ^Extract
 "Pura: "
 # ^ErrorWriting
-"Pura: tiedostoon ei voitu kirjoittaa "
+"Pura: tiedostomuutoksia ei voitu tallentaa "
 # ^InvalidOpcode
 Asennuspaketti on vioittunut: virheellinen opcode
 # ^NoOLE
-"Ei OLEa: "
+"OLE puuttuu: "
 # ^OutputFolder
 "Kansio: "
 # ^RemoveFolder
 "Poista kansio: "
 # ^RenameOnReboot
-"Muuta nimi uudelleenkäynnistyksen yhteydessä: "
+"Nimeä uudelleen uudelleenkäynnistyksen yhteydessä: "
 # ^Rename
-"Muuta nimi: "
+"Nimeä uudelleen: "
 # ^Skipped
 "Ohitettiin: "
 # ^CopyDetails

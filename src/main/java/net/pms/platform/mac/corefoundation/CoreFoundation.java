@@ -34,7 +34,6 @@ import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 import com.sun.jna.ptr.ShortByReference;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -65,7 +64,6 @@ import net.pms.platform.mac.kernreturn.KernReturnTConverter;
  *
  * @author Nadahar
  */
-@SuppressFBWarnings("UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD")
 @SuppressWarnings({
 	"checkstyle:ConstantName",
 	"checkstyle:MethodName",

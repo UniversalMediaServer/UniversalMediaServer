@@ -64,7 +64,7 @@ public class FormatRecognitionTest {
 		RendererConfigurations.loadRendererConfigurations();
 		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	/**

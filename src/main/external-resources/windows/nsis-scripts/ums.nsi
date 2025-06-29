@@ -48,6 +48,7 @@ Section ""
 	FileClose $1
 	filenotfound:
 
+	SetRegView 64
 	; next check user registry heapmem value.
 	${If} $HEAPMEM == ""  ; no value found
 		ReadRegStr $HEAPMEM HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
@@ -56,6 +57,21 @@ Section ""
 	; next check system registry heapmem value.
 	${If} $HEAPMEM == ""  ; no value found
 		ReadRegStr $HEAPMEM HKLM "${REG_KEY_SOFTWARE}" "HeapMem"
+	${EndIf}
+
+	${If} ${RunningX64}
+		SetRegView 32
+		; next check user registry heapmem value.
+		${If} $HEAPMEM == ""  ; no value found
+			SetRegView 64
+			ReadRegStr $HEAPMEM HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
+		${EndIf}
+
+		; next check system registry heapmem value.
+		${If} $HEAPMEM == ""  ; no value found
+			ReadRegStr $HEAPMEM HKLM "${REG_KEY_SOFTWARE}" "HeapMem"
+		${EndIf}
+		SetRegView 64
 	${EndIf}
 
 	; finally set default heapmem value.

@@ -14,19 +14,15 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState } from 'react'
 
-import NavbarContext from '../contexts/main-context';
+import NavbarContext from '../contexts/main-context'
 
-interface Props {
-  children?: ReactNode
-}
-
-export const MainProvider = ({ children }: Props) => {
-  const [navbarValue, setNavbarValue] = useState(undefined);
-  const [navbarOpened, setNavbarOpened] = useState<boolean>(false);
-  const [statusLine, setStatusLine] = useState(undefined);
-  const { Provider } = NavbarContext;
+const MainProvider = ({ children }: { children?: ReactNode }) => {
+  const [navbarValue, setNavbarValue] = useState(undefined)
+  const [navbarOpened, setNavbarOpened] = useState<boolean>(false)
+  const [statusLine, setStatusLine] = useState(undefined)
+  const { Provider } = NavbarContext
   return (
     <Provider value={{
       navbarValue: navbarValue,
@@ -35,6 +31,11 @@ export const MainProvider = ({ children }: Props) => {
       setNavbarOpened: setNavbarOpened,
       statusLine: statusLine,
       setStatusLine: setStatusLine,
-    }}>{children}</Provider>
+    }}
+    >
+      {children}
+    </Provider>
   )
 }
+
+export default MainProvider

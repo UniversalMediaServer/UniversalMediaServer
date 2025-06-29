@@ -61,7 +61,7 @@ public class Parser {
 			return;
 		}
 		media.resetParser();
-		if (file.getFile() != null) {
+		if (file.getFile() != null && ext != null) {
 			// Special parsing for RealAudio 1.0 and 2.0 which isn't handled by MediaInfo or JAudioTagger
 			if (ext.getIdentifier() == Format.Identifier.RA && RealAudioParser.parse(media, file, type)) {
 				return;
@@ -71,11 +71,13 @@ public class Parser {
 				return;
 			}
 			// MediaInfo can't correctly parse ADPCM, DFF, DSF or PNM
-			if (MediaInfoParser.isValid() &&
-					ext.getIdentifier() != Format.Identifier.ADPCM &&
-					ext.getIdentifier() != Format.Identifier.DFF &&
-					ext.getIdentifier() != Format.Identifier.DSF &&
-					ext.getIdentifier() != Format.Identifier.PNM) {
+			if (
+				MediaInfoParser.isValid() &&
+				ext.getIdentifier() != Format.Identifier.ADPCM &&
+				ext.getIdentifier() != Format.Identifier.DFF &&
+				ext.getIdentifier() != Format.Identifier.DSF &&
+				ext.getIdentifier() != Format.Identifier.PNM
+			) {
 				MediaInfoParser.parse(media, file.getFile(), type);
 			} else if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
 				JaudiotaggerParser.parse(media, file.getFile(), ext);

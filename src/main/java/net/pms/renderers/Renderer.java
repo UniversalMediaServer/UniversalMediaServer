@@ -468,12 +468,11 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public void setPlayingRes(StoreItem resource) {
 		playingRes = resource;
-		getPlayer();
 		if (resource != null) {
-			player.getState().setName(resource.getDisplayName());
-			player.start();
+			getPlayer().getState().setName(resource.getDisplayName());
+			getPlayer().start();
 		} else {
-			player.reset();
+			getPlayer().reset();
 		}
 	}
 
@@ -506,68 +505,68 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public void updateRendererGui() {
 		LOGGER.debug("Updating status button for {}", getRendererName());
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.updateRenderer(this);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void refreshActiveGui(boolean b) {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setActive(b);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void refreshAllowedGui(boolean b) {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setAllowed(b);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void refreshUserIdGui(int userId) {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setUserId(userId);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void refreshPlayerStateGui(PlayerState state) {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.refreshPlayerState(state);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void deleteGuis() {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.delete();
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 

@@ -72,12 +72,14 @@ public class MediaInfoParser {
 	private static final Version VERSION;
 	private static final boolean IS_VALID;
 	public static final String PARSER_NAME;
+	public static final Throwable LOADING_ERROR;
 
 	private static boolean blocked;
 
 	static {
 		MediaInfoHelper mediaInfoHelper = getMediaInfoHelper(true);
 		IS_VALID = mediaInfoHelper.isValid();
+		LOADING_ERROR = mediaInfoHelper.getLoadingError();
 		if (IS_VALID) {
 			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(mediaInfoHelper.option("Info_Version"));
 			if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {
@@ -215,7 +217,8 @@ public class MediaInfoParser {
 			}
 
 			// set Chapters
-			if (mediaInfoHelper.countGet(StreamKind.MENU, 0) > 0) {
+			int menuCount = mediaInfoHelper.countGet(StreamKind.MENU);
+			if (menuCount > 0) {
 				Long chaptersPosBeginLong = StreamMenu.getChaptersPosBegin(mediaInfoHelper, 0);
 				Long chaptersPosEndLong = StreamMenu.getChaptersPosEnd(mediaInfoHelper, 0);
 				if (chaptersPosBeginLong != null && chaptersPosEndLong != null) {
@@ -267,8 +270,8 @@ public class MediaInfoParser {
 			}
 
 			// set Video
-			Long videoTrackCount = StreamVideo.getStreamCount(mediaInfoHelper, 0);
-			if (videoTrackCount != null && videoTrackCount > 0) {
+			int videoTrackCount = mediaInfoHelper.countGet(StreamKind.VIDEO);
+			if (videoTrackCount > 0) {
 				for (int i = 0; i < videoTrackCount; i++) {
 					// check for DXSA and DXSB subtitles (subs in video format)
 					if (StreamVideo.getTitle(mediaInfoHelper, i).startsWith("Subtitle")) {
@@ -393,8 +396,8 @@ public class MediaInfoParser {
 			}
 
 			// set Audio
-			Long audioTracks = StreamAudio.getStreamCount(mediaInfoHelper, 0);
-			if (audioTracks != null && audioTracks > 0) {
+			int audioTracks = mediaInfoHelper.countGet(StreamKind.AUDIO);
+			if (audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
 					currentAudioTrack = new MediaAudio();
 					currentAudioTrack.setId(i);
@@ -476,8 +479,8 @@ public class MediaInfoParser {
 			}
 
 			// set Subs in text format
-			Long subTrackCount = StreamSubtitle.getStreamCount(mediaInfoHelper, 0);
-			if (subTrackCount != null && subTrackCount > 0) {
+			int subTrackCount = mediaInfoHelper.countGet(StreamKind.TEXT);
+			if (subTrackCount > 0) {
 				for (int i = 0; i < subTrackCount; i++) {
 					currentSubTrack = new MediaSubtitle();
 					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamSubtitle.getCodecID(mediaInfoHelper, i),
@@ -1076,18 +1079,28 @@ public class MediaInfoParser {
 	}
 
 	public static Long getSpecificID(String value) {
-		// If ID is given as 'streamID-substreamID' use the second (which is hopefully unique).
-		// For example in vob audio ID can be '189 (0xBD)-32 (0x80)' and text ID '189 (0xBD)-128 (0x20)'
-		int end = value.lastIndexOf("(0x");
-		if (end > -1) {
-			int start = value.lastIndexOf('-') + 1;
-			value = value.substring(start > end ? 0 : start, end);
-		} else if (value.lastIndexOf('-') > -1) { // value could be '189-128'
-			value = value.substring(value.lastIndexOf('-') + 1);
-		}
+		try {
+			// If ID is given as 'streamID-substreamID' use the second (which is hopefully unique).
+			// For example in vob audio ID can be '189 (0xBD)-32 (0x80)' and text ID '189 (0xBD)-128 (0x20)'
+			int end = value.lastIndexOf("(0x");
+			if (end > -1) {
+				int start = value.lastIndexOf('-') + 1;
+				value = value.substring(start > end ? 0 : start, end);
+			} else if (value.lastIndexOf('-') > -1) { // value could be '189-128'
+				value = value.substring(value.lastIndexOf('-') + 1);
+			}
 
-		value = value.trim();
-		return Long.valueOf(value);
+			if (value.indexOf("CC") > -1) {
+				value = value.replaceAll("CC", "33");
+			}
+
+			value = value.trim();
+			return Long.valueOf(value);
+		} catch (NumberFormatException e) {
+			LOGGER.trace("Could not parse ID \"{}\": ", value, e.getMessage());
+			// return a number that is unlikely to conflict with a real ID
+			return 80L;
+		}
 	}
 
 	public static String getFrameRateModeValue(String value) {

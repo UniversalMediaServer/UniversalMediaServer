@@ -15,29 +15,26 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useComputedColorScheme } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { createElement, useContext, useEffect, useState } from 'react';
+import { createElement, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
 import { IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadge4k, IconBadgeHd, IconBadgeSd, IconBrandYoutube, IconCalendar, IconCast, IconDeviceTv, IconDisc, IconDownload, IconEdit, IconEye, IconFolder, IconHeart, IconHome, IconInfoSquare, IconLanguageOff, IconLoader2, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconSettings, IconTag, IconVideo, IconWorldWww } from '@tabler/icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import MainContext from '../../contexts/main-context';
-import PlayerEventContext from '../../contexts/player-server-event-context';
-import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../services/i18n-service';
+import { MainInterface } from '../../services/main-service';
+import { PlayerEventInterface } from '../../services/player-server-event-service';
+import { SessionInterface } from '../../services/session-service';
+import { AudioMedia, BaseBrowse, BaseMedia, ImageMedia, MediaRating, PlayMedia, VideoMedia, VideoMetadata } from '../../services/player-service';
 import { playerApiUrl } from '../../utils';
-import { VideoJsPlayer } from './VideoJsPlayer';
+import VideoJsPlayer from './VideoJsPlayer';
 import VideoMetadataEditModal from './VideoMetadataEditModal';
+import { showError } from '../../utils/notifications';
 
-export const Player = () => {
+const Player = ({ i18n, main, session, sse}: { i18n:I18nInterface, main:MainInterface, session:SessionInterface, sse:PlayerEventInterface }) => {
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse);
   const [loading, setLoading] = useState(false);
-  const i18n = useContext(I18nContext);
-  const main = useContext(MainContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(PlayerEventContext);
   const { req, id } = useParams();
   const [showVideoMetadataEdit, setShowVideoMetadataEdit] = useState(false);
   const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true });
@@ -50,6 +47,11 @@ export const Player = () => {
       return i18n.getI18nString(nameData[0]);
     }
   }
+
+  useEffect(() => {
+    session.stopSse()
+    session.startPlayerSse();
+  }, []);
 
    //set the document title to last breadCrumbs Name else default
    useEffect(() => {
@@ -79,12 +81,10 @@ export const Player = () => {
           }
         })
         .catch(function() {
-          showNotification({
+          showError({
             id: 'player-data-loading',
-            color: 'red',
-            title: 'Error',
+            title: i18n.get('Error'),
             message: 'Your browse data was not received from the server.',
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -100,12 +100,10 @@ export const Player = () => {
         refreshPage();
       })
       .catch(function() {
-        showNotification({
+        showError({
           id: 'player-fully-played',
-          color: 'red',
-          title: 'Error',
+          title: i18n.get('Error'),
           message: 'Your request was not handled by the server.',
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -166,7 +164,7 @@ export const Player = () => {
 
   const getVideoMetadataEditModal = () => {
     if (isVideoMetadataEditable()) {
-      return <VideoMetadataEditModal uuid={sse.uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />
+      return <VideoMetadataEditModal i18n={i18n} uuid={sse.uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />
     }
     return null;
   }
@@ -774,7 +772,7 @@ export const Player = () => {
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box>
-      <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} />
+      <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} loaderProps={{style: {position: 'fixed'}}} />
       {getVideoMetadataEditModal()}
       {getBreadcrumbs()}
       <ScrollArea offsetScrollbars>
@@ -806,132 +804,3 @@ export const Player = () => {
 };
 
 export default Player;
-
-export interface BaseMedia {
-  goal?: string,
-  icon?: string,
-  id: string,
-  name: string,
-  fullyplayed?: boolean,
-  updateId?: string,
-}
-
-interface MediasSelections {
-  recentlyAdded: BaseMedia[],
-  recentlyPlayed: BaseMedia[],
-  inProgress: BaseMedia[],
-  mostPlayed: BaseMedia[],
-}
-
-interface BaseBrowse {
-  breadcrumbs: BaseMedia[],
-  folders: BaseMedia[],
-  goal: string,
-  medias: BaseMedia[],
-  mediaLibraryFolders?: BaseMedia[],
-  mediasSelections?: MediasSelections,
-  metadata?: VideoMetadata,
-  useWebControl: boolean,
-}
-
-interface SurroundMedias {
-  prev?: BaseMedia,
-  next?: BaseMedia,
-}
-
-interface PlayMedia extends BaseMedia {
-  autoContinue: boolean,
-  isDownload: boolean,
-  isDynamicPls: boolean,
-  mediaType: string,
-  surroundMedias: SurroundMedias,
-}
-
-interface MediaRating {
-  source: string,
-  value: string,
-}
-
-interface VideoMetadata {
-  actors?: BaseMedia[],
-  awards?: string,
-  countries?: BaseMedia[],
-  createdBy?: string,
-  credits?: string,
-  directors?: BaseMedia[],
-  endYear?: string,
-  externalIDs?: string,
-  firstAirDate?: string,
-  genres?: BaseMedia[],
-  homepage?: string,
-  images?: VideoMetadataImages[],
-  imageBaseURL: string,
-  imdbID?: string,
-  inProduction?: boolean,
-  languages?: string,
-  lastAirDate?: string,
-  mediaType?: string,
-  networks?: string,
-  numberOfEpisodes?: number,
-  numberOfSeasons?: string,
-  originCountry?: string,
-  originalLanguage?: string,
-  originalTitle?: string,
-  overview?: string,
-  poster?: string,
-  productionCompanies?: string,
-  productionCountries?: string,
-  rated?: BaseMedia,
-  rating?: number,
-  ratings?: MediaRating[],
-  seasons?: string,
-  seriesType?: string,
-  spokenLanguages?: string,
-  startYear?: string,
-  status?: string,
-  tagline?: string,
-  title?: string,
-  tmdbID?: number,
-  tmdbTvID?: number,
-  tvEpisode?: string,
-  tvSeason?: string,
-  totalSeasons?: number,
-  votes?: string,
-  isEditable: boolean,
-}
-
-interface VideoMetadataImages {
-  backdrops?: VideoMetadataImage[],
-  logos?: VideoMetadataImage[],
-  posters?: VideoMetadataImage[],
-}
-
-interface VideoMetadataImage {
-  aspect_ratio?: number,
-  height?: number,
-  iso_639_1?: string,
-  file_path?: string,
-  vote_average: number,
-  vote_count?: number,
-  width?: number,
-}
-
-export interface VideoMedia extends PlayMedia {
-  height: number,
-  isVideoWithChapters: boolean,
-  metadata?: VideoMetadata,
-  mime: string,
-  resumePosition?: number,
-  width: number,
-}
-
-export interface AudioMedia extends PlayMedia {
-  isNativeAudio: boolean,
-  mime: string,
-  width: number,
-  height: number,
-}
-
-interface ImageMedia extends PlayMedia {
-  delay?: number,
-}

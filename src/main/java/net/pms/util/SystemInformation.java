@@ -16,6 +16,8 @@
  */
 package net.pms.util;
 
+import java.lang.management.ManagementFactory;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -95,12 +97,23 @@ public class SystemInformation extends Thread {
 			.append(System.getProperty("java.vendor"));
 		result.add(sb.toString());
 		sb.setLength(0);
+		sb.append("JVM args: ");
+		for (String jvmArg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+			sb.append(StringUtil.quoteArg(jvmArg)).append(" ");
+		}
+		result.add(sb.toString());
+		sb.setLength(0);
 		sb.append("Language: ")
 		.append(WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		result.add(sb.toString());
 		sb.setLength(0);
 		sb.append("Encoding: ")
-		.append(System.getProperty("file.encoding"));
+		.append(System.getProperty("file.encoding"))
+		.append(" | resolved ").append(Charset.defaultCharset())
+		.append(" | native ").append(System.getProperty("native.encoding"))
+		.append(" | jnu ").append(System.getProperty("sun.jnu.encoding"))
+		.append(" | stdout ").append(System.getProperty("sun.stdout.encoding"))
+		.append(" | stderr ").append(System.getProperty("sun.stderr.encoding"));
 		result.add(sb.toString());
 		sb.setLength(0);
 		if (processor != null && processorIdentifier != null) {

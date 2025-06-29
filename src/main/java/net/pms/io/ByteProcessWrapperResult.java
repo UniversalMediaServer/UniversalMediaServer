@@ -16,7 +16,6 @@
  */
 package net.pms.io;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -48,7 +47,6 @@ public class ByteProcessWrapperResult implements ProcessWrapperResult<byte[]> {
 	 * @param exitCode the process exit code.
 	 * @param throwable a {@link Throwable} if one was thrown during execution.
 	 */
-	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	public ByteProcessWrapperResult(@Nullable byte[] output, int exitCode, @Nullable Throwable throwable) {
 		this.output = output;
 		this.exitCode = exitCode;

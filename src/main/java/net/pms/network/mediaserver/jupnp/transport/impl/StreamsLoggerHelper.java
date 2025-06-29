@@ -55,7 +55,7 @@ public class StreamsLoggerHelper {
 		String formattedRequest = getFormattedRequest(requestMessage);
 		String formattedHeaders = getFormattedHeaders(requestMessage);
 		String formattedBody = getFormattedBody(requestMessage);
-		LOGGER.trace(
+		LOGGER.debug(
 			"Received a request from {}:\n{}\n{}{}{}{}",
 			requestMessage.getConnection().getRemoteAddress().getHostAddress(),
 			HTTPSERVER_REQUEST_BEGIN,
@@ -71,7 +71,7 @@ public class StreamsLoggerHelper {
 		String formattedHeaders = getFormattedHeaders(responseMessage);
 		String formattedBody = getFormattedBody(responseMessage);
 
-		LOGGER.trace(
+		LOGGER.debug(
 			"Send a response to {}:\n{}\n{}{}{}{}",
 			requestMessage.getConnection().getRemoteAddress().getHostAddress(),
 			HTTPSERVER_RESPONSE_BEGIN,
@@ -86,7 +86,7 @@ public class StreamsLoggerHelper {
 		String formattedRequest = getFormattedRequest(requestMessage);
 		String formattedHeaders = getFormattedHeaders(requestMessage);
 		String formattedBody = getFormattedBody(requestMessage);
-		LOGGER.trace(
+		LOGGER.debug(
 			"Send a request to {}:\n{}\n{}{}{}{}",
 			requestMessage.getUri().getHost(),
 			HTTPCLIENT_REQUEST_BEGIN,
@@ -101,7 +101,7 @@ public class StreamsLoggerHelper {
 		String formattedResponse = getFormattedResponse(responseMessage);
 		String formattedHeaders = getFormattedHeaders(responseMessage);
 		String formattedBody = getFormattedBody(responseMessage);
-		LOGGER.trace(
+		LOGGER.debug(
 			"Received a response from {}:\n{}\n{}{}{}{}",
 			requestMessage.getUri().getHost(),
 			HTTPCLIENT_RESPONSE_BEGIN,
