@@ -1012,6 +1012,7 @@ public class FFMpegVideo extends Engine {
 					defaultVideoTrack.getExtras(),
 					null,
 					false,
+					defaultVideoTrack.getMuxingMode(),
 					renderer
 				) != null;
 				if (videoWouldBeCompatibleInTsContainer) {
