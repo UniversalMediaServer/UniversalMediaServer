@@ -16,12 +16,11 @@
  */
 package net.pms.service;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import net.pms.service.process.ProcessManager;
 import net.pms.service.sleep.SleepManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.Nullable;
 
 /**
  * This class creates and destroys global services ands offers a static way of
@@ -37,8 +36,7 @@ import org.slf4j.LoggerFactory;
  * is initialized.
  *
  * @author Nadahar
- */
-@NotThreadSafe
+@NotThreadSafe  */
 public class Services {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Services.class);
 

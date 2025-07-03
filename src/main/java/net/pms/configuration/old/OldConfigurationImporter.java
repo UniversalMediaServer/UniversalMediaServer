@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.ApertureContent;
@@ -40,6 +39,7 @@ import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.Nonnull;
 
 public class OldConfigurationImporter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OldConfigurationImporter.class);

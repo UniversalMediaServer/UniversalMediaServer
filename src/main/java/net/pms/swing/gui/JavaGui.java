@@ -18,6 +18,7 @@ package net.pms.swing.gui;
 
 import com.jgoodies.looks.Options;
 import com.sun.jna.Platform;
+import jakarta.annotation.Nonnull;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
@@ -28,7 +29,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Timer;
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.UIDefaults.LazyValue;
 import javax.swing.border.EmptyBorder;

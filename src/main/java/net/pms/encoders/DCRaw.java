@@ -18,6 +18,8 @@ package net.pms.encoders;
 
 import com.drew.lang.ByteArrayReader;
 import com.sun.jna.Platform;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,8 +27,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.util.exif.ExifFilterUtils;
 import net.pms.Messages;

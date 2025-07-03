@@ -17,6 +17,8 @@
 package net.pms.configuration;
 
 import ch.qos.logback.classic.Level;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -42,8 +44,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.encoders.Engine;
