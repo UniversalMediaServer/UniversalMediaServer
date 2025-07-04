@@ -18,12 +18,12 @@ package net.pms.service.process;
 
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
 import net.pms.platform.PlatformUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.errorprone.annotations.ThreadSafe;
+import com.google.errorprone.annotations.concurrent.GuardedBy;
+import jakarta.annotation.Nonnull;
 
 /**
  * This class is used to manage the shutdown of external processes if they run

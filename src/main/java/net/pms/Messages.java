@@ -17,6 +17,7 @@
 package net.pms;
 
 import com.google.gson.JsonObject;
+import jakarta.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -25,7 +26,6 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

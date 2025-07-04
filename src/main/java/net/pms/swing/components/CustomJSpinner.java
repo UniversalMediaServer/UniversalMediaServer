@@ -22,7 +22,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import javax.annotation.Nonnull;
 import javax.swing.FocusManager;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
@@ -34,6 +33,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
+import jakarta.annotation.Nonnull;
 import net.pms.PMS;
 
 /**

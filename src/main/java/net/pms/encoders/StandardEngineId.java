@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import javax.annotation.concurrent.Immutable;
 import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.errorprone.annotations.Immutable;
 
 /**
  * Defines identifiers for {@link Engine} subclasses.

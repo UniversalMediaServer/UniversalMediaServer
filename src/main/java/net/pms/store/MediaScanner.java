@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.sharedcontent.FolderContent;
@@ -46,6 +44,8 @@ import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.errorprone.annotations.concurrent.GuardedBy;
+import jakarta.annotation.Nonnull;
 
 public class MediaScanner implements SharedContentListener {
 
