@@ -17,7 +17,7 @@
 package net.pms.platform.windows;
 
 import com.sun.jna.Pointer;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * A simple extension of {@link com.sun.jna.platform.win32.Guid.GUID} that

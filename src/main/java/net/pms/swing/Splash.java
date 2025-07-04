@@ -23,8 +23,6 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -38,6 +36,8 @@ import net.pms.swing.components.SvgMultiResolutionImage;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 public class Splash extends JFrame {
 

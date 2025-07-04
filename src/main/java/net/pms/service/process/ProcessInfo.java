@@ -16,8 +16,7 @@
  */
 package net.pms.service.process;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
+import jakarta.annotation.Nonnull;
 import net.pms.util.ProcessUtil;
 
 /**
@@ -25,8 +24,8 @@ import net.pms.util.ProcessUtil;
  * relevant for {@link ProcessTerminator}.
  *
  * @author Nadahar
- */
-@NotThreadSafe
+
+@NotThreadSafe  */
 public class ProcessInfo {
 
 	/** The {@link Process} */

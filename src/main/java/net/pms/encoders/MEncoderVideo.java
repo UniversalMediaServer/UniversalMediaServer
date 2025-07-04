@@ -18,6 +18,8 @@ package net.pms.encoders;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +27,6 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;

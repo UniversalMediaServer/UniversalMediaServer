@@ -17,9 +17,9 @@
 package net.pms.util;
 
 import java.util.Locale;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import org.apache.commons.lang3.StringUtils;
+import jakarta.annotation.Nullable;
 
 /**
  * Defines executable types for external programs.

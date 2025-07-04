@@ -18,6 +18,7 @@ package net.pms;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import jakarta.annotation.Nonnull;
 import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -45,7 +46,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
