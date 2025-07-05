@@ -47,7 +47,7 @@ export default function NavigationSettings({
         <Accordion.Panel>
           <Group justify="space-between">
             {canModify && (
-              <Tooltip label={allowHtml(i18n.get('CacheEmptiedExceptFullyPlayed'))} {...defaultTooltipSettings}>
+              <Tooltip label={i18n.get('TheProgramWillCloseNoFiles')} {...defaultTooltipSettings}>
                 <Button
                   size="xs"
                   onClick={() => resetCache()}
