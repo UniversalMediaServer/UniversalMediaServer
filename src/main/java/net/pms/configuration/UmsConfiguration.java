@@ -3725,7 +3725,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	/**
 	 * List of system folder to always skip.
 	 */
-	private List<String> ignoredSystemFolderNames = List.of("$RECYCLE.BIN", "System Volume Information");
+	private List<String> ignoredSystemFolderNames = List.of(".unwanted", "$RECYCLE.BIN", "System Volume Information", "CacheClip");
 
 	/**
 	 * @return The {@link List} of {@link Path}s of ignored folder names.
@@ -3733,7 +3733,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	@Nonnull
 	public List<String> getIgnoredFolderNames() {
 		if (!ignoredFolderNamesRead) {
-			String ignoredFolderNamesString = configuration.getString(KEY_FOLDER_NAMES_IGNORED, ".unwanted,$RECYCLE.BIN,System Volume Information");
+			String ignoredFolderNamesString = configuration.getString(KEY_FOLDER_NAMES_IGNORED, ".unwanted,$RECYCLE.BIN,System Volume Information,CacheClip");
 
 			if (ignoredFolderNamesString == null || ignoredFolderNamesString.length() == 0) {
 				return ignoredSystemFolderNames;

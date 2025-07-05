@@ -364,10 +364,10 @@ public class NavigationShareTab {
 
 		// Reset cache
 		cacheReset = new CustomJButton(Messages.getGuiString("ResetCache"));
-		cacheReset.setToolTipText(Messages.getGuiString("CacheEmptiedExceptFullyPlayed"));
+		cacheReset.setToolTipText(Messages.getGuiString("TheProgramWillCloseNoFiles"));
 		cacheReset.addActionListener((ActionEvent e) -> {
 			int option = JOptionPane.showConfirmDialog(looksFrame,
-				Messages.getGuiString("CacheEmptiedExceptFullyPlayed") + "\n" + Messages.getGuiString("AreYouSure"),
+				Messages.getGuiString("TheProgramWillCloseNoFiles") + "\n" + Messages.getGuiString("AreYouSure"),
 				Messages.getGuiString("Question"),
 				JOptionPane.YES_NO_OPTION);
 			if (option == JOptionPane.YES_OPTION) {
