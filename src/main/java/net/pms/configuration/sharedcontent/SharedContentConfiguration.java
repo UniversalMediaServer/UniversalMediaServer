@@ -35,7 +35,7 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.old.OldConfigurationImporter;
-import net.pms.network.webguiserver.EventSourceServer;
+import net.pms.network.webguiserver.WebSocketDispatcher;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.FileWatcher;
 import org.apache.commons.lang.SerializationUtils;
@@ -177,7 +177,7 @@ public class SharedContentConfiguration {
 				if (save) {
 					writeConfiguration();
 				}
-				sendSseApiUpdate();
+				sendWebGuiUpdate();
 				if (PMS.isReady()) {
 					PMS.get().resetRenderersMediaStore();
 				}
@@ -231,6 +231,7 @@ public class SharedContentConfiguration {
 	 * That is:
 	 * On macOS:
 	 *    - /user/Movies
+	 *    - TODO: exclude /user/Movies/CacheClip
 	 *    - /user/Music
 	 *    - /user/Pictures
 	 *  On Windows:
@@ -330,13 +331,15 @@ public class SharedContentConfiguration {
 		}
 	}
 
-	private static synchronized void sendSseApiUpdate() {
-		JsonObject sharedMessage = new JsonObject();
-		sharedMessage.addProperty("action", "set_configuration_changed");
-		JsonObject sharedData = new JsonObject();
-		sharedData.add("shared_content", getAsJsonArray());
-		sharedMessage.add("value", sharedData);
-		EventSourceServer.broadcastSharedMessage(sharedMessage.toString());
+	private static synchronized void sendWebGuiUpdate() {
+		if (WebSocketDispatcher.hasSharedSession()) {
+			JsonObject jsonMessage = new JsonObject();
+			jsonMessage.addProperty("action", "set_configuration_changed");
+			JsonObject data = new JsonObject();
+			data.add("shared_content", getAsJsonArray());
+			jsonMessage.add("data", data);
+			WebSocketDispatcher.broadcastSharedMessage(jsonMessage.toString());
+		}
 	}
 
 }

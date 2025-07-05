@@ -17,11 +17,12 @@
 package net.pms.renderers.devices;
 
 import com.google.gson.JsonObject;
+import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.image.ImageFormat;
-import net.pms.network.webguiserver.IEventSourceClient;
+import net.pms.network.webguiserver.WebSocketSession;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
@@ -45,7 +46,7 @@ public class WebGuiRenderer extends Renderer {
 
 	private final int browser;
 	private final String subLang;
-	private IEventSourceClient sse;
+	private WebSocketSession ws;
 
 	public WebGuiRenderer(String uuid, int userId, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
 		super(uuid);
@@ -172,11 +173,16 @@ public class WebGuiRenderer extends Renderer {
 		//nothing to change
 	}
 
+	public void setPlayerStatus(Map<String, String> status) {
+		((WebGuiPlayer) getPlayer()).updateStatus(status);
+	}
+
 	public void sendMessage(String... args) {
 		JsonObject jObject = new JsonObject();
 		jObject.addProperty("action", "player");
+		JsonObject jData = new JsonObject();
 		if (args.length > 0) {
-			jObject.addProperty("request", args[0]);
+			jData.addProperty("request", args[0]);
 			if (args.length > 1) {
 				jObject.addProperty("arg0", args[1]);
 				if (args.length > 2) {
@@ -184,24 +190,21 @@ public class WebGuiRenderer extends Renderer {
 				}
 			}
 		}
-		if (sse != null && sse.isOpened()) {
-			sse.sendMessage(jObject.toString());
+		jObject.add("data", jData);
+		if (ws != null && ws.isPlayerOpen()) {
+			ws.sendMessage(jObject.toString());
 		}
-		updateServerSentEventsActive();
+		updateWebSocketPlayer();
 	}
 
-	public void addServerSentEvents(IEventSourceClient sse) {
-		if (this.sse != null && this.sse.isOpened()) {
-			this.sse.close();
-		}
-		this.sse = sse;
-		updateServerSentEventsActive();
+	public void setWebSocketSession(WebSocketSession session) {
+		ws = session;
 	}
 
-	public void updateServerSentEventsActive() {
-		boolean sseOpened = this.sse != null && this.sse.isOpened();
-		if (sseOpened != isActive()) {
-			setActive(sseOpened);
+	public void updateWebSocketPlayer() {
+		boolean isPlayerOpen = this.ws != null && this.ws.isPlayerOpen();
+		if (isPlayerOpen != isActive()) {
+			setActive(isPlayerOpen);
 		}
 	}
 
