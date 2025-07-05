@@ -68,7 +68,6 @@ public class TracesTab {
 		Level.INFO,
 		Level.DEBUG,
 		Level.TRACE,
-		Level.ALL,
 		Level.OFF
 	};
 	private static final String[] SYSLOG_FACILITIES = {

@@ -75,7 +75,7 @@ public class FFmpegWebFilters {
 			try {
 				PatternMap<?> filter = null;
 				while (it.hasNext()) {
-					line = it.nextLine().trim();
+					line = it.next().trim();
 					if (line.equals("EXCLUDE")) {
 						filter = EXCLUDES;
 					} else if (line.equals("OPTIONS")) {
