@@ -39,7 +39,7 @@ public class OutputTextLogger extends OutputConsumer {
 	public void run() {
 		try (LineIterator it = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
 			while (it.hasNext()) {
-				String line = it.nextLine();
+				String line = it.next();
 				LOGGER.debug(line);
 				if (filtered) {
 					filtered = filter(line);
