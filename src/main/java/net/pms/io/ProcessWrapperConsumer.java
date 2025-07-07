@@ -18,7 +18,7 @@ package net.pms.io;
 
 import java.io.InputStream;
 import java.util.concurrent.FutureTask;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * This is an interface for consuming a process wrapper output

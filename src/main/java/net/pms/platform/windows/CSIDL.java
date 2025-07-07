@@ -18,11 +18,11 @@ package net.pms.platform.windows;
 
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.Win32Exception;
+import jakarta.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.annotation.Nullable;
 import net.pms.util.FilePermissions;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

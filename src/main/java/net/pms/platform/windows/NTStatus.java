@@ -16,7 +16,7 @@
  */
 package net.pms.platform.windows;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * An {@code enum} representing the Windows NTStatus error codes.

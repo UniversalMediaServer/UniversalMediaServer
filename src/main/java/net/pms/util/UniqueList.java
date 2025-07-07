@@ -18,7 +18,6 @@ package net.pms.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An {@link ArrayList} implementation where duplicates (as defined by
@@ -36,8 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <E> the element type.
  *
  * @author Nadahar
- */
-@NotThreadSafe
+@NotThreadSafe  */
 @SuppressWarnings("serial")
 public class UniqueList<E> extends ArrayList<E> {
 

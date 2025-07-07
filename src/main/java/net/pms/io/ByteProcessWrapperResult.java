@@ -16,9 +16,9 @@
  */
 package net.pms.io;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
+import com.google.errorprone.annotations.Immutable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import net.pms.platform.PlatformUtils;
 
 /**

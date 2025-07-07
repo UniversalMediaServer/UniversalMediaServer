@@ -26,7 +26,7 @@
     "@mantine/modals": "7.17.7",
     "@mantine/notifications": "7.17.7",
     "@microsoft/fetch-event-source": "2.0.1",
-    "@tabler/icons-react": "^3.33.0",
+    "@tabler/icons-react": "^3.34.0",
     "axios": "1.10.0",
     "jwt-decode": "4.0.0",
     "lodash": "4.17.21",
@@ -34,22 +34,22 @@
     "react-country-flag": "3.1.0",
     "react-dom": "19.1.0",
     "react-movable": "3.4.1",
-    "react-router-dom": "7.6.2",
-    "video.js": "8.22.0"
+    "react-router-dom": "7.6.3",
+    "video.js": "8.23.3"
   },
   "devDependencies": {
-    "@playwright/test": "1.53.0",
-    "@stylistic/eslint-plugin": "4.4.1",
-    "@types/lodash": "4.17.17",
+    "@playwright/test": "1.53.2",
+    "@stylistic/eslint-plugin": "5.1.0",
+    "@types/lodash": "4.17.20",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
-    "@vitejs/plugin-react": "4.5.2",
-    "eslint": "9.28.0",
+    "@vitejs/plugin-react": "4.6.0",
+    "eslint": "9.30.1",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-react-refresh": "0.4.20",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.34.0",
+    "typescript-eslint": "8.35.1",
     "vite": "6.3.5"
   }
 }

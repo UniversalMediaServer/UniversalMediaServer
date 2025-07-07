@@ -44,7 +44,7 @@ public class OutputTextConsumer extends OutputConsumer {
 	public void run() {
 		try (LineIterator it = IOUtils.lineIterator(inputStream,  Charset.defaultCharset())) {
 			while (it.hasNext()) {
-				String line = it.nextLine();
+				String line = it.next();
 
 				if (line.length() > 0) {
 					addLine(line);

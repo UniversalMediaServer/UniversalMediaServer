@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.formats.Format;
@@ -61,6 +60,7 @@ import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.Nullable;
 
 public class MediaInfoParser {
 
