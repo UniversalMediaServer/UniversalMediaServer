@@ -9,7 +9,7 @@
 - Bump `@types/lodash` from 4.17.17 to 4.17.18 ([#5609](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5609))
 - Bump `@types/react-dom` from 19.1.5 to 19.1.6 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
 - Bump `@types/react` from 19.1.6 to 19.1.8 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
-- Bump `@vitejs/plugin-react` from 4.5.0 to 4.5.1 ([#5586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5586))
+- Bump `@vitejs/plugin-react` from 4.5.0 to 4.6.0 ([#5586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5586), [#5628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5628))
 - Bump `axios` from 1.9.0 to 1.10.0 ([#5605](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5605))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.19.0 to 2.19.1 ([#5600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5600))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.25.0 to 10.26.1 ([#5606](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5606), [#5616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5616))
