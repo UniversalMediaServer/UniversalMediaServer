@@ -14,7 +14,7 @@
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.19.0 to 2.19.1 ([#5600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5600))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.25.0 to 10.26.1 ([#5606](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5606), [#5616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5616))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.15 to 0.12.16 ([#5607](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5607))
-- Bump `eslint` from 9.28.0 to 9.30.0 ([#5617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5617))
+- Bump `eslint` from 9.28.0 to 9.30.1 ([#5617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5617), [#5626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5626))
 - Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.5.0 to 3.6.0 ([#5631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5631))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.0 to 3.5.1 ([#5590](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5590))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.23 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588), [#5629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5629))
