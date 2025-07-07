@@ -72,7 +72,7 @@ export default function UsersLogin({ i18n, session }: { i18n: I18nInterface, ses
       { !hideCards && (
         <ScrollArea
           scrollbars="x"
-          h={130}
+          h={180}
           viewportRef={viewport}
           overscrollBehavior="contain"
           onWheel={(e) => {

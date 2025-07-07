@@ -72,8 +72,8 @@ export default function LoginUserCard({ i18n, user, selectedUser, selectUser }: 
       >
         <Avatar
           src={user.avatar ? user.avatar : undefined}
-          size={60}
-          radius={6}
+          size={120}
+          radius={120}
           mx="auto"
         >
           <LoginIcon user={user} />
