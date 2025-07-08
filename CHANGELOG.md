@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### General
+
+- Fixed resetting cache causing mismatched thumbnails (#5536)
+- Fixed broken browsing when multiple sorting fields are used (#5179)
+- Ignore CacheClip folder set by Davinci Resolve
+- Fixed Docker release not updating the "latest" tag
+- Replaced deprecated methods
+
 ### Dependencies
 - Bump `@playwright/test` from 1.52.0 to 1.53.2 ([#5604](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5604), [#5608](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5608), [#5627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5627))
 - Bump `@stylistic/eslint-plugin` from 4.4.0 to 5.1.0 ([#5602](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5602), [#5610](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5610), [#5618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5618))
