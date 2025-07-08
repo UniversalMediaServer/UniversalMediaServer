@@ -1,41 +1,5 @@
 # Changelog
 
-## [15.0.0-a1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...15.0.0-a1) (2025-05-08)
-
-### General
-- Added a user switcher to the web interface
-- Added support for being logged in as multiple users on the web interface
-
-  ![multiple users](./changelog-images/15.0.0-a1-user-switcher.png)
-- Added a mode switcher to the web interface to make it easier to switch between Player mode and Settings mode
-
-  ![mode switcher](./changelog-images/15.0.0-a1-mode-switcher.png)
-- Added dynamic TV season information when viewing a season on the web player
-
-  ![season metadata](./changelog-images/15.0.0-a1-season-metadata.png)
-- Added the option to use pin codes on the web interface
-
-  ![pin code](./changelog-images/15.0.0-a1-pin-code.png)
-- Added file media info (location, types, streams, subtitles...) to the web player
-- Added accessibility linting to web interface
-- Use the custom name of the server on the web player and settings
-- Moved the settings menu from the dropdown to a side menu on the web interface
-- Moved the user avatar on the web interface to the top-right where the dropdown menu was
-- Made the size of the left menu in the web interface customizable
-- Made the user actions like login and logout happen from the avatar menu
-- Made it clearer when you are using the default/anonymous user
-- Made internal scrollbars wider on the web interface
-- Made Shared Content page on the web interface easier to use and more compact
-- Automatic management of max memory
-- Replaced SSE (Server-sent events) with websockets on web interface
-- Fixed the scrollbar sitting on top of the last link on a long list in the left menu on the web interface
-- Fixed the Recently Added folder in the Media Library not sorting by date added (before it was the file modified time)
-- Improved development workflow
-- Added and improved notifications on web interface
-
-### Dependencies
-- Bump `yarn` from 4.6.0 to 4.9.1
-
 ## [Unreleased]
 
 ### Dependencies
@@ -63,6 +27,17 @@
 - Bump `react-router-dom` from 7.6.1 to 7.6.3 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585), [#5620](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5620))
 - Bump `typescript-eslint` from 8.33.0 to 8.35.0 ([#5587](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5587), [#5619](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5619))
 - Bump `video.js` from 8.22.0 to 8.23.3 ([#5611](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5611))
+
+## [15.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0-a1...15.0.0-b1) (2025-07-08)
+
+### General
+- Made avatars bigger on the login and user switcher pages
+- Added a link to the Knowledge Base on the web interface, to the right of the language switcher button
+- Replaced Help tab on the old interface with a link to the Knowledge Base on the About tab
+
+  ![multiple users](./changelog-images/15.0.0-b1-user-switcher.png)
+- Fixed order of Recently Added directory in Media Library
+- All changes from 14.13.0
 
 ## [14.13.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...14.13.0) (2025-06-08)
 
@@ -125,6 +100,42 @@
 - Bump `vite` from 6.3.4 to 6.3.5 ([#5529](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5529))
 - Bump `yarn` from 4.6.0 to 4.9.1
 - Bumped all subdependencies
+
+## [15.0.0-a1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...15.0.0-a1) (2025-05-08)
+
+### General
+- Added a user switcher to the web interface
+- Added support for being logged in as multiple users on the web interface
+
+  ![multiple users](./changelog-images/15.0.0-a1-user-switcher.png)
+- Added a mode switcher to the web interface to make it easier to switch between Player mode and Settings mode
+
+  ![mode switcher](./changelog-images/15.0.0-a1-mode-switcher.png)
+- Added dynamic TV season information when viewing a season on the web player
+
+  ![season metadata](./changelog-images/15.0.0-a1-season-metadata.png)
+- Added the option to use pin codes on the web interface
+
+  ![pin code](./changelog-images/15.0.0-a1-pin-code.png)
+- Added file media info (location, types, streams, subtitles...) to the web player
+- Added accessibility linting to web interface
+- Use the custom name of the server on the web player and settings
+- Moved the settings menu from the dropdown to a side menu on the web interface
+- Moved the user avatar on the web interface to the top-right where the dropdown menu was
+- Made the size of the left menu in the web interface customizable
+- Made the user actions like login and logout happen from the avatar menu
+- Made it clearer when you are using the default/anonymous user
+- Made internal scrollbars wider on the web interface
+- Made Shared Content page on the web interface easier to use and more compact
+- Automatic management of max memory
+- Replaced SSE (Server-sent events) with websockets on web interface
+- Fixed the scrollbar sitting on top of the last link on a long list in the left menu on the web interface
+- Fixed the Recently Added folder in the Media Library not sorting by date added (before it was the file modified time)
+- Improved development workflow
+- Added and improved notifications on web interface
+
+### Dependencies
+- Bump `yarn` from 4.6.0 to 4.9.1
 
 ## [14.12.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.0...14.12.1) (2025-04-26)
 
