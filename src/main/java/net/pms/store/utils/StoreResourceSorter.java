@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.text.Normalizer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -66,8 +67,8 @@ public class StoreResourceSorter {
 	}
 
 	public static void sortResources(List<StoreResource> resources, SortCriterion[] sortCriterions, String lang) {
+		Collections.reverse(Arrays.asList(sortCriterions));
 		List<SortCriterion> sortCriterionsList = List.of(sortCriterions);
-		Collections.reverse(sortCriterionsList);
 		for (SortCriterion sortCriterion : sortCriterionsList) {
 			switch (sortCriterion.getPropertyName()) {
 				case "dc:title" -> {

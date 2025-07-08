@@ -3682,6 +3682,9 @@
 										<exec executable="docker" dir="${project.basedir}/target/docker">
 											<arg line="build . -t universalmediaserver/ums -t universalmediaserver/ums:${project.version}" />
 										</exec>
+										<exec executable="docker" dir="${project.basedir}/target/docker">
+											<arg line="build . -t universalmediaserver/ums -t universalmediaserver/ums:latest" />
+										</exec>
 									</target>
 								</configuration>
 							</execution>
@@ -3695,6 +3698,9 @@
 									<target>
 										<exec executable="docker">
 											<arg line="push universalmediaserver/ums:${project.version}" />
+										</exec>
+										<exec executable="docker">
+											<arg line="push universalmediaserver/ums:latest" />
 										</exec>
 									</target>
 								</configuration>
