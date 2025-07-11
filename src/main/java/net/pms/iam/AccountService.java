@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AccountService {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AccountService.class);
 	public static final String DEFAULT_ADMIN_GROUP = "admin";
 	public static final String DEFAULT_ADMIN_USERNAME = "ums";
@@ -202,8 +203,8 @@ public class AccountService {
 	}
 
 	public static void checkUserUnlock(final Connection connection, final User user) {
-		if (user != null && user.getLoginFailedCount() > 0 && System.currentTimeMillis() -  user.getLoginFailedTime() > LOGIN_FAIL_LOCK_TIME) {
-			LOGGER.trace("Unlocking account for {}",  user.getUsername());
+		if (user != null && user.getLoginFailedCount() > 0 && System.currentTimeMillis() - user.getLoginFailedTime() > LOGIN_FAIL_LOCK_TIME) {
+			LOGGER.trace("Unlocking account for {}", user.getUsername());
 			user.setLoginFailedCount(0);
 			UserTableUsers.resetLoginFailCount(connection, user.getId());
 		}
@@ -286,6 +287,29 @@ public class AccountService {
 			UserDatabase.close(connection);
 		}
 		return GROUPS.values();
+	}
+
+	public static Collection<Integer> getGroupIds(int permission) {
+		List<Integer> groupIds = new ArrayList<>();
+		for (Group group : getAllGroups()) {
+			if (group.havePermission(permission)) {
+				groupIds.add(group.getId());
+			}
+		}
+		return groupIds;
+	}
+
+	public static Collection<User> getAllUsersWithPermission(int permission, boolean all) {
+		List<User> users = new ArrayList<>();
+		Collection<Integer> groupIds = getGroupIds(permission);
+		for (User user : AccountService.getAllUsers()) {
+			if (groupIds.contains(user.getGroupId()) &&
+					(user.isLibraryChoice() || all) &&
+					!isUserLocked(user)) {
+				users.add(user);
+			}
+		}
+		return users;
 	}
 
 	public static List<Integer> getUserIdsForGroup(int groupId) {
