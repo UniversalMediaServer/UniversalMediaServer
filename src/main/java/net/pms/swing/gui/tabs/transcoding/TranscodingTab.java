@@ -925,35 +925,15 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 			}
 			autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 		});
-
 		builder.add(SwingUtil.getPreferredSizeComponent(forceExternalSubtitles)).at(FormLayoutUtil.flip(cc.xyw(1, 20, 6), colSpec, orientation));
-
-		JCheckBox deleteDownloadedSubtitles = new JCheckBox(Messages.getGuiString("DeleteDownloadedLiveSubtitlesAfter"), !configuration.isLiveSubtitlesKeep());
-		deleteDownloadedSubtitles.setToolTipText(Messages.getGuiString("DeterminesDownloadedLiveSubtitlesDeleted"));
-		deleteDownloadedSubtitles.setContentAreaFilled(false);
-		deleteDownloadedSubtitles.addItemListener((ItemEvent e) -> configuration.setLiveSubtitlesKeep((e.getStateChange() != ItemEvent.SELECTED)));
-
-		builder.add(SwingUtil.getPreferredSizeComponent(deleteDownloadedSubtitles)).at(FormLayoutUtil.flip(cc.xyw(7, 20, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		JCheckBox useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getGuiString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getGuiString("IfEnabledWontModifySubtitlesStyling"));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
 		useEmbeddedSubtitlesStyle.addItemListener((ItemEvent e) -> configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED));
-
 		builder.add(SwingUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle)).at(FormLayoutUtil.flip(cc.xyw(1, 22, 4), colSpec, orientation));
 
-
-		final SpinnerIntModel liveSubtitlesLimitModel = new SpinnerIntModel(configuration.getLiveSubtitlesLimit(), 1, 999, 1);
-		CustomJSpinner liveSubtitlesLimit = new CustomJSpinner(liveSubtitlesLimitModel, true);
-		liveSubtitlesLimit.setToolTipText(Messages.getGuiString("SetsMaximumNumberLiveSubtitles"));
-		liveSubtitlesLimit.addChangeListener((ChangeEvent e) -> configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue()));
-		JLabel liveSubtitlesLimitLabel = new JLabel(Messages.getGuiString("LimitNumberLiveSubtitlesTo"));
-		liveSubtitlesLimitLabel.setLabelFor(liveSubtitlesLimit);
-		builder.add(liveSubtitlesLimitLabel).at(FormLayoutUtil.flip(cc.xyw(7, 22, 7, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		builder.add(liveSubtitlesLimit).at(FormLayoutUtil.flip(cc.xy(15, 22), colSpec, orientation));
-
 		Integer[] depth = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
-
 		builder.addLabel(Messages.getGuiString("3dSubtitlesDepth")).at(FormLayoutUtil.flip(cc.xy(1, 24), colSpec, orientation));
 		JComboBox<Integer> depth3D = new JComboBox<>(depth);
 		depth3D.setSelectedItem(configuration.getDepth3D());

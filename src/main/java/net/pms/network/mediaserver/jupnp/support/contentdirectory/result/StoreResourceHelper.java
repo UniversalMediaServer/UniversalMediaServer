@@ -372,13 +372,13 @@ public class StoreResourceHelper {
 				indexCount = DlnaHelper.getDlnaLocalesCount();
 			}
 
-			for (int c = 0; c < indexCount; c++) {
+			for (int localizationValue = 0; localizationValue < indexCount; localizationValue++) {
 				Res res = new Res();
 				DlnaProtocolInfo protocolInfo = new DlnaProtocolInfo();
 				protocolInfo.setProtocol(Protocol.HTTP_GET);
 				protocolInfo.setContentFormat(item.getRendererMimeType());
 				if (renderer.isSendDLNAOrgFlags()) {
-					String additionalInfo = DlnaHelper.getDlnaAdditionalInfo(item, c);
+					String additionalInfo = DlnaHelper.getDlnaAdditionalInfo(item, localizationValue);
 					protocolInfo.setAdditionalInfo(additionalInfo);
 				}
 				res.setProtocolInfo(protocolInfo);

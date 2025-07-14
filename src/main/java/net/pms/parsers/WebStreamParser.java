@@ -42,6 +42,11 @@ public class WebStreamParser {
 	}
 
 	public static void parse(MediaInfo mediaInfo, String url, int type) {
+		if (StringUtils.containsIgnoreCase(url, "youtube")) {
+			LOGGER.debug("Not attempting to parse YouTube URL with FFmpeg which does not support that");
+			return;
+		}
+
 		//ensure mediaInfo is not already parsing or is parsed
 		mediaInfo.waitMediaParsing(5);
 		if (mediaInfo.isMediaParsed()) {
