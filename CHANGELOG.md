@@ -14,9 +14,11 @@
 - Chinese (Simplified) (64%) (thanks, ZhugeBright!)
 - Czech (100%)
 - Finnish (66%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Fredo1650!)
 - Korean (100%) (thanks, VenusGirl!)
 - Polish (55%) (thanks, Karol Szastok!)
 - Portuguese (Brazilian) (75%) (thanks, emanoel dedilso!)
+- Spanish (74%) (thanks, Ruben Abrego!)
 - Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Dependencies
