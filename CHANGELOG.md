@@ -38,8 +38,27 @@
 
 ## [Unreleased]
 
+### General
+
+- Fixed resetting cache causing mismatched thumbnails (#5536)
+- Fixed broken browsing when multiple sorting fields are used (#5179)
+- Ignore CacheClip folder set by Davinci Resolve
+- Fixed Docker release not updating the "latest" tag
+- Replaced deprecated methods
+
+### Translation updates via Crowdin
+- Chinese (Simplified) (64%) (thanks, ZhugeBright!)
+- Czech (100%)
+- Finnish (66%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Fredo1650!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (55%) (thanks, Karol Szastok!)
+- Portuguese (Brazilian) (75%) (thanks, emanoel dedilso!)
+- Spanish (74%) (thanks, Ruben Abrego!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
 ### Dependencies
-- Bump `@playwright/test` from 1.52.0 to 1.53.2 ([#5604](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5604), [#5608](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5608), [#5627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5627))
+- Bump `@playwright/test` from 1.52.0 to 1.54.1 ([#5604](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5604), [#5608](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5608), [#5627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5627), [#5639](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5639))
 - Bump `@stylistic/eslint-plugin` from 4.4.0 to 5.1.0 ([#5602](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5602), [#5610](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5610), [#5618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5618))
 - Bump `@tabler/icons-react` from 3.33.0 to 3.34.0 ([#5603](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5603))
 - Bump `@types/lodash` from 4.17.17 to 4.17.20 ([#5609](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5609), [#5625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5625))
@@ -50,7 +69,7 @@
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.19.0 to 2.19.1 ([#5600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5600))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.25.0 to 10.26.1 ([#5606](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5606), [#5616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5616))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.15 to 0.12.16 ([#5607](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5607))
-- Bump `eslint` from 9.28.0 to 9.30.1 ([#5617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5617), [#5626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5626))
+- Bump `eslint` from 9.28.0 to 9.31.0 ([#5617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5617), [#5626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5626), [#5638](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5638))
 - Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.5.0 to 3.6.0 ([#5631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5631))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.0 to 3.5.1 ([#5590](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5590))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.23 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588), [#5629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5629))
@@ -61,7 +80,7 @@
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.13.0 to 5.13.3 ([#5589](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5589), [#5614](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5614), [#5630](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5630))
 - Bump `react-router-dom` from 7.6.1 to 7.6.2 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585))
 - Bump `react-router-dom` from 7.6.1 to 7.6.3 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585), [#5620](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5620))
-- Bump `typescript-eslint` from 8.33.0 to 8.35.0 ([#5587](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5587), [#5619](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5619))
+- Bump `typescript-eslint` from 8.33.0 to 8.36.0 ([#5587](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5587), [#5619](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5619), [#5640](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5640))
 - Bump `video.js` from 8.22.0 to 8.23.3 ([#5611](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5611))
 
 ## [14.13.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.12.1...14.13.0) (2025-06-08)
