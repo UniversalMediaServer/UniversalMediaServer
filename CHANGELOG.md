@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [15.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0-a1...15.0.0-b1) (2025-07-08)
+## [15.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0-a1...15.0.0-b1) (2025-07-14)
 
 ### General
 
