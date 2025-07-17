@@ -101,45 +101,64 @@ public class DbIdLibrary {
 		}
 	}
 
-	private void setAudioLikesFolder(List<StoreResource> backupChildren) {
-		if (audioLikesFolder == null) {
-			audioLikesFolder = new VirtualFolderDbId(renderer, "MyAlbums", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null));
-		}
-		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
-			if (backupChildren.contains(audioLikesFolder)) {
-				renderer.getMediaStore().addChildInternal(audioLikesFolder, false);
-			} else {
-				renderer.getMediaStore().addChild(audioLikesFolder);
+	private VirtualFolderDbId lookupDbIdFolder(DbIdMediaType typeRootFolder) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeRootFolder.toString());
+		if (ids.size() > 0) {
+			LOGGER.debug("found audio folder with ID " + ids.get(0));
+			if (ids.size() > 1) {
+				LOGGER.warn("multile StoreResource ids exists for : " + typeRootFolder);
 			}
-			LOGGER.debug("adding My Albums folder to the root of MediaStore");
-		} else {
-			addChildToMediaLibraryAudioFolder(audioLikesFolder);
+			return (VirtualFolderDbId) renderer.getMediaStore().getResource(Long.toString(ids.get(0)));
 		}
-		if (backupChildren.contains(audioLikesFolder)) {
-			backupChildren.remove(audioLikesFolder);
+		return null;
+	}
+
+	private void setAudioLikesFolder(List<StoreResource> backupChildren) {
+		audioLikesFolder = lookupDbIdFolder(DbIdMediaType.TYPE_MYMUSIC_ALBUM);
+		if (audioLikesFolder == null) {
+			if (audioLikesFolder == null) {
+				audioLikesFolder = new VirtualFolderDbId(renderer, "MyAlbums", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null));
+			}
+			if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+				if (backupChildren.contains(audioLikesFolder)) {
+					renderer.getMediaStore().addChildInternal(audioLikesFolder, false);
+				} else {
+					renderer.getMediaStore().addChild(audioLikesFolder);
+				}
+				LOGGER.debug("adding My Albums folder to the root of MediaStore");
+			} else {
+				addChildToMediaLibraryAudioFolder(audioLikesFolder);
+			}
+			if (backupChildren.contains(audioLikesFolder)) {
+				backupChildren.remove(audioLikesFolder);
+			}
 		}
 	}
 
 	private void setPersonFolder() {
+		personArtistFolder = lookupDbIdFolder(DbIdMediaType.TYPE_PERSON);
 		if (personArtistFolder == null) {
 			personArtistFolder = new VirtualFolderDbId(renderer, "BrowseByArtist", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
+			addChildToMediaLibraryAudioFolder(personArtistFolder);
 		}
-		addChildToMediaLibraryAudioFolder(personArtistFolder);
 
+		personComposerFolder = lookupDbIdFolder(DbIdMediaType.TYPE_PERSON_COMPOSER);
 		if (personComposerFolder == null) {
 			personComposerFolder = new VirtualFolderDbId(renderer, "BrowseByComposer", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_COMPOSER, null));
+			addChildToMediaLibraryAudioFolder(personComposerFolder);
 		}
-		addChildToMediaLibraryAudioFolder(personComposerFolder);
 
+		personConductorFolder = lookupDbIdFolder(DbIdMediaType.TYPE_PERSON_CONDUCTOR);
 		if (personConductorFolder == null) {
 			personConductorFolder = new VirtualFolderDbId(renderer, "BrowseByConductor", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_CONDUCTOR, null));
+			addChildToMediaLibraryAudioFolder(personConductorFolder);
 		}
-		addChildToMediaLibraryAudioFolder(personConductorFolder);
 
+		personAlbumArtistFolder = lookupDbIdFolder(DbIdMediaType.TYPE_PERSON_ALBUMARTIST);
 		if (personAlbumArtistFolder == null) {
 			personAlbumArtistFolder = new VirtualFolderDbId(renderer, "BrowseByAlbumArtist", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUMARTIST, null));
+			addChildToMediaLibraryAudioFolder(personAlbumArtistFolder);
 		}
-		addChildToMediaLibraryAudioFolder(personAlbumArtistFolder);
 	}
 
 	/**
