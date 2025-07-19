@@ -77,12 +77,10 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
             title={(<Text c="red">{i18n.get('Warning')}</Text>)}
           >
             <Text fw={600}>{i18n.get('ThisRestartsMediaServices')}</Text>
-            <List>
-              <List.Item><Code>{i18n.get('NetworkConnectionsWillClosed')}</Code></List.Item>
-            </List>
+            <Text>{i18n.get('NetworkConnectionsWillClosed')}</Text>
             <Text>{i18n.get('AreYouSureContinue')}</Text>
             <Group justify="flex-end" mt="md">
-              <Button onClick={() => setRestartServerOpened(false)}>{i18n.get('Cancel')}</Button>
+              <Button onClick={() => setRestartServerOpened(false)} variant="default">{i18n.get('Cancel')}</Button>
               <Button
                 color="red"
                 onClick={() => {
