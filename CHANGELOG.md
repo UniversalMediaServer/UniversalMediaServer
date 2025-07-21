@@ -30,7 +30,7 @@
 - Bump `@types/react` from 19.1.6 to 19.1.8 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
 - Bump `@vitejs/plugin-react` from 4.5.0 to 4.6.0 ([#5586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5586), [#5628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5628))
 - Bump `axios` from 1.9.0 to 1.10.0 ([#5605](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5605))
-- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.19.0 to 2.19.1 ([#5600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5600))
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.19.0 to 2.19.2 ([#5600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5600), [#5650](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5650))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.25.0 to 10.26.1 ([#5606](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5606), [#5616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5616))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.15 to 0.12.16 ([#5607](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5607))
 - Bump `eslint` from 9.28.0 to 9.31.0 ([#5617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5617), [#5626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5626), [#5638](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5638))
