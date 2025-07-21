@@ -23,7 +23,7 @@
 
 ### Dependencies
 - Bump `@playwright/test` from 1.52.0 to 1.54.1 ([#5604](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5604), [#5608](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5608), [#5627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5627), [#5639](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5639))
-- Bump `@stylistic/eslint-plugin` from 4.4.0 to 5.1.0 ([#5602](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5602), [#5610](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5610), [#5618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5618))
+- Bump `@stylistic/eslint-plugin` from 4.4.0 to 5.2.0 ([#5602](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5602), [#5610](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5610), [#5618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5618), [#5652](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5652))
 - Bump `@tabler/icons-react` from 3.33.0 to 3.34.1 ([#5603](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5603), [#5654](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5654))
 - Bump `@types/lodash` from 4.17.17 to 4.17.20 ([#5609](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5609), [#5625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5625))
 - Bump `@types/react-dom` from 19.1.5 to 19.1.6 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
