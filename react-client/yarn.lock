@@ -1014,19 +1014,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stylistic/eslint-plugin@npm:5.1.0":
-  version: 5.1.0
-  resolution: "@stylistic/eslint-plugin@npm:5.1.0"
+"@stylistic/eslint-plugin@npm:5.2.0":
+  version: 5.2.0
+  resolution: "@stylistic/eslint-plugin@npm:5.2.0"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.7.0"
-    "@typescript-eslint/types": "npm:^8.34.1"
+    "@typescript-eslint/types": "npm:^8.37.0"
     eslint-visitor-keys: "npm:^4.2.1"
     espree: "npm:^10.4.0"
     estraverse: "npm:^5.3.0"
-    picomatch: "npm:^4.0.2"
+    picomatch: "npm:^4.0.3"
   peerDependencies:
     eslint: ">=9.0.0"
-  checksum: 10c0/a56555c14859e4a9c7abf9667d047b6289d93be0e0bdf4eee118bdbe96bb164d7453ef397cd7623a139147dc643382493df6eb2c5431142edb1f17db73fa9058
+  checksum: 10c0/3be1714219c07a926d6c24284597f5816f491495a2e9cc3c6d5f8e13a93fbec396d7f42cbd8097debef10bceb006788edbdb1bd46facc733e5bc3ea69e035a9c
   languageName: node
   linkType: hard
 
@@ -1224,13 +1224,6 @@ __metadata:
   version: 8.37.0
   resolution: "@typescript-eslint/types@npm:8.37.0"
   checksum: 10c0/0caa649ba242d384e935eef9badbb352a3e640c3842104a6a562af69e0f680ec8e6c0c55c069d4d714f05208f6d07811417ca6179745128a60c45fa92794e6dd
-  languageName: node
-  linkType: hard
-
-"@typescript-eslint/types@npm:^8.34.1":
-  version: 8.35.0
-  resolution: "@typescript-eslint/types@npm:8.35.0"
-  checksum: 10c0/a2711a932680805e83252b5d7c55ac30437bdc4d40c444606cf6ccb6ba23a682da015ec03c64635e77bf733f84d9bb76810bf4f7177fd3a660db8a2c8a05e845
   languageName: node
   linkType: hard
 
@@ -3798,6 +3791,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"picomatch@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "picomatch@npm:4.0.3"
+  checksum: 10c0/9582c951e95eebee5434f59e426cddd228a7b97a0161a375aed4be244bd3fe8e3a31b846808ea14ef2c8a2527a6eeab7b3946a67d5979e81694654f939473ae2
+  languageName: node
+  linkType: hard
+
 "pkcs7@npm:^1.0.4":
   version: 1.0.4
   resolution: "pkcs7@npm:1.0.4"
@@ -4014,21 +4014,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:7.6.3":
-  version: 7.6.3
-  resolution: "react-router-dom@npm:7.6.3"
+"react-router-dom@npm:7.7.0":
+  version: 7.7.0
+  resolution: "react-router-dom@npm:7.7.0"
   dependencies:
-    react-router: "npm:7.6.3"
+    react-router: "npm:7.7.0"
   peerDependencies:
     react: ">=18"
     react-dom: ">=18"
-  checksum: 10c0/51ebd9c71255d836a055b87745070c1800733212088fbb1a7031ce16cbf420ad12a4286faebfc7dc62be6931a0eee74f4dc68f05e7d7a63933bc53b5c9c101f6
+  checksum: 10c0/1cc6ede9f728b3a141e730e00e86fa7f0db645c1ad5a3e4a156d373fb1e091ce9a368019c6fbf42d5fcc8a00bb44610248ca2a44907a7cc50fbf8b186adcfed6
   languageName: node
   linkType: hard
 
-"react-router@npm:7.6.3":
-  version: 7.6.3
-  resolution: "react-router@npm:7.6.3"
+"react-router@npm:7.7.0":
+  version: 7.7.0
+  resolution: "react-router@npm:7.7.0"
   dependencies:
     cookie: "npm:^1.0.1"
     set-cookie-parser: "npm:^2.6.0"
@@ -4038,7 +4038,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10c0/43c8dd124d1c3f9fb11afa905fb0c87e19b73b04877e9be09f84eac34948ea90d6c4aae408c8030fe6dc4ed88c0bcf2e857b53a817ebbe5ce7d26e485a330c7d
+  checksum: 10c0/04b02b473a743978ec7b5292484706b87c74d3e8d407dba886204586ba2d7a224a5413f0a7969fb28899b8804f0e6b0fde1c2a4f957901eb8a9a6541a25630f2
   languageName: node
   linkType: hard
 
@@ -4800,7 +4800,7 @@ __metadata:
     "@mantine/notifications": "npm:7.17.7"
     "@microsoft/fetch-event-source": "npm:2.0.1"
     "@playwright/test": "npm:1.54.1"
-    "@stylistic/eslint-plugin": "npm:5.1.0"
+    "@stylistic/eslint-plugin": "npm:5.2.0"
     "@tabler/icons-react": "npm:^3.34.1"
     "@types/lodash": "npm:4.17.20"
     "@types/react": "npm:19.1.8"
@@ -4817,7 +4817,7 @@ __metadata:
     react-country-flag: "npm:3.1.0"
     react-dom: "npm:19.1.0"
     react-movable: "npm:3.4.1"
-    react-router-dom: "npm:7.6.3"
+    react-router-dom: "npm:7.7.0"
     typescript: "npm:5.8.3"
     typescript-eslint: "npm:8.37.0"
     video.js: "npm:8.23.3"
