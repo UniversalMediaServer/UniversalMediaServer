@@ -35,7 +35,7 @@
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.15 to 0.12.16 ([#5607](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5607))
 - Bump `eslint` from 9.28.0 to 9.31.0 ([#5617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5617), [#5626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5626), [#5638](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5638))
 - Bump `org.apache.commons:commons-lang3` from 3.17.0 to 3.18.0 ([#5634](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5634))
-- Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.5.0 to 3.6.0 ([#5631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5631))
+- Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.5.0 to 3.6.1 ([#5631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5631), [#5648](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5648))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.0 to 3.5.1 ([#5590](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5590))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.23 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588), [#5629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5629))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.21 to 12.0.23 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588), [#5629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5629))
