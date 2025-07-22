@@ -129,6 +129,15 @@ public class Renderer extends RendererDeviceConfiguration {
 			}
 		}
 		if (!isAuthenticated()) {
+			/*
+			 * At this point, the uuid could already exist from the base
+			 * class RendererDeviceConfiguration, so use that if we were
+			 * not passed one.
+			 */
+			if (uuid == null && this.uuid != null) {
+				uuid = this.uuid;
+			}
+
 			allowed = RendererFilter.isAllowed(uuid);
 			userId = RendererUser.getUserId(uuid);
 			account = AccountService.getAccountByUserId(userId);
