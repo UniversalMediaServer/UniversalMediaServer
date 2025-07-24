@@ -1032,8 +1032,10 @@
 										<get src="${project.binaries-base}/win32/builds.txt" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dcrawMS.exe" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe" dest="${project.binaries}/bin/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe" dest="${project.binaries}/windows/x86_64/ffmpeg.exe" usetimestamp="true" />
+										<get src="https://github.com/GyanD/codexffmpeg/releases/download/2025-07-21-git-8cdb47e47a/ffmpeg-2025-07-21-git-8cdb47e47a-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
+											<cutdirsmapper dirs="1" />
+										</unzip>
 										<get src="${project.binaries-base}/win32/flac.exe" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mencoder.exe" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer.exe" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
@@ -1094,6 +1096,12 @@
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
+
+										<!-- Copy FFmpeg binaries -->
+										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe"
+											  tofile="${project.binaries}/bin/ffmpeg.exe" overwrite="true" />
+										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe"
+											  tofile="${project.binaries}/windows/x86_64/ffmpeg.exe" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
 										<mkdir dir="${project.binaries}/windows/service" />
