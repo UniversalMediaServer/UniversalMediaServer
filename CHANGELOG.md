@@ -29,7 +29,7 @@
 - Bump `@types/react-dom` from 19.1.5 to 19.1.6 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
 - Bump `@types/react` from 19.1.6 to 19.1.8 ([#5597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5597))
 - Bump `@vitejs/plugin-react` from 4.5.0 to 4.6.0 ([#5586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5586), [#5628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5628))
-- Bump `axios` from 1.9.0 to 1.10.0 ([#5605](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5605))
+- Bump `axios` from 1.9.0 to 1.11.0 ([#5605](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5605), [#5659](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5659))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.19.0 to 2.19.2 ([#5600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5600), [#5650](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5650))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.25.0 to 10.26.1 ([#5606](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5606), [#5616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5616))
 - Bump `com.zaxxer:HikariCP` from 6.3.0 to 6.3.1 ([#5647](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5647))
