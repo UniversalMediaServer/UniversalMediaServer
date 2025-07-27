@@ -1486,7 +1486,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
 "axe-core@npm:^4.10.0":
   version: 4.10.3
   resolution: "axe-core@npm:4.10.3"
@@ -1494,14 +1493,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.10.0":
-  version: 1.10.0
-  resolution: "axios@npm:1.10.0"
-=======
 "axios@npm:1.11.0":
   version: 1.11.0
   resolution: "axios@npm:1.11.0"
->>>>>>> refs/remotes/origin/main
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.4"
@@ -2382,19 +2376,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fdir@npm:^6.4.4":
-  version: 6.4.6
-  resolution: "fdir@npm:6.4.6"
-  peerDependencies:
-    picomatch: ^3 || ^4
-  peerDependenciesMeta:
-    picomatch:
-      optional: true
-  checksum: 10c0/45b559cff889934ebb8bc498351e5acba40750ada7e7d6bde197768d2fa67c149be8ae7f8ff34d03f4e1eb20f2764116e56440aaa2f6689e9a4aa7ef06acafe9
-  languageName: node
-  linkType: hard
-
-"fdir@npm:^6.4.6":
+"fdir@npm:^6.4.4, fdir@npm:^6.4.6":
   version: 6.4.6
   resolution: "fdir@npm:6.4.6"
   peerDependencies:
@@ -2480,26 +2462,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"form-data@npm:^4.0.0":
-  version: 4.0.3
-  resolution: "form-data@npm:4.0.3"
-=======
 "form-data@npm:^4.0.4":
   version: 4.0.4
   resolution: "form-data@npm:4.0.4"
->>>>>>> refs/remotes/origin/main
   dependencies:
     asynckit: "npm:^0.4.0"
     combined-stream: "npm:^1.0.8"
     es-set-tostringtag: "npm:^2.1.0"
     hasown: "npm:^2.0.2"
     mime-types: "npm:^2.1.12"
-<<<<<<< HEAD
-  checksum: 10c0/f0cf45873d600110b5fadf5804478377694f73a1ed97aaa370a74c90cebd7fe6e845a081171668a5476477d0d55a73a4e03d6682968fa8661eac2a81d651fcdb
-=======
   checksum: 10c0/373525a9a034b9d57073e55eab79e501a714ffac02e7a9b01be1c820780652b16e4101819785e1e18f8d98f0aee866cc654d660a435c378e16a72f2e7cac9695
->>>>>>> refs/remotes/origin/main
   languageName: node
   linkType: hard
 
@@ -3841,11 +3813,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"postcss@npm:^8.5.3":
-=======
 "postcss@npm:^8.5.6":
->>>>>>> refs/remotes/origin/main
   version: 8.5.6
   resolution: "postcss@npm:8.5.6"
   dependencies:
@@ -4182,38 +4150,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"rollup@npm:^4.34.9":
-  version: 4.44.1
-  resolution: "rollup@npm:4.44.1"
-=======
 "rollup@npm:^4.40.0":
   version: 4.45.1
   resolution: "rollup@npm:4.45.1"
->>>>>>> refs/remotes/origin/main
   dependencies:
-<<<<<<< HEAD
-    "@rollup/rollup-android-arm-eabi": "npm:4.44.1"
-    "@rollup/rollup-android-arm64": "npm:4.44.1"
-    "@rollup/rollup-darwin-arm64": "npm:4.44.1"
-    "@rollup/rollup-darwin-x64": "npm:4.44.1"
-    "@rollup/rollup-freebsd-arm64": "npm:4.44.1"
-    "@rollup/rollup-freebsd-x64": "npm:4.44.1"
-    "@rollup/rollup-linux-arm-gnueabihf": "npm:4.44.1"
-    "@rollup/rollup-linux-arm-musleabihf": "npm:4.44.1"
-    "@rollup/rollup-linux-arm64-gnu": "npm:4.44.1"
-    "@rollup/rollup-linux-arm64-musl": "npm:4.44.1"
-    "@rollup/rollup-linux-loongarch64-gnu": "npm:4.44.1"
-    "@rollup/rollup-linux-powerpc64le-gnu": "npm:4.44.1"
-    "@rollup/rollup-linux-riscv64-gnu": "npm:4.44.1"
-    "@rollup/rollup-linux-riscv64-musl": "npm:4.44.1"
-    "@rollup/rollup-linux-s390x-gnu": "npm:4.44.1"
-    "@rollup/rollup-linux-x64-gnu": "npm:4.44.1"
-    "@rollup/rollup-linux-x64-musl": "npm:4.44.1"
-    "@rollup/rollup-win32-arm64-msvc": "npm:4.44.1"
-    "@rollup/rollup-win32-ia32-msvc": "npm:4.44.1"
-    "@rollup/rollup-win32-x64-msvc": "npm:4.44.1"
-=======
     "@rollup/rollup-android-arm-eabi": "npm:4.45.1"
     "@rollup/rollup-android-arm64": "npm:4.45.1"
     "@rollup/rollup-darwin-arm64": "npm:4.45.1"
@@ -4234,7 +4174,6 @@ __metadata:
     "@rollup/rollup-win32-arm64-msvc": "npm:4.45.1"
     "@rollup/rollup-win32-ia32-msvc": "npm:4.45.1"
     "@rollup/rollup-win32-x64-msvc": "npm:4.45.1"
->>>>>>> refs/remotes/origin/main
     "@types/estree": "npm:1.0.8"
     fsevents: "npm:~2.3.2"
   dependenciesMeta:
@@ -4282,11 +4221,7 @@ __metadata:
       optional: true
   bin:
     rollup: dist/bin/rollup
-<<<<<<< HEAD
-  checksum: 10c0/6cc0175c626fd9f0fc325c1f1b86d5b5401d687973691dd5205b6b88a666ee0b96f401725da9090e090b31cb5a82ff9a0ef1c3db6dc14906f6c7a48cabad49b4
-=======
   checksum: 10c0/d641c283fe25d5db9e32c5bd977847cae1773f1021301d7baf936c65110e30e0608bb43cade46827df64a6149a67b853e72d3e92b46603c7ceb3b50bbd9ee1f8
->>>>>>> refs/remotes/origin/main
   languageName: node
   linkType: hard
 
@@ -4705,23 +4640,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.13":
-  version: 0.2.14
-  resolution: "tinyglobby@npm:0.2.14"
-=======
-"tinyglobby@npm:^0.2.12":
-  version: 0.2.13
-  resolution: "tinyglobby@npm:0.2.13"
->>>>>>> refs/remotes/origin/main
-  dependencies:
-    fdir: "npm:^6.4.4"
-    picomatch: "npm:^4.0.2"
-  checksum: 10c0/f789ed6c924287a9b7d3612056ed0cda67306cd2c80c249fd280cf1504742b12583a2089b61f4abbd24605f390809017240e250241f09938054c9b363e51c0a6
-  languageName: node
-  linkType: hard
-
-"tinyglobby@npm:^0.2.14":
+"tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.14":
   version: 0.2.14
   resolution: "tinyglobby@npm:0.2.14"
   dependencies:
@@ -4890,12 +4809,8 @@ __metadata:
     react-country-flag: "npm:3.1.0"
     react-dom: "npm:19.1.0"
     react-movable: "npm:3.4.1"
-<<<<<<< HEAD
-    react-router-dom: "npm:7.6.3"
-    react-use-websocket: "npm:4.13.0"
-=======
     react-router-dom: "npm:7.7.0"
->>>>>>> refs/remotes/origin/main
+    react-use-websocket: "npm:4.13.0"
     typescript: "npm:5.8.3"
     typescript-eslint: "npm:8.37.0"
     video.js: "npm:8.23.3"
