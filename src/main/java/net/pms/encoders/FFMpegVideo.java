@@ -122,6 +122,7 @@ public class FFMpegVideo extends Engine {
 	public List<String> getVideoFilterOptions(StoreItem resource, MediaInfo mediaInfo, OutputParams params, boolean isConvertedTo3d) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
+		ArrayList<String> softSubsConfig = new ArrayList<>();
 		final Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		MediaVideo defaultVideoTrack = mediaInfo != null ? mediaInfo.getDefaultVideoTrack() : null;
@@ -222,6 +223,20 @@ public class FFMpegVideo extends Engine {
 					} else {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 					}
+				} else if (
+					params.getSid().isEmbedded() &&
+					isRendererSupportsSoftSubsForThisVideo(renderer, resource, params)
+				) {
+					/**
+					 * For some reason, FFmpeg loads faster if it looks for the subtitles in a
+					 * second input, even if that is the same file as the first input arg.
+					 * @see https://superuser.com/questions/1839735/is-there-a-way-to-reduce-the-initial-startup-time-for-ffmpeg-when-muxing-subtitl#comment2907753_1839735
+					 */
+					softSubsConfig.add("-i");
+					softSubsConfig.add(resource.getFileName());
+					softSubsConfig.add("-c:s");
+					softSubsConfig.add("mov_text");
+					isSubsManualTiming = false;
 				} else {
 					originalSubsFilename = resource.getFileName();
 				}
@@ -314,6 +329,8 @@ public class FFMpegVideo extends Engine {
 		if (!filterChain.isEmpty()) {
 			videoFilterOptions.add("-filter_complex");
 			videoFilterOptions.add(StringUtils.join(filterChain, ","));
+		} else if (!softSubsConfig.isEmpty()) {
+			videoFilterOptions.addAll(softSubsConfig);
 		}
 
 		return videoFilterOptions;
@@ -339,7 +356,7 @@ public class FFMpegVideo extends Engine {
 		final Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
-		final EncodingFormat encodingFormat = item.getTranscodingSettings().getEncodingFormat();
+		EncodingFormat encodingFormat = item.getTranscodingSettings().getEncodingFormat();
 		if (
 			(
 				encodingFormat.isTranscodeToWMV() &&
@@ -848,6 +865,48 @@ public class FFMpegVideo extends Engine {
 		return true;
 	}
 
+	private boolean isRendererSupportsSoftSubsForThisVideo(Renderer renderer, StoreItem item, OutputParams params) {
+		if (!params.getSid().getType().isText()) {
+			return false;
+		}
+
+		MediaVideo defaultVideoTrack = item.getMediaInfo().getDefaultVideoTrack();
+
+		int frameRate = 0;
+		if (defaultVideoTrack.getFrameRate() != null) {
+			try {
+				frameRate = (int) Math.round(defaultVideoTrack.getFrameRate());
+			} catch (NumberFormatException e) {
+				LOGGER.debug(
+					"Could not parse framerate \"{}\" for media {}: {}",
+					defaultVideoTrack.getFrameRate(),
+					defaultVideoTrack,
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
+		return item.getTranscodingSettings().getEncodingFormat().isTranscodeToMP4H265AC3() &&
+			renderer.getFormatConfiguration().isFileCompatible(
+				FormatConfiguration.MP4,
+				defaultVideoTrack.getCodec(),
+				params.getAid().getCodec(),
+				params.getAid().getNumberOfChannels(),
+				params.getAid().getSampleRate(),
+				defaultVideoTrack.getBitRate(),
+				frameRate,
+				defaultVideoTrack.getWidth(),
+				defaultVideoTrack.getHeight(),
+				defaultVideoTrack.getBitDepth(),
+				defaultVideoTrack.getHDRFormatForRenderer(),
+				defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
+				defaultVideoTrack.getExtras(),
+				params.getSid().getType().toString(),
+				true,
+				renderer.getRef()
+			);
+	}
+
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
 		StoreItem item,
@@ -942,7 +1001,7 @@ public class FFMpegVideo extends Engine {
 		 * Defer to MEncoder for subtitles if:
 		 * - MEncoder is enabled and available
 		 * - The setting is enabled
-		 * - There are subtitles to transcode
+		 * - There are subtitles to hardcode because they can't be softcoded
 		 * - The file is not being played via the transcode folder
 		 * - The file is not Dolby Vision, because our MEncoder implementation can't handle that yet
 		 */
@@ -954,8 +1013,11 @@ public class FFMpegVideo extends Engine {
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
 			(
-				params.getSid().getType().isText() ||
-				params.getSid().getType() == SubtitleType.VOBSUB
+				(
+					params.getSid().getType().isText() ||
+					params.getSid().getType() == SubtitleType.VOBSUB
+				) &&
+				!isRendererSupportsSoftSubsForThisVideo(renderer, item, params)
 			) &&
 			!(defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))
 		) {
@@ -967,7 +1029,6 @@ public class FFMpegVideo extends Engine {
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
-		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
 			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, null)) {
@@ -976,7 +1037,7 @@ public class FFMpegVideo extends Engine {
 			} else if (item.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
-			} else if (params.getSid() != null) {
+			} else if (params.getSid() != null && !isRendererSupportsSoftSubsForThisVideo(renderer, item, params)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "we need to burn subtitles.");
 			} else if (isAviSynthEngine()) {
@@ -1016,7 +1077,7 @@ public class FFMpegVideo extends Engine {
 					renderer
 				) != null;
 				if (videoWouldBeCompatibleInTsContainer) {
-					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
+					canMuxVideoWithFFmpeg = true;
 				}
 				LOGGER.debug(prependFfmpegTraceReason + "the file is Dolby Vision and FFmpeg only outputs Dolby Vision metadata to MP4 containers as of FFmpeg 7.0.1 (worth re-checking periodically).");
 			}
@@ -1094,36 +1155,37 @@ public class FFMpegVideo extends Engine {
 			}
 		}
 
-		// If we got here, we are not deferring to tsMuxeR and can mux the video
-		if (canMuxVideoWithFFmpegIfTsMuxerIsNotUsed) {
-			canMuxVideoWithFFmpeg = true;
-		}
-
 		// Apply any video filters and associated options. These should go
 		// after video input is specified and before output streams are mapped.
 		List<String> videoFilterOptions = getVideoFilterOptions(item, media, params, isConvertedTo3d);
+		boolean isSoftSubsBeingMuxed = videoFilterOptions.contains("-c:s");
 		if (!videoFilterOptions.isEmpty()) {
 			cmdList.addAll(videoFilterOptions);
-			canMuxVideoWithFFmpeg = false;
-			LOGGER.debug(prependFfmpegTraceReason + "video filters are being applied.");
+			if (!isSoftSubsBeingMuxed && canMuxVideoWithFFmpeg) {
+				canMuxVideoWithFFmpeg = false;
+				LOGGER.debug(prependFfmpegTraceReason + "video filters are being applied.");
+			}
 		}
 
 		// Map the proper audio stream when there are multiple audio streams.
-		// For video the FFMpeg automatically chooses the stream with the highest resolution.
-		if (media.getAudioTracks().size() > 1) {
-			/**
-			 * Use the first video stream that is not an attached picture, video
-			 * thumbnail or cover art.
-			 *
-			 * @see https://web.archive.org/web/20160609011350/https://ffmpeg.org/ffmpeg.html#Stream-specifiers-1
-			 * @todo find a way to automatically select proper stream when media
-			 *       includes multiple video streams
-			 */
-			cmdList.add("-map");
-			cmdList.add("0:V");
+		// For video the FFmpeg automatically chooses the stream with the highest resolution.
+		/**
+		 * Use the first video stream that is not an attached picture, video
+		 * thumbnail or cover art.
+		 *
+		 * @see https://web.archive.org/web/20160609011350/https://ffmpeg.org/ffmpeg.html#Stream-specifiers-1
+		 * @todo find a way to automatically select proper stream when media
+		 *       includes multiple video streams
+		 */
+		cmdList.add("-map");
+		cmdList.add("0:V");
 
+		cmdList.add("-map");
+		cmdList.add("0:a:" + (media.getAudioTracks().indexOf(params.getAid())));
+
+		if (isSoftSubsBeingMuxed) {
 			cmdList.add("-map");
-			cmdList.add("0:a:" + (media.getAudioTracks().indexOf(params.getAid())));
+			cmdList.add("1:s:" + params.getSid().getId());
 		}
 
 		// Now configure the output streams
