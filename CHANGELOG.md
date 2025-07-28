@@ -45,7 +45,7 @@
 - Bump `com.zaxxer:HikariCP` from 6.3.0 to 6.3.2 ([#5647](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5647), [#5664](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5664))
 - Bump `commons-io:commons-io` from 2.19.0 to 2.20.0 ([#5649](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5649))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.15 to 0.12.17 ([#5607](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5607), [#5646](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5646))
-- Bump `eslint` from 9.28.0 to 9.31.0 ([#5617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5617), [#5626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5626), [#5638](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5638))
+- Bump `eslint` from 9.28.0 to 9.32.0 ([#5617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5617), [#5626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5626), [#5638](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5638), [#5668](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5668))
 - Bump `form-data` from 4.0.2 to 4.0.4 ([#5656](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5656))
 - Bump `Java Runtime Environment` from 17.0.15 to 17.0.16
 - Bump `org.apache.commons:commons-lang3` from 3.17.0 to 3.18.0 ([#5634](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5634))
