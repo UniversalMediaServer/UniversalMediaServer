@@ -49,6 +49,7 @@
 - Bump `form-data` from 4.0.2 to 4.0.4 ([#5656](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5656))
 - Bump `Java Runtime Environment` from 17.0.15 to 17.0.16
 - Bump `org.apache.commons:commons-lang3` from 3.17.0 to 3.18.0 ([#5634](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5634))
+- Bump `org.apache.commons:commons-text` from 1.13.1 to 1.14.0 ([#5665](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5665))
 - Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.5.0 to 3.6.1 ([#5631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5631), [#5648](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5648))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.0 to 3.5.1 ([#5590](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5590))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.21 to 12.0.23 ([#5588](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5588), [#5629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5629))
