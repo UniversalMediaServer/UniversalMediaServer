@@ -61,7 +61,7 @@
 - Bump `react-router-dom` from 7.6.1 to 7.7.0 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585), [#5651](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5651))
 - Bump `typescript-eslint` from 8.33.0 to 8.37.0 ([#5587](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5587), [#5619](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5619), [#5640](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5640), [#5653](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5653))
 - Bump `video.js` from 8.22.0 to 8.23.3 ([#5611](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5611))
-- Bump `vite` from 6.3.5 to 7.0.4 ([#5641](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5641))
+- Bump `vite` from 6.3.5 to 7.0.6 ([#5641](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5641), [#5669](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5669))
 - Bump `yarn` from 4.9.1 to 4.9.2
 - Bump `youtube-dl` from 2025.04.08 to 2025.05.05
 
