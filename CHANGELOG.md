@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.0...14.13.1) (2025-07-30)
+
 ### General
 
 - Fixed users and groups not always being assigned to renderers/devices (#4834)
