@@ -64,6 +64,8 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Upload the previous release binaries to GitHub and remove the `This release is available via our Patreon page, and will be available here when the next release happens.` part. Make sure you check the checkbox for `Set as the latest release` because you are now promoting it from pre-release to latest.
 
+1. Wait at least a few hours for the files to propagate around the world on GitHub's CDN, otherwise users will get broken downloads and automatic updates.
+
 1. The automatic updater in UMS downloads from GitHub so now you are ready to point that to the previous release you just promoted. You can do that by updating the versions on the first 13 lines of [latest_version.properties](./src/main/external-resources/update/latest_version.properties#L1-L13). Remember this is the one you just promoted to the first public release, NOT the one on Patreon.
 
     In the same file, update the `LatestVersionPatreon` and `PatreonDownloadUrl` fields to point to the latest Patreon release.
