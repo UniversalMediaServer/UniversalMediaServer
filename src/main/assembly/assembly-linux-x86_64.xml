@@ -110,7 +110,6 @@
 			<fileMode>0644</fileMode>
 			<directoryMode>0755</directoryMode>
 			<includes>
-				<include>documentation/**</include>
 				<include>DummyInput.jpg</include>
 				<include>web/**</include>
 			</includes>

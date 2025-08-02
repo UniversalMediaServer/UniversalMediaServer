@@ -86,22 +86,23 @@ public class SettingsApiServlet extends GuiHttpServlet {
 
 				// immutable data
 				jsonResponse.add("userSettingsDefaults", WEB_SETTINGS_WITH_DEFAULTS);
-				jsonResponse.add("audioCoverSuppliers", AUDIO_COVER_SUPPLIERS);
-				jsonResponse.add("sortMethods", SORT_METHODS);
-				jsonResponse.add("subtitlesInfoLevels", SUBTITLES_INFO_LEVELS);
-				jsonResponse.add("transcodingEnginesPurposes", TRANSCODING_ENGINES_PURPOSES);
-				jsonResponse.add("subtitlesCodepages", SUBTITLES_CODEPAGES);
-				jsonResponse.add("subtitlesDepth", SUBTITLES_DEPTH);
-				jsonResponse.add("ffmpegLoglevels", FFMPEG_LOGLEVEL);
-				jsonResponse.add("upnpLoglevels", UPNP_LOGLEVEL);
-				jsonResponse.add("fullyPlayedActions", FULLY_PLAYED_ACTIONS);
-				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
-				jsonResponse.add("allRendererNames", RendererConfigurations.getAllRendererNamesAsJsonArray());
-				jsonResponse.add("enabledRendererNames", RendererConfigurations.getEnabledRendererNamesAsJsonArray());
-				jsonResponse.add("transcodingEngines", UmsConfiguration.getAllEnginesAsJsonObject());
-				jsonResponse.add("gpuEncodingH264AccelerationMethods", GPU_ENCODING_H264_ACCELERATION_METHODS);
-				jsonResponse.add("gpuEncodingH265AccelerationMethods", GPU_ENCODING_H265_ACCELERATION_METHODS);
-
+				JsonObject selectionSettings = new JsonObject();
+				selectionSettings.add("allRendererNames", RendererConfigurations.getAllRendererNamesAsJsonArray());
+				selectionSettings.add("audioCoverSuppliers", AUDIO_COVER_SUPPLIERS);
+				selectionSettings.add("enabledRendererNames", RendererConfigurations.getEnabledRendererNamesAsJsonArray());
+				selectionSettings.add("ffmpegLoglevels", FFMPEG_LOGLEVEL);
+				selectionSettings.add("fullyPlayedActions", FULLY_PLAYED_ACTIONS);
+				selectionSettings.add("gpuEncodingH264AccelerationMethods", GPU_ENCODING_H264_ACCELERATION_METHODS);
+				selectionSettings.add("gpuEncodingH265AccelerationMethods", GPU_ENCODING_H265_ACCELERATION_METHODS);
+				selectionSettings.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
+				selectionSettings.add("sortMethods", SORT_METHODS);
+				selectionSettings.add("subtitlesCodepages", SUBTITLES_CODEPAGES);
+				selectionSettings.add("subtitlesDepth", SUBTITLES_DEPTH);
+				selectionSettings.add("subtitlesInfoLevels", SUBTITLES_INFO_LEVELS);
+				selectionSettings.add("transcodingEngines", UmsConfiguration.getAllEnginesAsJsonObject());
+				selectionSettings.add("transcodingEnginesPurposes", TRANSCODING_ENGINES_PURPOSES);
+				selectionSettings.add("upnpLoglevels", UPNP_LOGLEVEL);
+				jsonResponse.add("selectionSettings", selectionSettings);
 				jsonResponse.add("userSettings", getConfigurationAsJsonObject());
 
 				respond(req, resp, jsonResponse.toString(), 200, "application/json");
