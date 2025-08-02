@@ -22,6 +22,8 @@
 - Improved accessibility
 - Improved stability of database connection
 - Improved connection of web interface to server
+- Improved video scrubbing on the web player
+- Fixed support for some YouTube videos on the web player
 - Replaced deprecated methods
 
 ### Translation updates via Crowdin
@@ -69,7 +71,6 @@
 - Bump `org.jsoup:jsoup` from 1.20.1 to 1.21.1 ([#5615](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5615))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.13.0 to 5.13.4 ([#5589](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5589), [#5614](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5614), [#5630](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5630), [#5662](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5662))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.13.0 to 5.13.4 ([#5589](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5589), [#5614](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5614), [#5630](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5630), [#5662](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5662))
-- Bump `react-router-dom` from 7.6.1 to 7.6.3 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585), [#5620](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5620))
 - Bump `react-router-dom` from 7.6.1 to 7.7.0 ([#5585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5585), [#5651](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5651))
 - Bump `typescript-eslint` from 8.33.0 to 8.38.0 ([#5587](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5587), [#5619](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5619), [#5640](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5640), [#5653](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5653), [#5666](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5666))
 - Bump `video.js` from 8.22.0 to 8.23.3 ([#5611](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5611))
