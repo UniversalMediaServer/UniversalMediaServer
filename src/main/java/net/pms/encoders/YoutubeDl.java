@@ -17,6 +17,8 @@
 package net.pms.encoders;
 
 import com.sun.jna.Platform;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class YoutubeDl extends FFMpegVideo {
+
+	String extractVideoId(String url) {
+		if (url == null)
+			return null;
+
+		if (url.contains("v=")) {
+			int start = url.indexOf("v=") + 2;
+			int end = url.indexOf("&", start);
+			return end == -1 ? url.substring(start) : url.substring(start, end);
+		}
+
+		if (url.contains("youtu.be/")) {
+			int start = url.indexOf("youtu.be/") + 9;
+			int end = url.indexOf("?", start);
+			return end == -1 ? url.substring(start) : url.substring(start, end);
+		}
+
+		if (url.contains("/embed/")) {
+			int start = url.indexOf("/embed/") + 7;
+			int end = url.indexOf("?", start);
+			return end == -1 ? url.substring(start) : url.substring(start, end);
+		}
+
+		return null;
+	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(YoutubeDl.class);
 
@@ -66,21 +93,29 @@ public class YoutubeDl extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		StoreItem resource,
-		MediaInfo media,
-		OutputParams params
-	) throws IOException {
+			StoreItem resource,
+			MediaInfo media,
+			OutputParams params) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 		// Use device-specific conf
 		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		String filename = resource.getFileName();
+
+		String videoId = extractVideoId(resource.getMediaURL());
+		LOGGER.debug("Launching downloader for video ID: {}", videoId);
+
 		setAudioAndSubs(resource, params);
 
 		// Build the command line
 		List<String> cmdList = new ArrayList<>();
 
-		cmdList.add(configuration.getYoutubeDlPath());
+		String downloaderPath = configuration.getYoutubeDlPath();
+		if (!new File(downloaderPath).exists()) {
+			downloaderPath = "/usr/bin/yt-dlp"; // fallback path
+			LOGGER.warn("youtube-dl not found, falling back to yt-dlp");
+		}
+		cmdList.add(downloaderPath);
 
 		if (params.getTimeSeek() > 0) {
 			cmdList.add("-ss");
@@ -100,11 +135,8 @@ public class YoutubeDl extends FFMpegVideo {
 			params.setInputPipes(new IPipeProcess[2]);
 		} else {
 			// basename of the named pipe:
-			String fifoName = String.format(
-				"youtubedl_%d_%d",
-				Thread.currentThread().getId(),
-				System.currentTimeMillis()
-			);
+			String fifoName = String.format("youtubedl_%d_%d", Thread.currentThread().threadId(),
+					System.currentTimeMillis());
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 			params.getInputPipes()[0] = pipe;
 			cmdList.add("-o");
@@ -123,7 +155,8 @@ public class YoutubeDl extends FFMpegVideo {
 
 		if (!directPipe) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
-			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
+			((ProcessWrapperImpl) pw).attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode
+																	// ends
 
 			/**
 			 * It can take a long time for Windows to create a named pipe (and
@@ -151,7 +184,6 @@ public class YoutubeDl extends FFMpegVideo {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 			Thread.currentThread().interrupt();
 		}
-
 		return pw;
 	}
 
