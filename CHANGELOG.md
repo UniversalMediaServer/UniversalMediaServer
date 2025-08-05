@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+### General
+- Added a user switcher to the web interface
+- Added support for being logged in as multiple users on the web interface
+
+  ![multiple users](./changelog-images/15.0.0-b1-user-switcher.png)
+- Added a mode switcher to the web interface to make it easier to switch between Player mode and Settings mode
+
+  ![mode switcher](./changelog-images/15.0.0-a1-mode-switcher.png)
+- Added dynamic TV season information when viewing a season on the web player
+
+  ![season metadata](./changelog-images/15.0.0-a1-season-metadata.png)
+- Added the option to use pin codes on the web interface
+
+  ![pin code](./changelog-images/15.0.0-a1-pin-code.png)
+- Added file media info (location, types, streams, subtitles...) to the web player
+- Added accessibility linting to web interface
+- Use the custom name of the server on the web player and settings
+- Moved the settings menu from the dropdown to a side menu on the web interface
+- Moved the user avatar on the web interface to the top-right where the dropdown menu was
+- Made the size of the left menu in the web interface customizable
+- Made the user actions like login and logout happen from the avatar menu
+- Made it clearer when you are using the default/anonymous user
+- Made internal scrollbars wider on the web interface
+- Made Shared Content page on the web interface easier to use and more compact
+- Automatic management of max memory
+- Replaced SSE (Server-sent events) with websockets on web interface
+- Fixed the scrollbar sitting on top of the last link on a long list in the left menu on the web interface
+- Fixed the Recently Added folder in the Media Library not sorting by date added (before it was the file modified time)
+- Improved development workflow
+- Added and improved notifications on web interface
+- Added a link to the Knowledge Base on the web interface, to the right of the language switcher button
+- Replaced Help tab on the old interface with a link to the Knowledge Base on the About tab
+
 ### Dependencies
 
 - Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
@@ -91,6 +124,7 @@
 - Ignore CacheClip folder set by Davinci Resolve
 - Fixed Docker release not updating the "latest" tag
 - Replaced deprecated methods
+
 ### Translation updates via Crowdin
 - Chinese (Simplified) (64%) (thanks, ZhugeBright!)
 - Czech (100%)
