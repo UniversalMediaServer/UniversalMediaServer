@@ -69,8 +69,8 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webguiserver.EventSourceServer;
 import net.pms.network.webguiserver.WebGuiServer;
+import net.pms.network.webguiserver.WebSocketDispatcher;
 import net.pms.network.webplayerserver.WebPlayerServer;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.WindowsNamedPipe;
@@ -622,7 +622,7 @@ public class PMS {
 	// see the comment above HttpMediaServer.stop()
 	public void resetMediaServer() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
-			EventSourceServer.notify("server-restart", "Server is restarting", "Server status", "red", true);
+			WebSocketDispatcher.notifyAll("server-restart", "Server is restarting", "Server status", "red", true);
 			MediaServer.stop();
 			resetRenderers(true);
 
@@ -645,7 +645,7 @@ public class PMS {
 	 */
 	public void shutdownComputer() {
 		TaskRunner.getInstance().submitNamed("shutdown", true, () -> {
-			EventSourceServer.notify("computer-shutdown", "Shutting down computer", "Server status", "red", true);
+			WebSocketDispatcher.notifyAll("computer-shutdown", "Shutting down computer", "Server status", "red", true);
 			ProcessUtil.shutDownComputer();
 		});
 	}

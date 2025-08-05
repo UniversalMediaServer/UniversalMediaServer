@@ -312,6 +312,9 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.error("Database error in " + TABLE_NAME + " for deleting \"{}\": {}", id, e.getMessage());
 			LOGGER.trace("", e);
 		}
+		if (fromTvSeries) {
+			MediaTableTvSeasonMetadataLocalized.clearTvSeasonMetadataLocalized(connection, id);
+		}
 	}
 
 	protected static Long getTvSeriesIdFromTitle(final Connection connection, final String titleSimplified) {

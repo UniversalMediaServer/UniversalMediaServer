@@ -326,7 +326,7 @@
 - Bump `typescript` from 5.7.3 to 5.8.2 ([#5346](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5346))
 - Bump `video.js` from 8.21.0 to 8.22.0 ([#5385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5385))
 - Bump `vite` from 6.2.0 to 6.2.2 ([#5383](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5383))
-- Bump youtube-dl from 2025.01.01 to 2025.02.28
+- Bump `youtube-dl` from 2025.01.01 to 2025.02.28
 
 ## [14.11.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.1...14.11.0) (2025-03-08)
 

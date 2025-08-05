@@ -169,14 +169,6 @@ public class VideoSettingsFolder extends LocalizedStoreContainer {
 					return true;
 				}
 			});
-
-			res.addChild(new VirtualVideoActionLocalized(renderer, "ShowLiveSubtitlesFolder", renderer.getUmsConfiguration().isShowLiveSubtitlesFolder(), null) {
-				@Override
-				public boolean enable() {
-					renderer.getUmsConfiguration().setShowLiveSubtitlesFolder(renderer.getUmsConfiguration().isShowLiveSubtitlesFolder());
-					return renderer.getUmsConfiguration().isShowLiveSubtitlesFolder();
-				}
-			});
 		}
 
 		return res;
