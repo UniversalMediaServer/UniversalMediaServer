@@ -3,7 +3,8 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `com.zaxxer:HikariCP` from 6.3.2 to 7.0.0 ([#5674](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5674))
+- Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
 - Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
 
 ## [14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.0...14.13.1) (2025-07-30)
