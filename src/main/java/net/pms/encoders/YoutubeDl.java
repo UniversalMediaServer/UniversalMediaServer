@@ -36,9 +36,10 @@ import org.slf4j.LoggerFactory;
 
 public class YoutubeDl extends FFMpegVideo {
 
-	String extractVideoId(String url) {
-		if (url == null)
+	String extractYoutubeVideoId(String url) {
+		if (url == null) {
 			return null;
+		}
 
 		if (url.contains("v=")) {
 			int start = url.indexOf("v=") + 2;
@@ -95,14 +96,15 @@ public class YoutubeDl extends FFMpegVideo {
 	public synchronized ProcessWrapper launchTranscode(
 			StoreItem resource,
 			MediaInfo media,
-			OutputParams params) throws IOException {
+			OutputParams params
+		) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 		// Use device-specific conf
 		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		String filename = resource.getFileName();
 
-		String videoId = extractVideoId(resource.getMediaURL());
+		String videoId = extractYoutubeVideoId(resource.getMediaURL());
 		LOGGER.debug("Launching downloader for video ID: {}", videoId);
 
 		setAudioAndSubs(resource, params);
@@ -111,9 +113,10 @@ public class YoutubeDl extends FFMpegVideo {
 		List<String> cmdList = new ArrayList<>();
 
 		String downloaderPath = configuration.getYoutubeDlPath();
-		if (!new File(downloaderPath).exists()) {
-			downloaderPath = "/usr/bin/yt-dlp"; // fallback path
-			LOGGER.warn("youtube-dl not found, falling back to yt-dlp");
+		File downloaderFile = new File(downloaderPath);
+		if (!downloaderFile.exists()) {
+			LOGGER.warn("youtube-dl not found at '{}', attempting to use yt-dlp as fallback.", downloaderPath);
+			downloaderPath = "yt-dlp";
 		}
 		cmdList.add(downloaderPath);
 
@@ -135,8 +138,11 @@ public class YoutubeDl extends FFMpegVideo {
 			params.setInputPipes(new IPipeProcess[2]);
 		} else {
 			// basename of the named pipe:
-			String fifoName = String.format("youtubedl_%d_%d", Thread.currentThread().threadId(),
-					System.currentTimeMillis());
+			String fifoName = String.format(
+				"youtubedl_%d_%d",
+				Thread.currentThread().threadId(),
+				System.currentTimeMillis()
+			);
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 			params.getInputPipes()[0] = pipe;
 			cmdList.add("-o");
@@ -155,9 +161,7 @@ public class YoutubeDl extends FFMpegVideo {
 
 		if (!directPipe) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
-			((ProcessWrapperImpl) pw).attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode
-																	// ends
-
+			((ProcessWrapperImpl) pw).attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 			/**
 			 * It can take a long time for Windows to create a named pipe (and
 			 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in

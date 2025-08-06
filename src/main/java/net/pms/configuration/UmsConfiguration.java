@@ -1605,7 +1605,20 @@ public class UmsConfiguration extends BaseConfiguration {
 		if (youtubeDlPaths != null) {
 			executable = youtubeDlPaths.getDefaultPath();
 		}
-		return executable != null ? executable.toString() : null;
+		if (executable != null &&  new File(executable.toString()).exists()) {
+			return executable.toString();
+		}
+
+		//Fallback paths for OS
+		if (Platform.isWindows()) {
+			return "C:\\Program Files\\yt-dlp\\yt-dlp.exe";
+		}
+		else if (Platform.isMac()) {
+			return "/usr/local/bin/yt-dlp";
+		}
+		else {
+			return "/usr/bin/yt-dlp";
+		}
 	}
 
 	/**
