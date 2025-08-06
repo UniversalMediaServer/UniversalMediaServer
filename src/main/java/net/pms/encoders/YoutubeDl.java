@@ -156,8 +156,7 @@ public class YoutubeDl extends FFMpegVideo {
 
 		if (!directPipe) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
-			((ProcessWrapperImpl) pw).attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode
-																	// ends
+			((ProcessWrapperImpl) pw).attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
 			/**
 			 * It can take a long time for Windows to create a named pipe (and
