@@ -93,9 +93,10 @@ public class YoutubeDl extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-			StoreItem resource,
-			MediaInfo media,
-			OutputParams params) throws IOException {
+		StoreItem resource,
+		MediaInfo media,
+		OutputParams params
+	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 		// Use device-specific conf
