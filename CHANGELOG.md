@@ -36,6 +36,7 @@
 - Replaced Help tab on the old interface with a link to the Knowledge Base on the About tab
 
 ### Dependencies
+- Bump `@vitejs/plugin-react` from 4.6.0 to 4.7.0 ([#5676](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5676))
 - Bump `com.zaxxer:HikariCP` from 6.3.2 to 7.0.0 ([#5674](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5674))
 - Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
 - Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
