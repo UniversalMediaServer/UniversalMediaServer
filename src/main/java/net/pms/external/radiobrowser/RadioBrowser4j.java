@@ -31,8 +31,6 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
-import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.JavaHttpClient;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
@@ -128,15 +126,7 @@ public class RadioBrowser4j {
 					mediaInfo.getAudioMetadata().setGenre(genre);
 				}
 				if (StringUtils.isNotBlank(station.getFavicon()) && !ThumbnailSource.RADIOBROWSER.equals(mediaInfo.getThumbnailSource())) {
-					DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(station.getFavicon());
-					if (thumbnail != null) {
-						Long fileId = MediaTableFiles.getFileId(url);
-						if (fileId != null) {
-							Long thumbnailId = ThumbnailStore.getId(thumbnail, fileId, ThumbnailSource.RADIOBROWSER);
-							mediaInfo.setThumbnailId(thumbnailId);
-							mediaInfo.setThumbnailSource(ThumbnailSource.RADIOBROWSER);
-						}
-					}
+					ThumbnailStore.updateThumbnailByURI(station.getFavicon(), url, ThumbnailSource.RADIOBROWSER);
 				}
 				return true;
 			} catch (Exception e) {
