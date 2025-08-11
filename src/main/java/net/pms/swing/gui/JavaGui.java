@@ -32,7 +32,6 @@ import java.util.Timer;
 import javax.swing.*;
 import javax.swing.UIDefaults.LazyValue;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
 import javax.swing.plaf.FontUIResource;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -54,7 +53,6 @@ import net.pms.swing.components.JAnimatedButton;
 import net.pms.swing.components.JImageButton;
 import net.pms.swing.gui.tabs.about.AboutTab;
 import net.pms.swing.gui.tabs.general.GeneralTab;
-import net.pms.swing.gui.tabs.help.HelpTab;
 import net.pms.swing.gui.tabs.navigation.NavigationShareTab;
 import net.pms.swing.gui.tabs.shared.SharedContentTab;
 import net.pms.swing.gui.tabs.status.StatusTab;
@@ -486,7 +484,6 @@ public class JavaGui extends JFrame implements IGui {
 		navigationSettingsTab = new NavigationShareTab(configuration, this);
 		sharedContentTab = new SharedContentTab(configuration, this);
 		transcodingTab = new TranscodingTab(configuration, this);
-		HelpTab helpTab = new HelpTab();
 		aboutTab = new AboutTab();
 
 		tabbedPane.addTab(Messages.getGuiString("Status"), statusTab.build());
@@ -497,15 +494,7 @@ public class JavaGui extends JFrame implements IGui {
 		}
 		tabbedPane.addTab(Messages.getGuiString("SharedContent"), sharedContentTab.build());
 		tabbedPane.addTab(Messages.getGuiString("TranscodingSettings"), transcodingTab.build());
-		tabbedPane.addTab(Messages.getGuiString("Help"), helpTab.build());
 		tabbedPane.addTab(Messages.getGuiString("About"), aboutTab.build());
-		tabbedPane.addChangeListener((ChangeEvent e) -> {
-			int helpIndex = tabbedPane.getSelectedIndex();
-			if (configuration.isHideAdvancedOptions() && helpIndex > 2) {
-				helpIndex++;
-			}
-			helpTab.setTabIndex(helpIndex);
-		});
 
 		tabbedPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -564,8 +553,6 @@ public class JavaGui extends JFrame implements IGui {
 		tabbedPane.setComponentAt(tabIndex, sharedContentTab.build());
 		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("TranscodingSettings"));
 		tabbedPane.setComponentAt(tabIndex, transcodingTab.build());
-		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("Help"));
-		//help is not translated
 		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("About"));
 		tabbedPane.setComponentAt(tabIndex, aboutTab.build());
 	}

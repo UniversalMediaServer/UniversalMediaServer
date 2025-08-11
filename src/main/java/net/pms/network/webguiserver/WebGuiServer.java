@@ -41,7 +41,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void appendLog(String msg) {
-		EventSourceServer.appendLog(msg);
+		WebSocketDispatcher.appendLog(msg);
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setMemoryUsage(int maxMemory, int usedMemory, int dbCacheMemory, int bufferMemory) {
-		EventSourceServer.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
+		WebSocketDispatcher.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setReloadable(boolean reload) {
-		EventSourceServer.setReloadable(reload);
+		WebSocketDispatcher.setReloadable(reload);
 	}
 
 	@Override
@@ -78,15 +78,15 @@ public abstract class WebGuiServer implements IGui {
 	@Override
 	public void setStatusLine(String line) {
 		statusLine = line;
-		EventSourceServer.setStatusLine(statusLine);
+		WebSocketDispatcher.setStatusLine(statusLine);
 	}
 
 	@Override
 	public void setSecondaryStatusLine(String line) {
 		if (line == null && statusLine != null) {
-			EventSourceServer.setStatusLine(statusLine);
+			WebSocketDispatcher.setStatusLine(statusLine);
 		} else {
-			EventSourceServer.setStatusLine(line);
+			WebSocketDispatcher.setStatusLine(line);
 		}
 	}
 
@@ -100,7 +100,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setMediaScanStatus(boolean running) {
-		EventSourceServer.setMediaScanStatus(running);
+		WebSocketDispatcher.setMediaScanStatus(running);
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setConfigurationChanged(String key) {
-		EventSourceServer.setConfigurationChanged(key);
+		WebSocketDispatcher.setConfigurationChanged(key);
 	}
 
 	public static WebGuiServer createServer(int port) throws IOException {
