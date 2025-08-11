@@ -392,7 +392,9 @@ public class PMS {
 		}
 
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
-		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(umsConfiguration);
+		if (!isRunningTests()) {
+			UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(umsConfiguration);
+		}
 
 		GuiManager.setConnectionState(EConnectionState.SEARCHING);
 
