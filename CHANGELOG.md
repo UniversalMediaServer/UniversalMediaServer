@@ -44,7 +44,7 @@
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
 - Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
-- Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
+- Bump `react-router-dom` from 7.7.0 to 7.8.0 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678), [#5686](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5686))
 
 ## [14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.0...14.13.1) (2025-07-30)
 
