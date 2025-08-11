@@ -2370,7 +2370,7 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.08.11/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
 										<get src="https://www.osxexperts.net/ffmpeg711arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-macos-arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm"></unzip>
