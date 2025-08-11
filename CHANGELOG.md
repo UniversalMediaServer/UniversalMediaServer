@@ -38,6 +38,10 @@
 ### Dependencies
 - Bump `@vitejs/plugin-react` from 4.6.0 to 4.7.0 ([#5676](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5676))
 - Bump `com.zaxxer:HikariCP` from 6.3.2 to 7.0.1 ([#5674](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5674), [#5690](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5690))
+- Bump `org.eclipse.jetty:jetty-client` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
 - Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
 - Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
 
