@@ -58,6 +58,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -657,6 +658,6 @@ public class WindowsUtils extends PlatformUtils {
 	 * @see https://learn.microsoft.com/en-us/answers/questions/999348/setthreadexecutionstate-without-es-continuous-does
 	 */
 	public static boolean isVersionThatSleepsImmediately() {
-		return StringUtils.equals(System.getProperty("os.name"), "Windows 11");
+		return Strings.CS.equals(System.getProperty("os.name"), "Windows 11");
 	}
 }

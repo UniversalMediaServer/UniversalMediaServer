@@ -32,6 +32,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.store.StoreItem;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -470,7 +471,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (muxingMode != null && muxingMode.equalsIgnoreCase("Packed bitstream") && supportedMuxingMode != null && supportedMuxingMode.equals("ub")) {
+			if (muxingMode != null && Strings.CI.equals(muxingMode, "Packed bitstream") && supportedMuxingMode != null && supportedMuxingMode.equals("ub")) {
 				LOGGER.trace("Muxing mode \"{}\" failed to match support line {}", muxingMode, supportLine);
 				return false;
 			}
@@ -497,7 +498,7 @@ public class FormatConfiguration {
 					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrFormatInRendererFormat, supportLine);
 
 					final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
-					if (!StringUtils.equalsIgnoreCase(format, "mpegts") && isTsMuxeRVideoEngineActive) {
+					if (!Strings.CI.equals(format, "mpegts") && isTsMuxeRVideoEngineActive) {
 						/**
 						 * Calls this function again, with a TS container and without
 						 * HDR compatibility info, so we get either a STRICT match or none

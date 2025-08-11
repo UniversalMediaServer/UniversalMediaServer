@@ -28,6 +28,7 @@ import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ public class WebStreamParser {
 	}
 
 	public static void parse(MediaInfo mediaInfo, String url, int type) {
-		if (StringUtils.containsIgnoreCase(url, "youtube")) {
+		if (Strings.CI.contains(url, "youtube")) {
 			LOGGER.debug("Not attempting to parse YouTube URL with FFmpeg which does not support that");
 			return;
 		}
