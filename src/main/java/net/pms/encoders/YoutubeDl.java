@@ -140,7 +140,7 @@ public class YoutubeDl extends FFMpegVideo {
 			// basename of the named pipe:
 			String fifoName = String.format(
 				"youtubedl_%d_%d",
-				Thread.currentThread().threadId(),
+				Thread.currentThread().getId(),
 				System.currentTimeMillis()
 			);
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);

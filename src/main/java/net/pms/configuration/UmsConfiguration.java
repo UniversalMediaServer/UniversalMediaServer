@@ -1600,26 +1600,18 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	@Nullable
 	public String getYoutubeDlPath() {
-		Path executable = null;
-		ExternalProgramInfo youtubeDlPaths = getYoutubeDlPaths();
-		if (youtubeDlPaths != null) {
-			executable = youtubeDlPaths.getDefaultPath();
-		}
-		if (executable != null &&  new File(executable.toString()).exists()) {
-			return executable.toString();
-		}
-
-		//Fallback paths for OS
-		if (Platform.isWindows()) {
-			return "C:\\Program Files\\yt-dlp\\yt-dlp.exe";
-		}
-		else if (Platform.isMac()) {
-			return "/usr/local/bin/yt-dlp";
-		}
-		else {
-			return "/usr/bin/yt-dlp";
-		}
-	}
+    	ExternalProgramInfo youtubeDlPaths = getYoutubeDlPaths();
+    	if (youtubeDlPaths != null) {
+        	Path executable = youtubeDlPaths.getDefaultPath();
+        	if (executable != null && new File(executable.toString()).exists()) {
+            	return executable.toString();
+        	}
+    	}
+    // Fallback paths for OS
+    	return Platform.isWindows() ? "C:\\Program Files\\yt-dlp\\yt-dlp.exe" :
+        	   Platform.isMac()     ? "/usr/local/bin/yt-dlp" :
+                                	  "/usr/bin/yt-dlp";
+    }
 
 	/**
 	 * If the framerate is not recognized correctly and the video runs too fast or too
