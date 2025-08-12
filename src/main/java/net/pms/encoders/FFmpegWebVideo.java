@@ -38,6 +38,7 @@ import net.pms.store.StoreItem;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.FFmpegExecutableInfo;
 import net.pms.util.PlayerUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -299,7 +300,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			}
 
 			// FFmpeg does not natively support YouTube videos
-			if (isYouTubeURL(url)) {
+			if (UMSUtils.isYouTubeURL(url)) {
 				return false;
 			}
 
@@ -338,12 +339,5 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		};
 		ffParser.setFiltered(true);
 		pw.setStderrConsumer(ffParser);
-	}
-
-	public static boolean isYouTubeURL(String youTubeUrl) {
-		String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed\\/)[^#\\&\\?]*";
-		Pattern compiledPattern = Pattern.compile(pattern);
-		Matcher matcher = compiledPattern.matcher(youTubeUrl);
-		return matcher.find();
 	}
 }
