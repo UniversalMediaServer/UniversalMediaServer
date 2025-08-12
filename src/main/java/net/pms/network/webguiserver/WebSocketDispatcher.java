@@ -248,11 +248,17 @@ public class WebSocketDispatcher {
 		broadcastMessageWithPermission("{\"action\":\"set_media_scan_status\",\"data\":" + (running ? "true" : "false") + "}", Permissions.SETTINGS_VIEW);
 	}
 
+	/*
+	 * This is disabled because of a presumed bug in Mantine that
+	 * causes the state of the page to refresh whenever the status
+	 * line updates, which makes the web gui unusable during scanning.
+	 * If that gets fixed we can uncomment the contents of this.
+	 */
 	public static void setStatusLine(String line) {
-		JsonObject result = new JsonObject();
-		result.addProperty(ACTION_STRING, "set_status_line");
-		result.addProperty(DATA_STRING, line);
-		broadcastMessageWithPermission(result.toString(), Permissions.SETTINGS_VIEW);
+		// JsonObject result = new JsonObject();
+		// result.addProperty(ACTION_STRING, "set_status_line");
+		// result.addProperty(DATA_STRING, line);
+		// broadcastMessageWithPermission(result.toString(), Permissions.SETTINGS_VIEW);
 	}
 
 	public static void appendLog(String msg) {
