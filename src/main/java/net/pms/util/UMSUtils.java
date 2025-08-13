@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.OutputParams;
@@ -292,5 +294,12 @@ public class UMSUtils {
 		}
 
 		return jsonArray;
+	}
+
+	public static boolean isYouTubeURL(String youTubeUrl) {
+		String pattern = "(youtube\\.|youtu\\.be)";
+		Pattern compiledPattern = Pattern.compile(pattern);
+		Matcher matcher = compiledPattern.matcher(youTubeUrl);
+		return matcher.find();
 	}
 }

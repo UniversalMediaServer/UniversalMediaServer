@@ -100,7 +100,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	private StoreItem playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
-	private String automaticVideoQuality;
+	private String automaticVideoQuality = "Automatic (Wireless)";
 
 	private volatile MediaStore mediaStore;
 	private List<String> sharedPath;
