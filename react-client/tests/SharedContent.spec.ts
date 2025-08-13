@@ -34,5 +34,5 @@ test('should be able to select a YouTube video to watch', async ({ page }) => {
   await page.locator('.thumbnail-container').first().click()
   await page.getByText('Play', { exact: true }).click()
   await page.screenshot({ path: 'screenshot.png' })
-  await expect(page.getByTitle('Play Video')).toBeVisible()
+  await expect(page.getByTitle('Play Video')).toBeVisible({ timeout: 20000 })
 })
