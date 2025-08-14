@@ -65,6 +65,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ImdbUtil;
 import net.pms.util.SimpleThreadFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
@@ -855,7 +856,7 @@ public class APIUtils {
 		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID);
 
 		String notFoundPartialMessage = "Metadata not found";
-		if (apiResult == null || StringUtils.contains(apiResult, notFoundPartialMessage)) {
+		if (apiResult == null || Strings.CS.contains(apiResult, notFoundPartialMessage)) {
 			LOGGER.trace("No result for {}, received: {}", movieOrTVSeriesTitle, apiResult);
 			return null;
 		}
@@ -896,7 +897,7 @@ public class APIUtils {
 		apiResult = getInfoFromAllExtractedData(formattedName, true, startYear, null, null, imdbID);
 
 		String notFoundPartialMessage = "Metadata not found";
-		if (apiResult == null || StringUtils.contains(apiResult, notFoundPartialMessage)) {
+		if (apiResult == null || Strings.CS.contains(apiResult, notFoundPartialMessage)) {
 			LOGGER.trace("No result for {}, received: {}", formattedName, apiResult);
 			return null;
 		}

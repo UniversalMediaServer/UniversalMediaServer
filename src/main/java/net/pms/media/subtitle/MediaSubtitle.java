@@ -27,6 +27,7 @@ import net.pms.media.MediaLang;
 import net.pms.util.Constants;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -278,7 +279,7 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 	 *         otherwise.
 	 */
 	public boolean isSubsUtf8() {
-		return StringUtils.equalsIgnoreCase(subsCharacterSet, Constants.CHARSET_UTF_8);
+		return Strings.CI.equals(subsCharacterSet, Constants.CHARSET_UTF_8);
 	}
 
 	/**
