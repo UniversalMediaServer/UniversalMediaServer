@@ -921,8 +921,6 @@ public class APIUtils {
 	 * @param season
 	 * @param episode
 	 * @param imdbID
-	 * @param osdbHash
-	 * @param filebytesize
 	 *
 	 * @return a string array including the IMDb ID, episode title, season number,
 	 *         episode number relative to the season, and the show name, or null
@@ -971,71 +969,90 @@ public class APIUtils {
 		return getJson(url);
 	}
 
+    private static final int MAX_RETRIES = 3;
+    private static final long RETRY_DELAY_MS = 5000; // 5 seconds
+
 	private static String getJson(URL url) throws IOException {
 		HttpURLConnection connection = null;
-		try {
-			connection = (HttpURLConnection) url.openConnection();
-			connection.setAllowUserInteraction(false);
-			connection.setRequestProperty("Content-Type", "application/json");
-			connection.setRequestProperty("Content-length", "0");
-			connection.setRequestProperty("User-Agent", VERBOSE_UA);
-			connection.setConnectTimeout(30000);
-			connection.setReadTimeout(30000);
-			connection.connect();
+        int retries = 0;
 
-			int status = connection.getResponseCode();
-			String response;
+        while (retries < MAX_RETRIES) {
+			try {
+				connection = (HttpURLConnection) url.openConnection();
+				connection.setAllowUserInteraction(false);
+				connection.setRequestProperty("Content-Type", "application/json");
+				connection.setRequestProperty("Content-length", "0");
+				connection.setRequestProperty("User-Agent", VERBOSE_UA);
+				connection.setConnectTimeout(30000);
+				connection.setReadTimeout(30000);
+				connection.connect();
 
-			switch (status) {
-				case 200, 201 -> {
-					StringBuilder sb = new StringBuilder();
-					try (
+				int status = connection.getResponseCode();
+
+				switch (status) {
+					case 200, 201 -> {
+						StringBuilder sb = new StringBuilder();
+						try (
 							InputStreamReader instream = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
 							BufferedReader br = new BufferedReader(instream)
-							) {
-						String line;
-						while ((line = br.readLine()) != null) {
-							sb.append(line.trim()).append("\n");
-						}
-					} catch (Exception e) {
-						LOGGER.info("API lookup error for {}, {}", connection.getURL(), e.getMessage());
-					}
-					LOGGER.debug("API URL was {}", connection.getURL());
-					response = sb.toString().trim();
-				}
-				default -> {
-					StringBuilder errorMessage = new StringBuilder();
-					if (connection.getErrorStream() != null) {
-						try (
-								InputStreamReader instream = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
-								BufferedReader br = new BufferedReader(instream)
-								) {
+						) {
 							String line;
 							while ((line = br.readLine()) != null) {
-								errorMessage.append(line.trim()).append("\n");
+								sb.append(line.trim()).append("\n");
 							}
 						} catch (Exception e) {
-							LOGGER.info("API lookup error for {}, {}", connection.getURL(), e.getMessage());
+							LOGGER.error("API lookup error for {}, {}", connection.getURL(), e.getMessage());
+						}
+						return sb.toString().trim();
+					}
+					default -> {
+						// we didn't get a success response from the API, so retry or fail
+            			retries++;
+						if (retries == MAX_RETRIES) {
+							StringBuilder errorMessage = new StringBuilder();
+							if (connection.getErrorStream() != null) {
+								try (
+									InputStreamReader instream = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
+									BufferedReader br = new BufferedReader(instream)
+								) {
+									String line;
+									while ((line = br.readLine()) != null) {
+										errorMessage.append(line.trim()).append("\n");
+									}
+								} catch (Exception e) {
+									LOGGER.error("API lookup error for {}, {}", connection.getURL(), e.getMessage());
+								}
+							}
+
+							LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
+							return "{ statusCode: \"" + status + "\", serverResponse: " + GSON.toJson(errorMessage) + " }";
 						}
 					}
-
-					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
-					response = "{ statusCode: \"" + status + "\", serverResponse: " + GSON.toJson(errorMessage) + " }";
+				}
+			} catch (IOException e) {
+				LOGGER.debug("Error with HttpURLConnection: {}", e);
+			} finally {
+				if (connection != null) {
+					try {
+						connection.disconnect();
+					} catch (Exception ex) {
+						LOGGER.error("Error while disconnecting connection: {}", ex);
+					}
 				}
 			}
 
-			return response;
-		} catch (IOException e) {
-			LOGGER.debug("Error with HttpURLConnection: {}", e);
-		} finally {
-			if (connection != null) {
-				try {
-					connection.disconnect();
-				} catch (Exception ex) {
-					LOGGER.debug("Error while disconnecting connection: {}", ex);
-				}
-			}
+            if (retries < MAX_RETRIES) {
+                try {
+                    LOGGER.debug("Retrying API request in {} seconds...", (RETRY_DELAY_MS / 1000));
+                    Thread.sleep(RETRY_DELAY_MS);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt(); // Restore the interrupted status
+                    LOGGER.error("Retry delay interrupted");
+                    break; // Exit the loop if interrupted
+                }
+            }
 		}
+
 		return null;
 	}
 
