@@ -80,9 +80,8 @@ public abstract class JakartaServletUpnpStream extends UpnpStream {
 					HttpServletHelper.logHttpServletResponse(getRequest(), getResponse(), null, false);
 				}
 			}
-
 		} catch (IOException e) {
-			LOGGER.info("Exception occurred during UPnP stream processing", e);
+			LOGGER.error("Exception occurred during UPnP stream processing", e);
 			if (!getResponse().isCommitted()) {
 				LOGGER.trace("Response hasn't been committed, returning INTERNAL SERVER ERROR to client");
 				getResponse().setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -90,7 +89,7 @@ public abstract class JakartaServletUpnpStream extends UpnpStream {
 					HttpServletHelper.logHttpServletResponse(getRequest(), getResponse(), null, false);
 				}
 			} else {
-				LOGGER.info("Could not return INTERNAL SERVER ERROR to client, response was already committed");
+				LOGGER.error("Could not return INTERNAL SERVER ERROR to client, response was already committed");
 			}
 			responseException(e);
 		} finally {
@@ -150,11 +149,9 @@ public abstract class JakartaServletUpnpStream extends UpnpStream {
 		if (bodyBytes.length > 0 && requestMessage.isContentTypeMissingOrText()) {
 			LOGGER.trace("Request contains textual entity body, converting then setting string on message");
 			requestMessage.setBodyCharacters(bodyBytes);
-
 		} else if (bodyBytes.length > 0) {
 			LOGGER.trace("Request contains binary entity body, setting bytes on message");
 			requestMessage.setBody(UpnpMessage.BodyType.BYTES, bodyBytes);
-
 		} else {
 			LOGGER.trace("Request did not contain entity body");
 		}
