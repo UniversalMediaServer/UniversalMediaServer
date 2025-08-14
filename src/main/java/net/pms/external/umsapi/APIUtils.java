@@ -969,14 +969,14 @@ public class APIUtils {
 		return getJson(url);
 	}
 
-    private static final int MAX_RETRIES = 3;
-    private static final long RETRY_DELAY_MS = 5000; // 5 seconds
+	private static final int MAX_RETRIES = 3;
+	private static final long RETRY_DELAY_MS = 5000; // 5 seconds
 
 	private static String getJson(URL url) throws IOException {
 		HttpURLConnection connection = null;
-        int retries = 0;
+		int retries = 0;
 
-        while (retries < MAX_RETRIES) {
+		while (retries < MAX_RETRIES) {
 			try {
 				connection = (HttpURLConnection) url.openConnection();
 				connection.setAllowUserInteraction(false);
@@ -1007,7 +1007,7 @@ public class APIUtils {
 					}
 					default -> {
 						// we didn't get a success response from the API, so retry or fail
-            			retries++;
+						retries++;
 						if (retries == MAX_RETRIES) {
 							StringBuilder errorMessage = new StringBuilder();
 							if (connection.getErrorStream() != null) {
@@ -1041,16 +1041,16 @@ public class APIUtils {
 				}
 			}
 
-            if (retries < MAX_RETRIES) {
-                try {
-                    LOGGER.debug("Retrying API request in {} seconds...", (RETRY_DELAY_MS / 1000));
-                    Thread.sleep(RETRY_DELAY_MS);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt(); // Restore the interrupted status
-                    LOGGER.error("Retry delay interrupted");
-                    break; // Exit the loop if interrupted
-                }
-            }
+			if (retries < MAX_RETRIES) {
+				try {
+					LOGGER.debug("Retrying API request in {} seconds...", (RETRY_DELAY_MS / 1000));
+					Thread.sleep(RETRY_DELAY_MS);
+				} catch (InterruptedException ie) {
+					Thread.currentThread().interrupt(); // Restore the interrupted status
+					LOGGER.error("Retry delay interrupted");
+					break; // Exit the loop if interrupted
+				}
+			}
 		}
 
 		return null;
