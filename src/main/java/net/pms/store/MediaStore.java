@@ -21,6 +21,8 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -70,6 +72,7 @@ import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.IOList;
 import net.pms.util.FileUtil;
+import net.pms.util.SimpleThreadFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -666,16 +669,34 @@ public class MediaStore extends StoreContainer {
 							LOGGER.trace("Start of analysis for " + systemName);
 							ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
+							int nParallelThreads = 3;
+							if (storeContainer instanceof DVDISOFile) {
+								// Some DVD drives die with 3 parallel threads
+								nParallelThreads = 1;
+							}
+
+							ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
+									new SimpleThreadFactory("LibraryResource resolver thread", true));
+
 							if (shouldDoAudioTrackSorting(storeContainer)) {
 								sortChildrenWithAudioElements(storeContainer);
 							}
 							for (int i = 0; i < storeContainer.getChildren().size(); i++) {
 								final StoreResource child = storeContainer.getChildren().get(i);
 								if (child != null) {
+									tpe.execute(child);
 									resources.add(child);
 								} else {
 									LOGGER.warn("null child at index {} in {}", i, systemName);
 								}
+							}
+
+							try {
+								tpe.shutdown();
+								tpe.awaitTermination(20, TimeUnit.SECONDS);
+							} catch (InterruptedException e) {
+								LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
+								Thread.currentThread().interrupt();
 							}
 
 							LOGGER.trace("End of analysis for " + systemName);

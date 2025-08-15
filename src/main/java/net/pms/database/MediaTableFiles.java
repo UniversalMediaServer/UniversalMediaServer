@@ -85,8 +85,10 @@ public class MediaTableFiles extends MediaTable {
 	 * - 40: added thumbnail source
 	 * - 41: ID as BIGINT
 	 * - 42: ID as IDENTITY
+	 * - 43: clear ffmpeg data parsed
+	 * - 44: added DATEADDED and RUID
 	 */
-	private static final int TABLE_VERSION = 43;
+	private static final int TABLE_VERSION = 44;
 
 	/**
 	 * COLUMNS NAMES
@@ -97,6 +99,8 @@ public class MediaTableFiles extends MediaTable {
 	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
 	public static final String COL_FILENAME = "FILENAME";
 	private static final String COL_MODIFIED = "MODIFIED";
+	private static final String COL_DATEADDED = "DATEADDED";
+	private static final String COL_RESOURCE_UID = "RUID";
 	private static final String COL_PARSER = "PARSER";
 	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
 	private static final String COL_CONTAINER = "CONTAINER";
@@ -116,6 +120,7 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
 	public static final String TABLE_COL_FORMAT_TYPE = TABLE_NAME + "." + COL_FORMAT_TYPE;
 	public static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
+	public static final String TABLE_COL_DATEADDED = TABLE_NAME + "." + COL_DATEADDED;
 	public static final String TABLE_COL_MODIFIED = TABLE_NAME + "." + COL_MODIFIED;
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
 	public static final String TABLE_COL_DURATION = TABLE_NAME + "." + COL_DURATION;
@@ -475,6 +480,10 @@ public class MediaTableFiles extends MediaTable {
 						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					}
+					case 43 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DATEADDED + TIMESTAMP + DEFAULT + CURRENT_TIMESTAMP);
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_RESOURCE_UID + VARCHAR);
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -528,7 +537,9 @@ public class MediaTableFiles extends MediaTable {
 				COL_THUMBID                 + BIGINT                                         + COMMA +
 				COL_THUMB_SRC               + VARCHAR_32                                     + COMMA +
 				COL_FILENAME                + VARCHAR_1024    + NOT_NULL + " " + UNIQUE      + COMMA +
+				COL_DATEADDED               + TIMESTAMP       + DEFAULT + CURRENT_TIMESTAMP  + COMMA +
 				COL_MODIFIED                + TIMESTAMP       + NOT_NULL                     + COMMA +
+				COL_RESOURCE_UID            + VARCHAR                                        + COMMA +
 				COL_PARSER                  + VARCHAR_32                                     + COMMA +
 				COL_FORMAT_TYPE             + INTEGER                                        + COMMA +
 				COL_MEDIA_SIZE              + NUMERIC                                        + COMMA +
@@ -694,6 +705,7 @@ public class MediaTableFiles extends MediaTable {
 					media = new MediaInfo();
 					long fileId = rs.getLong(COL_ID);
 					media.setFileId(fileId);
+					media.setResourceId(rs.getString(COL_RESOURCE_UID));
 					media.setMediaParser(rs.getString(COL_PARSER));
 					media.setSize(rs.getLong(COL_MEDIA_SIZE));
 					media.setContainer(rs.getString(COL_CONTAINER));
@@ -817,6 +829,7 @@ public class MediaTableFiles extends MediaTable {
 					result.updateTimestamp(COL_MODIFIED, new Timestamp(modified));
 					result.updateInt(COL_FORMAT_TYPE, type);
 					if (media != null) {
+						updateString(result, COL_RESOURCE_UID, media.getResourceId(), 64);
 						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
 						updateLong(result, COL_THUMBID, media.getThumbnailId());
 						if (media.getThumbnailSource() != null) {

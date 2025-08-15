@@ -16,9 +16,8 @@
  */
 package net.pms.io;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
-
+import com.google.errorprone.annotations.Immutable;
+import jakarta.annotation.Nullable;
 
 /**
  * A dummy container for {@link Process} results that discards the output.

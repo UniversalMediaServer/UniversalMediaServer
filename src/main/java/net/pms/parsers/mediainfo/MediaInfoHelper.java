@@ -19,6 +19,7 @@ package net.pms.parsers.mediainfo;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.WString;
+import net.pms.parsers.mediainfo.MediaInfoLibrary.SizeT;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ public class MediaInfoHelper implements AutoCloseable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoHelper.class);
 
 	private Pointer handle;
+	private Throwable loadingError;
 
 	// Constructor/Destructor
 	public MediaInfoHelper(boolean log) {
@@ -49,6 +51,7 @@ public class MediaInfoHelper implements AutoCloseable {
 				setUTF8();
 			}
 		} catch (Throwable e) {
+			loadingError = e;
 			LOGGER.error("Error loading MediaInfo library: {}", e.getMessage());
 			LOGGER.trace("", e);
 			if (!Platform.isWindows() && !Platform.isMac()) {
@@ -56,6 +59,10 @@ public class MediaInfoHelper implements AutoCloseable {
 			}
 			LOGGER.info("The server will now use the less accurate FFmpeg parsing method");
 		}
+	}
+
+	public Throwable getLoadingError() {
+		return loadingError;
 	}
 
 	public boolean isValid() {
@@ -87,7 +94,7 @@ public class MediaInfoHelper implements AutoCloseable {
 	 */
 	public int openFile(String fileName) {
 		String path = ProcessUtil.getSystemPathName(fileName);
-		return MediaInfoLibrary.INSTANCE.Open(handle, new WString(path));
+		return MediaInfoLibrary.INSTANCE.Open(handle, new WString(path)).intValue();
 	}
 
 	/**
@@ -151,7 +158,7 @@ public class MediaInfoHelper implements AutoCloseable {
 	public String get(StreamKind streamType, int streamNumber, String parameter, InfoKind infoType, InfoKind searchType) {
 		return MediaInfoLibrary.INSTANCE.Get(handle,
 			streamType.getValue(),
-			streamNumber,
+			new SizeT(streamNumber),
 			new WString(parameter),
 			infoType.getValue(),
 			searchType.getValue()).toString();
@@ -184,8 +191,8 @@ public class MediaInfoHelper implements AutoCloseable {
 	public String get(StreamKind streamType, int streamNumber, int parameterIndex, InfoKind infoType) {
 		return MediaInfoLibrary.INSTANCE.GetI(handle,
 			streamType.getValue(),
-			streamNumber,
-			parameterIndex,
+			new SizeT(streamNumber),
+			new SizeT(parameterIndex),
 			infoType.getValue()).toString();
 	}
 
@@ -224,26 +231,28 @@ public class MediaInfoHelper implements AutoCloseable {
 	}
 
 	/**
-	 * Count of Streams of a Stream kind (StreamNumber not filled), or count of piece of
-	 * information in this Stream.
+	 * Count of Streams of a Stream kind (StreamNumber not filled).
+	 * It is the faster implementation of similar function
+	 * {@code String get(....., "StreamCount")}.
 	 *
 	 * @param streamType Type of Stream (general, video, audio...)
 	 * @return number of Streams of the given Stream kind
 	 */
 	public int countGet(StreamKind streamType) {
-		return MediaInfoLibrary.INSTANCE.Count_Get(handle, streamType.getValue(), -1);
+		return countGet(streamType, -1);
 	}
 
 	/**
-	 * Count of Streams of a Stream kind (StreamNumber not filled), or count of piece of
-	 * information in this Stream.
+	 * Count of pieces of information in this Stream type and StreamNumber.
+	 * It is the faster implementation of similar function
+	 * {@code String get(....., "Count")}.
 	 *
 	 * @param streamType Type of Stream (general, video, audio...)
 	 * @param streamNumber Stream number in this kind of Stream (first, second...)
-	 * @return number of Streams of the given Stream kind
+	 * @return number of pieces of the given Stream kind
 	 */
 	public int countGet(StreamKind streamType, int streamNumber) {
-		return MediaInfoLibrary.INSTANCE.Count_Get(handle, streamType.getValue(), streamNumber);
+		return MediaInfoLibrary.INSTANCE.Count_Get(handle, streamType.getValue(), new SizeT(streamNumber)).intValue();
 	}
 
 	// Options

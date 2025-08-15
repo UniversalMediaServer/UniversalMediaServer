@@ -18,9 +18,9 @@ package net.pms.util;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
+import com.google.errorprone.annotations.Immutable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 /**
  * A class to hold basic information about an external executable and its

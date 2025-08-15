@@ -17,13 +17,13 @@
 package net.pms.encoders;
 
 import com.sun.jna.Platform;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;

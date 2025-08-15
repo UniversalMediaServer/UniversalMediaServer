@@ -35,7 +35,7 @@ public class SubtitleUtilsTest {
 	 */
 	@BeforeEach
 	public final void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	@Test

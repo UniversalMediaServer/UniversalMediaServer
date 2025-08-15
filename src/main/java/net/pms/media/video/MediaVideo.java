@@ -16,18 +16,19 @@
  */
 package net.pms.media.video;
 
+import com.google.gson.JsonObject;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.Nullable;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.media.MediaLang;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.Nullable;
 
 /**
  * This class keeps track of the video properties of media.
@@ -844,14 +845,88 @@ public class MediaVideo extends MediaLang implements Cloneable {
 		}
 	}
 
+	public JsonObject toJson() {
+		JsonObject result = new JsonObject();
+		result.addProperty("id", getId());
+		result.addProperty("default", isDefault());
+		result.addProperty("forced", isForced());
+		result.addProperty("codec", getCodec());
+		result.addProperty("stream", getStreamOrder());
+		result.addProperty("bitDepth", getBitDepth());
+		result.addProperty("resolution", getWidth() + "x" + getHeight());
+		if (StringUtils.isNotBlank(getTitle())) {
+			result.addProperty("title", getTitle());
+		}
+		if (StringUtils.isNotBlank(getLang()) && !UND.equals(getLang())) {
+			result.addProperty("lang", getLang());
+		}
+		if (StringUtils.isNotBlank(getFormatProfile())) {
+			result.addProperty("formatProfile", getFormatProfile());
+		}
+		if (StringUtils.isNotBlank(getFormatLevel())) {
+			result.addProperty("formatLevel", getFormatLevel());
+		}
+		if (StringUtils.isNotBlank(getFormatTier())) {
+			result.addProperty("formatTier", getFormatTier());
+		}
+		if (getDuration() != null) {
+			result.addProperty("duration", getDurationString());
+		}
+		if (getDisplayAspectRatio() != null) {
+			result.addProperty("displayaspectratio", getDisplayAspectRatio());
+		}
+		if (getPixelAspectRatio() != null && getPixelAspectRatio() != 1) {
+			result.addProperty("pixelaspectratio", getPixelAspectRatio());
+		}
+		ScanType scanTypeTemp = getScanType();
+		if (scanTypeTemp != null) {
+			result.addProperty("scantype", scanTypeTemp.toString());
+		}
+		ScanOrder scanOrderTemp = getScanOrder();
+		if (scanOrderTemp != null) {
+			result.addProperty("scanOrder", scanOrderTemp.toString());
+		}
+		if (getFrameRate() != null) {
+			result.addProperty("framerate", getFrameRate());
+		}
+		if (StringUtils.isNotBlank(getFrameRateMode())) {
+			result.addProperty("framerateMode", getFrameRateMode());
+		}
+		if (StringUtils.isNotBlank(getFrameRateModeRaw())) {
+			result.addProperty("framerateModeRaw", getFrameRateModeRaw());
+		}
+		if (StringUtils.isNotBlank(getMuxingMode())) {
+			result.addProperty("muxingMode", getMuxingMode());
+		}
+		if (StringUtils.isNotBlank(getMatrixCoefficients())) {
+			result.addProperty("matrixCoefficients", getMatrixCoefficients());
+		}
+		if (getReferenceFrameCount() > -1) {
+			result.addProperty("referenceFrameCount", getReferenceFrameCount());
+		}
+		if (StringUtils.isNotBlank(getHDRFormat())) {
+			result.addProperty("hdrFormat", getHDRFormat());
+		}
+		if (StringUtils.isNotBlank(getHDRFormatForRenderer())) {
+			result.addProperty("hdrFormatRenderer", getHDRFormatForRenderer());
+		}
+		if (StringUtils.isNotBlank(getHDRFormatCompatibility())) {
+			result.addProperty("hdrFormatCompatibility", getHDRFormatCompatibility());
+		}
+		if (StringUtils.isNotBlank(getHDRFormatCompatibilityForRenderer())) {
+			result.addProperty("hdrFormatCompatibilityRenderer", getHDRFormatCompatibilityForRenderer());
+		}
+		return result;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append("Video Id: ").append(getId());
-		if (forcedFlag) {
+		if (isDefault()) {
 			result.append(", Default");
 		}
-		if (forcedFlag) {
+		if (isForced()) {
 			result.append(", Forced");
 		}
 		if (StringUtils.isNotBlank(getLang()) && !UND.equals(getLang())) {

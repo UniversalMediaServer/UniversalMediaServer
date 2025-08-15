@@ -25,6 +25,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
@@ -91,7 +92,7 @@ public class FileWatcher {
 			} else {
 				add(w, dir);
 			}
-		} catch (NullPointerException e) {
+		} catch (InvalidPathException | NullPointerException e) {
 			LOGGER.info("Not watching invalid path {} for changes", w.getFileSpec());
 		}
 	}

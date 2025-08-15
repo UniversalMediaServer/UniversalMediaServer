@@ -5,11 +5,9 @@
 It is capable of sharing video, audio and images between most modern devices.
 It was originally based on PS3 Media Server by shagrath, in order to ensure greater stability and file-compatibility.
 
-To see a comparison of popular media servers, [click here][2]
-
 Universal Media Server supports all major operating systems, with versions for Windows, Linux and macOS.
 The program streams or transcodes many different media formats with little or no configuration.
-It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][29], [MEncoder][26], tsMuxeR, AviSynth, VLC and more, which combine to offer support for a wide range of media formats.
+It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], tsMuxeR, AviSynth, VLC and more, which combine to offer support for a wide range of media formats.
 
 ## Current Project Members
 
@@ -34,6 +32,8 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * [Official Releases][11]
 * [Issue tracker][12]
 * [Knowledge Base][13]
+* [Infrastructure status][37]
+* [Comparison of popular media servers][2]
 
 ## Thanks
 
@@ -105,7 +105,6 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [22]: https://crowdin.com/profile/OnarEngincan
   [23]: https://github.com/K4r0lSz
   [24]: https://github.com/prescott66
-  [25]: https://www.opensubtitles.org/
   [26]: http://www.mplayerhq.hu/
   [27]: https://www.ffmpeg.org/
   [28]: https://mediaarea.net/en/MediaInfo
@@ -117,3 +116,4 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [34]: https://github.com/threedguru
   [35]: https://architectureofsales.com
   [36]: https://www.patreon.com/universalmediaserver
+  [37]: https://stats.uptimerobot.com/k0YIB5IOhL

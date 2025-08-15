@@ -94,6 +94,14 @@ public class AuthService {
 		}
 	}
 
+	public static String reSignJwt(String token, String host) {
+		if (isValidToken(token, host)) {
+			int userId = getUserIdFromJWT(token);
+			return signJwt(userId, host);
+		}
+		return null;
+	}
+
 	private static Account getAccountLoggedIn(String authHeader, String host) {
 		final String token = authHeader.replace("Bearer ", "");
 		if (isValidToken(token, host)) {
@@ -114,12 +122,12 @@ public class AuthService {
 	}
 
 	public static Account getAccountLoggedIn(HttpServletRequest req) {
+		String authHeader = req.getHeader("Authorization");
 		if (!isEnabled() ||
-			(req.getRemoteAddr().equals(req.getLocalAddr()) && isLocalhostAsAdmin())
+			(authHeader == null && req.getRemoteAddr().equals(req.getLocalAddr()) && isLocalhostAsAdmin())
 			) {
 			return AccountService.getFakeAdminAccount();
 		}
-		String authHeader = req.getHeader("Authorization");
 		if (authHeader == null) {
 			return null;
 		}
@@ -167,8 +175,24 @@ public class AuthService {
 		return CONFIGURATION.isAuthenticationEnabled();
 	}
 
+	public static boolean isShowUserChoice() {
+		return isEnabled() && CONFIGURATION.isWebGuiShowUserChoice();
+	}
+
+	public static boolean isAllowEmptyPin() {
+		return isShowUserChoice() && CONFIGURATION.isWebGuiAllowEmptyPin();
+	}
+
 	public static boolean isPlayerEnabled() {
 		return isEnabled() && (!CONFIGURATION.useWebPlayerServer() || CONFIGURATION.isWebPlayerAuthenticationEnabled());
+	}
+
+	public static boolean isPlayerShowUserChoice() {
+		return isEnabled() && CONFIGURATION.useWebPlayerServer() && CONFIGURATION.isWebPlayerAuthenticationEnabled() && CONFIGURATION.isWebPlayerShowUserChoice();
+	}
+
+	public static boolean isPlayerAllowEmptyPin() {
+		return isPlayerShowUserChoice() && CONFIGURATION.isWebPlayerAllowEmptyPin();
 	}
 
 	public static void setEnabled(boolean value) {
@@ -182,4 +206,5 @@ public class AuthService {
 	public static void setLocalhostAsAdmin(boolean value) {
 		CONFIGURATION.setAuthenticateLocalhostAsAdmin(value);
 	}
+
 }

@@ -24,6 +24,7 @@ import com.sun.jna.platform.win32.VersionUtil;
 import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinReg;
 import com.sun.jna.ptr.LongByReference;
+import jakarta.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,7 +41,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nullable;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.IPipeProcess;
@@ -58,6 +58,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -499,7 +500,7 @@ public class WindowsUtils extends PlatformUtils {
 			}
 			vlcPath = Paths.get(Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, ""));
 			vlcVersion = new Version(Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, "Version"));
-		} catch (Win32Exception e) {
+		} catch (InvalidPathException | Win32Exception e) {
 			LOGGER.debug("Could not get VLC information from Windows registry: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -657,6 +658,6 @@ public class WindowsUtils extends PlatformUtils {
 	 * @see https://learn.microsoft.com/en-us/answers/questions/999348/setthreadexecutionstate-without-es-continuous-does
 	 */
 	public static boolean isVersionThatSleepsImmediately() {
-		return StringUtils.equals(System.getProperty("os.name"), "Windows 11");
+		return Strings.CS.equals(System.getProperty("os.name"), "Windows 11");
 	}
 }

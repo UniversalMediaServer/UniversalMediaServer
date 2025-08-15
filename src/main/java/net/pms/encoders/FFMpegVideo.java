@@ -17,6 +17,7 @@
 package net.pms.encoders;
 
 import com.sun.jna.Platform;
+import jakarta.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
@@ -266,13 +266,13 @@ public class FFMpegVideo extends Engine {
 				StringBuilder subsPictureFilter = new StringBuilder();
 				if (params.getSid().isEmbedded()) {
 					// Embedded
-					subsPictureFilter.append("[0:v][0:s:").append(mediaInfo.getSubtitlesTracks().indexOf(params.getSid())).append("]overlay");
+					subsPictureFilter.append("[0:v][0:s:").append(mediaInfo.getSubtitlesTracks().indexOf(params.getSid())).append("]overlay,format=yuv420p");
 					isSubsManualTiming = false;
 				} else if (params.getSid().getExternalFile() != null) {
 					// External
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.getSid().getExternalFile().getPath());
-					subsPictureFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
+					subsPictureFilter.append("[0:v][1:s]overlay,format=yuv420p"); // this assumes the sub file is single-language
 				}
 				filterChain.add(0, subsPictureFilter.toString());
 			}
@@ -1012,6 +1012,7 @@ public class FFMpegVideo extends Engine {
 					defaultVideoTrack.getExtras(),
 					null,
 					false,
+					defaultVideoTrack.getMuxingMode(),
 					renderer
 				) != null;
 				if (videoWouldBeCompatibleInTsContainer) {

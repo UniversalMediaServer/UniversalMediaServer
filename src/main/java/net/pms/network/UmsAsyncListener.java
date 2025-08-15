@@ -33,13 +33,18 @@ public class UmsAsyncListener implements AsyncListener {
 
 	private final long startTime;
 	private final int counter;
-
+	private final StartStopListener startStopListener;
 	private long bytesSent = 0;
 	private long nextBytesAdvise = System.currentTimeMillis() + ADVISE_MS_TRIGGER;
 
 	public UmsAsyncListener(long startTime, int counter) {
+		this(startTime, counter, null);
+	}
+
+	public UmsAsyncListener(long startTime, int counter, StartStopListener startStopListener) {
 		this.startTime = startTime;
 		this.counter = counter;
+		this.startStopListener = startStopListener;
 	}
 
 	@Override
@@ -83,15 +88,25 @@ public class UmsAsyncListener implements AsyncListener {
 				data += String.format(", sent: %d bytes", bytesSent);
 			}
 		}
+		if (startStopListener != null) {
+			startStopListener.stop();
+		}
 		LOGGER.trace(data);
 	}
 
 	public void setBytesSent(long bytesSent) {
 		this.bytesSent = bytesSent;
+		if (startStopListener != null) {
+			startStopListener.setBytesSent(bytesSent);
+		}
 		if (LOGGER.isTraceEnabled() && System.currentTimeMillis() > nextBytesAdvise) {
 			nextBytesAdvise = System.currentTimeMillis() + ADVISE_MS_TRIGGER;
 			LOGGER.trace("Stream Async progress: {} bytes sent", bytesSent);
 		}
+	}
+
+	public boolean noTimeout() {
+		return startStopListener != null;
 	}
 
 }

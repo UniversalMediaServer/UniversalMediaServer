@@ -22,9 +22,9 @@ import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.IntByReference;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.service.process.AbstractProcessTerminator;
 import net.pms.service.process.ProcessInfo;
@@ -248,37 +248,38 @@ public class WindowsProcessTerminator extends AbstractProcessTerminator {
 			}
 			return false;
 		}
-		final Memory posted = new Memory(1);
-		posted.setByte(0, (byte) 0);
-		Memory dwPID = new Memory(4);
-		dwPID.setInt(0, (int) processInfo.getPID());
-		User32.INSTANCE.EnumWindows((WinDef.HWND hWnd, Pointer data) -> {
-			IntByReference dwID = new IntByReference();
-			User32.INSTANCE.GetWindowThreadProcessId(hWnd, dwID);
+		try (Memory posted = new Memory(1)) {
+			posted.setByte(0, (byte) 0);
+			Memory dwPID = new Memory(4);
+			dwPID.setInt(0, (int) processInfo.getPID());
+			User32.INSTANCE.EnumWindows((WinDef.HWND hWnd, Pointer data) -> {
+				IntByReference dwID = new IntByReference();
+				User32.INSTANCE.GetWindowThreadProcessId(hWnd, dwID);
 
-			if (dwID.getValue() == data.getInt(0)) {
-				User32.INSTANCE.PostMessage(hWnd, User32.WM_CLOSE, new WinDef.WPARAM(0), new WinDef.LPARAM(0));
-				posted.setByte(0, (byte) 1);
+				if (dwID.getValue() == data.getInt(0)) {
+					User32.INSTANCE.PostMessage(hWnd, User32.WM_CLOSE, new WinDef.WPARAM(0), new WinDef.LPARAM(0));
+					posted.setByte(0, (byte) 1);
+				}
+				return true;
+			}, dwPID);
+			com.sun.jna.platform.win32.Kernel32.INSTANCE.CloseHandle(hProc);
+			if (LOGGER.isTraceEnabled()) {
+				if (posted.getByte(0) > 0) {
+					LOGGER.trace(
+						"WM_CLOSE sent to process \"{}\" ({}) with PostMessage",
+						processInfo.getName(),
+						processInfo.getPID()
+					);
+				} else {
+					LOGGER.trace(
+						"Can't find any Windows belonging to process \"{}\" ({}), unable to send WM_CLOSE",
+						processInfo.getName(),
+						processInfo.getPID()
+					);
+				}
 			}
-			return true;
-		}, dwPID);
-		com.sun.jna.platform.win32.Kernel32.INSTANCE.CloseHandle(hProc);
-		if (LOGGER.isTraceEnabled()) {
-			if (posted.getByte(0) > 0) {
-				LOGGER.trace(
-					"WM_CLOSE sent to process \"{}\" ({}) with PostMessage",
-					processInfo.getName(),
-					processInfo.getPID()
-				);
-			} else {
-				LOGGER.trace(
-					"Can't find any Windows belonging to process \"{}\" ({}), unable to send WM_CLOSE",
-					processInfo.getName(),
-					processInfo.getPID()
-				);
-			}
+			return posted.getByte(0) > 0;
 		}
-		return posted.getByte(0) > 0;
 	}
 
 	/**

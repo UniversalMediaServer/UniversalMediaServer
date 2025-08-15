@@ -14,7 +14,30 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-export interface mantineSelectData {
-  value: string
-  label: string
+import { ValueLabelData } from './i18n-service'
+
+export interface TranscodingEngineData {
+  id: string
+  name: string
+  isAvailable: boolean
+  purpose: number
+  statusText: string[]
+}
+
+export interface SelectionSettingsData {
+  allRendererNames: ValueLabelData[]
+  audioCoverSuppliers: ValueLabelData[]
+  enabledRendererNames: ValueLabelData[]
+  ffmpegLoglevels: ValueLabelData[]
+  fullyPlayedActions: ValueLabelData[]
+  gpuEncodingH264AccelerationMethods: ValueLabelData[]
+  gpuEncodingH265AccelerationMethods: ValueLabelData[]
+  networkInterfaces: ValueLabelData[]
+  sortMethods: ValueLabelData[]
+  subtitlesCodepages: ValueLabelData[]
+  subtitlesDepth: ValueLabelData[]
+  subtitlesInfoLevels: ValueLabelData[]
+  transcodingEngines: Record<string, TranscodingEngineData>
+  transcodingEnginesPurposes: string[]
+  upnpLoglevels: ValueLabelData[]
 }

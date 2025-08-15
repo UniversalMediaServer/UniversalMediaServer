@@ -25,8 +25,8 @@ import org.junit.jupiter.api.Test;
 public class Issue1278 {
 
 	@BeforeEach
-    public void setUp() {
-        TestHelper.SetLoggingOff();
+	public void setUp() {
+		TestHelper.setLoggingOff();
 	}
 
 	@Test

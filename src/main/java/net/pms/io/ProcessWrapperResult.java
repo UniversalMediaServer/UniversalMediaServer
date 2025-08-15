@@ -16,8 +16,7 @@
  */
 package net.pms.io;
 
-import javax.annotation.Nullable;
-
+import jakarta.annotation.Nullable;
 
 /**
  * This interface represents the result of running a {@link Process}.

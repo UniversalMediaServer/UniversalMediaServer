@@ -20,7 +20,9 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.10.1-SNAPSHOT</version>
+
+	<version>15.0.0-b1</version>
+	
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +55,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.10.1</project.version.short>
+		<project.version.short>15.0.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -69,15 +71,15 @@
 		<project.mainclass>${project.groupId}.PMS</project.mainclass>
 		<project.name.short>UMS</project.name.short>
 
-		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
+		<project.binaries-base>https://www.universalmediaserver.com/binaries</project.binaries-base>
 
-		<binary-revision>205</binary-revision>
+		<binary-revision>218</binary-revision>
 
-		<exec-maven-plugin-version>3.5.0</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.5.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
-		<git-commit-id-plugin-version>9.0.1</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>9.0.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
-		<maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
+		<maven-enforcer-plugin-version>3.6.1</maven-enforcer-plugin-version>
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 
 		<!--
@@ -92,16 +94,16 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.16</slf4j-api-version>
+		<slf4j-api-version>2.0.17</slf4j-api-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
 				- net.pms:ums
 				- su.litvak.chromecast:api-v2
 		-->
-		<jackson.version>2.18.2</jackson.version>
+		<jackson.version>2.19.2</jackson.version>
 
-		<surefire-version>3.5.2</surefire-version>
+		<surefire-version>3.5.3</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -110,7 +112,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.16.0</jna-version>
+		<jna-version>5.17.0</jna-version>
 
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
@@ -124,11 +126,15 @@
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
-			<version>4.4.0</version>
+			<version>4.5.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
 					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -141,12 +147,12 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
-			<version>4.4</version>
+			<version>4.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.17.2</version>
+			<version>1.19.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -167,17 +173,17 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.18.0</version>
+			<version>2.20.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.17.0</version>
+			<version>3.18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.13.0</version>
+			<version>1.14.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.commons</groupId>
@@ -194,7 +200,7 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>1.5.17</version>
+			<version>1.5.18</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -205,17 +211,17 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.5.17</version>
+			<version>1.5.18</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.12.1</version>
+			<version>2.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>33.4.0-jre</version>
+			<version>33.4.8-jre</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.errorprone</groupId>
@@ -249,7 +255,7 @@
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-svgrasterizer</artifactId>
-			<version>1.18</version>
+			<version>1.19</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -411,13 +417,13 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.12.0</version>
+			<version>5.13.4</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.12.0</version>
+			<version>5.13.4</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -448,11 +454,11 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>su.litvak.chromecast</groupId>
-			<artifactId>api-v2</artifactId>
+			<groupId>de.sfuhrm</groupId>
+			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
-			<version>0.11.3</version>
+			<version>0.12.17</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -483,7 +489,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.6.6</version>
+			<version>6.8.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -529,7 +535,7 @@
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>6.2.1</version>
+			<version>7.0.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -565,9 +571,29 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.ee10.websocket</groupId>
+			<artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
+			<version>12.0.24</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jakarta.annotation</groupId>
+					<artifactId>jakarta.annotation-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.0.16</version>
+			<version>12.0.24</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -578,7 +604,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.0.16</version>
+			<version>12.0.24</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -589,7 +615,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.0.16</version>
+			<version>12.0.24</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -600,7 +626,7 @@
 		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>radiobrowser4j</artifactId>
-			<version>3.1.0</version>
+			<version>3.2.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -616,7 +642,7 @@
 			<!-- jsoup HTML parser library @ https://jsoup.org/ -->
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.18.3</version>
+			<version>1.21.1</version>
 		</dependency>
 		<dependency>
 			<groupId>dev.dirs</groupId>
@@ -729,7 +755,7 @@
 					<artifactId>crowdin-maven-plugin</artifactId>
 					<version>2.0.0</version>
 					<configuration>
-            			<projectId>123597</projectId>
+						<projectId>123597</projectId>
 						<projectName>Universal Media Server</projectName>
 						<downloadFolder>${project.basedir}/extras/crowdin</downloadFolder>
 						<crowdinServerId>crowdin-ums</crowdinServerId>
@@ -743,24 +769,60 @@
 								<targetFileName>messages_%crowdin_code_with_underscore%.properties</targetFileName>
 								<updateOption>keep_translations</updateOption>
 								<conversions>
-									<conversion><from>es-ES</from><to>es</to></conversion>
-									<conversion><from>he</from><to>iw</to></conversion>
-									<conversion><from>pt-PT</from><to>pt</to></conversion>
-									<conversion><from>sv-SE</from><to>sv</to></conversion>
-									<conversion><from>zh-CN</from><to>zh-Hans</to></conversion>
-									<conversion><from>zh-TW</from><to>zh-Hant</to></conversion>
+									<conversion>
+										<from>es-ES</from>
+										<to>es</to>
+									</conversion>
+									<conversion>
+										<from>he</from>
+										<to>iw</to>
+									</conversion>
+									<conversion>
+										<from>pt-PT</from>
+										<to>pt</to>
+									</conversion>
+									<conversion>
+										<from>sv-SE</from>
+										<to>sv</to>
+									</conversion>
+									<conversion>
+										<from>zh-CN</from>
+										<to>zh-Hans</to>
+									</conversion>
+									<conversion>
+										<from>zh-TW</from>
+										<to>zh-Hant</to>
+									</conversion>
 								</conversions>
 							</translationFileSet>
 						</translationFileSets>
 						<statusFiles>
 							<statusFile>
 								<conversions>
-									<conversion><from>es-ES</from><to>es</to></conversion>
-									<conversion><from>he</from><to>iw</to></conversion>
-									<conversion><from>pt-PT</from><to>pt</to></conversion>
-									<conversion><from>sv-SE</from><to>sv</to></conversion>
-									<conversion><from>zh-CN</from><to>zh-Hans</to></conversion>
-									<conversion><from>zh-TW</from><to>zh-Hant</to></conversion>
+									<conversion>
+										<from>es-ES</from>
+										<to>es</to>
+									</conversion>
+									<conversion>
+										<from>he</from>
+										<to>iw</to>
+									</conversion>
+									<conversion>
+										<from>pt-PT</from>
+										<to>pt</to>
+									</conversion>
+									<conversion>
+										<from>sv-SE</from>
+										<to>sv</to>
+									</conversion>
+									<conversion>
+										<from>zh-CN</from>
+										<to>zh-Hans</to>
+									</conversion>
+									<conversion>
+										<from>zh-TW</from>
+										<to>zh-Hant</to>
+									</conversion>
 								</conversions>
 								<targetFile>${project.basedir}/src/main/resources/languages.properties</targetFile>
 							</statusFile>
@@ -861,7 +923,7 @@
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
 					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
-					<nodeVersion>v20.18.3</nodeVersion>
+					<nodeVersion>v22.15.0</nodeVersion>
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
@@ -971,7 +1033,6 @@
 										<mkdir dir="${project.binaries}/windows/avisynth" />
 										<mkdir dir="${project.binaries}/windows/codecs" />
 										<mkdir dir="${project.binaries}/windows/fonts" />
-										<mkdir dir="${project.binaries}/windows/fonts/conf.avail" />
 										<mkdir dir="${project.binaries}/windows/fonts/conf.d" />
 										<mkdir dir="${project.binaries}/windows/x86" />
 										<mkdir dir="${project.binaries}/windows/x86/jre${project.jre-version}" />
@@ -980,64 +1041,64 @@
 										<mkdir dir="${project.binaries}/windows/mplayer" />
 
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
-										<get src="${project.binaries-base}/win32/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-mplayer.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/bin/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv43260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drvc.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/pncrt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/sipr3260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/tokr3260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wma9dmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wmv9dmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wmvdmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/fonts.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/45-latin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/50-user.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/51-local.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/60-latin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/README" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/InterFrame2.avsi" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow2.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo.dll" dest="${project.binaries}/windows/x86/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll" dest="${project.binaries}/windows/x86_64/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/windows/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt" dest="${project.binaries}/windows/LICENSE-mplayer.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/builds.txt" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dcrawMS.exe" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
+										<get src="https://github.com/GyanD/codexffmpeg/releases/download/2025-07-21-git-8cdb47e47a/ffmpeg-2025-07-21-git-8cdb47e47a-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
+											<cutdirsmapper dirs="1" />
+										</unzip>
+										<get src="${project.binaries-base}/win32/flac.exe" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mencoder.exe" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer.exe" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR.exe" dest="${project.binaries}/windows/tsMuxeR.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/vcomp100.dll" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl.exe" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv33260.dll" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv43260.dll" dest="${project.binaries}/windows/codecs/drv43260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drvc.dll" dest="${project.binaries}/windows/codecs/drvc.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/pncrt.dll" dest="${project.binaries}/windows/codecs/pncrt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll" dest="${project.binaries}/windows/codecs/sipr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll" dest="${project.binaries}/windows/codecs/tokr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll" dest="${project.binaries}/windows/codecs/wma9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll" dest="${project.binaries}/windows/codecs/wmv9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll" dest="${project.binaries}/windows/codecs/wmvdmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/fonts.conf" dest="${project.binaries}/windows/fonts/fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf" dest="${project.binaries}/windows/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf" dest="${project.binaries}/windows/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf" dest="${project.binaries}/windows/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf" dest="${project.binaries}/windows/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf" dest="${project.binaries}/windows/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf" dest="${project.binaries}/windows/fonts/conf.d/45-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf" dest="${project.binaries}/windows/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf" dest="${project.binaries}/windows/fonts/conf.d/50-user.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf" dest="${project.binaries}/windows/fonts/conf.d/51-local.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf" dest="${project.binaries}/windows/fonts/conf.d/60-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf" dest="${project.binaries}/windows/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf" dest="${project.binaries}/windows/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf" dest="${project.binaries}/windows/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf" dest="${project.binaries}/windows/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf" dest="${project.binaries}/windows/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/README" dest="${project.binaries}/windows/fonts/conf.d/README" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi" dest="${project.binaries}/windows/avisynth/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll" dest="${project.binaries}/windows/avisynth/svpflow1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll" dest="${project.binaries}/windows/avisynth/svpflow2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/config" dest="${project.binaries}/windows/mplayer/config" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/input.conf" dest="${project.binaries}/windows/mplayer/input.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true" />
+										<get src="https://download.bell-sw.com/java/17.0.16+12/bellsoft-jre17.0.16+12-windows-amd64.zip" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/windows/x86_64/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
 										</unzip>
-										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x86.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
+										<get src="https://download.bell-sw.com/java/17.0.16+12/bellsoft-jre17.0.16+12-windows-i586.zip" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/windows/x86/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
 										</unzip>
-										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/config" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/input.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true" />
-
-										<!-- Make sure the download folders exist -->
 									</target>
 								</configuration>
 							</execution>
@@ -1052,6 +1113,12 @@
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
+
+										<!-- Copy FFmpeg binaries -->
+										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe"
+											  tofile="${project.binaries}/bin/ffmpeg.exe" overwrite="true" />
+										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe"
+											  tofile="${project.binaries}/windows/x86_64/ffmpeg.exe" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
 										<mkdir dir="${project.binaries}/windows/service" />
@@ -1386,8 +1453,8 @@
 										<mkdir dir="${project.binaries}/linux/arm64/ffmpeg" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/arm64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/arm64/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/arm64/ffmpeg/ffmpeg" dest="${project.binaries}/linux/arm64/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1524,8 +1591,8 @@
 										<mkdir dir="${project.binaries}/linux/armel/ffmpeg" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1662,8 +1729,8 @@
 										<mkdir dir="${project.binaries}/linux/armhf/ffmpeg" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1801,11 +1868,11 @@
 										<mkdir dir="${project.binaries}/linux/x86/jre${project.jre-version}" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/tsMuxeR" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="https://download.bell-sw.com/java/17.0.16+12/bellsoft-jre17.0.16+12-linux-i586.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
 										<untar src="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}" compression="gzip">
 											<cutdirsmapper dirs="1" />
 										</untar>
@@ -1946,11 +2013,11 @@
 										<mkdir dir="${project.binaries}/linux/x86_64/jre${project.jre-version}" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="https://download.bell-sw.com/java/17.0.16+12/bellsoft-jre17.0.16+12-linux-amd64.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
 										<untar src="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}" compression="gzip">
 											<cutdirsmapper dirs="1" />
 										</untar>
@@ -2061,15 +2128,18 @@
 										<mkdir dir="${project.binaries}/osx/10.15" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/10.15/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-120361-g829680f96a.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
+											<cutdirsmapper dirs="1" />
+										</unzip>
+										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mplayer" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
@@ -2091,6 +2161,10 @@
 									<target>
 										<!-- Make sure the target folder exists -->
 										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Copy FFmpeg binary -->
+										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg"
+											  tofile="${project.binaries}/osx/10.15/ffmpeg" overwrite="true" />
 
 										<!-- Create the shortcut to the Applications folder -->
 										<exec executable="/usr/bin/osascript">
@@ -2294,15 +2368,16 @@
 										<mkdir dir="${project.binaries}/osx/arm" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/arm/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/arm/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="https://www.osxexperts.net/ffmpeg711arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm"></unzip>
+										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mplayer" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
@@ -2325,6 +2400,10 @@
 									<target>
 										<!-- Make sure the target folder exists -->
 										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Copy FFmpeg binary -->
+										<copy file="${project.basedir}/target/ffmpeg-macos-arm/ffmpeg"
+											  tofile="${project.binaries}/osx/arm/ffmpeg" overwrite="true" />
 
 										<!-- Create the shortcut to the Applications folder -->
 										<exec executable="/usr/bin/osascript">
@@ -2526,15 +2605,15 @@
 										<mkdir dir="${project.binaries}/osx" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/flac?p=${binary-revision}" dest="${project.binaries}/osx/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
@@ -3324,6 +3403,7 @@
 							</execution>
 						</executions>
 					</plugin>
+
 					<!--
 						Use the antrun plugin to:
 
@@ -3334,6 +3414,25 @@
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
+							<execution>
+								<id>process-test-resources-linux</id>
+								<phase>process-test-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the folders exist -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/linux" />
+
+										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg" dest="${project.binaries}/linux/ffmpeg" usetimestamp="true" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/linux" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
 							<execution>
 								<id>copy-jar-with-dependencies-testing</id>
 								<phase>package</phase>
@@ -3371,15 +3470,26 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-macos</id>
-								<phase>process-resources</phase>
+								<id>process-test-resources-macos</id>
+								<phase>process-test-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
 								<configuration>
 									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/osx" />
+
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />										<get src="https://evermeet.cx/ffmpeg/ffmpeg-120361-g829680f96a.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
+											<cutdirsmapper dirs="1" />
+										</unzip>
+										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg"
+											  tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
@@ -3430,16 +3540,16 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-windows</id>
-								<phase>process-resources</phase>
+								<id>process-test-resources-windows</id>
+								<phase>process-test-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
 								<configuration>
 									<target unless="offline">
 										<mkdir dir="${project.binaries}/bin" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/bin/ffmpeg.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg64.exe" dest="${project.binaries}/bin/ffmpeg.exe" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3461,7 +3571,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.21.1</version>
+								<version>11.0.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>
@@ -3478,6 +3588,148 @@
 								<goals>
 									<goal>check</goal>
 								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>docker</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>install node and corepack</id>
+								<goals>
+									<goal>install-node-and-corepack</goal>
+								</goals>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>prepare-docker</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<mkdir dir="${project.basedir}/target/docker" />
+										<mkdir dir="${project.basedir}/target/docker/app" />
+										<mkdir dir="${project.basedir}/target/docker/app/linux" />
+										<mkdir dir="${project.basedir}/target/docker/profile" />
+										<mkdir dir="${project.basedir}/target/docker/profile/data" />
+										<mkdir dir="${project.basedir}/target/docker/profile/database" />
+										<mkdir dir="${project.basedir}/target/docker/profile/renderers" />
+										<copy file="${project.external-resources}/docker/Dockerfile"
+											  tofile="${project.basedir}/target/docker/Dockerfile" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											  tofile="${project.basedir}/target/docker/app/${project.artifactId}.jar" overwrite="true" />
+										<copy todir="${project.basedir}/target/docker/app">
+											<fileset dir="${project.external-resources}">
+												<include name="UMS.conf"/>
+												<include name="logback.headless.xml"/>
+												<include name="renderers/*"/>
+												<include name="DummyInput.ass"/>
+												<include name="DummyInput.jpg"/>
+												<include name="web/**"/>
+											</fileset>
+										</copy>
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR" dest="${project.basedir}/target/docker/app/linux/tsMuxeR" usetimestamp="true" />
+										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.basedir}/target/docker/app/linux/youtube-dl" usetimestamp="true" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>docker-build</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<exec executable="docker" dir="${project.basedir}/target/docker">
+											<arg line="build . -t universalmediaserver/ums -t universalmediaserver/ums:${project.version}" />
+										</exec>
+										<exec executable="docker" dir="${project.basedir}/target/docker">
+											<arg line="build . -t universalmediaserver/ums -t universalmediaserver/ums:latest" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>docker-deploy</id>
+								<phase>install</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<exec executable="docker">
+											<arg line="push universalmediaserver/ums:${project.version}" />
+										</exec>
+										<exec executable="docker">
+											<arg line="push universalmediaserver/ums:latest" />
+										</exec>
+									</target>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>

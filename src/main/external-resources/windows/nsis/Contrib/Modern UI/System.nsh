@@ -1,7 +1,7 @@
 /*
 
 NSIS Modern User Interface - Version 1.81
-Copyright 2002-2023 Joost Verburg
+Copyright 2002-2025 Joost Verburg
 
 */
 
@@ -10,7 +10,7 @@ Copyright 2002-2023 Joost Verburg
 !define MUI_INCLUDED
 !define MUI_SYSVERSION "1.81"
 !verbose pop
-!echo "NSIS Modern User Interface version ${MUI_SYSVERSION} - Copyright 2002-2023 Joost Verburg"
+!echo "NSIS Modern User Interface version ${MUI_SYSVERSION} - Copyright 2002-2025 Joost Verburg"
 
 ;--------------------------------
 !verbose push 3

@@ -16,6 +16,7 @@
  */
 package net.pms.media.audio;
 
+import com.google.gson.JsonObject;
 import java.util.Locale;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.media.MediaLang;
@@ -687,6 +688,27 @@ public class MediaAudio extends MediaLang implements Cloneable {
 			);
 	}
 
+	public JsonObject toJson() {
+		JsonObject result = new JsonObject();
+		result.addProperty("id", getId());
+		result.addProperty("default", isDefault());
+		result.addProperty("forced", isForced());
+		if (StringUtils.isNotBlank(getTitle())) {
+			result.addProperty("title", getTitle());
+		}
+		if (StringUtils.isNotBlank(getLang()) && !UND.equals(getLang())) {
+			result.addProperty("lang", getLang());
+		}
+		result.addProperty("codec", getAudioCodec());
+		result.addProperty("stream", getStreamOrder());
+		result.addProperty("bitrate", getBitRate());
+		result.addProperty("bitdepth", getBitDepth());
+		result.addProperty("channel", getNumberOfChannels());
+		result.addProperty("samplerate", getSampleRate());
+		result.addProperty("muxing", getMuxingMode());
+		return result;
+	}
+
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
@@ -701,10 +723,10 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append("Audio Id: ").append(getId());
-		if (forcedFlag) {
+		if (isDefault()) {
 			result.append(", Default");
 		}
-		if (forcedFlag) {
+		if (isForced()) {
 			result.append(", Forced");
 		}
 		if (StringUtils.isNotBlank(getTitle())) {

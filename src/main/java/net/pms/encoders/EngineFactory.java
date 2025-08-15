@@ -18,6 +18,8 @@
 package net.pms.encoders;
 
 import com.sun.jna.Platform;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,8 +29,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;

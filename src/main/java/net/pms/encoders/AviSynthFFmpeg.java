@@ -17,6 +17,7 @@
 package net.pms.encoders;
 
 import com.sun.jna.Platform;
+import jakarta.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-import javax.annotation.Nonnull;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
