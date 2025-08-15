@@ -571,12 +571,17 @@ public class JUPnPDeviceHelper {
 	}
 
 	private static String getFriendlyName(Device d) {
+		if (d == null) {
+			return "no device given -> no name";
+		}
 		if (!org.apache.commons.lang3.StringUtils.isAllBlank(d.getDetails().getFriendlyName())) {
 			return d.getDetails().getFriendlyName();
 		} else if (!org.apache.commons.lang3.StringUtils.isAllBlank(d.getDisplayString())) {
 			return d.getDisplayString();
-		} else {
+		} else if (!org.apache.commons.lang3.StringUtils.isAllBlank(d.getIdentity().getUdn().toString())) {
 			return d.getIdentity().getUdn().toString();
+		} else {
+			return "device has no identity";
 		}
 	}
 
