@@ -31,6 +31,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.store.container.Feed;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,11 +210,11 @@ public class WebSourcesConfiguration {
 		@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof WebSource source) {
-				return StringUtils.equals(sourceType, source.sourceType) &&
-					StringUtils.equals(folderName, source.folderName) &&
-					StringUtils.equals(uri, source.uri) &&
-					StringUtils.equals(resourceName, source.resourceName) &&
-					StringUtils.equals(thumbnail, source.thumbnail);
+				return Strings.CS.equals(sourceType, source.sourceType) &&
+					Strings.CS.equals(folderName, source.folderName) &&
+					Strings.CS.equals(uri, source.uri) &&
+					Strings.CS.equals(resourceName, source.resourceName) &&
+					Strings.CS.equals(thumbnail, source.thumbnail);
 			}
 			return false;
 		}

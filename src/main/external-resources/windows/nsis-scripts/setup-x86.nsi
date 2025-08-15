@@ -138,7 +138,6 @@ Section "Program Files"
 	SetOutPath "$INSTDIR"
 	SetOverwrite on
 
-	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
 	RMDir /R /REBOOTOK "$INSTDIR\web\react-client\static"
@@ -350,6 +349,7 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\bin"
 
 	; Old folders (maybe do this on install/upgrade ?)
+	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\jre17"
 
 	; Current renderer files

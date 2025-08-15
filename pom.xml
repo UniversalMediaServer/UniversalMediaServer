@@ -20,7 +20,9 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.13.0-SNAPSHOT</version>
+
+	<version>15.0.0-b1</version>
+	
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +55,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.13.0</project.version.short>
+		<project.version.short>15.0.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -150,7 +152,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.17.2</version>
+			<version>1.19.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -181,7 +183,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.13.1</version>
+			<version>1.14.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.commons</groupId>
@@ -226,11 +228,6 @@
 					<artifactId>error_prone_annotations</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.annotation</groupId>
-			<artifactId>jakarta.annotation-api</artifactId>
-			<version>3.0.0</version>
 		</dependency>
 		<!-- maven replacement for nsisant-1.2.jar -->
 		<dependency>
@@ -420,13 +417,13 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.13.3</version>
+			<version>5.13.4</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.13.3</version>
+			<version>5.13.4</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -538,7 +535,7 @@
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>6.3.1</version>
+			<version>7.0.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -574,9 +571,29 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.ee10.websocket</groupId>
+			<artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
+			<version>12.0.24</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jakarta.annotation</groupId>
+					<artifactId>jakarta.annotation-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.0.23</version>
+			<version>12.0.24</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -587,7 +604,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.0.23</version>
+			<version>12.0.24</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -598,7 +615,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.0.23</version>
+			<version>12.0.24</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -1040,8 +1057,10 @@
 										<get src="${project.binaries-base}/win32/builds.txt" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dcrawMS.exe" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe" dest="${project.binaries}/bin/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe" dest="${project.binaries}/windows/x86_64/ffmpeg.exe" usetimestamp="true" />
+										<get src="https://github.com/GyanD/codexffmpeg/releases/download/2025-07-21-git-8cdb47e47a/ffmpeg-2025-07-21-git-8cdb47e47a-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
+											<cutdirsmapper dirs="1" />
+										</unzip>
 										<get src="${project.binaries-base}/win32/flac.exe" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mencoder.exe" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer.exe" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
@@ -1102,6 +1121,12 @@
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
+
+										<!-- Copy FFmpeg binaries -->
+										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe"
+											  tofile="${project.binaries}/bin/ffmpeg.exe" overwrite="true" />
+										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe"
+											  tofile="${project.binaries}/windows/x86_64/ffmpeg.exe" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
 										<mkdir dir="${project.binaries}/windows/service" />
@@ -2115,7 +2140,10 @@
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
 										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/ffmpeg" dest="${project.binaries}/osx/10.15/ffmpeg" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-120361-g829680f96a.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
+											<cutdirsmapper dirs="1" />
+										</unzip>
 										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mplayer" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
@@ -2141,6 +2169,10 @@
 									<target>
 										<!-- Make sure the target folder exists -->
 										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Copy FFmpeg binary -->
+										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg"
+											  tofile="${project.binaries}/osx/10.15/ffmpeg" overwrite="true" />
 
 										<!-- Create the shortcut to the Applications folder -->
 										<exec executable="/usr/bin/osascript">
@@ -2348,7 +2380,8 @@
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
 										<get src="https://github.com/ytdl-org/ytdl-nightly/releases/download/2025.05.05/youtube-dl" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/arm/ffmpeg" dest="${project.binaries}/osx/arm/ffmpeg" usetimestamp="true" />
+										<get src="https://www.osxexperts.net/ffmpeg711arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm"></unzip>
 										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mplayer" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
@@ -2375,6 +2408,10 @@
 									<target>
 										<!-- Make sure the target folder exists -->
 										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Copy FFmpeg binary -->
+										<copy file="${project.basedir}/target/ffmpeg-macos-arm/ffmpeg"
+											  tofile="${project.binaries}/osx/arm/ffmpeg" overwrite="true" />
 
 										<!-- Create the shortcut to the Applications folder -->
 										<exec executable="/usr/bin/osascript">
@@ -3452,8 +3489,12 @@
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/osx" />
 
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />										<get src="https://evermeet.cx/ffmpeg/ffmpeg-120361-g829680f96a.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
+											<cutdirsmapper dirs="1" />
+										</unzip>
+										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg"
+											  tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
@@ -3538,7 +3579,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.26.1</version>
+								<version>11.0.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>

@@ -43,4 +43,12 @@ public class UMSUtilsTest {
 		assertEquals(UMSUtils.playedDurationStr("01:23", "01:23:45"), "1:23 / 1:23:45");
 		assertEquals(UMSUtils.playedDurationStr(":12", "59"), "0:12 / 0:59");
 	}
+
+	@Test
+	public void testIsYouTubeURL() throws Exception {
+		assertTrue(UMSUtils.isYouTubeURL("https://www.youtube.com/watch?v=8t_dRMvMYvY"));
+		assertTrue(UMSUtils.isYouTubeURL("https://youtu.be/watch?v=9egtCHGlgoM"));
+		assertTrue(UMSUtils.isYouTubeURL("https://www.youtube.com/shorts/jsBOx45iBX0"));
+		assertFalse(UMSUtils.isYouTubeURL("https://www.somewebsite.com/shorts/jsBOx45iBX0"));
+	}
 }

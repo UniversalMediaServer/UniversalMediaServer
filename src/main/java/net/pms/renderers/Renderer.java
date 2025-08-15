@@ -100,7 +100,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	private StoreItem playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
-	private String automaticVideoQuality;
+	private String automaticVideoQuality = "Automatic (Wireless)";
 
 	private volatile MediaStore mediaStore;
 	private List<String> sharedPath;
@@ -129,6 +129,15 @@ public class Renderer extends RendererDeviceConfiguration {
 			}
 		}
 		if (!isAuthenticated()) {
+			/*
+			 * At this point, the uuid could already exist from the base
+			 * class RendererDeviceConfiguration, so use that if we were
+			 * not passed one.
+			 */
+			if (uuid == null && this.uuid != null) {
+				uuid = this.uuid;
+			}
+
 			allowed = RendererFilter.isAllowed(uuid);
 			userId = RendererUser.getUserId(uuid);
 			account = AccountService.getAccountByUserId(userId);
