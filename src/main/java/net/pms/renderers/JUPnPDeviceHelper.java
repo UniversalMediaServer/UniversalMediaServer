@@ -571,7 +571,13 @@ public class JUPnPDeviceHelper {
 	}
 
 	private static String getFriendlyName(Device d) {
-		return d != null ? d.getDetails().getFriendlyName() : null;
+		if (!org.apache.commons.lang3.StringUtils.isAllBlank(d.getDetails().getFriendlyName())) {
+			return d.getDetails().getFriendlyName();
+		} else if (!org.apache.commons.lang3.StringUtils.isAllBlank(d.getDisplayString())) {
+			return d.getDisplayString();
+		} else {
+			return d.getIdentity().getUdn().toString();
+		}
 	}
 
 	/**
