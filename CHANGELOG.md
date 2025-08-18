@@ -36,6 +36,7 @@
 - Replaced Help tab on the old interface with a link to the Knowledge Base on the About tab
 
 ### Dependencies
+- Bump `@stylistic/eslint-plugin` from 5.2.2 to 5.2.3 ([#5701](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5701))
 - Bump `@vitejs/plugin-react` from 4.6.0 to 4.7.0 ([#5676](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5676))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.26.1 to 11.0.0 ([#5688](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5688))
 - Bump `com.zaxxer:HikariCP` from 6.3.2 to 7.0.1 ([#5674](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5674), [#5690](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5690))
