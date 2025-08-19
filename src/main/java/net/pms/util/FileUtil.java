@@ -51,6 +51,7 @@ import static net.pms.util.Constants.*;
 import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.Strings;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
@@ -1909,7 +1910,7 @@ public class FileUtil {
 	 * @return {@code true} if charset name is UTF-8, {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF8(String charsetName) {
-		return equalsIgnoreCase(charsetName, CHARSET_UTF_8);
+		return Strings.CI.equals(charsetName, CHARSET_UTF_8);
 	}
 
 	/**
@@ -1949,7 +1950,7 @@ public class FileUtil {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF16(String charsetName) {
-		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
+		return (Strings.CI.equals(charsetName, CHARSET_UTF_16LE) || Strings.CI.equals(charsetName, CHARSET_UTF_16BE));
 	}
 
 	/**
@@ -1960,7 +1961,7 @@ public class FileUtil {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF32(String charsetName) {
-		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
+		return (Strings.CI.equals(charsetName, CHARSET_UTF_32LE) || Strings.CI.equals(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**

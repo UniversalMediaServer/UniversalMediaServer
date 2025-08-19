@@ -36,13 +36,17 @@
 - Replaced Help tab on the old interface with a link to the Knowledge Base on the About tab
 
 ### Dependencies
+- Bump `@playwright/test` from 1.54.1 to 1.54.2 ([#5677](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5677))
+- Bump `@stylistic/eslint-plugin` from 5.2.2 to 5.2.3 ([#5701](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5701))
 - Bump `@vitejs/plugin-react` from 4.6.0 to 4.7.0 ([#5676](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5676))
+- Bump `actions/checkout` from 4 to 5 ([#5704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5704))
+- Bump `com.github.oshi:oshi-core` from 6.8.2 to 6.8.3 ([#5703](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5703))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.26.1 to 11.0.0 ([#5688](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5688))
 - Bump `com.zaxxer:HikariCP` from 6.3.2 to 7.0.1 ([#5674](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5674), [#5690](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5690))
-- Bump `org.eclipse.jetty:jetty-client` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
-- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
-- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
-- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.23 to 12.0.24 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687))
+- Bump `org.eclipse.jetty:jetty-client` from 12.0.23 to 12.0.25 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687), [#5702](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5702))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.23 to 12.0.25 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687), [#5702](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5702))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.0.23 to 12.0.25 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687), [#5702](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5702))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.23 to 12.0.25 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687), [#5702](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5702))
 - Bump `react-router-dom` from 7.7.0 to 7.7.1 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678))
 - Bump `react-router-dom` from 7.7.0 to 7.8.0 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678), [#5686](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5686))
 

@@ -372,7 +372,6 @@ public class JUPnPDeviceHelper {
 			} else if (sid.contains(RENDERING_CONTROL_SERVICE)) {
 				ctrl |= RC;
 			}
-			MediaServer.upnpService.getControlPoint().execute(new UmsSubscriptionCallback(s));
 		}
 		return ctrl;
 	}
