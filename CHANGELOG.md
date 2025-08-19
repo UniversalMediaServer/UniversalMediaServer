@@ -36,6 +36,7 @@
 - Replaced Help tab on the old interface with a link to the Knowledge Base on the About tab
 
 ### Dependencies
+- Bump `@playwright/test` from 1.54.1 to 1.54.2 ([#5677](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5677))
 - Bump `@stylistic/eslint-plugin` from 5.2.2 to 5.2.3 ([#5701](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5701))
 - Bump `@vitejs/plugin-react` from 4.6.0 to 4.7.0 ([#5676](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5676))
 - Bump `actions/checkout` from 4 to 5 ([#5704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5704))
