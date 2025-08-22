@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [15.0.0 - Since 14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.1...15.0.0) (2025-08-21)
+## [15.0.0 - Since 14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.1...15.0.0) (2025-08-23)
 
 ### General
 - Added a user switcher to the web interface
@@ -71,7 +71,7 @@
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.23 to 12.0.25 ([#5687](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5687), [#5702](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5702))
 - Bump `react-router-dom` from 7.7.0 to 7.8.0 ([#5678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5678), [#5686](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5686))
 
-## [15.0.0 - Since 15.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0-b1...15.0.0) (2025-08-21)
+## [15.0.0 - Since 15.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0-b1...15.0.0) (2025-08-23)
 
 ### General
 - Replaced youtube-dl with yt-dlp
