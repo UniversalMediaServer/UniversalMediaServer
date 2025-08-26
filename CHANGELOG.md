@@ -4,8 +4,12 @@
 
 ### Dependencies
 - Bump `com.zaxxer:HikariCP` from 7.0.1 to 7.0.2 ([#5714](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5714))
-- Bump `org.jsoup:jsoup` from 1.21.1 to 1.21.2 ([#5715](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5715))
 - Bump `com.zaxxer:HikariCP` from 7.0.1 to 7.0.2 ([#5714](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5714))
+- Bump `org.eclipse.jetty:jetty-client` from 12.0.25 to 12.1.0 ([#5713](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5713))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.25 to 12.1.0 ([#5713](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5713))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.0.25 to 12.1.0 ([#5713](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5713))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.25 to 12.1.0 ([#5713](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5713))
+- Bump `org.jsoup:jsoup` from 1.21.1 to 1.21.2 ([#5715](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5715))
 
 ## [15.0.0 - Since 14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.1...15.0.0) (2025-08-23)
 
