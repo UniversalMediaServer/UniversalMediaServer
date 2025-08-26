@@ -61,7 +61,8 @@ public class WebSocketEndpoint {
 
 	@OnError
 	public void onError(Session session, Throwable throwable) {
-		LOGGER.debug("WebSocket error: " + throwable.getMessage());
+		LOGGER.debug("WebSocket error: {}", throwable.getMessage());
+		LOGGER.trace("Error details: {}", throwable);
 	}
 
 }

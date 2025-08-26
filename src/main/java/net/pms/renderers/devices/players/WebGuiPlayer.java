@@ -122,10 +122,14 @@ public class WebGuiPlayer extends LogicalPlayer {
 					state.setPosition(seconds * 1000);
 					if (playingRes != null) {
 						playingRes.setLastStartPosition(seconds);
-						playingRes.getMediaStatus().setLastPlaybackPosition(seconds);
+						if (playingRes.getMediaStatus() != null) {
+							playingRes.getMediaStatus().setLastPlaybackPosition(seconds);
+						}
 					}
 				} catch (NumberFormatException e) {
 					LOGGER.debug("Unexpected position value \"{}\"", s);
+				} catch (Exception e) {
+					LOGGER.debug("Exception \"{}\"", s);
 				}
 			}
 			if ((state.isPlaying() || state.isPaused()) && playingRes != null) {

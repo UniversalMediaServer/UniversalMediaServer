@@ -78,9 +78,11 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Update the website config.php and upload to the web server (this is done manually for now, should be automated). When the file is uploaded there will be up to a 1-hour delay until it is visible on the website, because of a 60-minute cache on the front page.
 
+1. Change current version in the Knowledge Base if this was a major release. [See here for an example of promoting the beta docs to "current"](https://github.com/UniversalMediaServer/knowledge-base/commit/a177d1f11b13ff1f6b0e206c6e622b27baec2805)
+
 1. Post about the release via:
 
-     - Buffer, which posts to Bluesky, X, and Facebook: https://publish.buffer.com/all-channels
-     - Our forum: https://www.universalmediaserver.com/forum/viewforum.php?f=3
+     - [Buffer](https://publish.buffer.com/all-channels), which posts to Bluesky, X, and Facebook
+     - [Our forum](https://www.universalmediaserver.com/forum/viewforum.php?f=3)
 
      Follow the conventions for the previous posts. The forum announcement will automatically add an entry to the front page and the News section of our website.
