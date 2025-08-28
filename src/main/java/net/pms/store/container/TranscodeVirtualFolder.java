@@ -31,4 +31,8 @@ public class TranscodeVirtualFolder extends StoreContainer {
 		super(renderer, name, null);
 	}
 
+	@Override
+	public void discoverChildren() {
+		syncResolve();
+	}
 }
