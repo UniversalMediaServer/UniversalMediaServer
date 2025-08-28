@@ -60,6 +60,7 @@ public class Feed extends StoreContainer {
 		super(renderer, name, null);
 		childSpecificType = type;
 		this.url = getFeedUrl(url);
+		discoverChildren();
 	}
 
 	public void parse() throws Exception {
@@ -341,5 +342,11 @@ public class Feed extends StoreContainer {
 		}
 
 		return url;
+	}
+
+	@Override
+	public void discoverChildren() {
+		super.discoverChildren();
+		syncResolve();
 	}
 }
