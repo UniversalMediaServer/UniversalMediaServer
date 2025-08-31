@@ -346,7 +346,7 @@ public class MediaScanner implements SharedContentListener {
 	}
 
 	/**
-	 * Threaded parses a file so it gets parsed and added to the database along the way.
+	 * Parses a file and adds it to the database along the way.
 	 *
 	 * @param file the file to parse
 	 */
@@ -461,6 +461,8 @@ public class MediaScanner implements SharedContentListener {
 				if (file.isFile()) {
 					LOGGER.trace("File {} found in {}", file.getName(), directory.getName());
 					parseFileEntry(file, false, true);
+				} else if (file.isDirectory()) {
+					addFolderEntry(file);
 				}
 			}
 		} else {
