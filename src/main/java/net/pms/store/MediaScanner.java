@@ -385,22 +385,22 @@ public class MediaScanner implements SharedContentListener {
 
 					if (!SystemFilesHelper.isPotentialMediaFile(file.getAbsolutePath())) {
 						LOGGER.trace("Not parsing file that can't be media");
-						return false;
+						return;
 					}
 
 					if (!file.exists()) {
 						LOGGER.trace("Not parsing file that no longer exists");
-						return false;
+						return;
 					}
 
 					if (FileUtil.isLocked(file)) {
 						LOGGER.debug("File will not be parsed because it is open in another process");
-						return false;
+						return;
 					}
 
 					if (!isInSharedFolders(file.getAbsolutePath())) {
 						LOGGER.debug("File will not be parsed because it is not in a shared folder");
-						return false;
+						return;
 					}
 
 					StoreResource rf = RENDERER.getMediaStore().createResourceFromFile(file);
