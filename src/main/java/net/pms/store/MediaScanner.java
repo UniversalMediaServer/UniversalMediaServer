@@ -350,7 +350,7 @@ public class MediaScanner implements SharedContentListener {
 	 *
 	 * @param file the file to parse
 	 */
-	private static void parseFileEntry(File file, boolean advise) {
+	private static void parseFileEntry(File file, boolean advise, boolean isCrawlingParentDirectory) {
 		String filename = file.getAbsolutePath();
 		synchronized (FILES_PARSING) {
 			if (FILES_PARSING.contains(filename)) {
@@ -371,7 +371,7 @@ public class MediaScanner implements SharedContentListener {
 				//Check if size changed (copying, downloading)
 				while (file.exists() && (currentSize != file.length() || FileUtil.isLocked(file))) {
 					//loop until file size is not changing anymore and file is unlocked.
-					LOGGER.trace("Waiting file {} is fully written", filename);
+					LOGGER.trace("Waiting until file {} is fully written", filename);
 					currentSize = file.length();
 					Thread.sleep(500);
 				}
@@ -379,16 +379,66 @@ public class MediaScanner implements SharedContentListener {
 				synchronized (FILES_PARSING) {
 					FILES_PARSING.remove(filename);
 				}
+
 				if (file.exists()) {
 					LOGGER.debug("Analyzing file {}", filename);
-					if (parseFileEntry(file) && advise) {
-						//Advise renderers for added file.
-						for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-							connectedRenderer.getMediaStore().fileAdded(file);
+
+					if (!SystemFilesHelper.isPotentialMediaFile(file.getAbsolutePath())) {
+						LOGGER.trace("Not parsing file that can't be media");
+						return false;
+					}
+
+					if (!file.exists()) {
+						LOGGER.trace("Not parsing file that no longer exists");
+						return false;
+					}
+
+					if (FileUtil.isLocked(file)) {
+						LOGGER.debug("File will not be parsed because it is open in another process");
+						return false;
+					}
+
+					if (!isInSharedFolders(file.getAbsolutePath())) {
+						LOGGER.debug("File will not be parsed because it is not in a shared folder");
+						return false;
+					}
+
+					StoreResource rf = RENDERER.getMediaStore().createResourceFromFile(file);
+					if (rf != null) {
+						if (rf instanceof StoreItem storeItem) {
+							storeItem.resolveFormat();
 						}
+						rf.syncResolve();
+						if (rf.isValid()) {
+							LOGGER.info("New file {} was detected and added to the media store", file.getName());
+							MediaStoreIds.incrementSystemUpdateId();
+
+							/*
+							 * Something about this process causes Java to hold onto the
+							 * file, which prevents things happening to it on the filesystem
+							 * until the garbage collector runs.
+							 * Some sources say it is a symptom of the nio namespace itself
+							 * and the fix is to use older syntax, and others say other things,
+							 * but until we have a real fix for it we ask Java to collect the
+							 * garbage. It might not do it, but usually it does, which is better
+							 * than what we had before.
+							 */
+							if (FileUtil.isLocked(file)) {
+								System.gc();
+							}
+
+							if (advise || isCrawlingParentDirectory) {
+								// Advise renderers about added file.
+								for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+									connectedRenderer.getMediaStore().fileAdded(file);
+								}
+							}
+						}
+					} else {
+						LOGGER.trace("File {} was not recognized as valid media so was not added to the media store", file.getName());
 					}
 				} else {
-					LOGGER.debug("File {} does not more exists", filename);
+					LOGGER.debug("File {} does not exist anymore", filename);
 				}
 			} catch (InterruptedException ex) {
 				Thread.currentThread().interrupt();
@@ -397,80 +447,20 @@ public class MediaScanner implements SharedContentListener {
 		new Thread(r, "MediaScanner File Parser").start();
 	}
 
-	/**
-	 * Parses a file so it gets parsed and added to the database along the way.
-	 *
-	 * @param file the file to parse
-	 */
-	private static boolean parseFileEntry(File file) {
-		if (!SystemFilesHelper.isPotentialMediaFile(file.getAbsolutePath())) {
-			LOGGER.trace("Not parsing file that can't be media");
-			return false;
-		}
-
-		if (!file.exists()) {
-			LOGGER.trace("Not parsing file that no longer exists");
-			return false;
-		}
-
-		if (FileUtil.isLocked(file)) {
-			LOGGER.debug("File will not be parsed because it is open in another process");
-			return false;
-		}
-
-		if (!isInSharedFolders(file.getAbsolutePath())) {
-			LOGGER.debug("File will not be parsed because it is not in a shared folder");
-			return false;
-		}
-
-		StoreResource rf = RENDERER.getMediaStore().createResourceFromFile(file);
-		if (rf != null) {
-			if (rf instanceof StoreItem storeItem) {
-				storeItem.resolveFormat();
-			}
-			rf.syncResolve();
-			if (rf.isValid()) {
-				LOGGER.info("New file {} was detected and added to the media store", file.getName());
-				MediaStoreIds.incrementSystemUpdateId();
-
-				/*
-				 * Something about this process causes Java to hold onto the
-				 * file, which prevents things happening to it on the filesystem
-				 * until the garbage collector runs.
-				 * Some sources say it is a symptom of the nio namespace itself
-				 * and the fix is to use older syntax, and others say other things,
-				 * but until we have a real fix for it we ask Java to collect the
-				 * garbage. It might not do it, but usually it does, which is better
-				 * than what we had before.
-				 */
-				if (FileUtil.isLocked(file)) {
-					System.gc();
-				}
-
-				return true;
-			}
-		} else {
-			LOGGER.trace("File {} was not recognized as valid media so was not added to the media store", file.getName());
-		}
-		return false;
-	}
-
 	private static void addFolderEntry(File directory) {
 		LOGGER.trace("Folder {} was created on the hard drive", directory);
 		if (RENDERER.getUmsConfiguration().getIgnoredFolderNames().contains(directory.getName())) {
 			LOGGER.debug("Ignoring {} because it is in the ignored folders list", directory.getName());
 			return;
 		}
-		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-			connectedRenderer.getMediaStore().fileAdded(directory);
-		}
+
 		File[] files = directory.listFiles();
 		if (files != null) {
 			LOGGER.trace("Crawling {}", directory.getName());
 			for (File file : files) {
 				if (file.isFile()) {
 					LOGGER.trace("File {} found in {}", file.getName(), directory.getName());
-					parseFileEntry(file);
+					parseFileEntry(file, false, true);
 				}
 			}
 		} else {
@@ -520,11 +510,11 @@ public class MediaScanner implements SharedContentListener {
 				}
 			} else {
 				if (ENTRY_CREATE.equals(event)) {
-					parseFileEntry(new File(filename), true);
+					parseFileEntry(new File(filename), true, false);
 				} else if (ENTRY_DELETE.equals(event)) {
 					removeFileEntry(filename);
 				} else {
-					parseFileEntry(new File(filename), false);
+					parseFileEntry(new File(filename), false, false);
 				}
 			}
 		}
