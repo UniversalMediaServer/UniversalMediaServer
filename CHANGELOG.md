@@ -39,8 +39,10 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `@vitejs/plugin-react` from 4.7.0 to 5.0.1 ([#5711](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5711))
+- Bump `@playwright/test` from 1.54.2 to 1.55.0 ([#5722](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5722))
+- Bump `@vitejs/plugin-react` from 4.7.0 to 5.0.2 ([#5711](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5711), [#5723](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5723))
 - Bump `actions/setup-java` from 4 to 5 ([#5716](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5716))
+- Bump `com.puppycrawl.tools:checkstyle` from 11.0.0 to 11.0.1 ([#5724](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5724))
 - Bump `com.zaxxer:HikariCP` from 7.0.1 to 7.0.2 ([#5714](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5714))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.25 to 12.1.0 ([#5713](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5713))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.25 to 12.1.0 ([#5713](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5713))

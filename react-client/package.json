@@ -43,12 +43,12 @@
     "video.js": "8.23.3"
   },
   "devDependencies": {
-    "@playwright/test": "1.54.2",
+    "@playwright/test": "1.55.0",
     "@stylistic/eslint-plugin": "5.2.3",
     "@types/lodash": "4.17.20",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
-    "@vitejs/plugin-react": "5.0.1",
+    "@vitejs/plugin-react": "5.0.2",
     "eslint": "9.32.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-react": "7.37.5",

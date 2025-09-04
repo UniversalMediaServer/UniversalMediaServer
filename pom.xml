@@ -96,13 +96,6 @@
 		-->
 		<slf4j-api-version>2.0.17</slf4j-api-version>
 
-		<!--
-			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
-				- net.pms:ums
-				- su.litvak.chromecast:api-v2
-		-->
-		<jackson.version>2.19.2</jackson.version>
-
 		<surefire-version>3.5.3</surefire-version>
 
 		<!--
@@ -448,33 +441,14 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<!-- will include jackson-core and jackson-annotations -->
-			<version>${jackson.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
 			<version>0.12.17</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-annotations</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -3579,7 +3553,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>11.0.0</version>
+								<version>11.0.1</version>
 							</dependency>
 						</dependencies>
 						<configuration>
