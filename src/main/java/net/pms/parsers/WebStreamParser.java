@@ -156,12 +156,8 @@ public class WebStreamParser {
 			if (f != null) {
 				type = f.getType();
 				if (type == Format.PLAYLIST && !url.endsWith(ext)) {
-					// If the filename continues past the "extension" (i.e. has
-					// a query string) it's
-					// likely not a nested playlist but a media item, for
-					// instance Twitch TV media urls:
-					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
-					type = defaultType;
+					// This can be a HLS stream, or some other content. Must analyze the URL headers ...
+					type = 0;
 				}
 				LOGGER.debug("Stream content type set to {} for {}", Format.getStringType(type), url);
 			} else {
@@ -183,6 +179,9 @@ public class WebStreamParser {
 				return Format.VIDEO;
 			} else if (contentType.startsWith("image")) {
 				return Format.IMAGE;
+			} else if (contentType.startsWith("application/vnd.apple.mpegurl")) {
+				// HLS playlist
+				return Format.PLAYLIST;
 			} else {
 				LOGGER.trace("web server has no content type set ...");
 				return currentType;
