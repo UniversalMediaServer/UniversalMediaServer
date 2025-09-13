@@ -100,9 +100,9 @@ public final class PlaylistFolder extends StoreContainer {
 		resolve();
 	}
 
-	private BufferedReader getBufferedReader() throws IOException {
+	/** Attempts to return a lowercase file extension from uri (excluding the dot) or null */
+	private String getExtension() {
 		String extension;
-		Charset charset;
 		if (FileUtil.isUrl(uri)) {
 			extension = FileUtil.getUrlExtension(uri);
 		} else {
@@ -111,6 +111,12 @@ public final class PlaylistFolder extends StoreContainer {
 		if (extension != null) {
 			extension = extension.toLowerCase(PMS.getLocale());
 		}
+		return extension;
+	}
+
+	private BufferedReader getBufferedReader() throws IOException {
+		Charset charset;
+		String extension = getExtension();
 		if (extension != null && (extension.equals("m3u8") || extension.equals(".cue"))) {
 			charset = StandardCharsets.UTF_8;
 		} else {
@@ -240,6 +246,11 @@ public final class PlaylistFolder extends StoreContainer {
 		List<Entry> entries = new ArrayList<>();
 		boolean m3u = false;
 		boolean pls = false;
+		String extension = getExtension();
+		if (extension != null) {
+			// m3u is not required to have a header, if there is an extension and it matches known m3u, assume m3u
+			m3u = extension.equals("m3u") || extension.equals("m3u8");
+		}
 		try (BufferedReader br = getBufferedReader()) {
 			String line;
 			while (!m3u && !pls && br != null && (line = br.readLine()) != null) {
