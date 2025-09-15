@@ -7,6 +7,7 @@
 - Bump `@vitejs/plugin-react` from 4.7.0 to 5.0.2 ([#5711](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5711), [#5723](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5723))
 - Bump `actions/setup-java` from 4 to 5 ([#5716](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5716))
 - Bump `axios` from 1.11.0 to 1.12.0 ([#5739](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5739))
+- Bump `com.google.code.gson:gson` from 2.13.1 to 2.13.2 ([#5743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5743))
 - Bump `com.puppycrawl.tools:checkstyle` from 11.0.0 to 11.0.1 ([#5724](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5724))
 - Bump `com.zaxxer:HikariCP` from 7.0.1 to 7.0.2 ([#5714](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5714))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.25 to 12.1.0 ([#5713](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5713))
