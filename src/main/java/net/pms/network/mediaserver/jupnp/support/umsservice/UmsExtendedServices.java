@@ -73,34 +73,13 @@ public class UmsExtendedServices {
 	}
 
 	private void readConfig() {
-		if (this.audioUpdateRatingTag != PMS.getConfiguration().isAudioUpdateTag()) {
-			LOG.debug("isAudioUpdateTag has changed to {} ", PMS.getConfiguration().isAudioUpdateTag());
-			this.audioUpdateRatingTag = PMS.getConfiguration().isAudioUpdateTag();
-		}
-		if (this.audioLikesVisibleRoot != PMS.getConfiguration().displayAudioLikesInRootFolder()) {
-			LOG.debug("audioLikesVisibleRoot has changed to {} ", PMS.getConfiguration().displayAudioLikesInRootFolder());
-			this.audioLikesVisibleRoot = PMS.getConfiguration().displayAudioLikesInRootFolder();
-		}
-		if (this.upnpCdsWrite != PMS.getConfiguration().isUpnpCdsWrite()) {
-			LOG.debug("upnpCdsWrite has changed to {} ", PMS.getConfiguration().isUpnpCdsWrite());
-			this.upnpCdsWrite = PMS.getConfiguration().isUpnpCdsWrite();
-		}
-		if (this.anonymousDevicesWrite != PMS.getConfiguration().isAnonymousDevicesWrite()) {
-			LOG.debug("anonymousDevicesWrite has changed to {} ", PMS.getConfiguration().isAnonymousDevicesWrite());
-			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
-		}
-		if (!this.audioAddictUser.equals(PMS.getConfiguration().getAudioAddictUser())) {
-			LOG.debug("audioAddictUser has changed to {} ", PMS.getConfiguration().getAudioAddictUser());
-			this.audioAddictUser = PMS.getConfiguration().getAudioAddictUser();
-		}
-		if (!this.audioAddictPass.equals(PMS.getConfiguration().getAudioAddictPassword())) {
-			LOG.debug("audioAddictPass has changed to {} ", PMS.getConfiguration().getAudioAddictPassword());
-			this.audioAddictPass = PMS.getConfiguration().getAudioAddictPassword();
-		}
-		if (this.audioAddictEurope != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
-			LOG.debug("audioAddictEurope has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
-			this.audioAddictEurope = PMS.getConfiguration().isAudioAddictEuropeanServer();
-		}
+		this.audioUpdateRatingTag = PMS.getConfiguration().isAudioUpdateTag();
+		this.audioLikesVisibleRoot = PMS.getConfiguration().displayAudioLikesInRootFolder();
+		this.upnpCdsWrite = PMS.getConfiguration().isUpnpCdsWrite();
+		this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
+		this.audioAddictUser = PMS.getConfiguration().getAudioAddictUser();
+		this.audioAddictPass = PMS.getConfiguration().getAudioAddictPassword();
+		this.audioAddictEurope = PMS.getConfiguration().isAudioAddictEuropeanServer();
 	}
 
 	@UpnpAction
