@@ -104,9 +104,9 @@ public class DbIdLibrary {
 	private VirtualFolderDbId lookupDbIdFolder(DbIdMediaType typeRootFolder) {
 		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeRootFolder.toString());
 		if (ids.size() > 0) {
-			LOGGER.debug("found audio folder with ID " + ids.get(0));
+			LOGGER.debug("found audio folder with ID {}", ids.get(0));
 			if (ids.size() > 1) {
-				LOGGER.warn("multile StoreResource ids exists for : " + typeRootFolder);
+				LOGGER.warn("multiple StoreResource ids exist for: {}", typeRootFolder);
 			}
 			return (VirtualFolderDbId) renderer.getMediaStore().getResource(Long.toString(ids.get(0)));
 		}
