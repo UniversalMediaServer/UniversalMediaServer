@@ -51,6 +51,15 @@ public class UmsExtendedServices {
 	@UpnpStateVariable(name = "AnonymousDevicesWrite", defaultValue = "false", sendEvents = true)
 	public boolean anonymousDevicesWrite = false;
 
+	@UpnpStateVariable(name = "AudioAddictUser", defaultValue = "", sendEvents = true)
+	public String audioAddictUser = "";
+
+	@UpnpStateVariable(name = "AudioAddictPass", defaultValue = "", sendEvents = true)
+	public String audioAddictPass = "";
+
+	@UpnpStateVariable(name = "AudioAddictEurope", defaultValue = "false", sendEvents = true)
+	public boolean audioAddictEurope = false;
+
 
 	public UmsExtendedServices() {
 		readConfig();
@@ -80,6 +89,18 @@ public class UmsExtendedServices {
 			LOG.debug("anonymousDevicesWrite has changed to {} ", PMS.getConfiguration().isAnonymousDevicesWrite());
 			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
 		}
+		if (!this.audioAddictUser.equals(PMS.getConfiguration().getAudioAddictUser())) {
+			LOG.debug("audioAddictUser has changed to {} ", PMS.getConfiguration().getAudioAddictUser());
+			this.audioAddictUser = PMS.getConfiguration().getAudioAddictUser();
+		}
+		if (!this.audioAddictPass.equals(PMS.getConfiguration().getAudioAddictPassword())) {
+			LOG.debug("audioAddictPass has changed to {} ", PMS.getConfiguration().getAudioAddictPassword());
+			this.audioAddictPass = PMS.getConfiguration().getAudioAddictPassword();
+		}
+		if (this.audioAddictEurope != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
+			LOG.debug("audioAddictEurope has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
+			this.audioAddictEurope = PMS.getConfiguration().isAudioAddictEuropeanServer();
+		}
 	}
 
 	@UpnpAction
@@ -108,6 +129,27 @@ public class UmsExtendedServices {
 		this.anonymousDevicesWrite = newAnonymousDevicesWrite;
 		boolean changed = PMS.getConfiguration().setAnonymousDevicesWrite(newAnonymousDevicesWrite);
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
+	}
+
+	@UpnpAction
+	public void setAudioAddictUser(@UpnpInputArgument(name = "AudioAddictUser") String newAudioAddictUser) {
+		this.audioAddictUser = newAudioAddictUser;
+		PMS.getConfiguration().setAudioAddictUser(newAudioAddictUser);
+		LOG.debug("updating audioAddictUser to {}. Value changed : {}", newAudioAddictUser);
+	}
+
+	@UpnpAction
+	public void setAudioAddictPass(@UpnpInputArgument(name = "AudioAddictPass") String newAudioAddictPass) {
+		this.audioAddictPass = newAudioAddictPass;
+		PMS.getConfiguration().setAudioAddictPassword(newAudioAddictPass);
+		LOG.debug("updating audioAddictPass to {}.", newAudioAddictPass);
+	}
+
+	@UpnpAction
+	public void setAudioAddictEurope(@UpnpInputArgument(name = "AudioAddictEurope") boolean newAudioAddictEurope) {
+		this.audioAddictEurope = newAudioAddictEurope;
+		PMS.getConfiguration().setAudioAddictEuropeanServer(newAudioAddictEurope);
+		LOG.debug("updating audioAddictEurope to {}. Value changed : {}", newAudioAddictEurope);
 	}
 
 	@UpnpAction
