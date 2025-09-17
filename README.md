@@ -31,3 +31,62 @@ The features listed below are supported on the server side. This means you don't
     - remove songs from playlist
   - Album art updates for resources (i.e. internet radio station) 
 
+
+## Docker installation 
+
+The quickest way to install this fork is by using a Docker container. This guide assumes that Docker is already installed on your system. If not, please refer to the official Docker documentation for installation instructions.
+
+The following example uses `docker compose` to set up this fork of Universal Media Server (UMS) in a single command.
+
+Create a `docker-compose.yml` file in your project directory and add the following content:
+
+```yaml
+services:
+  ums:
+    container_name: ums
+    network_mode: host
+    restart: unless-stopped
+#    user: '1009:1003'
+    volumes:
+      - [MEDIA_VOLUME]:/media/music
+      - ums_public:/profile
+    environment:
+      JAVA_TOOL_OPTIONS: '-Xms2048m -Xmx4096m -XX:+UseShenandoahGC -Xbootclasspath/a:/ums/web/react-client -Dums.profile.path=/profile -Dfile.encoding=UTF-8'
+    image: ik6666/ums:latest
+
+volumes:
+  ums_public:
+    external: true
+```
+
+Replace `[MEDIA_VOLUME]` with the path to your media files on the host system. This will mount the media directory into the UMS container. For example, if your media files are located at `/path/to/your/music`, replace `[MEDIA_VOLUME]` with `/path/to/your/music`.
+If you want the container to run under a specific user ID and group ID, make sure to uncomment and adjust the `user` property in the `ums` service section. The example uses `1009:1003`, which you can change to match your system’s user and group IDs.
+
+Create the external volumes `ums_public` if they do not exist yet. You can do this by running the following commands:
+
+```bash
+docker volume create ums_public
+```
+
+Check if the volumes were created successfully:
+
+```bash
+docker volume ls
+``` 
+
+The docker volumes are used to persist data across container restarts. The `ums_public` volume is used by UMS to store its configuration and its data.
+If you want to use a different volume name, make sure to update the `docker-compose.yml` file accordingly.
+
+To start the containers, run the following command in the directory where your `docker-compose.yml` file is located:
+
+```bash
+docker-compose up -d
+```
+
+To stop the containers, run:
+
+```bash
+docker-compose down
+```
+
+There is also a [docker installation example](https://sf666.github.io/nextcp2/quick_install/docker/) if you want to use this fork together with NextCP/2 control point in the same environment.
