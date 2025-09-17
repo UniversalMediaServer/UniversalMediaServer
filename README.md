@@ -19,7 +19,8 @@ Major improvement over the original implementation is an accurate renderer ident
 
 ## Additional features supported by UMS fork
 
-The features listed below are supported on the server side. This means you don't have to copy your files between your media library and you client machine or mount a network drive. The UMS fork handles all the actions initiated by nextCP/2 on the server side!
+> [!IMPORTANT]  
+> The features listed below are supported on the server side. This means you don't have to copy your files between your media library and you client machine or mount a network drive. The UMS fork handles all the actions on the server side!
 
   - Like Music Albums
   - Star Rating Support
@@ -90,3 +91,4 @@ docker-compose down
 ```
 
 There is also a [docker installation example](https://sf666.github.io/nextcp2/quick_install/docker/) if you want to use this fork together with NextCP/2 control point in the same environment.
+
