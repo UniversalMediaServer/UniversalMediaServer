@@ -10,10 +10,12 @@ It was originally based on PS3 Media Server by shagrath, in order to ensure grea
 
 The current implementation of Universal Media Server (UMS) hasn't migrated all needed features for the best integration scenarios with other control points like [NextCP/2](https://github.com/sf666), a control point focusing on audio user experiance. Furthermore, it is primarily optimized for video playback on TVs in a 2-box setup (since version 14), because of the UUID authorization impementation. This fork aims to address these limitations by introducing enhancements and new functionalities tailored to the needs of audiophile users.
 
-Major improvement over the original implementation is an accurate renderer identification in a three-box setup — a configuration widely used by users who prioritize high - quality audio playback. With this enhancement, you can control your UPnP streaming devices through your preferred control point applications, such as BubbleUPnP or the LINN App. The correct renderer configuration will be used, no matter to which renderer device you stream the content.
 
-ATTENTION: To support the three-box setup, the UMS "authorization" feature has been disabled on the server side. The UI let's you still configure it, but it will be ignored.
+Major improvement over the original implementation is an accurate renderer identification in a three-box setup — a configuration widely used by users who prioritize high - quality audio playback. With this enhancement, you can control your UPnP streaming devices through your preferred control point applications, such as BubbleUPnP, DENON HEOS App or the LINN App. The correct renderer configuration will be used, no matter to which renderer device you stream the content.
 
+
+> [!CAUTION]
+> To support the 3-box setup, the UMS "authorization" feature has been disabled on the server side. The UI let's you still configure it, but it will be ignored.
 
 ## Additional features supported by UMS fork
 
@@ -29,4 +31,3 @@ The features listed below are supported on the server side. This means you don't
     - remove songs from playlist
   - Album art updates for resources (i.e. internet radio station) 
 
-  [1]: https://www.universalmediaserver.com
