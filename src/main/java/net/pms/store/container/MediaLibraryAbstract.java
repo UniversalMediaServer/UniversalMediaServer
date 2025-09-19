@@ -74,6 +74,7 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String FORMAT_TYPE_AUDIO = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.AUDIO;
 	protected static final String FORMAT_TYPE_IMAGE = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.IMAGE;
 	protected static final String FORMAT_TYPE_VIDEO = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.VIDEO;
+	protected static final String PARSER_NOT_NULL = MediaTableFiles.TABLE_COL_PARSER + IS_NOT_NULL;
 	protected static final String FORMAT_TYPE_ISO = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.ISO;
 	private static final String FULLYPLAYED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_TRUE;
 	private static final String NOT_FULLYPLAYED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_NOT_TRUE;

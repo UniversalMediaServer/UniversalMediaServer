@@ -124,6 +124,7 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_COL_MODIFIED = TABLE_NAME + "." + COL_MODIFIED;
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
 	public static final String TABLE_COL_DURATION = TABLE_NAME + "." + COL_DURATION;
+	public static final String TABLE_COL_PARSER = TABLE_NAME + "." + COL_PARSER;
 
 	/**
 	 * SQL Jointures
