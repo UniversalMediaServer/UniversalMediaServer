@@ -100,9 +100,9 @@ public final class PlaylistFolder extends StoreContainer {
 		resolve();
 	}
 
-	private BufferedReader getBufferedReader() throws IOException {
+	/** Attempts to return a lowercase file extension from uri (excluding the dot) or null */
+	private String getExtension() {
 		String extension;
-		Charset charset;
 		if (FileUtil.isUrl(uri)) {
 			extension = FileUtil.getUrlExtension(uri);
 		} else {
@@ -111,7 +111,12 @@ public final class PlaylistFolder extends StoreContainer {
 		if (extension != null) {
 			extension = extension.toLowerCase(PMS.getLocale());
 		}
-		if (extension != null && (extension.equals("m3u8") || extension.equals(".cue"))) {
+		return extension;
+	}
+
+	private BufferedReader getBufferedReader(boolean utf8) throws IOException {
+		Charset charset;
+		if (utf8) {
 			charset = StandardCharsets.UTF_8;
 		} else {
 			charset = StandardCharsets.ISO_8859_1;
@@ -240,7 +245,27 @@ public final class PlaylistFolder extends StoreContainer {
 		List<Entry> entries = new ArrayList<>();
 		boolean m3u = false;
 		boolean pls = false;
-		try (BufferedReader br = getBufferedReader()) {
+		boolean utf8 = false;
+		String extension = getExtension();
+		if (extension != null) {
+			// m3u is not required to have a header, if there is an extension and it matches known m3u, assume m3u
+			switch (extension) {
+				case "m3u" -> {
+					m3u = true;
+					LOGGER.debug("Found m3u playlist: " + getName());
+				}
+				case "m3u8" -> {
+					m3u = true;
+					utf8 = true;
+					LOGGER.debug("Found m3u8 playlist: " + getName());
+				}
+				// "cue" was in the old code, but I think CueFolder handles those now
+				case "cue" -> {
+					utf8 = true;
+				}
+			}
+		}
+		try (BufferedReader br = getBufferedReader(utf8)) {
 			String line;
 			while (!m3u && !pls && br != null && (line = br.readLine()) != null) {
 				line = line.trim();
