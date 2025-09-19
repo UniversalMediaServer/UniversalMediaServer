@@ -96,7 +96,7 @@
 		-->
 		<slf4j-api-version>2.0.17</slf4j-api-version>
 
-		<surefire-version>3.5.3</surefire-version>
+		<surefire-version>3.5.4</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
