@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### General
+- Improved performance
+- Fixed support for playlist files without headers (#5736) (thanks, @CyDragon80!)
+- Fixed notifying renderers of new files before we parsed them
+- Fixed videos sometimes not being parsed if they were added at the same time as 2 parent directories
+- Fixed web player errors
+- Fixed Recently Added folder missing videos
+- Fixed order of videos in the Unwatched variant of the Recently Added folder
+
 ### Dependencies
 - Bump `@playwright/test` from 1.54.2 to 1.55.0 ([#5722](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5722))
 - Bump `@vitejs/plugin-react` from 4.7.0 to 5.0.2 ([#5711](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5711), [#5723](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5723))
@@ -20,6 +29,7 @@
 - Bump `typescript-eslint` from 8.38.0 to 8.43.0 ([#5712](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5712), [#5732](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5732), [#5740](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5740))
 - Bump `video.js` from 8.23.3 to 8.23.4 ([#5741](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5741))
 - Bump `vite` from 7.0.6 to 7.1.5 ([#5731](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5731), [#5735](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5735))
+- Removed `jackson-databind`
 
 ## [15.0.0 - Since 14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.1...15.0.0) (2025-08-23)
 
