@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### General
+- Improved stability of YouTube video playback
 - Improved performance
 - Fixed support for playlist files without headers (#5736) (thanks, @CyDragon80!)
 - Fixed notifying renderers of new files before we parsed them
@@ -29,6 +30,7 @@
 - Bump `typescript-eslint` from 8.38.0 to 8.43.0 ([#5712](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5712), [#5732](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5732), [#5740](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5740))
 - Bump `video.js` from 8.23.3 to 8.23.4 ([#5741](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5741))
 - Bump `vite` from 7.0.6 to 7.1.5 ([#5731](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5731), [#5735](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5735))
+- Bump `yt-dlp` from 2025.08.20 to 2025.09.05
 - Removed `jackson-databind`
 
 ## [15.0.0 - Since 14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.1...15.0.0) (2025-08-23)
