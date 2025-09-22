@@ -18,7 +18,10 @@ updates:
         - "@mantine*"
       react:
         patterns:
-        - "@types/react|react|@types/react-dom|react-dom"
+        - "@types/react"
+        - "react"
+        - "@types/react-dom|react-dom"
+        - "react-dom"
       types:
         patterns:
         - "@types/*"
