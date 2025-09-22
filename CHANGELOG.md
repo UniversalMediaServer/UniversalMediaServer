@@ -20,6 +20,7 @@
 - Bump `com.google.code.gson:gson` from 2.13.1 to 2.13.2 ([#5743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5743))
 - Bump `com.puppycrawl.tools:checkstyle` from 11.0.0 to 11.0.1 ([#5724](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5724))
 - Bump `com.zaxxer:HikariCP` from 7.0.1 to 7.0.2 ([#5714](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5714))
+- Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.17 to 0.12.18 ([#5755](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5755))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.3 to 3.5.4 ([#5744](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5744))
 - Bump `org.eclipse.angus:angus-activation` from 2.0.2 to 2.0.3 ([#5745](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5745))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.25 to 12.1.1 ([#5713](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5713), [#5742](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5742))
