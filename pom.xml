@@ -708,6 +708,14 @@
 				</includes>
 				<targetPath>net/pms/parsers</targetPath>
 			</testResource>
+			<!-- Audio Addict Network files -->
+			<testResource>
+				<directory>src/test/resources/net/pms/external/audioaddict</directory>
+				<includes>
+					<include>*.*</include>
+				</includes>
+				<targetPath>net/pms/external/audioaddict</targetPath>
+			</testResource>
 		</testResources>
 		<pluginManagement>
 			<plugins>
