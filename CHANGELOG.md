@@ -18,6 +18,7 @@
 - Bump `actions/setup-java` from 4 to 5 ([#5716](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5716))
 - Bump `axios` from 1.11.0 to 1.12.0 ([#5739](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5739))
 - Bump `com.google.code.gson:gson` from 2.13.1 to 2.13.2 ([#5743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5743))
+- Bump `com.google.guava:guava` from 33.4.8-jre to 33.5.0-jre ([#5754](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5754))
 - Bump `com.puppycrawl.tools:checkstyle` from 11.0.0 to 11.0.1 ([#5724](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5724))
 - Bump `com.zaxxer:HikariCP` from 7.0.1 to 7.0.2 ([#5714](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5714))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.3 to 3.5.4 ([#5744](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5744))
