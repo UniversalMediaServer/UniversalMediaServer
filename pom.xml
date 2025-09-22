@@ -3652,6 +3652,8 @@
 										<mkdir dir="${project.basedir}/target/docker/profile/data" />
 										<mkdir dir="${project.basedir}/target/docker/profile/database" />
 										<mkdir dir="${project.basedir}/target/docker/profile/renderers" />
+										<copy file="${project.external-resources}/docker/Dockerfile-ubuntu"
+											  tofile="${project.basedir}/target/docker/Dockerfile-ubuntu" overwrite="true" />
 										<copy file="${project.external-resources}/docker/Dockerfile"
 											  tofile="${project.basedir}/target/docker/Dockerfile" overwrite="true" />
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
@@ -3679,6 +3681,12 @@
 								</goals>
 								<configuration>
 									<target>
+										<exec executable="docker" dir="${project.basedir}/target/docker">
+											<arg line="build . -f Dockerfile-ubuntu -t universalmediaserver/ums-ubuntu -t universalmediaserver/ums:${project.version}-ubuntu" />
+										</exec>
+										<exec executable="docker" dir="${project.basedir}/target/docker">
+											<arg line="build . -f Dockerfile-ubuntu -t universalmediaserver/ums-ubuntu -t universalmediaserver/ums:latest-ubuntu" />
+										</exec>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
 											<arg line="build . -t universalmediaserver/ums -t universalmediaserver/ums:${project.version}" />
 										</exec>
