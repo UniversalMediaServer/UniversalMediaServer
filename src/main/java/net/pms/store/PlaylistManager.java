@@ -216,9 +216,9 @@ public class PlaylistManager {
 	}
 
 	private static boolean isValidPlaylist(String filename) {
-		return (filename.endsWith(".m3u") ||
-				filename.endsWith(".m3u8") ||
-				filename.endsWith(".pls"));
+		return (filename.toLowerCase().endsWith(".m3u") ||
+				filename.toLowerCase().endsWith(".m3u8") ||
+				filename.toLowerCase().endsWith(".pls"));
 	}
 
 	public static StoreContainer getPlaylist(Renderer renderer, String name, String uri, int type) {
@@ -228,7 +228,7 @@ public class PlaylistManager {
 		}
 		Format f = FormatFactory.getAssociatedFormat("." + ext);
 		if (f != null && f.getType() == Format.PLAYLIST) {
-			switch (f.getMatchedExtension()) {
+			switch (f.getMatchedExtension().toLowerCase()) {
 				case "m3u", "m3u8", "pls" -> {
 					return new PlaylistFolder(renderer, name, uri, type);
 				}

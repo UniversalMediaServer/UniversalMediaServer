@@ -88,7 +88,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(renderer, "Movies", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(renderer, "3dMovies", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + IS_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(renderer, "Unsorted", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + UNSORTED_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
-		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(renderer, "RecentlyAdded", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100, FILES_NOSORT);
+		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(renderer, "RecentlyAdded", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + PARSER_NOT_NULL + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_DATEADDED + DESC + "," + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100, FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(renderer, "AllVideos", SELECT_FILES_STATUS_WHERE  + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedVideosByDate = new MediaLibraryFolder(
 			renderer,
@@ -141,7 +141,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
 			renderer,
 			"RecentlyAdded",
-			new String[]{SELECT_ALL + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + ORDER_BY + MediaTableFiles.TABLE_COL_DATEADDED + DESC + "," + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100},
+			new String[]{SELECT_ALL + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + AND + PARSER_NOT_NULL + ORDER_BY + MediaTableFiles.TABLE_COL_DATEADDED + DESC + "," + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100},
 			new int[]{FILES_NOSORT}
 		);
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(

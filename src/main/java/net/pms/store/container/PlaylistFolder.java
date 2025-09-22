@@ -65,6 +65,7 @@ public final class PlaylistFolder extends StoreContainer {
 	private final String uri;
 	private final boolean isweb;
 	private final int defaultContent;
+	private boolean utf8 = false;
 
 	public PlaylistFolder(Renderer renderer, String name, String uri, int type) {
 		super(renderer, name, null);
@@ -72,6 +73,7 @@ public final class PlaylistFolder extends StoreContainer {
 		isweb = FileUtil.isUrl(uri);
 		super.setLastModified(isweb ? 0 : new File(uri).lastModified());
 		defaultContent = (type != 0 && type != Format.UNKNOWN) ? type : Format.VIDEO;
+		utf8 = "m3u8".equalsIgnoreCase(getExtension().toLowerCase());
 	}
 
 	public PlaylistFolder(Renderer renderer, File f) {
@@ -80,6 +82,7 @@ public final class PlaylistFolder extends StoreContainer {
 		isweb = false;
 		super.setLastModified(f.lastModified());
 		defaultContent = Format.VIDEO;
+		utf8 = "m3u8".equalsIgnoreCase(getExtension().toLowerCase());
 	}
 
 	public File getPlaylistfile() {
@@ -106,9 +109,24 @@ public final class PlaylistFolder extends StoreContainer {
 		resolve();
 	}
 
-	private BufferedReader getBufferedReader() throws IOException {
+	private boolean isM3uPlaylist() {
+		if (getExtension() != null) {
+			// m3u is not required to have a header, if there is an extension and it matches known m3u, assume m3u
+			switch (getExtension()) {
+				case "m3u" -> {
+					return true;
+				}
+				case "m3u8" -> {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/** Attempts to return a lowercase file extension from uri (excluding the dot) or null */
+	private String getExtension() {
 		String extension;
-		Charset charset;
 		if (FileUtil.isUrl(uri)) {
 			extension = FileUtil.getUrlExtension(uri);
 		} else {
@@ -117,7 +135,12 @@ public final class PlaylistFolder extends StoreContainer {
 		if (extension != null) {
 			extension = extension.toLowerCase(PMS.getLocale());
 		}
-		if (extension != null && (extension.equals("m3u8") || extension.equals(".cue"))) {
+		return extension;
+	}
+
+	private BufferedReader getBufferedReader(boolean utf8) throws IOException {
+		Charset charset;
+		if (utf8) {
 			charset = StandardCharsets.UTF_8;
 		} else {
 			charset = StandardCharsets.ISO_8859_1;
@@ -243,13 +266,12 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	public boolean deleteEntry(String url) {
-		try (BufferedReader br = getBufferedReader()) {
+		try (BufferedReader br = getBufferedReader(utf8)) {
 			boolean entryRemoved = false;
 			StringBuilder out = new StringBuilder();
 			StringBuilder lastEntry = new StringBuilder();
-			String playlistType = getPlaylistType(br, lastEntry);
-			if (!"m3u".equals(playlistType)) {
-				LOGGER.debug("deleting playlists entries active only for m3u or m3u8 files. This playlist is {}", playlistType);
+			if (!isM3uPlaylist()) {
+				LOGGER.debug("deleting playlists entries active only for m3u or m3u8 files. This playlist is {}", getExtension());
 				return false;
 			}
 			out.append(lastEntry);
@@ -283,13 +305,13 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
+
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
-		try (BufferedReader br = getBufferedReader()) {
+		try (BufferedReader br = getBufferedReader(utf8)) {
 			StringBuilder out = new StringBuilder();
 			StringBuilder lastEntry = new StringBuilder();
-			String playlistType = getPlaylistType(br, lastEntry);
-			if (!"m3u".equals(playlistType)) {
-				LOGGER.debug("updating album art is only possible for m3u or m3u8 files. This playlist is {}", playlistType);
+			if (!isM3uPlaylist()) {
+				LOGGER.debug("updating album art is only possible for m3u or m3u8 files. This playlist is {}", getExtension());
 				return;
 			}
 			out.append(lastEntry);
@@ -343,11 +365,11 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
-	private String getPlaylistType(BufferedReader br) throws IOException {
-		return getPlaylistType(br, null);
+	private boolean isExtendedM3uPlaylist(BufferedReader br) throws IOException {
+		return isExtendedM3uPlaylist(br, null);
 	}
 
-	private String getPlaylistType(BufferedReader br, StringBuilder cache) throws IOException {
+	private boolean isExtendedM3uPlaylist(BufferedReader br, StringBuilder cache) throws IOException {
 		String line;
 		while (br != null && (line = br.readLine()) != null) {
 			if (cache != null) {
@@ -356,23 +378,24 @@ public final class PlaylistFolder extends StoreContainer {
 			line = line.trim();
 			if (line.startsWith("#EXTM3U")) {
 				LOGGER.debug("Reading m3u playlist: " + getName());
-				return "m3u";
+				return true;
 			} else if (line.length() > 0 && line.equals("[playlist]")) {
 				LOGGER.debug("Reading PLS playlist: " + getName());
-				return "pls";
+				return false;
 			}
 		}
 		LOGGER.debug("unknown playlist type: " + getName());
-		return "unknown playlist type";
+		return false;
 	}
 
 	private List<Entry> getPlaylistEntries() {
 		List<Entry> entries = new ArrayList<>();
-		try (BufferedReader br = getBufferedReader()) {
+		String extension = getExtension();
+		try (BufferedReader br = getBufferedReader(utf8)) {
 			String line;
 			String fileName;
 			String title = null;
-			String playlistType = getPlaylistType(br);
+			String playlistType = getExtension();
 			Map<String, String> directives = new HashMap<>();
 			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
@@ -410,7 +433,7 @@ public final class PlaylistFolder extends StoreContainer {
 							}
 						}
 					}
-				} else if ("m3u".equals(playlistType)) {
+				} else if (isM3uPlaylist()) {
 					if (line.startsWith("#EXTINF:")) {
 						line = line.substring(8).trim();
 						if (line.matches("^-?\\d+,.+")) {
