@@ -3689,10 +3689,10 @@
 								<configuration>
 									<target>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
-											<arg line="build . -f Dockerfile-ubuntu -t universalmediaserver/ums-ubuntu -t universalmediaserver/ums:${project.version}-ubuntu -t universalmediaserver/ums:latest-ubuntu" />
+											<arg line="build . -f Dockerfile-ubuntu -t universalmediaserver/ums-ubuntu:${project.version} -t universalmediaserver/ums-ubuntu:latest" />
 										</exec>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
-											<arg line="build . -t universalmediaserver/ums -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest" />
+											<arg line="build . -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest" />
 										</exec>
 									</target>
 								</configuration>
