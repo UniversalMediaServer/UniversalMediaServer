@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.55.0",
-    "@stylistic/eslint-plugin": "5.2.3",
+    "@stylistic/eslint-plugin": "5.4.0",
     "@types/lodash": "4.17.20",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
