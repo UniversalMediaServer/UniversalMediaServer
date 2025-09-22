@@ -307,19 +307,25 @@ public final class PlaylistFolder extends StoreContainer {
 
 
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
+		boolean firstline = true;
 		try (BufferedReader br = getBufferedReader(utf8)) {
 			StringBuilder out = new StringBuilder();
-			StringBuilder lastEntry = new StringBuilder();
 			if (!isM3uPlaylist()) {
 				LOGGER.debug("updating album art is only possible for m3u or m3u8 files. This playlist is {}", getExtension());
 				return;
 			}
-			out.append(lastEntry);
 			String line = "";
-			lastEntry = new StringBuilder();
+			StringBuilder lastEntry = new StringBuilder();
 			String lastAlbumArtDirective = null;
 			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
+				if (firstline) {
+					firstline = false;
+					if (!"#EXTM3U".equals(line.trim())) {
+						LOGGER.debug("adding missing #EXTM3U directive.");
+						lastEntry.append("#EXTM3U\n\n");
+					}
+				}
 				if (line.startsWith(DIRECTIVE_ALBUMART_URI)) {
 					lastAlbumArtDirective = line.substring(DIRECTIVE_ALBUMART_URI.length());
 				} else if (line.startsWith("#")) {
