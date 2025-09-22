@@ -16,9 +16,9 @@
  */
 package net.pms.service.process;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
 import org.apache.commons.lang3.StringUtils;
+import com.google.errorprone.annotations.Immutable;
+import jakarta.annotation.Nonnull;
 
 /**
  * This class represents a {@link Process} with corresponding orders to the

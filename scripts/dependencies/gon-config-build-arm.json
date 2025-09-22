@@ -14,7 +14,7 @@
         "deep": true
     },
     "dmg" :{
-        "output_path": "UMS--arm.dmg",
+        "output_path": "UMS-macOS--arm.dmg",
         "volume_name": "Universal Media Server"
     }
 }

@@ -14,52 +14,76 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Context, createContext } from 'react';
+import { Context, createContext } from 'react'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 
-export const SessionContext: Context<UmsSession> = createContext({
+import { SessionInterface, UmsMemory } from '../services/session-service'
+import { RendererAction } from '../services/home-service'
+
+const SessionContext: Context<SessionInterface> = createContext({
+  initialized: false,
   noAdminFound: false,
   account: undefined,
   authenticate: false,
-  initialized: false,
+  player: false,
+  users: undefined,
+  localUsers: [],
+  isDefaultUser: false,
+  canSwitchUser: false,
+  havePermission: (_permission: number) => false,
   refresh: () => { },
-  player: false
-} as UmsSession);
+  token: '',
+  setToken: (_token: string) => { },
+  login: async (_username: string, _password: string) => { },
+  loginPin: async (_id: number, _pin: string) => { },
+  logout: async (_keepLocal: boolean) => { },
+  isLogout: false,
+  resetLogout: () => { },
+  removeLocalUser: (_id: number) => { },
+  lastUserId: 0,
+  subscribe: '',
+  subscribeTo: (_name: string) => { },
+  unsubscribe: () => { },
+  usePlayerSse: false,
+  startPlayerSse: () => { },
+  stopPlayerSse: () => { },
+  uuid: '',
+  setUuid: (_uuid: string) => { },
+  serverName: 'Universal Media Server',
+  setServerName: (_serverName: string) => { },
+  setDocumentTitle: (_documentTitle: string) => { },
+  setDocumentI18nTitle: (_documentTitle: string) => { },
+  playerNavbar: true,
+  setPlayerNavbar: (_playerNavbar: boolean) => { },
+  playerDirectPlay: false,
+  setPlayerDirectPlay: (_playerDirectPlay: boolean) => { },
+  hasNavbar: false,
+  navbarOpened: false as boolean,
+  setNavbarOpened: (_navbarOpened: boolean) => { },
+  navbarValue: undefined as React.ReactNode,
+  setNavbarValue: (_navbarValue: React.ReactNode) => { },
+  navbarManage: '',
+  setNavbarManage: (_navbarManage: string) => { },
+  statusLine: '',
+  setStatusLine: (_statusLine: string) => { },
+  serverConfiguration: null,
+  setServerConfiguration: (_configuration: Record<string, unknown> | null) => { },
+  addLogLine: (_line: string) => { },
+  hasNewLogLine: false,
+  getNewLogLine: () => undefined,
+  addRendererAction: (_rendererAction: RendererAction) => { },
+  hasRendererAction: false,
+  getRendererAction: () => undefined,
+  mediaScan: false,
+  setMediaScan: (_mediaScan: boolean) => { },
+  reloadable: false,
+  setReloadable: (_reloadable: boolean) => { },
+  memory: { max: 0, used: 0, dbcache: 0, buffer: 0 },
+  setMemory: (_memory: UmsMemory) => { },
+  updateAccounts: false,
+  setUpdateAccounts: (_updateAccounts: boolean) => { },
+  sendJsonMessage: (_jsonMessage: unknown, _keep?: boolean) => { },
+  setSendJsonMessage: (_sendJsonMessage: SendJsonMessage) => { },
+} as SessionInterface)
 
-export interface UmsUser {
-  id: number,
-  username: string,
-  displayName: string,
-  groupId: number,
-  avatar?: string,
-  pinCode?: string,
-  lastLoginTime: number,
-  loginFailedTime: number,
-  loginFailedCount: number,
-  libraryHidden: boolean,
-}
-
-export interface UmsGroupPermissions {
-  value: number,
-}
-
-export interface UmsGroup {
-  id: number,
-  displayName: string,
-  permissions?: UmsGroupPermissions,
-}
-
-export interface UmsAccount {
-  user: UmsUser,
-  group: UmsGroup,
-}
-
-export interface UmsSession {
-  noAdminFound: boolean;
-  account?: UmsAccount;
-  authenticate: boolean;
-  initialized: boolean;
-  refresh: () => void;
-  player: boolean;
-}
-
-export default SessionContext;
+export default SessionContext

@@ -74,6 +74,7 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String FORMAT_TYPE_AUDIO = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.AUDIO;
 	protected static final String FORMAT_TYPE_IMAGE = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.IMAGE;
 	protected static final String FORMAT_TYPE_VIDEO = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.VIDEO;
+	protected static final String PARSER_NOT_NULL = MediaTableFiles.TABLE_COL_PARSER + IS_NOT_NULL;
 	protected static final String FORMAT_TYPE_ISO = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.ISO;
 	private static final String FULLYPLAYED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_TRUE;
 	private static final String NOT_FULLYPLAYED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_NOT_TRUE;
@@ -82,8 +83,10 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String MOVIE_CONDITION = NOT + TVEPISODE_CONDITION + AND + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + IS_NOT_NULL + AND + MediaTableFiles.TABLE_COL_DURATION + GREATER_THAN + FORTY_MINUTES_IN_SECONDS;
 	protected static final String IS_NOT_3D_CONDITION = MediaTableFiles.TABLE_COL_ID + NOT_IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_IS3D + ")";
 	protected static final String IS_3D_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_IS3D + ")";
+	protected static final String IS_VIDEO4K_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEO4K + ")";
 	protected static final String IS_VIDEOHD_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOHD + ")";
 	protected static final String IS_VIDEOSD_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOSD + ")";
+	protected static final String IS_NOT_SAMPLE_CONDITION =  MediaTableVideoMetadata.TABLE_COL_ISSAMPLE + IS_NOT_TRUE;
 
 	protected static final String UNSORTED_CONDITION = NOT + TVEPISODE_CONDITION + AND + "(" + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + IS_NULL + ")";
 

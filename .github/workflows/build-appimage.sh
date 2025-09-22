@@ -35,4 +35,4 @@ chmod +x ./appimagetool
 
 ./appimagetool --comp zstd \
     --mksquashfs-opt -Xcompression-level --mksquashfs-opt 22 \
-    -n -u "$UPINFO" ./ums-$VERSION UMS-"$VERSION"-"$ARCH".AppImage
+    -n -u "$UPINFO" ./ums-$VERSION UMS-Linux-"$VERSION"-"$ARCH".AppImage

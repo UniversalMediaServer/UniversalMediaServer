@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.ExternalProgramInfo;
@@ -34,6 +33,7 @@ import net.pms.util.ProgramExecutableType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.Nonnull;
 
 /**
  * This class keeps track of paths to external programs on Windows.

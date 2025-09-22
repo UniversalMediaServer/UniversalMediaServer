@@ -63,6 +63,7 @@ public class WebGuiServlet extends GuiHttpServlet {
 			if (uri.equals(BASE_PATH) || ROUTES.contains(uri) || uri.startsWith(PLAYER_BASE_PATH)) {
 				uri = "/index.html";
 			}
+			LOGGER.trace("WebGuiServlet uri : {}", uri);
 			if (!writeAsync(req, resp, uri.substring(1))) {
 				// The resource manager can't found or send the file, we need to send a response.
 				LOGGER.trace("WebGuiServlet request not available : {}", req.getRequestURI());

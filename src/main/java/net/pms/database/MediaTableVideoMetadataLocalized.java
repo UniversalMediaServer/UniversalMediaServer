@@ -154,7 +154,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + ON_DELETE_CASCADE + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TVSERIESID + FK_MARKER + FOREIGN_KEY + "(" + COL_TVSERIESID + ")" + REFERENCES + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
 			")",
-			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_LANGUAGE + CONSTRAINT_SEPARATOR + COL_FILEID + CONSTRAINT_SEPARATOR + COL_TVSERIESID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_LANGUAGE + COMMA + COL_FILEID + COMMA + COL_TVSERIESID + ")"
+			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_LANGUAGE + CONSTRAINT_SEPARATOR + COL_FILEID + CONSTRAINT_SEPARATOR + COL_TVSERIESID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_LANGUAGE + COMMA + COL_FILEID + COMMA + COL_TVSERIESID + ")"
 		);
 	}
 
@@ -311,6 +311,9 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for deleting \"{}\": {}", id, e.getMessage());
 			LOGGER.trace("", e);
+		}
+		if (fromTvSeries) {
+			MediaTableTvSeasonMetadataLocalized.clearTvSeasonMetadataLocalized(connection, id);
 		}
 	}
 

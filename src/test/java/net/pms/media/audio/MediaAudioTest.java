@@ -26,7 +26,7 @@ public class MediaAudioTest {
 
 	@BeforeEach
 	public void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 		audio = new MediaAudio();
 	}
 

@@ -23,7 +23,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.UUID;
-import net.pms.external.musicbrainz.coverart.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
+import net.pms.external.musicbrainz.api.MusicBrainzTagInfo;
 import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -176,8 +176,9 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		);
 	}
 
-	private static String constructTagWhere(final CoverArtArchiveTagInfo tagInfo, final boolean includeAll) {
-		StringBuilder where = new StringBuilder(WHERE);
+	private static String constructTagWhere(final MusicBrainzTagInfo tagInfo, final boolean includeAll) {
+		StringBuilder where = new StringBuilder(" WHERE ");
+		final String and = " AND ";
 		boolean added = false;
 
 		if (includeAll || StringUtil.hasValue(tagInfo.artistId)) {
@@ -219,7 +220,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * @param tagInfo the {@link Tag} who's information should be associated
 	 *                with the given MBID
 	 */
-	public static void writeMBID(final Connection connection, final String mBID, final CoverArtArchiveTagInfo tagInfo) {
+	public static void writeMBID(final Connection connection, final String mBID, final MusicBrainzTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
@@ -292,7 +293,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
-	public static MusicBrainzReleasesResult findMBID(final Connection connection, final CoverArtArchiveTagInfo tagInfo) {
+	public static MusicBrainzReleasesResult findMBID(final Connection connection, final MusicBrainzTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 		MusicBrainzReleasesResult result;
 

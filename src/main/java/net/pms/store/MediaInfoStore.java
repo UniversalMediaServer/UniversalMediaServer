@@ -42,6 +42,7 @@ import net.pms.parsers.WebStreamParser;
 import net.pms.util.FileNameMetadata;
 import net.pms.util.FileUtil;
 import net.pms.util.InputFile;
+import net.pms.util.ResourceIdentifier;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,6 +139,12 @@ public class MediaInfoStore {
 								Parser.postParse(mediaInfo, type);
 								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
 							}
+							//ensure we have the ruid
+							if (mediaInfo.getResourceId() == null) {
+								String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
+								mediaInfo.setResourceId(resourceHash);
+								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+							}
 						}
 					} catch (IOException | SQLException e) {
 						LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", filename, e.getMessage());
@@ -147,7 +154,8 @@ public class MediaInfoStore {
 
 				if (mediaInfo == null) {
 					mediaInfo = new MediaInfo();
-
+					String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
+					mediaInfo.setResourceId(resourceHash);
 					if (format != null) {
 						Parser.parse(mediaInfo, input, format, type);
 					} else {
@@ -177,7 +185,7 @@ public class MediaInfoStore {
 						}
 					}
 				}
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
 				LOGGER.trace("", e);
 			} finally {
@@ -211,6 +219,12 @@ public class MediaInfoStore {
 				mediaInfo = MediaTableFiles.getMediaInfo(connection, url, 0);
 				if (mediaInfo == null) {
 					mediaInfo = new MediaInfo();
+				}
+				//ensure we have the ruid
+				if (mediaInfo.getResourceId() == null) {
+					String resourceHash = ResourceIdentifier.getResourceIdentifier(url);
+					mediaInfo.setResourceId(resourceHash);
+					MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
 				}
 				if (!mediaInfo.isMediaParsed()) {
 					WebStreamParser.parse(mediaInfo, url, type);
@@ -392,6 +406,8 @@ public class MediaInfoStore {
 				if (metadataFromFilename.getExtraInformation() != null) {
 					videoMetadata.setExtraInformation(metadataFromFilename.getExtraInformation());
 				}
+				videoMetadata.setIsSample(metadataFromFilename.isSample());
+
 				mediaInfo.setVideoMetadata(videoMetadata);
 
 				if (MediaDatabase.isAvailable()) {

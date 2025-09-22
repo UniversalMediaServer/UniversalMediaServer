@@ -16,7 +16,6 @@
  */
 package net.pms.database;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
@@ -86,8 +85,10 @@ public class MediaTableFiles extends MediaTable {
 	 * - 40: added thumbnail source
 	 * - 41: ID as BIGINT
 	 * - 42: ID as IDENTITY
+	 * - 43: clear ffmpeg data parsed
+	 * - 44: added DATEADDED and RUID
 	 */
-	private static final int TABLE_VERSION = 43;
+	private static final int TABLE_VERSION = 44;
 
 	/**
 	 * COLUMNS NAMES
@@ -98,6 +99,8 @@ public class MediaTableFiles extends MediaTable {
 	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
 	public static final String COL_FILENAME = "FILENAME";
 	private static final String COL_MODIFIED = "MODIFIED";
+	private static final String COL_DATEADDED = "DATEADDED";
+	private static final String COL_RESOURCE_UID = "RUID";
 	private static final String COL_PARSER = "PARSER";
 	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
 	private static final String COL_CONTAINER = "CONTAINER";
@@ -117,9 +120,11 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
 	public static final String TABLE_COL_FORMAT_TYPE = TABLE_NAME + "." + COL_FORMAT_TYPE;
 	public static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
+	public static final String TABLE_COL_DATEADDED = TABLE_NAME + "." + COL_DATEADDED;
 	public static final String TABLE_COL_MODIFIED = TABLE_NAME + "." + COL_MODIFIED;
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
 	public static final String TABLE_COL_DURATION = TABLE_NAME + "." + COL_DURATION;
+	public static final String TABLE_COL_PARSER = TABLE_NAME + "." + COL_PARSER;
 
 	/**
 	 * SQL Jointures
@@ -200,7 +205,6 @@ public class MediaTableFiles extends MediaTable {
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		boolean force = false;
@@ -264,11 +268,11 @@ public class MediaTableFiles extends MediaTable {
 							executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`SIZE` " + RENAME_TO + COL_MEDIA_SIZE);
 						}
 						LOGGER.trace("Creating index FORMAT_TYPE");
-						executeUpdate(connection, CREATE_INDEX + "FORMAT_TYPE on " + TABLE_NAME + " (FORMAT_TYPE)");
+						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + "FORMAT_TYPE on " + TABLE_NAME + " (FORMAT_TYPE)");
 						LOGGER.trace("Creating index FORMAT_TYPE_WIDTH_HEIGHT");
-						executeUpdate(connection, CREATE_INDEX + "FORMAT_TYPE_WIDTH_HEIGHT on " + TABLE_NAME + " (FORMAT_TYPE, WIDTH, HEIGHT)");
+						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + "FORMAT_TYPE_WIDTH_HEIGHT on " + TABLE_NAME + " (FORMAT_TYPE, WIDTH, HEIGHT)");
 						LOGGER.trace("Creating index FORMAT_TYPE_MODIFIED");
-						executeUpdate(connection, CREATE_INDEX + "FORMAT_TYPE_MODIFIED on " + TABLE_NAME + " (FORMAT_TYPE, MODIFIED)");
+						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + "FORMAT_TYPE_MODIFIED on " + TABLE_NAME + " (FORMAT_TYPE, MODIFIED)");
 					}
 					case 25 -> {
 						try (Statement statement = connection.createStatement()) {
@@ -403,7 +407,7 @@ public class MediaTableFiles extends MediaTable {
 							executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " DROP COLUMN IF EXISTS " + column);
 						}
 
-						executeUpdate(connection, CREATE_INDEX + "IF NOT EXISTS " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
+						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					}
 					case 33 -> {
@@ -477,6 +481,10 @@ public class MediaTableFiles extends MediaTable {
 						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					}
+					case 43 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DATEADDED + TIMESTAMP + DEFAULT + CURRENT_TIMESTAMP);
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_RESOURCE_UID + VARCHAR);
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -530,7 +538,9 @@ public class MediaTableFiles extends MediaTable {
 				COL_THUMBID                 + BIGINT                                         + COMMA +
 				COL_THUMB_SRC               + VARCHAR_32                                     + COMMA +
 				COL_FILENAME                + VARCHAR_1024    + NOT_NULL + " " + UNIQUE      + COMMA +
+				COL_DATEADDED               + TIMESTAMP       + DEFAULT + CURRENT_TIMESTAMP  + COMMA +
 				COL_MODIFIED                + TIMESTAMP       + NOT_NULL                     + COMMA +
+				COL_RESOURCE_UID            + VARCHAR                                        + COMMA +
 				COL_PARSER                  + VARCHAR_32                                     + COMMA +
 				COL_FORMAT_TYPE             + INTEGER                                        + COMMA +
 				COL_MEDIA_SIZE              + NUMERIC                                        + COMMA +
@@ -551,13 +561,13 @@ public class MediaTableFiles extends MediaTable {
 		execute(connection, CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_MODIFIED + ")");
 
 		LOGGER.trace("Creating index on " + COL_FORMAT_TYPE);
-		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + ")");
+		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + ")");
 
 		LOGGER.trace("Creating index on " + COL_FORMAT_TYPE + COMMA + COL_MODIFIED);
-		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + COMMA + COL_MODIFIED + ")");
+		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + COMMA + COL_MODIFIED + ")");
 
 		LOGGER.trace("Creating index on " + COL_THUMBID);
-		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_THUMBID + ")");
+		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_THUMBID + ")");
 	}
 
 	/**
@@ -696,6 +706,7 @@ public class MediaTableFiles extends MediaTable {
 					media = new MediaInfo();
 					long fileId = rs.getLong(COL_ID);
 					media.setFileId(fileId);
+					media.setResourceId(rs.getString(COL_RESOURCE_UID));
 					media.setMediaParser(rs.getString(COL_PARSER));
 					media.setSize(rs.getLong(COL_MEDIA_SIZE));
 					media.setContainer(rs.getString(COL_CONTAINER));
@@ -819,6 +830,7 @@ public class MediaTableFiles extends MediaTable {
 					result.updateTimestamp(COL_MODIFIED, new Timestamp(modified));
 					result.updateInt(COL_FORMAT_TYPE, type);
 					if (media != null) {
+						updateString(result, COL_RESOURCE_UID, media.getResourceId(), 64);
 						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
 						updateLong(result, COL_THUMBID, media.getThumbnailId());
 						if (media.getThumbnailSource() != null) {

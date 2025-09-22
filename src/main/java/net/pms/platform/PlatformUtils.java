@@ -16,6 +16,7 @@
  */
 package net.pms.platform;
 
+import com.google.errorprone.annotations.concurrent.GuardedBy;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
 import com.vdurmont.semver4j.Semver;
@@ -34,7 +35,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.concurrent.GuardedBy;
 import net.pms.PMS;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
@@ -96,7 +96,7 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public String getShortPathNameW(String longPathName) {
+	public String getSystemPathName(String longPathName) {
 		return longPathName;
 	}
 

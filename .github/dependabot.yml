@@ -45,7 +45,7 @@ updates:
         - "*jupnp*"
       logback:
         patterns:
-        - "ch.qos.logback*"
+        - "ch.qos.logbac*"
       mockito:
         patterns:
         - "*mockito*"

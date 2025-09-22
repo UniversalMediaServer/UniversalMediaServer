@@ -100,7 +100,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	private StoreItem playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
-	private String automaticVideoQuality;
+	private String automaticVideoQuality = "Automatic (Wireless)";
 
 	private volatile MediaStore mediaStore;
 	private List<String> sharedPath;
@@ -129,6 +129,15 @@ public class Renderer extends RendererDeviceConfiguration {
 			}
 		}
 		if (!isAuthenticated()) {
+			/*
+			 * At this point, the uuid could already exist from the base
+			 * class RendererDeviceConfiguration, so use that if we were
+			 * not passed one.
+			 */
+			if (uuid == null && this.uuid != null) {
+				uuid = this.uuid;
+			}
+
 			allowed = RendererFilter.isAllowed(uuid);
 			userId = RendererUser.getUserId(uuid);
 			account = AccountService.getAccountByUserId(userId);
@@ -468,12 +477,11 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public void setPlayingRes(StoreItem resource) {
 		playingRes = resource;
-		getPlayer();
 		if (resource != null) {
-			player.getState().setName(resource.getDisplayName());
-			player.start();
+			getPlayer().getState().setName(resource.getDisplayName());
+			getPlayer().start();
 		} else {
-			player.reset();
+			getPlayer().reset();
 		}
 	}
 
@@ -506,68 +514,68 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public void updateRendererGui() {
 		LOGGER.debug("Updating status button for {}", getRendererName());
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.updateRenderer(this);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void refreshActiveGui(boolean b) {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setActive(b);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void refreshAllowedGui(boolean b) {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setAllowed(b);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void refreshUserIdGui(int userId) {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setUserId(userId);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void refreshPlayerStateGui(PlayerState state) {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.refreshPlayerState(state);
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 
 	public void deleteGuis() {
-		listenersLock.readLock().lock();
+		listenersLock.writeLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.delete();
 			}
 		} finally {
-			listenersLock.readLock().unlock();
+			listenersLock.writeLock().unlock();
 		}
 	}
 

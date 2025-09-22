@@ -29,7 +29,7 @@ public class Iso639Test {
 
 	@BeforeEach
 	public void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
     }
 
 	/**

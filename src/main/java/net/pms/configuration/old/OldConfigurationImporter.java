@@ -18,11 +18,11 @@ package net.pms.configuration.old;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.ApertureContent;
@@ -39,6 +39,7 @@ import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.Nonnull;
 
 public class OldConfigurationImporter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OldConfigurationImporter.class);
@@ -135,32 +136,36 @@ public class OldConfigurationImporter {
 			if (KEY_FOLDERS.equals(key)) {
 				LOGGER.info("Checking shared folder: \"{}\"", folder);
 			}
-
-			Path path = Paths.get(folder);
-			if (Files.exists(path)) {
-				if (!Files.isDirectory(path)) {
-					if (KEY_FOLDERS.equals(key)) {
-						LOGGER.warn(
-							"The \"{}\" is not a folder! Please remove it from your shared folders " +
-							"list on the \"Shared Content\" tab or in the configuration file.",
-							folder
-						);
-					} else {
-						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
+			try {
+				Path path = Paths.get(folder);
+				if (Files.exists(path)) {
+					if (!Files.isDirectory(path)) {
+						if (KEY_FOLDERS.equals(key)) {
+							LOGGER.warn(
+								"The \"{}\" is not a folder! Please remove it from your shared folders " +
+								"list on the \"Shared Content\" tab or in the configuration file.",
+								folder
+							);
+						} else {
+							LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
+						}
 					}
+				} else if (KEY_FOLDERS.equals(key)) {
+					LOGGER.warn(
+						"\"{}\" does not exist. Please remove it from your shared folders " +
+						"list on the \"Shared Content\" tab or in the configuration file.",
+						folder
+					);
+				} else {
+					LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
 				}
-			} else if (KEY_FOLDERS.equals(key)) {
-				LOGGER.warn(
-					"\"{}\" does not exist. Please remove it from your shared folders " +
-					"list on the \"Shared Content\" tab or in the configuration file.",
-					folder
-				);
-			} else {
-				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
-			}
 
-			// add the path even if there are problems so that the user can update the shared folders as required.
-			folders.add(path);
+				// add the path even if there are problems so that the user can update the shared folders as required.
+				folders.add(path);
+			} catch (InvalidPathException ex) {
+				LOGGER.info("Invalid path found: {}", folder);
+				LOGGER.debug(null, ex);
+			}
 		}
 
 		return folders;

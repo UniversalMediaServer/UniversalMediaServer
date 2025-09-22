@@ -39,7 +39,7 @@ public interface IPlatformUtils {
 
 	public abstract File getKLiteFiltersDir();
 
-	public abstract String getShortPathNameW(String longPathName);
+	public abstract String getSystemPathName(String longPathName);
 
 	public abstract String getDiskLabel(File f);
 

@@ -116,7 +116,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 					try (Statement statement = connection.createStatement()) {
 						if (!isColumnExist(connection, TABLE_NAME, COL_VERSION)) {
 							statement.execute(ALTER_TABLE + TABLE_NAME + ADD + COL_VERSION + VARCHAR);
-							statement.execute(CREATE_INDEX + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")");
+							statement.execute(CREATE_INDEX + IF_NOT_EXISTS + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")");
 						}
 					} catch (SQLException e) {
 						LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
@@ -155,7 +155,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 					COL_LASTATTEMPT +      TIMESTAMP_WITH_TIME_ZONE + DEFAULT + CURRENT_TIMESTAMP +
 				")",
 				CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + ")",
-				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")"
+				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")"
 		);
 	}
 

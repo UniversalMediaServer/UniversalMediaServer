@@ -21,9 +21,9 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Surf@ceS

@@ -50,7 +50,7 @@ public class LoggingTest {
 
 	@BeforeEach
 	public void setUp() {
-		TestHelper.SetLoggingOff();
+		TestHelper.setLoggingOff();
 	}
 
 	/**
@@ -224,8 +224,8 @@ public class LoggingTest {
 		assertEquals(LoggingConfig.getRootLevel(), rootLogger.getLevel(), "GetRootLevel");
 
 		// Test setRootLevel()
-		LoggingConfig.setRootLevel(Level.ALL);
-		assertEquals(LoggingConfig.getRootLevel(), Level.ALL, "SetRootLevel");
+		LoggingConfig.setRootLevel(Level.TRACE);
+		assertEquals(LoggingConfig.getRootLevel(), Level.TRACE, "SetRootLevel");
 		LoggingConfig.setRootLevel(Level.INFO);
 		assertEquals(LoggingConfig.getRootLevel(), Level.INFO, "SetRootLevel");
 		LoggingConfig.setRootLevel(Level.OFF);

@@ -20,6 +20,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import net.pms.store.MediaScanner;
 import net.pms.swing.Splash;
+import net.pms.util.ProcessUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +70,7 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Checks all child tables for their existence and version and creates or
-	 * upgrades as needed.Access to this method is serialized.
+	 * upgrades as needed. Access to this method is serialized.
 	 *
 	 * @param force do the check even if it has already happened
 	 * @throws SQLException
@@ -108,6 +110,7 @@ public class MediaDatabase extends Database {
 				MediaTableVideoMetadataGenres.checkTable(connection);
 				MediaTableVideoMetadataRatings.checkTable(connection);
 				MediaTableVideoMetadataLocalized.checkTable(connection);
+				MediaTableTvSeasonMetadataLocalized.checkTable(connection);
 
 				// Audio Metadata
 				MediaTableAudioMetadata.checkTable(connection);
@@ -138,36 +141,45 @@ public class MediaDatabase extends Database {
 
 	public static synchronized void dropAllTables(Connection connection) {
 		dropAllTablesExceptFilesStatus(connection);
-		dropTableAndConstraint(connection, MediaTableRegexpRules.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableMetadata.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableFiles.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
 	}
 
 	public static synchronized void dropAllTablesExceptFilesStatus(Connection connection) {
 		dropTableAndConstraint(connection, MediaTableMusicBrainzReleases.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableMusicBrainzReleaseLike.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableCoverArtArchive.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableThumbnails.TABLE_NAME);
+
 		dropTableAndConstraint(connection, MediaTableChapters.TABLE_NAME);
 
 		dropTableAndConstraint(connection, MediaTableTVSeries.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableFailedLookups.TABLE_NAME);
 
 		// Video metadata tables
+		dropTableAndConstraint(connection, MediaTableVideoMetadata.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataActors.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataAwards.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataCountries.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataDirectors.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataGenres.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataLocalized.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableTvSeasonMetadataLocalized.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
 
 		// Audio Metadata
+		dropTableAndConstraint(connection, MediaTableAudioMetadata.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);
 
-		//Container Files
+		// Container Files
 		dropTableAndConstraint(connection, MediaTableContainerFiles.TABLE_NAME);
+
+		dropTableAndConstraint(connection, MediaTableFiles.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableMetadata.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableRegexpRules.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableStoreIds.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableSubtracks.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideotracks.TABLE_NAME);
 	}
 
 	/**
@@ -246,7 +258,7 @@ public class MediaDatabase extends Database {
 	}
 
 	/**
-	 * Reset the media database cache.
+	 * Resets the media database cache and restarts the server.
 	 *
 	 * Recreate all tables related to media cache except files status.
 	 *
@@ -255,6 +267,8 @@ public class MediaDatabase extends Database {
 	public static synchronized void resetCache() throws SQLException {
 		if (instance != null) {
 			instance.reInitTablesExceptFilesStatus();
+
+			ProcessUtil.reboot();
 		}
 	}
 

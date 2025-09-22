@@ -21,9 +21,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExternalProgramInfo;
@@ -36,6 +33,9 @@ import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.errorprone.annotations.ThreadSafe;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 /**
  * This class adds configurable/custom paths to {@link PlatformProgramPaths}.
  *

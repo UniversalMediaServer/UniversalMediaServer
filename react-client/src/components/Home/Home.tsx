@@ -14,296 +14,243 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core';
-import { showNotification, updateNotification } from '@mantine/notifications';
-import axios from 'axios';
-import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
-import { Check, ExclamationMark } from 'tabler-icons-react';
+import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core'
+import { IconCheck } from '@tabler/icons-react'
+import { hideNotification } from '@mantine/notifications'
+import axios, { AxiosError, AxiosResponse } from 'axios'
+import _ from 'lodash'
+import { useEffect, useState } from 'react'
 
-import I18nContext from '../../contexts/i18n-context';
-import SessionContext from '../../contexts/session-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import Renderers from './Renderers';
-import NetworkDevices from './NetworkDevices';
-import { renderersApiUrl } from '../../utils';
-import { havePermission, Permissions } from '../../services/accounts-service';
+import Renderers from './Renderers'
+import NetworkDevices from './NetworkDevices'
+import { renderersApiUrl } from '../../utils'
+import { NetworkDevicesFilter, Renderer, User } from '../../services/home-service'
+import { I18nInterface } from '../../services/i18n-service'
+import { SessionInterface, UmsPermission } from '../../services/session-service'
+import { showError, showLoading, updateError, updateSuccess } from '../../utils/notifications'
 
-const Home = () => {
-  const i18n = useContext(I18nContext);
-  const sse = useContext(ServerEventContext);
-  const [renderers, setRenderers] = useState([] as Renderer[]);
-  const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
-  const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
-  const [networkDevicesBlockedByDefault, setNetworkDevicesBlockedByDefault] = useState(false);
-  const [isLocalhost, setIsLocalhost] = useState(false);
-  const [users, setUsers] = useState([] as User[]);
-  const [currentTime, setCurrentTime] = useState(0);
-  const session = useContext(SessionContext);
-  const canModify = havePermission(session, Permissions.settings_modify);
-  const canView = canModify || havePermission(session, Permissions.settings_view);
-  const canControlRenderers = havePermission(session, Permissions.devices_control);
-  const [loading, setLoading] = useState(false);
+const Home = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
+  const [renderers, setRenderers] = useState([] as Renderer[])
+  const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false)
+  const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[])
+  const [networkDevicesBlockedByDefault, setNetworkDevicesBlockedByDefault] = useState(false)
+  const [isLocalhost, setIsLocalhost] = useState(false)
+  const [users, setUsers] = useState([] as User[])
+  const [currentTime, setCurrentTime] = useState(0)
+  const canModify = session.havePermission(UmsPermission.settings_modify)
+  const canView = canModify || session.havePermission(UmsPermission.settings_view)
+  const canControlRenderers = session.havePermission(UmsPermission.devices_control)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!sse.hasRendererAction) {
-      return;
+    if (!session.hasRendererAction) {
+      return
     }
-    const renderersTemp = _.cloneDeep(renderers);
-    while (sse.hasRendererAction) {
-      const rendererAction = sse.getRendererAction() as RendererAction;
-      if (rendererAction === null) {
-        break;
+    const renderersTemp = _.cloneDeep(renderers)
+    while (session.hasRendererAction) {
+      const rendererAction = session.getRendererAction()
+      if (rendererAction === undefined) {
+        break
       }
       switch (rendererAction.action) {
         case 'renderer_add': {
-          renderersTemp.push(rendererAction);
-          break;
+          renderersTemp.push(rendererAction.data)
+          break
         }
         case 'renderer_delete': {
-          const delIndex = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id);
+          const delIndex = renderersTemp.findIndex(renderer => renderer.id === rendererAction.data.id)
           if (delIndex > -1) {
-            renderersTemp.splice(delIndex, 1);
+            renderersTemp.splice(delIndex, 1)
           }
-          break;
+          break
         }
         case 'renderer_update': {
-          const index = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id);
+          const index = renderersTemp.findIndex(renderer => renderer.id === rendererAction.data.id)
           if (index > -1) {
-            renderersTemp[index] = rendererAction;
+            renderersTemp[index] = rendererAction.data
           }
-          break;
+          break
         }
       }
     }
-    setRenderers(renderersTemp);
-  }, [renderers, sse]);
+    setRenderers(renderersTemp)
+  }, [renderers, session.hasRendererAction])
 
   useEffect(() => {
     if (canView) {
-      refreshData();
+      refreshData()
     }
-  }, [canView]);
+  }, [canView])
+
+  useEffect(() => {
+    session.setDocumentTitle('')
+    session.subscribeTo('Home')
+    session.stopPlayerSse()
+    session.setNavbarManage(Home.name)
+  }, [])
 
   const refreshData = async () => {
-    setLoading(true);
+    setLoading(true)
     axios.get(renderersApiUrl)
-      .then(function(response: any) {
-        setRenderers(response.data.renderers);
-        setRenderersBlockedByDefault(response.data.renderersBlockedByDefault);
-        setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault);
-        setUsers(response.data.users);
-        setCurrentTime(response.data.currentTime);
+      .then(function (response: AxiosResponse) {
+        setRenderers(response.data.renderers)
+        setRenderersBlockedByDefault(response.data.renderersBlockedByDefault)
+        setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault)
+        setUsers(response.data.users)
+        setCurrentTime(response.data.currentTime)
       })
-      .catch(function() {
-        showNotification({
-          id: 'renderers-data-loading',
-          color: 'red',
-          title: i18n.get('Error'),
-          message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
-        });
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'renderers-data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('DataNotReceived'),
+          })
+        }
       })
-      .then(function() {
-        setLoading(false);
-      });
+      .then(function () {
+        setLoading(false)
+      })
   }
 
   const refreshDeviceData = async () => {
-    setLoading(true);
+    setLoading(true)
     axios.get(renderersApiUrl + 'devices')
-      .then(function(response: any) {
-        setIsLocalhost(response.data.isLocalhost);
-        setNetworkDeviceFilters(response.data.networkDevices);
-        setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault);
-        setCurrentTime(response.data.currentTime);
+      .then(function (response: AxiosResponse) {
+        setIsLocalhost(response.data.isLocalhost)
+        setNetworkDeviceFilters(response.data.networkDevices)
+        setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault)
+        setCurrentTime(response.data.currentTime)
       })
-      .catch(function() {
-        showNotification({
-          id: 'renderers-data-loading',
-          color: 'red',
-          title: i18n.get('Error'),
-          message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
-        });
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'renderers-data-loading',
+            title: i18n.get('Error'),
+            message: i18n.get('DataNotReceived'),
+          })
+        }
       })
-      .then(function() {
-        setLoading(false);
-      });
+      .then(function () {
+        setLoading(false)
+      })
   }
 
-  const setUserId = async (rule: string, userId: any) => {
-    setSettings('renderers', { rule, userId }, false);
+  const setUserId = async (rule: string, userId: string | null) => {
+    setSettings('renderers', { rule, userId }, false)
   }
 
   const setRenderersAllowed = async (rule: string, isAllowed: boolean) => {
-    setSettings('renderers', { rule, isAllowed }, false);
+    setSettings('renderers', { rule, isAllowed }, false)
   }
 
   const setDevicesAllowed = async (rule: string, isAllowed: boolean) => {
-    setSettings('devices', { rule, isAllowed }, true);
-  };
+    setSettings('devices', { rule, isAllowed }, true)
+  }
 
   const reset = async () => {
-    setSettings('reset', null, true);
-  };
+    setSettings('reset', null, true)
+  }
 
-  const setSettings = async (endpoint: string, data: any, fromDevice: boolean) => {
-    showNotification({
+  const setSettings = async (endpoint: string, data: Record<string, unknown> | null, fromDevice: boolean) => {
+    showLoading({
       id: 'settings-save',
-      loading: true,
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
-      autoClose: false,
-      withCloseButton: false
-    });
+    })
     await axios.post(renderersApiUrl + endpoint, data)
-      .then(function() {
-        updateNotification({
+      .then(function () {
+        updateSuccess({
           id: 'settings-save',
-          color: 'teal',
-          autoClose: true,
-          loading: false,
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
-          icon: <Check size='1rem' />
-        });
+          icon: <IconCheck size="1rem" />,
+        })
         if (fromDevice) {
           refreshDeviceData()
-        } else {
-          refreshData();
+        }
+        else {
+          refreshData()
         }
       })
-      .catch(function(error) {
+      .catch(function (error: AxiosError) {
         if (!error.response && error.request) {
-          updateNotification({
+          hideNotification('settings-save')
+          i18n.showServerUnreachable()
+        }
+        else {
+          updateError({
             id: 'settings-save',
-            color: 'red',
-            autoClose: true,
-            loading: false,
             title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotReceived'),
-            icon: <ExclamationMark size='1rem' />
-          })
-        } else {
-          updateNotification({
-            id: 'settings-save',
-            color: 'red',
-            autoClose: true,
-            loading: false,
-            title: i18n.get('Error'),
-            message: i18n.get('ConfigurationNotSaved')
+            message: i18n.get('ConfigurationNotSaved'),
           })
         }
-      });
-  };
+      })
+  }
 
-  return canView ? (
-    <Box style={{ maxWidth: 1024 }} mx='auto'>
-      <LoadingOverlay visible={loading} />
-      <Tabs keepMounted={false} defaultValue='renderers'>
-        <Tabs.List>
-          <Tabs.Tab value='renderers'>{i18n.get('DetectedMediaRenderers')}</Tabs.Tab>
-          <Tabs.Tab value='blocked_renderers'>{i18n.get('BlockedMediaRenderers')}</Tabs.Tab>
-          <Tabs.Tab value='network_devices'>{i18n.get('NetworkDevices')}</Tabs.Tab>
-        </Tabs.List>
-        <Tabs.Panel value='renderers' pt='xs'>
-          <Renderers
-            allowed={true}
-            blockedByDefault={renderersBlockedByDefault}
-            canControlRenderers={canControlRenderers}
-            canModify={canModify}
-            i18n={i18n}
-            renderers={renderers}
-            users={users}
-            setAllowed={setRenderersAllowed}
-            setUserId={setUserId}
-          />
-        </Tabs.Panel>
-        <Tabs.Panel value='blocked_renderers' pt='xs'>
-          <Renderers
-            allowed={false}
-            blockedByDefault={renderersBlockedByDefault}
-            canControlRenderers={canControlRenderers}
-            canModify={canModify}
-            i18n={i18n}
-            renderers={renderers}
-            users={users}
-            setAllowed={setRenderersAllowed}
-            setUserId={setUserId}
-          />
-        </Tabs.Panel>
-        <Tabs.Panel value='network_devices' pt='xs'>
-          <NetworkDevices
-            blockedByDefault={networkDevicesBlockedByDefault}
-            isLocalhost={isLocalhost}
-            canModify={canModify}
-            currentTime={currentTime}
-            i18n={i18n}
-            networkDeviceFilters={networkDeviceFilters}
-            refreshDeviceData={refreshDeviceData}
-            setAllowed={setDevicesAllowed}
-            reset={reset}
-          />
-        </Tabs.Panel>
-      </Tabs>
-    </Box>
-  ) : (
-    <Box style={{ maxWidth: 1024 }} mx='auto'>
-      <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
-    </Box>
-  );
-};
-
-interface RendererAction extends Renderer {
-  action: string,
+  return canView
+    ? (
+        <Box style={{ maxWidth: 1024 }} mx="auto">
+          <LoadingOverlay visible={loading} />
+          <Tabs keepMounted={false} defaultValue="renderers">
+            <Tabs.List>
+              <Tabs.Tab value="renderers">{i18n.get('DetectedMediaRenderers')}</Tabs.Tab>
+              <Tabs.Tab value="blocked_renderers">{i18n.get('BlockedMediaRenderers')}</Tabs.Tab>
+              <Tabs.Tab value="network_devices">{i18n.get('NetworkDevices')}</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="renderers" pt="xs">
+              <Renderers
+                allowed={true}
+                blockedByDefault={renderersBlockedByDefault}
+                canControlRenderers={canControlRenderers}
+                canModify={canModify}
+                i18n={i18n}
+                renderers={renderers}
+                users={users}
+                setAllowed={setRenderersAllowed}
+                setUserId={setUserId}
+              />
+            </Tabs.Panel>
+            <Tabs.Panel value="blocked_renderers" pt="xs">
+              <Renderers
+                allowed={false}
+                blockedByDefault={renderersBlockedByDefault}
+                canControlRenderers={canControlRenderers}
+                canModify={canModify}
+                i18n={i18n}
+                renderers={renderers}
+                users={users}
+                setAllowed={setRenderersAllowed}
+                setUserId={setUserId}
+              />
+            </Tabs.Panel>
+            <Tabs.Panel value="network_devices" pt="xs">
+              <NetworkDevices
+                blockedByDefault={networkDevicesBlockedByDefault}
+                isLocalhost={isLocalhost}
+                canModify={canModify}
+                currentTime={currentTime}
+                i18n={i18n}
+                networkDeviceFilters={networkDeviceFilters}
+                refreshDeviceData={refreshDeviceData}
+                setAllowed={setDevicesAllowed}
+                reset={reset}
+              />
+            </Tabs.Panel>
+          </Tabs>
+        </Box>
+      )
+    : (
+        <Box style={{ maxWidth: 1024 }} mx="auto">
+          <Text c="red">{i18n.get('YouDontHaveAccessArea')}</Text>
+        </Box>
+      )
 }
 
-export interface RendererState {
-  mute: boolean,
-  volume: number,
-  playback: number,
-  name: string,
-  uri: string,
-  metadata: string,
-  position: string,
-  duration: string,
-  buffer: number,
-}
-
-export interface Renderer {
-  id: number,
-  name: string,
-  address: string,
-  uuid: string,
-  icon: string,
-  playing: string,
-  time: string,
-  progressPercent: number,
-  isActive: boolean,
-  isAllowed: boolean,
-  isAuthenticated: boolean,
-  userId: number,
-  controls: number,
-  state: RendererState,
-}
-
-export interface NetworkDevice {
-  hostName: string,
-  ipAddress: string,
-  lastSeen: number
-}
-
-export interface NetworkDevicesFilter {
-  name: string,
-  isAllowed: boolean,
-  isDefault: boolean,
-  devices: NetworkDevice[]
-}
-
-export interface User {
-  value: number,
-  label: string
-}
-
-export default Home;
+export default Home

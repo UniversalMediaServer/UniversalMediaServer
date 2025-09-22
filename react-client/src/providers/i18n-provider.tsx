@@ -14,134 +14,206 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { useDirection } from '@mantine/core';
-import { useLocalStorage } from '@mantine/hooks';
-import { showNotification } from '@mantine/notifications';
-import axios from 'axios';
-import { ReactNode, useEffect, useState } from 'react';
-import { ExclamationMark } from 'tabler-icons-react';
+import { Anchor, useDirection } from '@mantine/core'
+import { useLocalStorage } from '@mantine/hooks'
+import { hideNotification, showNotification } from '@mantine/notifications'
+import { IconServerOff } from '@tabler/icons-react'
+import axios, { AxiosError, AxiosResponse } from 'axios'
+import { ReactNode, useEffect, useState } from 'react'
 
-import I18nContext, { LanguageValue } from '../contexts/i18n-context';
-import { i18nApiUrl } from '../utils';
+import I18nContext from '../contexts/i18n-context'
+import { LanguageValue, ValueLabelData } from '../services/i18n-service'
+import { gitHubNewIssueUrl, i18nApiUrl } from '../utils'
+import { showError } from '../utils/notifications'
 
-interface Props {
-  children?: ReactNode,
-}
-
-export const I18nProvider = ({ children }: Props) => {
-  const { dir, setDirection } = useDirection();
+const I18nProvider = ({ children }: { children?: ReactNode }) => {
+  const { dir, setDirection } = useDirection()
+  const [languageLoaded, setLanguageLoaded] = useState<boolean>(false)
+  const [serverConnected, setServerConnected] = useState<boolean>(false)
+  const [serverReadyState, setServerReadyState] = useState<number>(-1)
   const [i18n, setI18n] = useState<{ [key: string]: string }>({
-    'Error': 'Error',
-    'LanguagesNotReceived': 'Languages were not received from the server.',
-    'Warning': 'Warning',
-    'UniversalMediaServerUnreachable': 'Universal Media Server unreachable'
-  });
-  const [version, setVersion] = useState<string>();
-  const [languages, setLanguages] = useState<LanguageValue[]>([]);
-  const [language, setLanguage] = useLocalStorage<string>({
+    AuthenticationError: 'Authentication error',
+    Error: 'Error',
+    LanguagesNotReceived: 'Languages were not received from the server.',
+    Warning: 'Warning',
+    UniversalMediaServerUnreachable: 'Universal Media Server unreachable',
+    YouHaveBeenLoggedOut: 'You have been logged out from Universal Media Server.',
+  })
+  const [version, setVersion] = useState<string>()
+  const [languages, setLanguages] = useState<LanguageValue[]>([])
+  const [language, setLanguageInternal] = useLocalStorage<string>({
     key: 'language',
     defaultValue: navigator.languages
       ? navigator.languages[0]
       : (navigator.language || 'en-US'),
-  });
+  })
+
+  const setLanguage = (value: string) => {
+    setLanguageLoaded(false)
+    setLanguageInternal(value)
+  }
 
   const get = (value: string) => {
-    return i18n[value] ? i18n[value] : value;
+    return i18n[value] ? i18n[value] : value
   }
 
-  const getI18nString = (value: string) => {
+  const getString = (value: string) => {
     if (value && value.startsWith('i18n@')) {
-      return get(value.substring(5));
-    } else {
-      return value;
+      return get(value.substring(5))
+    }
+    else {
+      return value
     }
   }
 
-  const getI18nFormat = (value: string[]) => {
-    if (value == null || value.length < 1) { return ''; }
-    let result = getI18nString(value[0]);
+  const getFormat = (value: string[]) => {
+    if (value == null || value.length < 1) {
+      return ''
+    }
+    let result = getString(value[0])
     for (let i = 1; i < value.length; i++) {
-      const str = '%' + i.toString() + '$s';
+      const str = '%' + i.toString() + '$s'
       if (result.includes(str)) {
-        result = result.replace(str, getI18nString(value[i]));
-      } else if (result.includes('%s')) {
-        result = result.replace('%s', getI18nString(value[i]));
+        result = result.replace(str, getString(value[i]))
+      }
+      else if (result.includes('%s')) {
+        result = result.replace('%s', getString(value[i]))
       }
     }
-    return result;
+    return result
   }
 
-  const getI18nLanguage = (language: string, version: string) => {
-    axios.get(i18nApiUrl, { params: { language, version } })
-      .then(function(response: any) {
-        setLanguages(response.data.languages);
-        setI18n(response.data.i18n);
-        setDirection(response.data.isRtl ? 'rtl' : 'ltr');
-      })
-      .catch(function(error) {
-        if (!error.response && error.request) {
-          showNotification({
-            color: 'red',
-            title: i18n['Warning'],
-            message: i18n['UniversalMediaServerUnreachable'],
-            icon: <ExclamationMark size='1rem' />
-          });
-        } else {
-          showNotification({
-            id: 'data-loading',
-            color: 'red',
-            title: i18n['Error'],
-            message: i18n['LanguagesNotReceived']
-          });
+  const getValueLabelData = (values: ValueLabelData[] | undefined) => {
+    return values?.map((value: ValueLabelData) => {
+      return { value: value.value, label: getString(value.label) } as ValueLabelData
+    })
+  }
+
+  const getLocalizedName = (name: string | undefined) => {
+    const nameData = name ? name.split('|') : ['']
+    if (nameData.length > 1) {
+      return getFormat(nameData)
+    }
+    else {
+      return getString(nameData[0])
+    }
+  }
+
+  const getI18nLanguage = async (language: string, version: string) => {
+    axios.get(i18nApiUrl, { params: { language, version }, responseType: 'json' })
+      .then(function (response: AxiosResponse) {
+        if (!response.data) {
+          return
         }
-      });
+        hideNotification('languages-error')
+        setLanguageLoaded(true)
+        setLanguages(response.data.languages)
+        setI18n(response.data.i18n)
+        setDirection(response.data.isRtl ? 'rtl' : 'ltr')
+      })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'languages-error',
+            title: i18n['Error'],
+            message: i18n['LanguagesNotReceived'],
+          })
+        }
+      })
   }
 
   const getI18nVersion = (language: string) => {
-    axios.post(i18nApiUrl)
-      .then(function(response: any) {
-        setVersion(response.data.version);
-        getI18nLanguage(language, response.data.version);
-      })
-      .catch(function(error) {
-        if (!error.response && error.request) {
-          showNotification({
-            color: 'red',
-            title: i18n['Warning'],
-            message: i18n['UniversalMediaServerUnreachable'],
-            icon: <ExclamationMark size='1rem' />
-          });
-        } else {
-          showNotification({
-            id: 'data-loading',
-            color: 'red',
-            title: i18n['Error'],
-            message: i18n['LanguagesNotReceived']
-          });
+    axios.post(i18nApiUrl, { responseType: 'json' })
+      .then(function (response: AxiosResponse) {
+        if (!response.data) {
+          return
         }
-      });
+        hideNotification('languages-error')
+        setVersion(response.data.version)
+        getI18nLanguage(language, response.data.version)
+      })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'languages-error',
+            title: i18n['Error'],
+            message: i18n['LanguagesNotReceived'],
+          })
+        }
+      })
+  }
+
+  const getReportLink = () => {
+    return (
+      <Anchor fz="xs" href={gitHubNewIssueUrl} target="_blank">
+        {get('ClickHereReportBug')}
+      </Anchor>
+    )
+  }
+
+  const showServerUnreachable = () => {
+    setServerConnected(false)
+    showNotification({
+      id: 'connection-lost',
+      color: 'orange',
+      title: get('Warning'),
+      message: get('UniversalMediaServerUnreachable'),
+      icon: <IconServerOff size="1rem" />,
+      autoClose: false,
+    })
   }
 
   useEffect(() => {
-    if (version) {
-      getI18nLanguage(language, version);
-    } else {
-      getI18nVersion(language);
+    if (!serverConnected) {
+      return
     }
-  }, [language]);
+    if (version) {
+      getI18nLanguage(language, version)
+    }
+    else {
+      getI18nVersion(language)
+    }
+  }, [language, serverConnected])
 
-  const { Provider } = I18nContext;
+  useEffect(() => {
+    if (serverReadyState === 1) {
+      console.log('WebSocket connected')
+      setServerConnected(true)
+    }
+    else if (serverReadyState === 3) {
+      console.log('WebSocket disconnected')
+      setServerConnected(false)
+    }
+  }, [serverReadyState])
+
   return (
-    <Provider value={{
+    <I18nContext.Provider value={{
       get: get,
-      getI18nString: getI18nString,
-      getI18nFormat: getI18nFormat,
+      getString: getString,
+      getFormat: getFormat,
+      getValueLabelData: getValueLabelData,
+      getLocalizedName: getLocalizedName,
       language: language || 'en-US',
       dir: dir,
       languages: languages,
-      setLanguage: setLanguage
-    }}>
+      setLanguage: setLanguage,
+      getReportLink: getReportLink,
+      showServerUnreachable: showServerUnreachable,
+      languageLoaded: languageLoaded,
+      serverConnected: serverConnected,
+      serverReadyState: serverReadyState,
+      setServerReadyState: setServerReadyState,
+    }}
+    >
       {children}
-    </Provider>
+    </I18nContext.Provider>
   )
 }
+
+export default I18nProvider

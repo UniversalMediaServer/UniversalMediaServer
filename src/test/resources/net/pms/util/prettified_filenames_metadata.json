@@ -11,6 +11,18 @@
 		}
 	},
 	{
+		"comment": "Video of a sample of a TV episode",
+		"filename": "Universal.Media.Server.S01E02.720p-sample.mkv",
+		"prettified": "Universal Media Server S01E02 (Sample)",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2],
+			"extra": ["Sample"]
+		}
+	},
+	{
 		"comment": "Video of a special TV episode",
 		"filename": "Universal.Media.Server.S01.Special.720p.mkv",
 		"prettified": "Universal Media Server S01 - Special",
@@ -36,7 +48,7 @@
 	},
 	{
 		"comment": "Video of a TV episode with a year in the series title and an episode title",
-		"filename": "Universal Media Server (2019).S01E02.Mysterious Wordplay.mkv",
+		"filename": "Universal Media Server (2019).S01E02.Mysterious.Wordplay.mkv",
 		"prettified": "Universal Media Server (2019) S01E02 - Mysterious Wordplay",
 		"metadata": {
 			"type": "tv-series-episodes",
@@ -45,6 +57,17 @@
 			"episodes": [2],
 			"released": { "year": 2019 },
 			"title": "Mysterious Wordplay"
+		}
+	},
+	{
+		"comment": "Video of a TV episode with an episode title and without resolution directly after episode number",
+		"filename": "Universal.Media.Server.S01E02.Mysterious.Wordplay.EAC3.2.0.1080p.mkv",
+		"prettified": "Universal Media Server S01E02 - Mysterious Wordplay",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
 		}
 	},
 	{

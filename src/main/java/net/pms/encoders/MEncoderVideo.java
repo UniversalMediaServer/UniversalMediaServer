@@ -18,6 +18,8 @@ package net.pms.encoders;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +27,6 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
@@ -444,9 +444,9 @@ public class MEncoderVideo extends Engine {
 					// convert UTF-16 -> UTF-8
 					File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.getSid().getExternalFile().getName());
 					FileUtil.convertFileFromUtf16ToUtf8(params.getSid().getExternalFile(), convertedSubtitles);
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+					externalSubtitlesFileName = ProcessUtil.getSystemPathName(convertedSubtitles.getAbsolutePath());
 				} else {
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile());
+					externalSubtitlesFileName = ProcessUtil.getSystemPathName(params.getSid().getExternalFile());
 				}
 			} else {
 				LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
@@ -1221,7 +1221,7 @@ public class MEncoderVideo extends Engine {
 		// Input filename
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
 			File avsFile = AviSynthMEncoder.getAVSScript(filename, params.getSid(), params.getFromFrame(), params.getToFrame(), frameRateRatio, frameRateNumber, configuration);
-			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
+			cmdList.add(ProcessUtil.getSystemPathName(avsFile.getAbsolutePath()));
 		} else {
 			if (params.getStdIn() != null) {
 				cmdList.add("-");

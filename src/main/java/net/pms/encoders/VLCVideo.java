@@ -17,13 +17,13 @@
 package net.pms.encoders;
 
 import com.sun.jna.Platform;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
@@ -530,13 +530,13 @@ public class VLCVideo extends Engine {
 							// Convert UTF-16 -> UTF-8
 							File convertedSubtitles = new File(CONFIGURATION.getTempFolder(), "utf8_" + params.getSid().getName());
 							FileUtil.convertFileFromUtf16ToUtf8(params.getSid().getExternalFile(), convertedSubtitles);
-							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+							externalSubtitlesFileName = ProcessUtil.getSystemPathName(convertedSubtitles.getAbsolutePath());
 						} catch (IOException e) {
 							LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
-							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile());
+							externalSubtitlesFileName = ProcessUtil.getSystemPathName(params.getSid().getExternalFile());
 						}
 					} else {
-						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile());
+						externalSubtitlesFileName = ProcessUtil.getSystemPathName(params.getSid().getExternalFile());
 					}
 
 					if (externalSubtitlesFileName != null) {

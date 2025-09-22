@@ -9,9 +9,9 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
           java-version: 17
@@ -25,7 +25,7 @@ jobs:
       - name: Build x86_64 release
         run: mvn package -P linux-x86_64 -DskipTests
       - name: Install AppImage dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.2
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
         with:
           packages: desktop-file-utils
       - name: Build AppImage
@@ -34,7 +34,7 @@ jobs:
           mkdir dist
           mv ./target/*AppImage* dist/
       - name: Upload artifact
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: AppImage
           path: 'dist'

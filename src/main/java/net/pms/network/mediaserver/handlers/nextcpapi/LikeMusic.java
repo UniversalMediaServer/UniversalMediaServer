@@ -24,7 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableMusicBrainzReleaseLike;
@@ -43,7 +43,7 @@ public class LikeMusic implements NextcpApiResponseHandler {
 	private final String backupFilename;
 
 	public LikeMusic() {
-		String dir = FilenameUtils.concat(PMS.getConfiguration().getProfileDirectory(), "database_backup");
+		String dir = FilenameUtils.concat(UmsConfiguration.getProfileDirectory(), "database_backup");
 		backupFilename = FilenameUtils.concat(dir, "MUSIC_BRAINZ_RELEASE_LIKE");
 	}
 

@@ -18,6 +18,7 @@ package net.pms;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import jakarta.annotation.Nonnull;
 import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -45,7 +46,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
@@ -69,8 +69,8 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webguiserver.EventSourceServer;
 import net.pms.network.webguiserver.WebGuiServer;
+import net.pms.network.webguiserver.WebSocketDispatcher;
 import net.pms.network.webplayerserver.WebPlayerServer;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.WindowsNamedPipe;
@@ -137,7 +137,7 @@ public class PMS {
 	 */
 	private static final ReadWriteLock HEADLESS_LOCK = new ReentrantReadWriteLock();
 
-	public static final String NAME = "Universal Media Server";
+	public static final String NAME = PropertiesUtil.getProjectProperties().get("project.name");
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
 	/**
@@ -243,7 +243,7 @@ public class PMS {
 		// Initialize splash screen
 		GuiConfiguration guiConfiguration = null;
 		if (!isHeadless()) {
-			guiConfiguration = GuiConfiguration.getConfiguration(umsConfiguration);
+			guiConfiguration = GuiConfiguration.getConfiguration();
 			Splash.create(umsConfiguration, guiConfiguration);
 			Splash.setStatusMessage("Loading");
 		}
@@ -392,7 +392,9 @@ public class PMS {
 		}
 
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
-		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(umsConfiguration);
+		if (!isRunningTests()) {
+			UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(umsConfiguration);
+		}
 
 		GuiManager.setConnectionState(EConnectionState.SEARCHING);
 
@@ -493,7 +495,7 @@ public class PMS {
 
 	private void displayBanner() throws IOException {
 		LOGGER.debug("");
-		LOGGER.info("Starting {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
+		LOGGER.info("Starting {} {}", NAME, getVersion());
 		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
 		LOGGER.info("https://www.universalmediaserver.com");
 		LOGGER.info("");
@@ -622,7 +624,7 @@ public class PMS {
 	// see the comment above HttpMediaServer.stop()
 	public void resetMediaServer() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
-			EventSourceServer.notify("server-restart", "Server is restarting", "Server status", "red", true);
+			WebSocketDispatcher.notifyAll("server-restart", "Server is restarting", "Server status", "red", true);
 			MediaServer.stop();
 			resetRenderers(true);
 
@@ -645,7 +647,7 @@ public class PMS {
 	 */
 	public void shutdownComputer() {
 		TaskRunner.getInstance().submitNamed("shutdown", true, () -> {
-			EventSourceServer.notify("computer-shutdown", "Shutting down computer", "Server status", "red", true);
+			WebSocketDispatcher.notifyAll("computer-shutdown", "Shutting down computer", "Server status", "red", true);
 			ProcessUtil.shutDownComputer();
 		});
 	}

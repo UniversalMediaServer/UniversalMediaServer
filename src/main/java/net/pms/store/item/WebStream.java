@@ -94,6 +94,12 @@ public class WebStream extends StoreItem {
 
 	@Override
 	public InputStream getInputStream() {
+		try {
+			InputStream input = new URL(url).openStream();
+			return input;
+		} catch (IOException e) {
+			LOGGER.error("cannot read input stream from {}", url, e);
+		}
 		return null;
 	}
 

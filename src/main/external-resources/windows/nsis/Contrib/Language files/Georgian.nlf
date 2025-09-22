@@ -147,7 +147,7 @@ $(^Name)–ის წაშლა
 # ^DeleteOnReboot
 "წაიშლება კომპიუტერის გადატვირთვის დროს: "
 # ^ErrorCreatingShortcut
-"იარლიყის შექმნისას დაშვებულია შეცდომა: " 
+"იარლიყის შექმნისას დაშვებულია შეცდომა: "
 # ^ErrorCreating
 "შექმნისას დაშვებულია შეცდომა: "
 # ^ErrorDecompressing
@@ -155,7 +155,7 @@ $(^Name)–ის წაშლა
 # ^ErrorRegistering
 არ რეგისტრირდება (DLL)
 # ^ExecShell
-"ExecShell: " 
+"ExecShell: "
 # ^Exec
 "შესრულება: "
 # ^Extract
@@ -165,7 +165,7 @@ $(^Name)–ის წაშლა
 # ^InvalidOpcode
 საინსტალაციო პროგრამა დაზიანებულია: კოდი არ არსებობს
 # ^NoOLE
-"OLE არ არის: " 
+"OLE არ არის: "
 # ^OutputFolder
 "ჩატვირთვის ფოლდერი: "
 # ^RemoveFolder

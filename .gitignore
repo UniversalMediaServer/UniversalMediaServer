@@ -26,30 +26,31 @@ portable/
 /src/main/java/net/pms/Test.java
 .recommenders/
 .metadata/
-docker/renderers
-docker/web
-docker/ums.jar
-docker/logback.headless.xml
-docker/linux*
-docker/jre*
 .yarn-integrity
-/nb-*
-/nbactions-*
 
 # react web client
+/react-client/dist/
 /react-client/nbproject/
 /react-client/node/
 /react-client/node_modules/
 /react-client/.pnp.*
-/react-client/.yarn/*
-!/react-client/.yarn/releases
+/react-client/.yarn/
+
 # this is where the compiled client goes after "yarn build"
 /src/main/external-resources/web/react-client
+
+# this is where the compiled client goes on "yarn dev"
+/web
+
 /nbproject/
+/nb-*
+/nbactions-*
 
 # Ignore the populated Gon scripts because they contain private info
 /gon-config-*
 
 # Playwright test outputs
 react-client/test-results/
+react-client/tests/*/
 ums-testserver.jar
+/osx

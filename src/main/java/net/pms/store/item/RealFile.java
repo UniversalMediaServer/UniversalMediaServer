@@ -89,9 +89,13 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	 *
 	 * @return true : File is an empty container. Upload by AV client is still missing. No need to check any formats yet.
 	 */
-	private boolean isUploadResource(File file, int type) {
+	private static boolean isUploadResource(File file, int type) {
 		if (type == Format.AUDIO || type == Format.VIDEO) {
 			try {
+				//FIXME : this mean each file that has this length is valid !
+				//UmsContentDirectoryService has nothing to sit in store.
+				//Upload by AV client is still missing, so it is not a valid media.
+				//A new store item class should be added that handle this special things
 				if (Files.size(file.toPath()) == UmsContentDirectoryService.EMPTY_FILE_CONTENT.length()) {
 					LOGGER.trace("isUploadResource true for {}", file.getAbsolutePath());
 					return true;
@@ -203,7 +207,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	 */
 	@Override
 	public String getFileName() {
-		return ProcessUtil.getShortFileNameIfWideChars(getFile().getAbsolutePath());
+		return ProcessUtil.getSystemPathName(getFile().getAbsolutePath());
 	}
 
 	@Override
@@ -246,6 +250,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			}
 			InputFile input = new InputFile();
 			input.setFile(file);
+			resolveFormat();
 			setMediaInfo(MediaInfoStore.getMediaInfo(filename, file, getFormat(), getType()));
 			setMediaStatus(MediaStatusStore.getMediaStatus(renderer.getAccountUserId(), filename));
 		}

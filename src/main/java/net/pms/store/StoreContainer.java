@@ -119,6 +119,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (child instanceof StoreItem storeItem) {
+			child.resolve();
 			addChildItem(storeItem, isNew, isAddGlobally);
 		} else if (child instanceof StoreContainer storeContainer) {
 			addChildContainer(storeContainer, isNew, isAddGlobally);
@@ -429,7 +430,7 @@ public class StoreContainer extends StoreResource {
 	 * global ID repository.
 	 */
 	protected synchronized void addChildInternal(StoreResource child, boolean isAddGlobally) {
-		if (child.getId() != null) {
+		if (child.getId() != null && !child.getId().startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			LOGGER.debug("Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 					new Object[]{child.getClass().getName(), child.getResourceId(), child.getParent()});
 		}
@@ -455,7 +456,7 @@ public class StoreContainer extends StoreResource {
 		}
 	}
 
-	protected void sortChildrenIfNeeded() {
+	protected synchronized void sortChildrenIfNeeded() {
 		if (isChildrenSorted()) {
 			StoreResourceSorter.sortResourcesByDefault(children);
 		}
@@ -603,6 +604,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(renderer, renderer.getUmsConfiguration());
+		transcodeFolder.setChildrenSorted(isChildrenSorted);
 		addChildInternal(transcodeFolder);
 		return transcodeFolder;
 	}

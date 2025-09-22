@@ -25,12 +25,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 import net.pms.PMS;
 import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.Nullable;
 
 // see https://code.google.com/p/ps3mediaserver/issues/detail?id=680
 // for background/issues/discussion related to this class
@@ -96,30 +96,26 @@ public class ProcessUtil {
 	}
 
 	/**
-	 * Converts the path of the specified {@link File} to the equivalent MS-DOS
-	 * style 8.3 path using the Windows API function {@code GetShortPathNameW()}
-	 * if the path contains Unicode characters.
+	 * Converts the path of the specified {@link File} to the a system path.
 	 *
 	 * @param file the {@link File} whose path to convert.
 	 * @return The resulting non-Unicode file path.
 	 */
-	public static String getShortFileNameIfWideChars(File file) {
+	public static String getSystemPathName(File file) {
 		if (file == null) {
 			return null;
 		}
-		return getShortFileNameIfWideChars(file.getPath());
+		return ProcessUtil.getSystemPathName(file.getPath());
 	}
 
 	/**
-	 * Converts the specified file path to the equivalent MS-DOS style 8.3 path
-	 * using the Windows API function {@code GetShortPathNameW()} if the path
-	 * contains Unicode characters.
+	 * Converts the specified file path to the equivalent system path.
 	 *
 	 * @param name the file path to convert.
 	 * @return The resulting non-Unicode file path.
 	 */
-	public static String getShortFileNameIfWideChars(String name) {
-		return PlatformUtils.INSTANCE.getShortPathNameW(name);
+	public static String getSystemPathName(String name) {
+		return PlatformUtils.INSTANCE.getSystemPathName(name);
 	}
 
 	// Run cmd and return combined stdout/stderr

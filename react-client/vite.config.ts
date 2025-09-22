@@ -1,11 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import livePreview from 'vite-live-preview'
 
 export default defineConfig({
   plugins: [
     react(),
-    livePreview()
   ],
   build: {
     outDir: '../src/main/external-resources/web/react-client',
@@ -15,7 +13,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
-          hashCharacters: 'hex'
+        hashCharacters: 'hex',
       },
       onwarn(warning, defaultHandler) {
         if (warning.code === 'SOURCEMAP_ERROR') {
@@ -31,7 +29,23 @@ export default defineConfig({
   server: {
     open: '/',
     proxy: {
-      '/v1': 'http://localhost:9001',
-    }
-  }
+      '/v1': {
+        target: { host: 'localhost', port: 9001 },
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, res, _target) => {
+            if (!res.headersSent && !res.writableEnded) {
+              res.destroy(err)
+            }
+          })
+        },
+        ws: true,
+      },
+    },
+    watch: {
+      usePolling: true,
+    },
+    sourcemapIgnoreList(sourcePath, _sourcemapPath) {
+      return sourcePath.indexOf('node_modules') > -1
+    },
+  },
 })

@@ -24,8 +24,10 @@ import com.google.gson.JsonSyntaxException;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.old.OldConfigurationImporter;
-import net.pms.network.webguiserver.EventSourceServer;
+import net.pms.network.webguiserver.WebSocketDispatcher;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.FileWatcher;
 import org.apache.commons.lang.SerializationUtils;
@@ -50,6 +52,7 @@ public class SharedContentConfiguration {
 		.create();
 	private static final List<SharedContentListener> LISTENERS = new ArrayList<>();
 	private static final SharedContentArray SHARED_CONTENT_ARRAY = new SharedContentArray();
+	private static final String ERROR_CONF_FILE = "Error in shared content configuration file : ";
 
 	// Automatic reloading
 	private static boolean isWritingConfiguration = false;
@@ -174,7 +177,7 @@ public class SharedContentConfiguration {
 				if (save) {
 					writeConfiguration();
 				}
-				sendSseApiUpdate();
+				sendWebGuiUpdate();
 				if (PMS.isReady()) {
 					PMS.get().resetRenderersMediaStore();
 				}
@@ -228,6 +231,7 @@ public class SharedContentConfiguration {
 	 * That is:
 	 * On macOS:
 	 *    - /user/Movies
+	 *    - TODO: exclude /user/Movies/CacheClip
 	 *    - /user/Music
 	 *    - /user/Pictures
 	 *  On Windows:
@@ -238,8 +242,8 @@ public class SharedContentConfiguration {
 	 *    - /user
 	 */
 	private static synchronized void readAllConfigurations() {
-		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
 		try {
+			Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
 			if (Files.exists(sharedConfFilePath)) {
 				LOGGER.info("Getting shared content from configuration file : " + sharedConfFilePath);
 				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
@@ -256,24 +260,38 @@ public class SharedContentConfiguration {
 				}
 				updateSharedContent(oldConfig, true);
 			}
-		} catch (IOException | JsonSyntaxException ex) {
-			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
+		} catch (MalformedInputException ex) {
+			LOGGER.info(ERROR_CONF_FILE + "file is not UTF-8 charset");
+			LOGGER.debug(null, ex);
+			updateSharedContent(new SharedContentArray(), false);
+		} catch (JsonSyntaxException ex) {
+			LOGGER.info(ERROR_CONF_FILE + "json is malformed");
+			LOGGER.debug(null, ex);
+			updateSharedContent(new SharedContentArray(), false);
+		} catch (InvalidPathException | IOException ex) {
+			LOGGER.info(ERROR_CONF_FILE + ex.getMessage());
 			LOGGER.debug(null, ex);
 			updateSharedContent(new SharedContentArray(), false);
 		}
 	}
 
 	private static synchronized SharedContentArray readConfiguration() {
-		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
-		LOGGER.debug("Reading shared content configuration file: " + sharedConfFilePath);
 		try {
+			Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+			LOGGER.debug("Reading shared content configuration file: " + sharedConfFilePath);
 			if (Files.exists(sharedConfFilePath)) {
 				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
 				return GSON.fromJson(json, SharedContentArray.class);
 			}
 			LOGGER.trace("Shared content configuration file missing: " + sharedConfFilePath);
-		} catch (IOException | JsonSyntaxException ex) {
-			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
+		} catch (MalformedInputException ex) {
+			LOGGER.info(ERROR_CONF_FILE + "file is not UTF-8 charset");
+			LOGGER.debug(null, ex);
+		} catch (JsonSyntaxException ex) {
+			LOGGER.info(ERROR_CONF_FILE + "json is malformed");
+			LOGGER.debug(null, ex);
+		} catch (InvalidPathException | IOException ex) {
+			LOGGER.info(ERROR_CONF_FILE + ex.getMessage());
 			LOGGER.debug(null, ex);
 		}
 		return new SharedContentArray();
@@ -300,8 +318,8 @@ public class SharedContentConfiguration {
 			Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
 			LOGGER.debug("Writing shared content configuration file: " + sharedConfFilePath);
 			Files.writeString(sharedConfFilePath, GSON.toJson(SHARED_CONTENT_ARRAY), StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			LOGGER.debug("An error occurred while writing the shared content configuration file: {}", e);
+		} catch (InvalidPathException | IOException ex) {
+			LOGGER.debug("An error occurred while writing the shared content configuration file: {}", ex);
 		}
 		isWritingConfiguration = false;
 	}
@@ -313,13 +331,15 @@ public class SharedContentConfiguration {
 		}
 	}
 
-	private static synchronized void sendSseApiUpdate() {
-		JsonObject sharedMessage = new JsonObject();
-		sharedMessage.addProperty("action", "set_configuration_changed");
-		JsonObject sharedData = new JsonObject();
-		sharedData.add("shared_content", getAsJsonArray());
-		sharedMessage.add("value", sharedData);
-		EventSourceServer.broadcastSharedMessage(sharedMessage.toString());
+	private static synchronized void sendWebGuiUpdate() {
+		if (WebSocketDispatcher.hasSharedSession()) {
+			JsonObject jsonMessage = new JsonObject();
+			jsonMessage.addProperty("action", "set_configuration_changed");
+			JsonObject data = new JsonObject();
+			data.add("shared_content", getAsJsonArray());
+			jsonMessage.add("data", data);
+			WebSocketDispatcher.broadcastSharedMessage(jsonMessage.toString());
+		}
 	}
 
 }

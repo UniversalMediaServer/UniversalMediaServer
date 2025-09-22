@@ -14,35 +14,27 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Direction } from '@mantine/core';
-import { Context, createContext } from 'react';
+import { Direction } from '@mantine/core'
+import { Context, createContext } from 'react'
 
-export const I18nContext: Context<I18nInterface> = createContext({
+import { I18nInterface, LanguageValue, ValueLabelData } from '../services/i18n-service'
+
+const I18nContext: Context<I18nInterface> = createContext({
   get: (value: string) => { return value },
-  getI18nString: (value: string) => { return value },
-  getI18nFormat: (value: string[]) => { return value.length ? value[0] : '' },
+  getString: (value: string) => { return value },
+  getFormat: (values: string[]) => { return values.length ? values[0] : '' },
+  getValueLabelData: (values: ValueLabelData[] | undefined) => { return values },
+  getLocalizedName: (value: string | undefined) => { return value ? value : '' },
   language: 'en-US',
   dir: 'ltr' as Direction,
   languages: [] as LanguageValue[],
-  setLanguage: (_language: string) => { }
-});
+  setLanguage: (_language: string) => { },
+  getReportLink: () => { return undefined as React.ReactNode },
+  showServerUnreachable: () => { },
+  languageLoaded: false as boolean,
+  serverConnected: false as boolean,
+  serverReadyState: -1,
+  setServerReadyState: (_readyState: number) => { },
+})
 
-export interface I18nInterface {
-  get: (value: string) => string;
-  getI18nString: (value: string) => string;
-  getI18nFormat: (value: string[]) => string;
-  language: string;
-  dir: Direction;
-  languages: LanguageValue[];
-  setLanguage: (language: string) => void;
-}
-
-export interface LanguageValue {
-  id: string,
-  name: string,
-  defaultname: string,
-  country: string,
-  coverage: number,
-}
-
-export default I18nContext;
+export default I18nContext

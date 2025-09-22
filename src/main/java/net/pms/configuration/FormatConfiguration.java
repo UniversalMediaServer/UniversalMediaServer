@@ -32,6 +32,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.store.StoreItem;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,6 +200,7 @@ public class FormatConfiguration {
 		private String supportLine;
 		private String supportedEmbeddedSubtitlesFormats;
 		private String supportedExternalSubtitlesFormats;
+		private String supportedMuxingMode;
 
 		SupportSpec() {
 			this.mimeType = MIMETYPE_AUTO;
@@ -382,6 +384,7 @@ public class FormatConfiguration {
 		 *               - gop
 		 * @param subsFormat
 		 * @param isExternalSubs
+		 * @param muxingMode
 		 * @param renderer
 		 * @return False if any of the provided non-null parameters is not a
 		 * 			match, true otherwise.
@@ -402,6 +405,7 @@ public class FormatConfiguration {
 			Map<String, String> extras,
 			String subsFormat,
 			boolean isExternalSubs,
+			String muxingMode,
 			RendererConfiguration renderer
 		) {
 			// Satisfy a minimum threshold
@@ -467,6 +471,11 @@ public class FormatConfiguration {
 				}
 			}
 
+			if (muxingMode != null && Strings.CI.equals(muxingMode, "Packed bitstream") && supportedMuxingMode != null && supportedMuxingMode.equals("ub")) {
+				LOGGER.trace("Muxing mode \"{}\" failed to match support line {}", muxingMode, supportLine);
+				return false;
+			}
+
 			if (videoHdrFormatInRendererFormat != null && miExtras != null && miExtras.get(MI_HDR) != null) {
 				if (!miExtras.get(MI_HDR).matcher(videoHdrFormatInRendererFormat).matches()) {
 					/**
@@ -489,7 +498,7 @@ public class FormatConfiguration {
 					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrFormatInRendererFormat, supportLine);
 
 					final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
-					if (!StringUtils.equalsIgnoreCase(format, "mpegts") && isTsMuxeRVideoEngineActive) {
+					if (!Strings.CI.equals(format, "mpegts") && isTsMuxeRVideoEngineActive) {
 						/**
 						 * Calls this function again, with a TS container and without
 						 * HDR compatibility info, so we get either a STRICT match or none
@@ -510,6 +519,7 @@ public class FormatConfiguration {
 							extras,
 							subsFormat,
 							isExternalSubs,
+							muxingMode,
 							renderer
 						) != null;
 
@@ -663,6 +673,7 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
 				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
 				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getMuxingMode() : null,
 				renderer
 			);
 		}
@@ -695,6 +706,7 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
 				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
 				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getMuxingMode() : null,
 				renderer
 			);
 		}
@@ -718,24 +730,12 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
 				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
 				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getMuxingMode() : null,
 				renderer
 			);
 			finalMimeType = mimeType;
-
-			/**
-			 * If at least one audio track is not compatible, the file must be transcoded.
-			 *
-			 * Explanation: This was different in the past (see link below).
-			 * The reason it needs to be like this is because some files have the audio tracks
-			 * matching the Blu-rays, which is often a DTS variant main track, with other tracks
-			 * like commentary in Dolby Digital (AC-3), and for a media player that does not
-			 * support DTS that could result in the file being streamed with only the commentary
-			 * track playable, which is really annoying.
-			 *
-			 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/pull/2089/files#diff-3926da02948039b178d111df20a3d7ac43794b5941f24285d300f1c09cb33759R680
-			 */
-			if (mimeType == null) {
-				return null;
+			if (mimeType != null) { // if at least one audio track is compatible, the file can be streamed.
+				return finalMimeType;
 			}
 		}
 
@@ -759,6 +759,7 @@ public class FormatConfiguration {
 			null,
 			null,
 			false,
+			null,
 			null
 		);
 	}
@@ -791,8 +792,26 @@ public class FormatConfiguration {
 			null,
 			params.getSid().getType().name(),
 			params.getSid().isExternal(),
+			media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getMuxingMode() : null,
 			null
 		);
+	}
+
+
+	/**
+	 * Checks if renderer supports a specific mime type.
+	 * @param mimeType
+	 * @return
+	 */
+	public boolean supportsMimeType(String mimeType) {
+		for (SupportSpec supportSpec : supportSpecs) {
+			if (supportSpec.mimeType.equalsIgnoreCase(mimeType)) {
+				LOGGER.debug("renderer supports mime type {}", mimeType);
+				return true;
+			}
+		}
+		LOGGER.debug("renderer doesn't support mime type {}", mimeType);
+		return false;
 	}
 
 	public String getMatchedMIMEtype(
@@ -811,6 +830,7 @@ public class FormatConfiguration {
 		Map<String, String> extras,
 		String subsFormat,
 		boolean isInternal,
+		String muxingMode,
 		RendererConfiguration renderer
 	) {
 		String matchedMimeType = null;
@@ -832,6 +852,7 @@ public class FormatConfiguration {
 				extras,
 				subsFormat,
 				isInternal,
+				muxingMode,
 				renderer
 			)) {
 				matchedMimeType = supportSpec.mimeType;
@@ -875,6 +896,8 @@ public class FormatConfiguration {
 				supportSpec.supportedExternalSubtitlesFormats = token.substring(3).trim();
 			} else if (token.startsWith("fps:")) {
 				supportSpec.maxFramerate = token.substring(4).trim();
+			} else if (token.startsWith("mm:")) {
+				supportSpec.supportedMuxingMode = token.substring(3).trim();
 			} else if (token.contains(":")) {
 				// Extra MediaInfo stuff
 				if (supportSpec.miExtras == null) {

@@ -16,6 +16,7 @@
  */
 package net.pms.media.subtitle;
 
+import com.google.gson.JsonObject;
 import com.ibm.icu.text.CharsetMatch;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,6 +27,7 @@ import net.pms.media.MediaLang;
 import net.pms.util.Constants;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -277,7 +279,7 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 	 *         otherwise.
 	 */
 	public boolean isSubsUtf8() {
-		return StringUtils.equalsIgnoreCase(subsCharacterSet, Constants.CHARSET_UTF_8);
+		return Strings.CI.equals(subsCharacterSet, Constants.CHARSET_UTF_8);
 	}
 
 	/**
@@ -328,6 +330,32 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 		return convertedFile;
 	}
 
+	public JsonObject toJson() {
+		JsonObject result = new JsonObject();
+		result.addProperty("embedded", isEmbedded());
+		if (isEmbedded()) {
+			result.addProperty("id", getId());
+			result.addProperty("default", isDefault());
+			result.addProperty("forced", isForced());
+		}
+		if (StringUtils.isNotBlank(getTitle())) {
+			result.addProperty("title", getTitle());
+		}
+		result.addProperty("lang", getLang());
+		result.addProperty("type", getType().getShortName());
+		if (getStreamOrder() != null) {
+			result.addProperty("stream", getStreamOrder());
+		}
+		if (isExternal()) {
+			result.addProperty("externalFile", getExternalFile().toString());
+			result.addProperty("subsCharacterSet", getSubCharacterSet());
+		}
+		if (getConvertedFile() != null) {
+			result.addProperty("convertedFile", getConvertedFile().toString());
+		}
+		return result;
+	}
+
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
@@ -338,10 +366,10 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 		StringBuilder result = new StringBuilder();
 		if (isEmbedded()) {
 			result.append("Id: ").append(getId()).append(", Embedded");
-			if (forcedFlag) {
+			if (isDefault()) {
 				result.append(", Default");
 			}
-			if (forcedFlag) {
+			if (isForced()) {
 				result.append(", Forced");
 			}
 		} else {
