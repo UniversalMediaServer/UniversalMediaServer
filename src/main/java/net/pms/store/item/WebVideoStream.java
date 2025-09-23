@@ -27,7 +27,7 @@ public class WebVideoStream extends WebStream {
 	}
 
 	public WebVideoStream(Renderer renderer, String fluxName, String url, String thumbURL, Map<String, String> directives) {
-		super(renderer, fluxName, url, thumbURL, Format.VIDEO, null);
+		super(renderer, fluxName, url, thumbURL, Format.VIDEO, directives);
 	}
 
 }

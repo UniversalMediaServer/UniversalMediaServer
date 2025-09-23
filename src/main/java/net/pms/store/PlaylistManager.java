@@ -89,10 +89,8 @@ public class PlaylistManager {
 		} else {
 			relativePath = calculateRelativeEntryPath(Paths.get(filenameToRemove), playlistPath);
 		}
-		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 
-		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
-			writePlaylistToDisk(playlistEntries, playlistPath);
+		if (playlistFolder.deleteEntry(filenameToRemove) || playlistFolder.deleteEntry(relativePath)) {
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
 			Long containerId = MediaTableFiles.getFileId(playlistPath.toString());
 			Long entryId = MediaTableFiles.getFileId(filenameToRemove);
@@ -218,9 +216,9 @@ public class PlaylistManager {
 	}
 
 	private static boolean isValidPlaylist(String filename) {
-		return (filename.endsWith(".m3u") ||
-				filename.endsWith(".m3u8") ||
-				filename.endsWith(".pls"));
+		return (filename.toLowerCase().endsWith(".m3u") ||
+				filename.toLowerCase().endsWith(".m3u8") ||
+				filename.toLowerCase().endsWith(".pls"));
 	}
 
 	public static StoreContainer getPlaylist(Renderer renderer, String name, String uri, int type) {
@@ -230,7 +228,7 @@ public class PlaylistManager {
 		}
 		Format f = FormatFactory.getAssociatedFormat("." + ext);
 		if (f != null && f.getType() == Format.PLAYLIST) {
-			switch (f.getMatchedExtension()) {
+			switch (f.getMatchedExtension().toLowerCase()) {
 				case "m3u", "m3u8", "pls" -> {
 					return new PlaylistFolder(renderer, name, uri, type);
 				}
