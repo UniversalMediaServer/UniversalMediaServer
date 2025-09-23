@@ -21,6 +21,7 @@
 - Bump `axios` from 1.11.0 to 1.12.2 ([#5739](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5739), [#5758](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5758))
 - Bump `com.github.oshi:oshi-core` from 6.8.3 to 6.9.0 ([#5756](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5756))
 - Bump `com.google.code.gson:gson` from 2.13.1 to 2.13.2 ([#5743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5743))
+- Bump `com.google.guava:guava` from 33.4.8-jre to 33.5.0-jre ([#5754](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5754))
 - Bump `com.puppycrawl.tools:checkstyle` from 11.0.0 to 11.0.1 ([#5724](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5724))
 - Bump `com.zaxxer:HikariCP` from 7.0.1 to 7.0.2 ([#5714](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5714))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.17 to 0.12.18 ([#5755](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5755))
