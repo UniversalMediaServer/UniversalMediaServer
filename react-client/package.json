@@ -21,7 +21,7 @@
     "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar",
     "private:removeconfig:macos": "rm -rf ~/Library/'Application Support'/UMS-tests"
   },
-  "packageManager": "yarn@4.9.2",
+  "packageManager": "yarn@4.10.2",
   "dependencies": {
     "@mantine/core": "8.3.1",
     "@mantine/dropzone": "8.3.1",
@@ -36,7 +36,7 @@
     "lodash": "4.17.21",
     "react": "19.1.1",
     "react-country-flag": "3.1.0",
-    "react-dom": "19.1.0",
+    "react-dom": "^19.1.1",
     "react-movable": "3.4.1",
     "react-router-dom": "7.9.1",
     "react-use-websocket": "4.13.0",
@@ -47,7 +47,7 @@
     "@stylistic/eslint-plugin": "5.4.0",
     "@types/lodash": "4.17.20",
     "@types/react": "19.1.13",
-    "@types/react-dom": "19.1.6",
+    "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "5.0.2",
     "eslint": "9.32.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
