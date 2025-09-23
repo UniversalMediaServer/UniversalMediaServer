@@ -1704,7 +1704,6 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.09.05/yt-dlp_linux_armv7l" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
