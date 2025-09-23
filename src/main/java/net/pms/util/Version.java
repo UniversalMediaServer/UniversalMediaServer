@@ -250,7 +250,6 @@ public final class Version implements Comparable<Version> {
 	 *
 	 * @return The string representation of the version.
 	 */
-	// XXX guava (1.8 MB): Ints.join(".", elements)
 	@Override
 	public String toString() {
 		StringBuilder buf = new StringBuilder();
