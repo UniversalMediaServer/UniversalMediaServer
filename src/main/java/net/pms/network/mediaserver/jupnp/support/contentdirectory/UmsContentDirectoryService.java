@@ -39,6 +39,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.MediaScanner;
 import net.pms.store.MediaStatusStore;
@@ -684,9 +685,15 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		//
 		// Renderer do not browse the CDS but control points. However, the object tree is at the moment held by a renderer object.
-		// Therefore, we just take the default renderer for "storing" the CDS items.
+		// Therefore, we just take the "control point"-renderer for accessing CDS items.
 		//
-		Renderer renderer = RendererConfigurations.getDefaultRenderer();
+		Renderer renderer = ControlPoint.getRenderer();
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Control Point failed to initialize.");
+			}
+			return null;
+		}
 
 		if (objectID == null || objectID.length() == 0) {
 			objectID = "0";
