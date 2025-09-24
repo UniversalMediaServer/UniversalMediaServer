@@ -39,6 +39,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.MediaScanner;
 import net.pms.store.MediaStatusStore;
@@ -736,11 +737,10 @@ public class UmsContentDirectoryService {
 			SortCriterion[] sortCriteria,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
+		Renderer renderer = ControlPoint.getRenderer();
 		if (renderer == null) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
+				LOGGER.trace("Control Point failed to initialize.");
 			}
 			return null;
 		}
