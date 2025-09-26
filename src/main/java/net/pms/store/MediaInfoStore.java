@@ -153,37 +153,7 @@ public class MediaInfoStore {
 				}
 
 				if (mediaInfo == null) {
-					mediaInfo = new MediaInfo();
-					String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
-					mediaInfo.setResourceId(resourceHash);
-					if (format != null) {
-						Parser.parse(mediaInfo, input, format, type);
-					} else {
-						// Don't think that will ever happen
-						FFmpegParser.parse(mediaInfo, input, format, type);
-					}
-
-					mediaInfo.waitMediaParsing(5);
-					if (connection != null && mediaInfo.isMediaParsed()) {
-						try {
-							MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
-						} catch (SQLException e) {
-							LOGGER.error(
-								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
-								filename,
-								e.getMessage());
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("SQL error code: {}", e.getErrorCode());
-								if (
-									e.getCause() instanceof SQLException &&
-									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
-								) {
-									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
-								}
-								LOGGER.trace("", e);
-							}
-						}
-					}
+					mediaInfo = updateMediaInfoFromFile(filename, file, format, type, connection, input);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
@@ -205,6 +175,50 @@ public class MediaInfoStore {
 			}
 			return mediaInfo;
 		}
+	}
+
+	public static MediaInfo updateMediaInfoFromFile(String filename, File file, Format format, int type, Connection connection, InputFile input) {
+		MediaInfo mediaInfo;
+		mediaInfo = new MediaInfo();
+		String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
+		mediaInfo.setResourceId(resourceHash);
+		if (format != null) {
+			Parser.parse(mediaInfo, input, format, type);
+		} else {
+			// Don't think that will ever happen
+			FFmpegParser.parse(mediaInfo, input, format, type);
+		}
+
+		mediaInfo.waitMediaParsing(5);
+
+		if (connection == null) {
+			connection = MediaDatabase.getConnectionIfAvailable();
+		}
+		try {
+			if (connection != null && mediaInfo.isMediaParsed()) {
+				try {
+					MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+				} catch (SQLException e) {
+					LOGGER.error(
+						"Database error while trying to add parsed information for \"{}\" to the cache: {}",
+						filename,
+						e.getMessage());
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("SQL error code: {}", e.getErrorCode());
+						if (
+							e.getCause() instanceof SQLException &&
+							((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
+						) {
+							LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+						}
+						LOGGER.trace("", e);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("update media info error.", e);
+		}
+		return mediaInfo;
 	}
 
 	public static MediaInfo getWebStreamMediaInfo(String url, int type) {
