@@ -40,8 +40,10 @@ import net.pms.renderers.devices.MediaScannerDevice;
 import net.pms.store.container.DVDISOFile;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RealFolder;
+import net.pms.store.item.RealFile;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
+import net.pms.util.InputFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
@@ -345,6 +347,29 @@ public class MediaScanner implements SharedContentListener {
 		}
 	}
 
+	private static void updateFileEntry(String filename) {
+		File file = new File(filename);
+		Runnable r = () -> {
+				// Advise renderers about added file.
+			File f = new File(filename);
+			InputFile input = new InputFile();
+			input.setFile(file);
+			StoreResource sr = RENDERER.getMediaStore().createResourceFromFile(f);
+			if (sr instanceof RealFile rf) {
+				rf.resolveFormat();
+				if (MediaInfoStore.updateMediaInfoFromFile(filename, f, rf.getFormat(), rf.getType(), null, input) != null) {
+					MediaStoreIds.incrementSystemUpdateId();
+				}
+
+				for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+					connectedRenderer.getMediaStore().fileUpdated(file);
+				}
+			}
+		};
+		new Thread(r, "MediaScanner File Parser - update").start();
+	}
+
+
 	/**
 	 * Parses a file and adds it to the database along the way.
 	 *
@@ -515,6 +540,9 @@ public class MediaScanner implements SharedContentListener {
 					parseFileEntry(new File(filename), true, false);
 				} else if (ENTRY_DELETE.equals(event)) {
 					removeFileEntry(filename);
+				} else if (ENTRY_MODIFY.equals(event)) {
+					// TODO Rescan file (read file info's)
+					updateFileEntry(filename);
 				} else {
 					parseFileEntry(new File(filename), false, false);
 				}

@@ -111,8 +111,8 @@ public class ConnectedRenderers {
 						List<String> identifiers = getIdentifiers(userAgentString, headers);
 						renderer.setIdentifiers(identifiers);
 						LOGGER.info(
-								"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
-								StringUtils.join(identifiers, "\n")
+								"Media renderer was not recognized from IP {}. Possible identifying HTTP headers:\n{}",
+								ia.toString(), StringUtils.join(identifiers, "\n")
 						);
 						PMS.get().setRendererFound(renderer);
 					}

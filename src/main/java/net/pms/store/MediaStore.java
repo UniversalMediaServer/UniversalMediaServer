@@ -726,6 +726,15 @@ public class MediaStore extends StoreContainer {
 		}
 	}
 
+	public void fileUpdated(File file) {
+		// invalidate cache
+		File parentFile = file.getParentFile();
+		for (StoreResource storeResource : findSystemFileResources(parentFile)) {
+			renderer.getMediaStore().deleteWeakResource(storeResource);
+		}
+	}
+
+
 	private StoreResource findResourceFromFile(List<StoreResource> resources, File file) {
 		if (file == null || file.isHidden() || !file.canRead() || !(file.isFile() || file.isDirectory())) {
 			return null;
@@ -957,5 +966,4 @@ public class MediaStore extends StoreContainer {
 			Thread.sleep(100);
 		}
 	}
-
 }
