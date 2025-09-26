@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### General
+- Added support for updating album art objects via UPnP
 - Improved stability of YouTube video playback
 - Improved performance
 - Fixed support for playlist files without headers (#5736) (thanks, @CyDragon80!)
@@ -11,6 +12,10 @@
 - Fixed web player errors
 - Fixed Recently Added folder missing videos
 - Fixed order of videos in the Unwatched variant of the Recently Added folder
+
+### Translation updates via Crowdin
+- Czech (100%)
+- Persian (43%) (thanks, Mehrshad Shafaghi Omam!)
 
 ### Dependencies
 - Bump `@playwright/test` from 1.54.2 to 1.55.0 ([#5722](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5722))
@@ -25,6 +30,7 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 11.0.0 to 11.0.1 ([#5724](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5724))
 - Bump `com.zaxxer:HikariCP` from 7.0.1 to 7.0.2 ([#5714](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5714))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.17 to 0.12.18 ([#5755](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5755))
+- Bump `Mantine` from 7.17.8 to 8.3.1
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.14.0 to 3.14.1 ([#5759](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5759))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.3 to 3.5.4 ([#5744](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5744))
 - Bump `org.eclipse.angus:angus-activation` from 2.0.2 to 2.0.3 ([#5745](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5745))
