@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `react-router-dom` from 7.9.1 to 7.9.3 ([#5770](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5770))
+
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
 
 ### General
