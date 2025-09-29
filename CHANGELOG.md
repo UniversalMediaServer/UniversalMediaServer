@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `@tabler/icons-react` from 3.34.1 to 3.35.0 ([#5768](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5768))
+
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
 
 ### General
