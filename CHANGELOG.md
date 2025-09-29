@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `@types/react` from 19.1.13 to 19.1.15 ([#5767](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5767))
+
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
 
 ### General
