@@ -21,7 +21,7 @@ public class RatingBackupManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RatingBackupManager.class.getName());
 	private final static String RATINGS_READ = "SELECT FILES.RUID, AUDIO_METADATA.RATING FROM FILES LEFT JOIN AUDIO_METADATA ON FILES.ID = AUDIO_METADATA.FILEID WHERE RATING is not null";
-	private final static String RATINGS_WRITE = "UPDATE AUDIO_METADATA a SET a.RATING = ? WHERE a.FILEID = (SELECT ID from FILES WHERE RUID = ?)";
+	private final static String RATINGS_WRITE = "UPDATE AUDIO_METADATA a SET a.RATING = ? WHERE a.FILEID in (SELECT ID from FILES WHERE RUID = ?)";
 
 	public RatingBackupManager() {
 
@@ -76,7 +76,7 @@ public class RatingBackupManager {
 					if (numUpdates == 1) {
 						updated++;
 					} else if (numUpdates > 1) {
-						LOGGER.warn("Got multiple results for RUID : '{}'. This shouldn't happen.", ruid);
+						LOGGER.info("File exists multiple times on file system. RUID : '{}'.", ruid);
 						updated++;
 					} else {
 						skipped++;
