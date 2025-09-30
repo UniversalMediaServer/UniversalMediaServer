@@ -15,6 +15,8 @@
 - Fixed web player errors
 - Fixed Recently Added folder missing videos
 - Fixed order of videos in the Unwatched variant of the Recently Added folder
+- Fixed broken web interface on Docker (#5765)
+- Fixed tsMuxeR and yt-dlp binaries not executable on Docker (#5721)
 - Discontinued YouTube video support for Linux armhf (32-bit) release, because yt-dlp stopped supporting that architecture. You can still compile it for yourself.
 
 ### Translation updates via Crowdin
