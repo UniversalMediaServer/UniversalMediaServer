@@ -726,11 +726,17 @@ public class MediaStore extends StoreContainer {
 		}
 	}
 
+	/**
+	 * File can have different structure after an update. Therefore, read file metadata again.
+	 * @param file
+	 */
 	public void fileUpdated(File file) {
-		// invalidate cache
-		File parentFile = file.getParentFile();
-		for (StoreResource storeResource : findSystemFileResources(parentFile)) {
-			renderer.getMediaStore().deleteWeakResource(storeResource);
+		for (StoreResource storeResource : findSystemFileResources(file)) {
+			if (storeResource instanceof RealFile rf) {
+				rf.setMediaInfo(null);
+				MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
+				rf.resolve();
+			}
 		}
 	}
 

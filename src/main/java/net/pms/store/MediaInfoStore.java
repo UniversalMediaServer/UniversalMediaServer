@@ -501,6 +501,12 @@ public class MediaInfoStore {
 		return removed;
 	}
 
+	public static void removeMediaEntryFromCache(String filename) {
+		synchronized (STORE) {
+			STORE.remove(filename);
+		}
+	}
+
 	public static void clear() {
 		synchronized (STORE) {
 			STORE.clear();
