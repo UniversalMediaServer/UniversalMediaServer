@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 import org.apache.commons.io.FilenameUtils;
@@ -30,15 +30,17 @@ public class RatingBackupManager {
 	public static void backupRatings() {
 		Properties p = new Properties();
 		Connection c = MediaDatabase.getConnectionIfAvailable();
+		int items = 0;
 		try (PreparedStatement selectStatement = c.prepareStatement(RATINGS_READ)) {
 			try (ResultSet rs = selectStatement.executeQuery()) {
 				while (rs.next()) {
-					p.put(rs.getString("ruid"), rs.getInt("rating"));
+					p.put(rs.getString("ruid"), rs.getString("rating"));
+					items++;
 				}
 				String backupFilename = getBackupFilename();
 				try (FileOutputStream fs = new FileOutputStream(new File(backupFilename))) {
 					DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-					p.store(fs, "ratings backup from " + formatter.format(LocalDate.now()));
+					p.store(fs, "ratings backup from " + formatter.format(LocalDateTime.now()));
 				} catch (IOException e) {
 					LOGGER.error("backup rating failed", e);
 				}
@@ -46,11 +48,16 @@ public class RatingBackupManager {
 		} catch (SQLException e) {
 			LOGGER.error("backup rating failed", e);
 		}
+		LOGGER.info("save {} items into backup file {} ", items, getBackupFilename());
 	}
 
 	public static void restoreRating() {
 		String backupFilename = getBackupFilename();
-		try (FileInputStream fis = new FileInputStream(new File(backupFilename))) {
+		File f = new File(backupFilename);
+		if (!f.exists()) {
+			throw new RuntimeException("Backup file not present.");
+		}
+		try (FileInputStream fis = new FileInputStream(f)) {
 			Properties p = new Properties();
 			p.load(fis);
 			LOGGER.debug("[restoreRating] read {} items.", p.size());
@@ -62,8 +69,8 @@ public class RatingBackupManager {
 			for (Object oruid : p.keySet()) {
 				try (PreparedStatement updateStatement = c.prepareStatement(RATINGS_WRITE)) {
 					String ruid = (String) oruid;
-					Integer rating = Integer.parseInt(ruid);
-					updateStatement.setLong(1, rating);
+					String rating = (String) p.get(oruid);
+					updateStatement.setLong(1, Integer.parseInt(rating));
 					updateStatement.setString(2, ruid);
 					if (updateStatement.executeUpdate() == 1) {
 						updated++;
@@ -77,6 +84,7 @@ public class RatingBackupManager {
 					LOGGER.warn("restoreRating failed for entry {} ", oruid, e);
 				}
 			}
+			LOGGER.info("Updated {} items. Skipped {} items.", updated, skipped);
 		} catch (IOException e) {
 			LOGGER.error("restore rating failed", e);
 		}
