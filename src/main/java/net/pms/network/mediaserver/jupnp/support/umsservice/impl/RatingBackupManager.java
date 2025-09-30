@@ -93,6 +93,10 @@ public class RatingBackupManager {
 
 	private static String getBackupFilename() {
 		String dir = FilenameUtils.concat(UmsConfiguration.getProfileDirectory(), "database_backup");
+		File mydir = new File(dir);
+		if (!mydir.exists()) {
+			mydir.mkdirs();
+		}
 		String backupFilename = FilenameUtils.concat(dir, "ratings_backup");
 		return backupFilename;
 	}
