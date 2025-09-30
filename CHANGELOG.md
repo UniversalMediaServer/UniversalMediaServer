@@ -38,16 +38,22 @@
 
 ## [Unreleased]
 
+## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
+
 ### General
+- Added new Ubuntu Docker release which might improve stability, we will release both for a while until we get feedback from you
 - Added support for updating album art objects via UPnP
 - Improved stability of YouTube video playback
-- Improved performance
+- Improved performance, especially of the web interfaces
 - Fixed support for playlist files without headers (#5736) (thanks, @CyDragon80!)
 - Fixed notifying renderers of new files before we parsed them
 - Fixed videos sometimes not being parsed if they were added at the same time as 2 parent directories
 - Fixed web player errors
 - Fixed Recently Added folder missing videos
 - Fixed order of videos in the Unwatched variant of the Recently Added folder
+- Fixed broken web interface on Docker (#5765)
+- Fixed tsMuxeR and yt-dlp binaries not executable on Docker (#5721)
+- Discontinued YouTube video support for Linux armhf (32-bit) release, because yt-dlp stopped supporting that architecture. You can still compile it for yourself.
 
 ### Translation updates via Crowdin
 - Czech (100%)
@@ -81,6 +87,7 @@
 - Bump `vite` from 7.0.6 to 7.1.6 ([#5731](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5731), [#5735](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5735), [#5753](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5753))
 - Bump `yt-dlp` from 2025.08.20 to 2025.09.05
 - Removed `jackson-databind`
+- Removed `yt-dlp` for Linux armhf (32-bit), because they stopped making it. If you need it you will need to compile it yourself
 
 ## [15.0.0 - Since 14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.1...15.0.0) (2025-08-23)
 
