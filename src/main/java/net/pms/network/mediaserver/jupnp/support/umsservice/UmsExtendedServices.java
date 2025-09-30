@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
 
@@ -192,4 +193,27 @@ public class UmsExtendedServices {
 		LOG.debug("dislike album with musicbrainz release id {} ", musicBrainzReleaseId);
 		likeMusic.dislikeAlbum(musicBrainzReleaseId);
 	}
+
+	@UpnpAction
+	public void backupRatings() throws UmsExtendedServicesException {
+		LOG.debug("backing up ratings ... ");
+		try {
+			RatingBackupManager.backupRatings();
+		} catch (Exception e) {
+			LOG.error("failed backup ratings", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
+		}
+	}
+
+	@UpnpAction
+	public void restoreRatings() throws UmsExtendedServicesException {
+		LOG.debug("restoring ratings ... ");
+		try {
+			RatingBackupManager.restoreRating();
+		} catch (Exception e) {
+			LOG.warn("restore failed", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
+		}
+	}
+
 }
