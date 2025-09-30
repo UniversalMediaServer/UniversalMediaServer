@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `org.apache.commons:commons-lang3` from 3.18.0 to 3.19.0 ([#5772](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5772))
+
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
 
 ### General
