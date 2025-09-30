@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `com.h2database:h2` from 2.3.232 to 2.4.240 ([#5774](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5774))
+
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
 
 ### General
