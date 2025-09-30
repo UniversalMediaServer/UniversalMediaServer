@@ -72,9 +72,10 @@ public class RatingBackupManager {
 					String rating = (String) p.get(oruid);
 					updateStatement.setLong(1, Integer.parseInt(rating));
 					updateStatement.setString(2, ruid);
-					if (updateStatement.executeUpdate() == 1) {
+					int numUpdates = updateStatement.executeUpdate();
+					if (numUpdates == 1) {
 						updated++;
-					} else if (updateStatement.executeUpdate() > 1) {
+					} else if (numUpdates > 1) {
 						LOGGER.warn("Got multiple results for RUID : '{}'. This shouldn't happen.", ruid);
 						updated++;
 					} else {
