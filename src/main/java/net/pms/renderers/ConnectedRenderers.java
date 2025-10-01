@@ -36,6 +36,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.SpeedStats;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
@@ -143,6 +144,7 @@ public class ConnectedRenderers {
 		renderers.addAll(REACT_CLIENT_RENDERERS.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
 		renderers.addAll(PMS.get().getFoundRenderers());
+		renderers.add(ControlPoint.getRenderer());
 		return renderers;
 	}
 
