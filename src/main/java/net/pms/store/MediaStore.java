@@ -588,13 +588,16 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
+		LOGGER.info("findSystemFileResources for file {} ", file.getAbsolutePath());
 		List<StoreResource> systemFileResources = new ArrayList<>();
 		synchronized (weakResources) {
 			for (WeakReference<StoreResource> resource : weakResources.values()) {
-				if (resource.get() instanceof SystemFileResource systemFileResource &&
-						file.equals(systemFileResource.getSystemFile()) &&
+				if (resource.get() instanceof SystemFileResource systemFileResource) {
+					LOGGER.info("  - weak cache entry {} ", systemFileResource.getSystemFile().getAbsolutePath());
+					if (file.equals(systemFileResource.getSystemFile()) &&
 						systemFileResource instanceof StoreResource storeResource) {
-					systemFileResources.add(storeResource);
+						systemFileResources.add(storeResource);
+					}
 				}
 			}
 		}
@@ -731,6 +734,9 @@ public class MediaStore extends StoreContainer {
 	 * @param file
 	 */
 	public void fileUpdated(File file) {
+		if (findSystemFileResources(file).isEmpty()) {
+			LOGGER.info("  file not in cache for renderer {}  : {} ", getRenderer().getUUID(), file.getAbsolutePath());
+		}
 		for (StoreResource storeResource : findSystemFileResources(file)) {
 			if (storeResource instanceof RealFile rf) {
 				LOGGER.info("  removing media info : {} ", file.getAbsolutePath());

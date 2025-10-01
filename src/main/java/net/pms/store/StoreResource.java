@@ -948,4 +948,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		return null;
 	}
 
+	public Renderer getRenderer() {
+		return renderer;
+	}
 }
