@@ -356,6 +356,7 @@ public class MediaScanner implements SharedContentListener {
 			input.setFile(file);
 			StoreResource sr = RENDERER.getMediaStore().createResourceFromFile(f);
 			if (sr instanceof RealFile rf) {
+				LOGGER.info("updating file {} ...", rf.getFileName());
 				rf.resolveFormat();
 				if (MediaInfoStore.updateMediaInfoFromFile(filename, f, rf.getFormat(), rf.getType(), null, input) != null) {
 					MediaStoreIds.incrementSystemUpdateId();
