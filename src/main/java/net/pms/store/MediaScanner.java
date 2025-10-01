@@ -538,6 +538,7 @@ public class MediaScanner implements SharedContentListener {
 				} else if (ENTRY_DELETE.equals(event)) {
 					removeFileEntry(filename);
 				} else if (ENTRY_MODIFY.equals(event)) {
+					LOGGER.info("File updated : {} ", filename);
 					parseFileEntry(f, false, false);
 					updateFileEntry(filename);
 					ConnectedRenderers.invalidateRendererCache(f);
