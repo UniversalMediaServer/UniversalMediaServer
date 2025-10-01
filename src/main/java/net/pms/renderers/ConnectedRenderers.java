@@ -575,9 +575,9 @@ public class ConnectedRenderers {
 	 */
 	public static void invalidateRendererCache(File file) {
 		LOGGER.info("invalidateRendererCache for file {} ", file);
-		
+
 		for (Renderer connectedRenderer : getConnectedRenderers()) {
-			LOGGER.info("  renderer : {} ", connectedRenderer.getUpnpDetailsString());
+			LOGGER.info("  renderer uuid : {} ", connectedRenderer.getUUID());
 			connectedRenderer.getMediaStore().fileUpdated(file);
 		}
 	}

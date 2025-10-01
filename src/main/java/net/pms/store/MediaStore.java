@@ -733,9 +733,12 @@ public class MediaStore extends StoreContainer {
 	public void fileUpdated(File file) {
 		for (StoreResource storeResource : findSystemFileResources(file)) {
 			if (storeResource instanceof RealFile rf) {
+				LOGGER.info("  removing media info : {} ", file.getAbsolutePath());
 				rf.setMediaInfo(null);
 				MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
+				LOGGER.info("  removeMediaEntryFromCache : {} ", file.getAbsolutePath());
 				rf.resolve();
+				LOGGER.info("  resolved : {} ", file.getAbsolutePath());
 			}
 		}
 	}
