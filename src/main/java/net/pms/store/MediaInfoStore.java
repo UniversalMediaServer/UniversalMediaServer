@@ -178,7 +178,7 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo updateMediaInfoFromFile(String filename, File file, Format format, int type, Connection connection, InputFile input) {
-		LOGGER.info("updating media info for file {} - Format : {}", filename, format);
+		LOGGER.trace("updating media info for file {} - Format : {}", filename, format);
 		MediaInfo mediaInfo;
 		mediaInfo = new MediaInfo();
 		String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
@@ -191,7 +191,7 @@ public class MediaInfoStore {
 		}
 
 		mediaInfo.waitMediaParsing(5);
-		LOGGER.info("  media info MB IDs : {} - {} - {}", mediaInfo.getAudioMetadata().getMbidRecord(), mediaInfo.getAudioMetadata().getMbidTrack());
+		LOGGER.trace("  media info MB IDs : {} - {}", mediaInfo.getAudioMetadata().getMbidRecord(), mediaInfo.getAudioMetadata().getMbidTrack());
 
 		if (connection == null) {
 			connection = MediaDatabase.getConnectionIfAvailable();
@@ -199,10 +199,10 @@ public class MediaInfoStore {
 		try {
 			if (connection != null && mediaInfo.isMediaParsed()) {
 				try {
-					LOGGER.info("  updating database ... ", mediaInfo.getAudioMetadata().getMbidRecord(), mediaInfo.getAudioMetadata().getMbidTrack());
+					LOGGER.trace("  updating database ... ", mediaInfo.getAudioMetadata().getMbidRecord(), mediaInfo.getAudioMetadata().getMbidTrack());
 					MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
 				} catch (SQLException e) {
-					LOGGER.error(
+					LOGGER.trace(
 						"Database error while trying to add parsed information for \"{}\" to the cache: {}",
 						filename,
 						e.getMessage());
