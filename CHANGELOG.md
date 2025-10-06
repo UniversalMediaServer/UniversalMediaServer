@@ -3,7 +3,9 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.13.4 to 6.0.0 ([#5788](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5788))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.13.4 to 6.0.0 ([#5788](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5788))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
 
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
