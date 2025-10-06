@@ -3,7 +3,8 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
+- Bump `eslint-plugin-react-refresh` from 0.4.20 to 0.4.23 ([#5785](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5785))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
 
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
