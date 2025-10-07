@@ -588,12 +588,12 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
-		LOGGER.info("findSystemFileResources for file {} ", file.getAbsolutePath());
+		LOGGER.trace("findSystemFileResources for file {} ", file.getAbsolutePath());
 		List<StoreResource> systemFileResources = new ArrayList<>();
 		synchronized (weakResources) {
 			for (WeakReference<StoreResource> resource : weakResources.values()) {
 				if (resource.get() instanceof SystemFileResource systemFileResource) {
-					LOGGER.info("  - weak cache entry {} ", systemFileResource.getSystemFile().getAbsolutePath());
+					LOGGER.trace("  - weak cache entry {} ", systemFileResource.getSystemFile().getAbsolutePath());
 					if (file.equals(systemFileResource.getSystemFile()) &&
 						systemFileResource instanceof StoreResource storeResource) {
 						systemFileResources.add(storeResource);
