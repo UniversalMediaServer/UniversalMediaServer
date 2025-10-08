@@ -576,10 +576,10 @@ public class ConnectedRenderers {
 	 * @param file
 	 */
 	public static void invalidateRendererCache(File file) {
-		LOGGER.debug("invalidateRendererCache for file {} ", file);
+		LOGGER.info("invalidateRendererCache for file {} ", file);
 
 		for (Renderer connectedRenderer : getConnectedRenderers()) {
-			LOGGER.trace("  renderer uuid : {} ", connectedRenderer.getUUID());
+			LOGGER.info("  renderer uuid : {} ", connectedRenderer.getUUID());
 			connectedRenderer.getMediaStore().fileUpdated(file);
 		}
 	}

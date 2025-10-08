@@ -21,6 +21,26 @@ public class ControlPoint extends Renderer {
 	}
 
 	@Override
+	public String getUUID() {
+		return "22a40c51-f735-4b62-a376-ab9450fcf1e2";
+	}
+
+	@Override
+	public boolean isActive() {
+		return true;
+	}
+
+	@Override
+	public boolean isControllable() {
+		return true;
+	}
+
+	@Override
+	public boolean isControllable(int type) {
+		return true;
+	}
+
+	@Override
 	public String getRendererName() {
 		return "ControlPoint";
 	}
