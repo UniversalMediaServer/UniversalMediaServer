@@ -12,7 +12,6 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], t
 ## Current Project Members
 
 * [ik666][32]
-* [js-kyle][31]
 * [mik_s][7]
 * [SubJunk][3]
 * [SurfaceS][33]
@@ -44,6 +43,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], t
 * ExSport
 * happy.neko
 * [infidel][6]
+* [js-kyle][31]
 * [Nadahar][15]
 * Raptor399
 * Redlum
