@@ -595,7 +595,6 @@ public class MediaStore extends StoreContainer {
 		synchronized (weakResources) {
 			for (WeakReference<StoreResource> resource : weakResources.values()) {
 				if (resource.get() instanceof SystemFileResource systemFileResource) {
-					LOGGER.trace("  - weak cache entry {} ", systemFileResource.getSystemFile().getAbsolutePath());
 					if (file.equals(systemFileResource.getSystemFile()) &&
 						systemFileResource instanceof StoreResource storeResource) {
 						systemFileResources.add(storeResource);
