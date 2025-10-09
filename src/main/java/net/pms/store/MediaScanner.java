@@ -523,6 +523,7 @@ public class MediaScanner implements SharedContentListener {
 			 * give us information about those new files, as it wasn't listening
 			 * when they were created, so make sure we parse them.
 			 */
+			LOGGER.info("FILE CHANGE : {}", filename);
 			File f = new File(filename);
 			if (isDir) {
 				if (ENTRY_CREATE.equals(event)) {
