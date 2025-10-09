@@ -191,7 +191,6 @@ public class MediaInfoStore {
 		}
 
 		mediaInfo.waitMediaParsing(5);
-		LOGGER.trace("  media info MB IDs : {} - {}", mediaInfo.getAudioMetadata().getMbidRecord(), mediaInfo.getAudioMetadata().getMbidTrack());
 
 		if (connection == null) {
 			connection = MediaDatabase.getConnectionIfAvailable();
@@ -199,7 +198,6 @@ public class MediaInfoStore {
 		try {
 			if (connection != null && mediaInfo.isMediaParsed()) {
 				try {
-					LOGGER.trace("  updating database ... ", mediaInfo.getAudioMetadata().getMbidRecord(), mediaInfo.getAudioMetadata().getMbidTrack());
 					MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
 				} catch (SQLException e) {
 					LOGGER.trace(
