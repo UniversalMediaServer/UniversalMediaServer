@@ -458,8 +458,8 @@ public class MediaStore extends StoreContainer {
 			}
 			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					// this is direct acceded resource.
-					// as we don't know what was it's parent, let find one or fail.
+					// this is a directly accessed resource.
+					// as we don't know what its parent was, let's find one or fail.
 					DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
 					return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
 				} catch (Exception e) {
