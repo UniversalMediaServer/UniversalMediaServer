@@ -152,8 +152,9 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails(
 			"LG TV 2023+",
-			"# modelDescription=LG WebOSTV DMRplus OLED65C3AUA",
-			"modelNumber=65QNED91T6A"
+			"modelDescription=LG WebOSTV DMRplus OLED65C3AUA",
+			"modelNumber=65QNED91T6A",
+			"modelDescription=LG WebOSTV DMRplus OLED65M5AUA"
 		);
 
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
