@@ -315,7 +315,7 @@ public class RendererConfigurationTest {
 			"modelName=QA65Q60BASXNZ, modelDescription=Samsung TV",
 			"modelName=UA65BU8000SXNZ, modelDescription=Samsung TV",
 			"modelName=UA65BU8500SXNZ, modelDescription=Samsung TV",
-			"modelName=QA65QE1CASXNZ, modelDescription=Samsung TV", // 2023 starts here (C Series)
+			// 2023 starts here (C Series)
 			"modelName=UA65CU8500SXNZ, modelDescription=Samsung TV",
 			"modelName=UA65CU7000SXNZ, modelDescription=Samsung TV",
 			"modelName=UA65CU8000SXNZ, modelDescription=Samsung TV",
@@ -323,10 +323,10 @@ public class RendererConfigurationTest {
 			"modelName=QA65Q60CASXNZ, modelDescription=Samsung TV",
 			"modelName=QA65S95CASXNZ, modelDescription=Samsung TV",
 			"friendlyName=Samsung Q68CA 43, manufacturer=Samsung Electronics, modelName=TQ43Q68CAUXXC, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
-			"modelName=UA65DU7700SXNZ, modelDescription=Samsung TV", // 2024 starts here (D Series)
+			// 2024 starts here (D Series)
+			"modelName=UA65DU7700SXNZ, modelDescription=Samsung TV",
 			"modelName=UA65DU8000SXNZ, modelDescription=Samsung TV",
-			"modelName=UA65DU8500SXNZ, modelDescription=Samsung TV",
-			"modelName=QA65QE1DASXNZ, modelDescription=Samsung TV"
+			"modelName=UA65DU8500SXNZ, modelDescription=Samsung TV"
 		);
 
 		testUPNPDetails(
@@ -364,12 +364,18 @@ public class RendererConfigurationTest {
 			"modelName=QA65QN90BASXNZ, modelDescription=Samsung TV",
 			"modelName=QA65QN95BASXNZ, modelDescription=Samsung TV",
 			// 2023 starts here (C Series)
+			"modelName=QA65QE1CASXNZ, modelDescription=Samsung TV",
 			"modelName=QA65Q70CASXNZ, modelDescription=Samsung TV",
 			"modelName=QA65Q80CASXNZ, modelDescription=Samsung TV",
 			"modelName=QA65QN90CASXNZ, modelDescription=Samsung TV",
 			// 2024 starts here (D Series)
+			"modelName=QA85QE1DASXNZ, modelDescription=Samsung TV",  // 85" QLED QE1D 4K Smart TV
+			"modelName=QA85Q70DASXNZ, modelDescription=Samsung TV",  // 85" QLED Q70D 4K Smart TV
 			"modelName=QA98QN90DASXNZ, modelDescription=Samsung TV", // 98" Neo QLED 4K QN90D Smart AI TV
 			// 2025 starts here (F Series)
+			"modelName=QA85Q7FAASXNZ, modelDescription=Samsung TV",  // 85" QLED Q7F 4K Samsung Vision AI Smart TV (2025)
+			"modelName=QA85QEF1ASXNZ, modelDescription=Samsung TV",  // 85" QLED QEF1 4K Samsung Vision AI Smart TV (2025)
+			"modelName=QA85Q8FAASXNZ, modelDescription=Samsung TV",  // 85" QLED Q8F 4K Samsung Vision AI Smart TV (2025)
 			"modelName=QA75QN85FASXNZ, modelDescription=Samsung TV", // 75" Neo QLED QN85F 4K Samsung Vision AI Smart TV (2025)
 			"modelName=QA55QN3EFASXNZ, modelDescription=Samsung TV", // 55" Neo QLED QN3EF 4K Samsung Vision AI Smart TV (2025)
 			"modelName=QA65QN1EFASXNZ, modelDescription=Samsung TV", // 65" Neo QLED QN1EF 4K Samsung Vision AI Smart TV (2025)
