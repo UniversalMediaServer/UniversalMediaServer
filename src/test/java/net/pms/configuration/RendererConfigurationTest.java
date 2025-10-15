@@ -303,7 +303,7 @@ public class RendererConfigurationTest {
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
 		testUPNPDetails(
-			"Samsung TV 2019+",
+			"Samsung UHD TV 2019+",
 			"modelName=QN49Q70RAFXZA, modelDescription=Samsung TV", // 2019 starts here (R Series)
 			"modelName=QN75Q90RAFXZA, modelDescription=Samsung TV",
 			"modelName=QE55LS03RAUXXH, modelDescription=Samsung TV",
@@ -326,7 +326,14 @@ public class RendererConfigurationTest {
 			// 2024 starts here (D Series)
 			"modelName=UA65DU7700SXNZ, modelDescription=Samsung TV",
 			"modelName=UA65DU8000SXNZ, modelDescription=Samsung TV",
-			"modelName=UA65DU8500SXNZ, modelDescription=Samsung TV"
+			"modelName=UA65DU8500SXNZ, modelDescription=Samsung TV", // 65" Crystal UHD DU8500 4K Smart TV
+			"modelName=UA98DU9000SXNZ", // 98" Crystal UHD DU9000 4K Smart TV
+			"modelName=UA85DU7700SXNZ", // 85" Crystal UHD DU7700 4K Smart TV
+			"modelName=UA85DU7000SXNZ", // 85" Crystal UHD DU7000 4K Smart TV
+			// 2025 Crystal UHD
+			"modelName=UA43UE100FSXNZ", // 43" Crystal UHD UE100F 4K Smart TV (2025)
+			"modelName=UA75U8500FSXNZ", // 75" Crystal UHD U8500F 4K Smart TV (2025)
+			"modelName=UA75U8000FSXNZ" // 75" Crystal UHD U8000F 4K Smart TV (2025)
 		);
 
 		testUPNPDetails(
