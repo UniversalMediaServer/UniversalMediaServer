@@ -393,6 +393,16 @@ public class RendererConfigurationTest {
 			"modelName=QA75QN900FSXNZ, modelDescription=Samsung TV", // 75" Neo QLED QN900F 8K Samsung Vision AI Smart TV (2025)
 			"modelName=QA100QN80FSXNZ, modelDescription=Samsung TV" // 100" Neo QLED QN80F 4K Samsung Vision AI Smart TV (2025)
 		);
+		testUPNPDetails(
+			"Samsung OLED",
+			"S95C",
+			// 2024 starts here (D Series)
+			"modelName=QA83S90DAEXNZ", // 83" OLED S90D 4K Smart AI TV
+			// 2025 starts here (F Series)
+			"modelName=QA55S95FASXNZ", // 55" OLED S95F 4K Samsung Vision AI Smart TV (2025)
+			"modelName=QA83S90FAEXNZ", // 83" OLED S90F 4K Samsung Vision AI Smart TV (2025)
+			"modelName=QA83S85FAEXNZ" // 83" OLED S85F 4K Samsung Vision AI Smart TV (2025)
+		);
 
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
 
