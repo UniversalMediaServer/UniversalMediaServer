@@ -145,7 +145,7 @@ public class MediaTableStoreIds extends MediaTable {
 	/**
 	 * Get an id for a StoreResource.
 	 *
-	 * Usefull for the MediaStore to use the old known id if any.
+	 * Useful for the MediaStore to use the old known id if any.
 	 *
 	 * @param connection
 	 * @param resource
@@ -183,9 +183,9 @@ public class MediaTableStoreIds extends MediaTable {
 	}
 
 	/**
-	 * Retreive the last known object from id.
+	 * Retrieve the last known object from id.
 	 *
-	 * Usefull when a renderer ask an object that need to be recreated.
+	 * Useful when a renderer asks for an object that needs to be recreated.
 	 *
 	 * @param connection
 	 * @param id

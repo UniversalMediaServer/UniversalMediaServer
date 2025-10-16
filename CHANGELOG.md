@@ -3,8 +3,14 @@
 ## [Unreleased]
 
 ### Dependencies
-
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
+- Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.13.4 to 6.0.0 ([#5788](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5788))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.13.4 to 6.0.0 ([#5788](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5788))
 
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
 
@@ -21,7 +27,7 @@
 - Fixed order of videos in the Unwatched variant of the Recently Added folder
 - Fixed broken web interface on Docker (#5765)
 - Fixed tsMuxeR and yt-dlp binaries not executable on Docker (#5721)
-- Discontinued YouTube video support for Linux armhf (32-bit) release, because yt-dlp stopped supporting that architecture. You can still compile it for yourself.
+- Discontinued YouTube video support for Linux armhf (32-bit) release, because yt-dlp stopped supporting that architecture. You can still compile it yourself.
 
 ### Translation updates via Crowdin
 - Czech (100%)
@@ -55,7 +61,7 @@
 - Bump `vite` from 7.0.6 to 7.1.6 ([#5731](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5731), [#5735](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5735), [#5753](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5753))
 - Bump `yt-dlp` from 2025.08.20 to 2025.09.05
 - Removed `jackson-databind`
-- Removed `yt-dlp` for Linux armhf (32-bit), because they stopped making it. If you need it you will need to compile it yourself
+- Removed `yt-dlp` for Linux armhf (32-bit), because they stopped making it. If you need it, you will need to compile it yourself
 
 ## [15.0.0 - Since 14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.1...15.0.0) (2025-08-23)
 

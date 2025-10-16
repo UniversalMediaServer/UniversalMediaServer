@@ -65,7 +65,7 @@ public class Messages {
 	}
 
 	/**
-	 * Creates a resource bundle based on the given <code>Local</code> and
+	 * Creates a resource bundle based on the given <code>Locale</code> and
 	 * keeps this for use by any calls to {@link #getString(String)}. If
 	 * no matching <code>ResourceBundle</code> can be found, one is chosen
 	 * from a number of candidates according to
