@@ -24,7 +24,7 @@ import { playerApiUrl } from '../../utils'
 import VideoMetadataEditButton from './VideoMetadataEditButton'
 import { showError } from '../../utils/notifications'
 
-export default function MediaEditButton({ i18n, player, fullyplayed, videoMetadataEditable, refreshPage, setLoading, setShowVideoMetadataEdit }: { i18n: I18nInterface, player: PlayerInterface, fullyplayed?: boolean, videoMetadataEditable?: boolean, refreshPage: () => void, setLoading: (loading: boolean) => void, setShowVideoMetadataEdit: (loading: boolean) => void }) {
+export default function MediaEditButton({ i18n, player, fullyplayed, videoMetadataEditable, isFolder, refreshPage, setLoading, setShowVideoMetadataEdit }: { i18n: I18nInterface, player: PlayerInterface, fullyplayed?: boolean, videoMetadataEditable?: boolean, isFolder?: boolean, refreshPage: () => void, setLoading: (loading: boolean) => void, setShowVideoMetadataEdit: (loading: boolean) => void }) {
   const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
     setLoading(true)
     axios.post(playerApiUrl + 'setFullyPlayed', { uuid: player.uuid, id, fullyPlayed }, { headers: { Player: player.uuid } })
@@ -61,7 +61,7 @@ export default function MediaEditButton({ i18n, player, fullyplayed, videoMetada
               leftSection={<IconRecordMail />}
               onClick={() => setFullyPlayed(player.reqId, true)}
             >
-              {i18n.get('MarkContentsFullyPlayed')}
+              {i18n.get(isFolder ? 'MarkContentsFullyPlayed' : 'MarkFullyPlayed')}
             </Menu.Item>
           )}
         {fullyplayed === true
@@ -71,7 +71,7 @@ export default function MediaEditButton({ i18n, player, fullyplayed, videoMetada
               leftSection={<IconRecordMailOff />}
               onClick={() => setFullyPlayed(player.reqId, false)}
             >
-              {i18n.get('MarkContentsUnplayed')}
+              {i18n.get(isFolder ? 'MarkContentsUnplayed' : 'MarkUnplayed')}
             </Menu.Item>
           )}
         {videoMetadataEditable
