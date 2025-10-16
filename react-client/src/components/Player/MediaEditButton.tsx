@@ -71,7 +71,7 @@ export default function MediaEditButton({ i18n, player, fullyplayed, videoMetada
               leftSection={<IconRecordMailOff />}
               onClick={() => setFullyPlayed(player.reqId, false)}
             >
-              {i18n.get(isFolder ? 'MarkContentsUnplayed' : 'MarkUnplayed')}
+              {i18n.get('MarkContentsUnplayed')}
             </Menu.Item>
           )}
         {videoMetadataEditable
