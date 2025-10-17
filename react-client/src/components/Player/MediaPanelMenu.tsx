@@ -61,7 +61,7 @@ export default function MediaPanelMenu({ i18n, player, data, refreshPage, setLoa
         </Button.Group>
 
       )
-      : hasEditMenu
+    : hasEditMenu
       ? (
           <Button.Group>
             {isVideoMetadataEditable
