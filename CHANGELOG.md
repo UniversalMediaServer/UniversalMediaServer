@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@mantine/core` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/dropzone` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/form` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/hooks` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/modals` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/notifications` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
