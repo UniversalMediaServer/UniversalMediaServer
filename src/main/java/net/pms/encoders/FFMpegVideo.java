@@ -382,7 +382,7 @@ public class FFMpegVideo extends Engine {
 					) ||
 					!params.getAid().isAC3()
 				) &&
-				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid(), encodingFormat) &&
+				renderer.doesAudioStreamMatchTranscodingGoal(params.getAid(), encodingFormat) &&
 				!isAviSynthEngine() &&
 				!isSubtitlesAndTimeseek &&
 				ffmpegSupportsRemuxingAudioStreamToTranscodingContainer(params.getAid(), encodingFormat.getTranscodingContainer())
@@ -401,7 +401,7 @@ public class FFMpegVideo extends Engine {
 					if (!configuration.isAudioRemuxAC3() && params.getAid().isAC3()) {
 						LOGGER.trace(logPrepend + "audio is AC-3 and the user setting to remux AC-3 is disabled");
 					}
-					if (!renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid(), encodingFormat)) {
+					if (!renderer.doesAudioStreamMatchTranscodingGoal(params.getAid(), encodingFormat)) {
 						LOGGER.trace(logPrepend + "audio stream type {} is not supported inside the container {}", params.getAid().getAudioCodec(), encodingFormat);
 					}
 					if (!ffmpegSupportsRemuxingAudioStreamToTranscodingContainer(params.getAid(), encodingFormat.getTranscodingContainer())) {
@@ -970,7 +970,7 @@ public class FFMpegVideo extends Engine {
 		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, null)) {
+			if (!renderer.doesDefaultVideoStreamMatchTranscodingGoal(media, encodingFormat)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (item.isInsideTranscodeFolder()) {
