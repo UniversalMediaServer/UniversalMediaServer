@@ -12,6 +12,7 @@
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.13.4 to 6.0.0 ([#5788](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5788))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.13.4 to 6.0.0 ([#5788](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5788))
+- Bump `stefanzweifel/git-auto-commit-action` from 5 to 7 ([#5799](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5799))
 - Bump `typescript-eslint` from 8.44.0 to 8.45.0 ([#5787](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5787))
 
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
