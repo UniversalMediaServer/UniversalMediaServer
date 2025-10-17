@@ -629,7 +629,7 @@ public class FormatConfiguration {
 	/**
 	 * Match media information to audio codecs supported by the renderer and
 	 * return its MIME type if the match is successful.
-	 * 
+	 *
 	 * Returns null if the media is not natively supported by the renderer,
 	 * which means it has to be transcoded.
 	 *
