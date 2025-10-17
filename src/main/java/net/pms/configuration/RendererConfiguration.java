@@ -1087,16 +1087,15 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns whether or not the renderer can handle the given format
-	 * natively, based on its configuration in the renderer.conf. If it can
-	 * handle a format natively, content can be streamed to the renderer. If
-	 * not, content should be transcoded before sending it to the renderer.
+	 * Returns whether the renderer can handle the given format natively,
+	 * based on its configuration in the renderer.conf. If it can, content
+	 * can be streamed to the renderer. If not, content should be
+	 * transcoded before sending it to the renderer.
 	 *
 	 * @param resource The {@link StoreItem} information parsed from the
-	 * 				media file.
+	 *                 media file.
 	 * @param format The {@link Format} to test compatibility for.
-	 * @return True if the renderer natively supports the format, false
-	 * 				otherwise.
+	 * @return whether the renderer natively supports the format
 	 */
 	public boolean isCompatible(StoreItem resource, Format format) {
 		MediaInfo mediaInfo;
@@ -1108,12 +1107,14 @@ public class RendererConfiguration extends BaseConfiguration {
 
 		if (
 			umsConfiguration != null &&
-			(umsConfiguration.isDisableTranscoding() ||
-			(format != null &&
-			format.skip(umsConfiguration.getDisableTranscodeForExtensions())))
+			(
+				umsConfiguration.isDisableTranscoding() ||
+				(format != null && format.skip(umsConfiguration.getDisableTranscodeForExtensions()))
+			)
 		) {
 			return true;
 		}
+
 		// Handle images differently because of automatic image transcoding
 		if (format != null && format.isImage()) {
 			if (
