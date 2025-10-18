@@ -44,7 +44,7 @@ export default function MediaPanelMenu({ i18n, player, data, refreshPage, setLoa
           {isVideoMetadataEditable
             && <VideoMetadataEditModal i18n={i18n} uuid={player.uuid} id={player.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />}
           {hasEditMenu
-            && <MediaEditButton i18n={i18n} player={player} fullyplayed={fullyplayed} videoMetadataEditable={isVideoMetadataEditable} refreshPage={refreshPage} setLoading={setLoading} setShowVideoMetadataEdit={setShowVideoMetadataEdit} />}
+            && <MediaEditButton i18n={i18n} player={player} fullyplayed={fullyplayed} videoMetadataEditable={isVideoMetadataEditable} isFolder={false} refreshPage={refreshPage} setLoading={setLoading} setShowVideoMetadataEdit={setShowVideoMetadataEdit} />}
           {data.useWebControl && (
             <Tooltip withinPortal label={i18n.get('PlayOnAnotherRenderer')}>
               <Button variant="default" disabled size="compact-md" onClick={() => { }}><IconCast size={14} /></Button>
@@ -66,7 +66,7 @@ export default function MediaPanelMenu({ i18n, player, data, refreshPage, setLoa
           <Button.Group>
             {isVideoMetadataEditable
               && <VideoMetadataEditModal i18n={i18n} uuid={player.uuid} id={player.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />}
-            <MediaEditButton i18n={i18n} player={player} fullyplayed={fullyplayed} videoMetadataEditable={isVideoMetadataEditable} refreshPage={refreshPage} setLoading={setLoading} setShowVideoMetadataEdit={setShowVideoMetadataEdit} />
+            <MediaEditButton i18n={i18n} player={player} fullyplayed={fullyplayed} videoMetadataEditable={isVideoMetadataEditable} isFolder={true} refreshPage={refreshPage} setLoading={setLoading} setShowVideoMetadataEdit={setShowVideoMetadataEdit} />
           </Button.Group>
         )
       : undefined
