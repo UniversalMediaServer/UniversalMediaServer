@@ -478,6 +478,47 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *
 	 * @param media
 	 * @param encodingFormat the EncodingFormat for transcoding
+	 * @return whether the default video stream matches this renderer's transcoding goal
+	 */
+	public boolean doesDefaultVideoStreamMatchTranscodingGoal(MediaInfo media, EncodingFormat encodingFormat) {
+		if (media.getDefaultVideoTrack() == null) {
+			return true;
+		}
+
+		return (
+			(encodingFormat.isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
+			(encodingFormat.isTranscodeToH265() && media.getDefaultVideoTrack().isH265()) ||
+			(encodingFormat.isTranscodeToMPEG2() && media.getDefaultVideoTrack().isMpeg2())
+		);
+	}
+
+	/**
+	 * This is used to determine whether transcoding engines can safely remux
+	 * audio streams into the transcoding container instead of re-encoding
+	 * them to the same format.
+	 * There is a lot of logic necessary to determine that and this is only
+	 * one step in the process.
+	 *
+	 * @param audio
+	 * @param encodingFormat
+	 * @return whether the audio stream matches this renderer's transcoding goal
+	 */
+	public boolean doesAudioStreamMatchTranscodingGoal(MediaAudio audio, EncodingFormat encodingFormat) {
+		return (
+			(encodingFormat.isTranscodeToAAC() && audio.isAACLC()) ||
+			(encodingFormat.isTranscodeToAC3() && audio.isAC3())
+		);
+	}
+
+	/**
+	 * This is used to determine whether transcoding engines can safely remux
+	 * video streams into the transcoding container instead of re-encoding
+	 * them to the same format.
+	 * There is a lot of logic necessary to determine that and this is only
+	 * one step in the process.
+	 *
+	 * @param media
+	 * @param encodingFormat the EncodingFormat for transcoding
 	 * @param transcodingContainerOverride override the transcoding container to
 	 *                                     see whether it would be compatible in
 	 *                                     another one
@@ -490,36 +531,12 @@ public class RendererConfiguration extends BaseConfiguration {
 		}
 
 		if (getFormatConfiguration() == null) {
-			return (
-				(encodingFormat.isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
-				(encodingFormat.isTranscodeToH265() && media.getDefaultVideoTrack().isH265())
-			);
+			return doesDefaultVideoStreamMatchTranscodingGoal(media, encodingFormat);
 		}
 
 		String transcodingContainer = transcodingContainerOverride != null ? transcodingContainerOverride : encodingFormat.getTranscodingContainer();
 
 		return getFormatConfiguration().getMatchedMIMEtype(transcodingContainer, media.getDefaultVideoTrack().getCodec(), null) != null;
-	}
-
-	/**
-	 * This is used to determine whether transcoding engines can safely remux
-	 * audio streams into the transcoding container instead of re-encoding
-	 * them to the same format.
-	 * There is a lot of logic necessary to determine that and this is only
-	 * one step in the process.
-	 *
-	 * @param audio
-	 * @return whether this renderer supports the audio stream type of this
-	 *         resource inside the container it wants for transcoding.
-	 */
-	public boolean isAudioStreamTypeSupportedInTranscodingContainer(MediaAudio audio, EncodingFormat encodingFormat) {
-		if (getFormatConfiguration() == null) {
-			return (
-				(encodingFormat.isTranscodeToAAC() && audio.isAACLC()) ||
-				(encodingFormat.isTranscodeToAC3() && audio.isAC3())
-			);
-		}
-		return getFormatConfiguration().getMatchedMIMEtype(encodingFormat.getTranscodingContainer(), null, audio.getCodec()) != null;
 	}
 
 	public Map<String, String> getMimeTranslations() {
