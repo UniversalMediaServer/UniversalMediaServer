@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### General
+- Added Audioaddict Network support
+- Only remux video and audio streams if they match the transcoding goal
+- Ignore commentary tracks when checking renderer compatibility
+- Update metadata when a file has been modified
+- Rename "mark contents fully played" on individual media page (thanks, sccalabr!)
+- Fixed the transcoding settings tab needing two clicks to change settings
+- Fixed typos and linguistic errors in documentation (thanks, Sebastien Dionne!)
+- Fixed failed playback in some situations
+
+### Media players
+- Added detection of more 2024 and 2025 LG TVs
+- Added detection of more Samsung OLED, QLED and UHD LED TVs
+
 ### Dependencies
 - Bump `@mantine/core` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
 - Bump `@mantine/dropzone` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
@@ -16,6 +30,7 @@
 - Bump `com.h2database:h2` from 2.3.232 to 2.4.240 ([#5774](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5774))
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.5 to 4.0.6 ([#5773](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5773))
 - Bump `eslint-plugin-react-refresh` from 0.4.20 to 0.4.23 ([#5785](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5785))
+- Bump `FFmpeg` from 2025-07-21 to 8.0
 - Bump `jna-version` from 5.17.0 to 5.18.0 ([#5771](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5771))
 - Bump `org.apache.commons:commons-lang3` from 3.18.0 to 3.19.0 ([#5772](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5772))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
@@ -29,6 +44,7 @@
 - Bump `react` from 19.1.1 to 19.2.0 ([#5786](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5786))
 - Bump `stefanzweifel/git-auto-commit-action` from 5 to 7 ([#5799](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5799))
 - Bump `typescript-eslint` from 8.44.0 to 8.45.0 ([#5787](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5787))
+- Bump `yt-dlp` from 2025.09.05 to 2025.10.14
 
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
 
