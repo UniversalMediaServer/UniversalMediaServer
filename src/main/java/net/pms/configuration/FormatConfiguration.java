@@ -628,9 +628,10 @@ public class FormatConfiguration {
 
 	/**
 	 * Match media information to audio codecs supported by the renderer and
-	 * return its MIME type if the match is successful.Returns null if the
-	 * media is not natively supported by the renderer, which means it has
-	 * to be transcoded.
+	 * return its MIME type if the match is successful.
+	 *
+	 * Returns null if the media is not natively supported by the renderer,
+	 * which means it has to be transcoded.
 	 *
 	 * @param item The StoreItem
 	 * @param renderer
@@ -641,6 +642,7 @@ public class FormatConfiguration {
 		if (media == null) {
 			return null;
 		}
+
 		int frameRate = 0;
 		if (media.getFrameRate() != null) {
 			try {
@@ -655,6 +657,7 @@ public class FormatConfiguration {
 				LOGGER.trace("", e);
 			}
 		}
+
 		if (media.getDefaultAudioTrack() == null) {
 			// no sound
 			return getMatchedMIMEtype(
@@ -714,6 +717,11 @@ public class FormatConfiguration {
 		String finalMimeType = null;
 
 		for (MediaAudio audio : media.getAudioTracks()) {
+			// ignore commentary tracks, that is probably not what the user is interested in
+			if (audio.getTitle() != null && StringUtils.containsIgnoreCase(audio.getTitle(), "commentary")) {
+				continue;
+			}
+
 			String mimeType = getMatchedMIMEtype(
 				media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,

@@ -1,94 +1,119 @@
-# Universal Media Server Fork
+# Universal Media Server
+![Universal Media Server CI](https://github.com/UniversalMediaServer/UniversalMediaServer/workflows/CI/badge.svg) [![Crowdin](https://badges.crowdin.net/universalmediaserver/localized.svg)](https://crowdin.com/project/universalmediaserver)
 
-This fork is based on [Universal Media Server](https://www.universalmediaserver.com).
-
-Universal Media Server is a DLNA, UPnP and HTTP/S Media Server.
+[<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA, UPnP and HTTP/S Media Server.
 It is capable of sharing video, audio and images between most modern devices.
 It was originally based on PS3 Media Server by shagrath, in order to ensure greater stability and file-compatibility.
 
-### Why is the fork needed
+Universal Media Server supports all major operating systems, with versions for Windows, Linux and macOS.
+The program streams or transcodes many different media formats with little or no configuration.
+It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], tsMuxeR, AviSynth, VLC, and more, which combine to offer support for a wide range of media formats.
 
-The current implementation of Universal Media Server (UMS) hasn't migrated all needed features for the best integration scenarios with other control points like [NextCP/2](https://sf666.github.io/nextcp2/overview/overview/), a control point focusing on audio user experiance. Furthermore, it is primarily optimized for video playback on TVs in a 2-box setup (since version 14), because of the UUID authorization impementation. This fork aims to address these limitations by introducing enhancements and new functionalities tailored to the needs of audiophile users.
+## Current Project Members
+
+* [ik666][32]
+* [mik_s][7]
+* [SubJunk][3]
+* [SurfaceS][33]
+* [valib][5]
+
+## Sponsors
+
+* [Architecture of Sales][35]
+
+[Become a sponsor][36]
+
+## Links
+
+* [Website][1]
+* [Forum][9]
+* [Source code][10]
+* [Official Releases][11]
+* [Issue tracker][12]
+* [Knowledge Base][13]
+* [Infrastructure status][37]
+* [Comparison of popular media servers][2]
+
+## Thanks
+
+##### Thanks for major code contributions:
+
+* chocolateboy
+* ditlew
+* ExSport
+* happy.neko
+* [infidel][6]
+* [js-kyle][31]
+* [Nadahar][15]
+* Raptor399
+* Redlum
+* renszarv
+* [SharkHunter][4]
+* skeptical
+* taconaut
+* tcox
+* [threedguru][34]
+* tomeko
+
+##### Thanks for documentation and contributions to the community:
+
+* DeFlanko
+* meskibob
+* Optimus_prime
+* otmanix
+* [squadjot][30]
+
+##### Thanks for significant/frequent language translations:
+
+* [AlfredoRamos][19]
+* [josepma][16]
+* [kaolsz][23]
+* [Kirvx][17]
+* [leroy][18]
+* [OnarEngincan][22]
+* [prescott_sk][24]
+* [squadjot][21]
+* [Tianuchka][20]
+
+##### Special Thanks:
+
+* boblinds and snoots for the network test cases :)
+* sarraken, bleuecinephile, bd.azerty, fabounnet for the support and feedback
+* ...And you!
 
 
-Major improvement over the original implementation is an accurate renderer identification in a three-box setup — a configuration widely used by users who prioritize high - quality audio playback. With this enhancement, you can control your UPnP streaming devices through your preferred control point applications, such as BubbleUPnP, DENON HEOS App or the LINN App. The correct renderer configuration will be used, no matter to which renderer device you stream the content.
-
-
-> [!CAUTION]
-> To support the 3-box setup, the UMS "authorization" feature has been disabled on the server side. The UI let's you still configure it, but it will be ignored.
-
-## Additional features supported by UMS fork
-
-> [!IMPORTANT]  
-> The features listed below are supported on the server side. This means you don't have to copy your files between your media library and you client machine or mount a network drive. The UMS fork handles all the actions on the server side!
-
-  - Like Music Albums
-  - Star Rating Support
-  - Resources Rating
-  - Server Side Playlist support
-    - create new playlists
-    - delete playlists
-    - add songs to playlist
-    - remove songs from playlist
-  - Album art updates for resources (i.e. internet radio station) 
-
-
-## Docker installation 
-
-The quickest way to install this fork is by using a Docker container. This guide assumes that Docker is already installed on your system. If not, please refer to the official Docker documentation for installation instructions.
-
-The following example uses `docker compose` to set up this fork of Universal Media Server (UMS) in a single command.
-
-Create a `docker-compose.yml` file in your project directory and add the following content:
-
-```yaml
-services:
-  ums:
-    container_name: ums
-    network_mode: host
-    restart: unless-stopped
-#    user: '1009:1003'
-    volumes:
-      - [MEDIA_VOLUME]:/media/music
-      - ums_public:/profile
-    environment:
-      JAVA_TOOL_OPTIONS: '-Xms2048m -Xmx4096m -XX:+UseShenandoahGC -Xbootclasspath/a:/ums/web/react-client -Dums.profile.path=/profile -Dfile.encoding=UTF-8'
-    image: ik6666/ums:latest
-
-volumes:
-  ums_public:
-    external: true
-```
-
-Replace `[MEDIA_VOLUME]` with the path to your media files on the host system. This will mount the media directory into the UMS container. For example, if your media files are located at `/path/to/your/music`, replace `[MEDIA_VOLUME]` with `/path/to/your/music`.
-If you want the container to run under a specific user ID and group ID, make sure to uncomment and adjust the `user` property in the `ums` service section. The example uses `1009:1003`, which you can change to match your system’s user and group IDs.
-
-Create the external volumes `ums_public` if they do not exist yet. You can do this by running the following commands:
-
-```bash
-docker volume create ums_public
-```
-
-Check if the volumes were created successfully:
-
-```bash
-docker volume ls
-``` 
-
-The docker volumes are used to persist data across container restarts. The `ums_public` volume is used by UMS to store its configuration and its data.
-If you want to use a different volume name, make sure to update the `docker-compose.yml` file accordingly.
-
-To start the containers, run the following command in the directory where your `docker-compose.yml` file is located:
-
-```bash
-docker-compose up -d
-```
-
-To stop the containers, run:
-
-```bash
-docker-compose down
-```
-
-There is also a [docker installation example](https://sf666.github.io/nextcp2/quick_install/docker/) if you want to use this fork together with NextCP/2 control point in the same environment.
-
+  [1]: https://www.universalmediaserver.com
+  [2]: https://www.universalmediaserver.com/comparison/
+  [3]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=2
+  [4]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=62
+  [5]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=683
+  [6]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=171
+  [7]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=10450
+  [8]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=1194
+  [9]: https://www.universalmediaserver.com/forum
+  [10]: https://github.com/UniversalMediaServer/UniversalMediaServer
+  [11]: https://www.universalmediaserver.com/downloads/
+  [12]: https://github.com/UniversalMediaServer/UniversalMediaServer/issues?state=open
+  [13]: https://support.universalmediaserver.com
+  [15]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=4025
+  [16]: https://github.com/josepma
+  [17]: https://github.com/kirvx
+  [18]: https://github.com/ler0y
+  [19]: https://github.com/AlfredoRamos
+  [20]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=573
+  [21]: https://github.com/squadjot
+  [22]: https://crowdin.com/profile/OnarEngincan
+  [23]: https://github.com/K4r0lSz
+  [24]: https://github.com/prescott66
+  [26]: http://www.mplayerhq.hu/
+  [27]: https://www.ffmpeg.org/
+  [28]: https://mediaarea.net/en/MediaInfo
+  [29]: https://crowdin.com/
+  [30]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=55
+  [31]: https://github.com/js-kyle
+  [32]: https://github.com/ik666
+  [33]: https://github.com/SurfaceS
+  [34]: https://github.com/threedguru
+  [35]: https://architectureofsales.com
+  [36]: https://www.patreon.com/universalmediaserver
+  [37]: https://stats.uptimerobot.com/k0YIB5IOhL

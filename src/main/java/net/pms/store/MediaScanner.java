@@ -349,18 +349,20 @@ public class MediaScanner implements SharedContentListener {
 
 	private static void updateFileEntry(String filename) {
 		File file = new File(filename);
-			// Advise renderers about added file.
-		File f = new File(filename);
-		InputFile input = new InputFile();
-		input.setFile(file);
-		StoreResource sr = RENDERER.getMediaStore().createResourceFromFile(f);
-		if (sr instanceof RealFile rf) {
-			LOGGER.info("updating file {} ...", rf.getFileName());
-			rf.resolveFormat();
-			if (MediaInfoStore.updateMediaInfoFromFile(filename, f, rf.getFormat(), rf.getType(), null, input) != null) {
-				MediaStoreIds.incrementSystemUpdateId();
+		Runnable r = () -> {
+				// Advise renderers about added file.
+			File f = new File(filename);
+			InputFile input = new InputFile();
+			input.setFile(file);
+			StoreResource sr = RENDERER.getMediaStore().createResourceFromFile(f);
+			if (sr instanceof RealFile rf) {
+				rf.resolveFormat();
+				if (MediaInfoStore.updateMediaInfoFromFile(filename, f, rf.getFormat(), rf.getType(), null, input) != null) {
+					MediaStoreIds.incrementSystemUpdateId();
+				}
 			}
-		}
+		};
+		new Thread(r, "MediaScanner File Parser - update").start();
 	}
 
 
@@ -523,7 +525,6 @@ public class MediaScanner implements SharedContentListener {
 			 * give us information about those new files, as it wasn't listening
 			 * when they were created, so make sure we parse them.
 			 */
-			LOGGER.info("FILE CHANGE : {}", filename);
 			File f = new File(filename);
 			if (isDir) {
 				if (ENTRY_CREATE.equals(event)) {
@@ -537,7 +538,6 @@ public class MediaScanner implements SharedContentListener {
 				} else if (ENTRY_DELETE.equals(event)) {
 					removeFileEntry(filename);
 				} else if (ENTRY_MODIFY.equals(event)) {
-					LOGGER.info("File updated : {} ", filename);
 					parseFileEntry(f, false, false);
 					ConnectedRenderers.invalidateRendererCache(f);
 				} else {

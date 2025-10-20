@@ -38,9 +38,60 @@
 
 ## [Unreleased]
 
-### Dependencies
+### General
+- Added Audioaddict Network support
+- Only remux video and audio streams if they match the transcoding goal
+- Ignore commentary tracks when checking renderer compatibility
+- Update metadata when a file has been modified
+- Rename "mark contents fully played" on individual media page (thanks, sccalabr!)
+- Fixed the transcoding settings tab needing two clicks to change settings
+- Fixed typos and linguistic errors in documentation (thanks, Sebastien Dionne!)
+- Fixed failed playback in some situations
 
+### Media players
+- Added detection of more 2024 and 2025 LG TVs
+- Added detection of more Samsung OLED, QLED and UHD LED TVs
+
+### Dependencies
+- Bump `@mantine/core` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/dropzone` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/form` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/hooks` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/modals` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@mantine/notifications` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@playwright/test` from 1.55.0 to 1.56.1 ([#5812](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5812))
+- Bump `@stylistic/eslint-plugin` from 5.4.0 to 5.5.0 ([#5814](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5814))
+- Bump `@tabler/icons-react` from 3.34.1 to 3.35.0 ([#5768](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5768))
+- Bump `@types/react` from 19.1.13 to 19.2.0 ([#5786](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5786))
+- Bump `@vitejs/plugin-react` from 5.0.2 to 5.0.4 ([#5815](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5815))
+- Bump `actions/setup-node` from 5 to 6 ([#5821](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5821))
+- Bump `ch.qos.logback:logback-classic` from 1.5.18 to 1.5.20 ([#5816](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5816))
+- Bump `ch.qos.logback:logback-core` from 1.5.18 to 1.5.20 ([#5816](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5816))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
+- Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
+- Bump `com.github.junrar:junrar` from 7.5.5 to 7.5.7 ([#5820](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5820))
+- Bump `com.h2database:h2` from 2.3.232 to 2.4.240 ([#5774](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5774))
+- Bump `com.puppycrawl.tools:checkstyle` from 11.0.1 to 12.1.0 ([#5818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5818))
+- Bump `com.sun.xml.bind:jaxb-impl` from 4.0.5 to 4.0.6 ([#5773](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5773))
+- Bump `eslint-plugin-react-refresh` from 0.4.20 to 0.4.23 ([#5785](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5785))
+- Bump `FFmpeg` from 2025-07-21 to 8.0
+- Bump `jna-version` from 5.17.0 to 5.18.0 ([#5771](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5771))
+- Bump `net.coobird:thumbnailator` from 0.4.20 to 0.4.21 ([#5819](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5819))
+- Bump `org.apache.commons:commons-lang3` from 3.18.0 to 3.19.0 ([#5772](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5772))
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.1 to 3.6.2 ([#5817](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5817))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.13.4 to 6.0.0 ([#5788](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5788))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.13.4 to 6.0.0 ([#5788](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5788))
+- Bump `react-dom` from 19.1.1 to 19.2.0 ([#5786](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5786))
+- Bump `react-router-dom` from 7.9.1 to 7.9.4 ([#5796](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5796))
+- Bump `react` from 19.1.1 to 19.2.0 ([#5786](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5786))
+- Bump `stefanzweifel/git-auto-commit-action` from 5 to 7 ([#5799](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5799))
+- Bump `typescript-eslint` from 8.44.0 to 8.45.0 ([#5787](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5787))
+- Bump `typescript` from 5.8.3 to 5.9.3 ([#5811](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5811))
+- Bump `yt-dlp` from 2025.09.05 to 2025.10.14
 
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
 
@@ -57,7 +108,7 @@
 - Fixed order of videos in the Unwatched variant of the Recently Added folder
 - Fixed broken web interface on Docker (#5765)
 - Fixed tsMuxeR and yt-dlp binaries not executable on Docker (#5721)
-- Discontinued YouTube video support for Linux armhf (32-bit) release, because yt-dlp stopped supporting that architecture. You can still compile it for yourself.
+- Discontinued YouTube video support for Linux armhf (32-bit) release, because yt-dlp stopped supporting that architecture. You can still compile it yourself.
 
 ### Translation updates via Crowdin
 - Czech (100%)
@@ -91,7 +142,7 @@
 - Bump `vite` from 7.0.6 to 7.1.6 ([#5731](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5731), [#5735](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5735), [#5753](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5753))
 - Bump `yt-dlp` from 2025.08.20 to 2025.09.05
 - Removed `jackson-databind`
-- Removed `yt-dlp` for Linux armhf (32-bit), because they stopped making it. If you need it you will need to compile it yourself
+- Removed `yt-dlp` for Linux armhf (32-bit), because they stopped making it. If you need it, you will need to compile it yourself
 
 ## [15.0.0 - Since 14.13.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.13.1...15.0.0) (2025-08-23)
 

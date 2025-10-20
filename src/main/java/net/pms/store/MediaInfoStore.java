@@ -178,7 +178,6 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo updateMediaInfoFromFile(String filename, File file, Format format, int type, Connection connection, InputFile input) {
-		LOGGER.trace("updating media info for file {} - Format : {}", filename, format);
 		MediaInfo mediaInfo;
 		mediaInfo = new MediaInfo();
 		String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
@@ -200,7 +199,7 @@ public class MediaInfoStore {
 				try {
 					MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
 				} catch (SQLException e) {
-					LOGGER.trace(
+					LOGGER.error(
 						"Database error while trying to add parsed information for \"{}\" to the cache: {}",
 						filename,
 						e.getMessage());

@@ -36,7 +36,6 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.SpeedStats;
-import net.pms.renderers.devices.ControlPoint;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
@@ -98,11 +97,21 @@ public class ConnectedRenderers {
 		Renderer renderer = null;
 		RENDERER_LOCK.lock();
 		try {
+			// Attempt 1: try to recognize the renderer by its socket address from previous requests
+			renderer = getRendererBySocketAddress(ia);
+
+			// If the renderer exists but isn't marked as loaded it means it's unrecognized
+			// by upnp and we still need to attempt http recognition here.
 			if (renderer == null || !renderer.isLoaded()) {
+				// Attempt 2: try to recognize the renderer by matching headers
 				renderer = getRendererConfigurationByHeaders(headers, ia);
 			}
 
+			// Still no media renderer recognized?
 			if (renderer == null) {
+				// Attempt 3: Not really an attempt; all other attempts to recognize
+				// the renderer have failed. The only option left is to assume the
+				// default renderer.
 				renderer = resolve(ia, null);
 				// If RendererConfiguration.resolve() didn't return the default renderer
 				// it means we know via upnp that it's not really a renderer.
@@ -123,10 +132,6 @@ public class ConnectedRenderers {
 				LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
 			}
 		} finally {
-			if ((renderer != null) && getUuidRenderer(renderer.getUUID()) == null) {
-				LOGGER.warn("adding renderer to UUID map : " + renderer);
-				addUuidRenderer(renderer.getUUID(), renderer);
-			}
 			RENDERER_LOCK.unlock();
 		}
 		return renderer;
@@ -144,7 +149,6 @@ public class ConnectedRenderers {
 		renderers.addAll(REACT_CLIENT_RENDERERS.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
 		renderers.addAll(PMS.get().getFoundRenderers());
-		renderers.add(ControlPoint.getRenderer());
 		return renderers;
 	}
 
@@ -576,10 +580,7 @@ public class ConnectedRenderers {
 	 * @param file
 	 */
 	public static void invalidateRendererCache(File file) {
-		LOGGER.info("invalidateRendererCache for file {} ", file);
-
 		for (Renderer connectedRenderer : getConnectedRenderers()) {
-			LOGGER.info("  renderer uuid : {} ", connectedRenderer.getUUID());
 			connectedRenderer.getMediaStore().fileUpdated(file);
 		}
 	}

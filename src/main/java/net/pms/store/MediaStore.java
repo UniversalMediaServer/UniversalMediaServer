@@ -458,8 +458,8 @@ public class MediaStore extends StoreContainer {
 			}
 			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					// this is direct acceded resource.
-					// as we don't know what was it's parent, let find one or fail.
+					// this is a directly accessed resource.
+					// as we don't know what its parent was, let's find one or fail.
 					DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
 					return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
 				} catch (Exception e) {
@@ -594,11 +594,10 @@ public class MediaStore extends StoreContainer {
 		List<StoreResource> systemFileResources = new ArrayList<>();
 		synchronized (weakResources) {
 			for (WeakReference<StoreResource> resource : weakResources.values()) {
-				if (resource.get() instanceof SystemFileResource systemFileResource) {
-					if (file.equals(systemFileResource.getSystemFile()) &&
+				if (resource.get() instanceof SystemFileResource systemFileResource &&
+						file.equals(systemFileResource.getSystemFile()) &&
 						systemFileResource instanceof StoreResource storeResource) {
-						systemFileResources.add(storeResource);
-					}
+					systemFileResources.add(storeResource);
 				}
 			}
 		}
@@ -735,17 +734,11 @@ public class MediaStore extends StoreContainer {
 	 * @param file
 	 */
 	public void fileUpdated(File file) {
-		if (findSystemFileResources(file).isEmpty()) {
-			LOGGER.info("  file not in cache for renderer {}  : {} ", getRenderer().getUUID(), file.getAbsolutePath());
-		}
 		for (StoreResource storeResource : findSystemFileResources(file)) {
 			if (storeResource instanceof RealFile rf) {
-				LOGGER.info("  removing media info : {} ", file.getAbsolutePath());
 				rf.setMediaInfo(null);
 				MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
-				LOGGER.info("  removeMediaEntryFromCache : {} ", file.getAbsolutePath());
 				rf.resolve();
-				LOGGER.info("  resolved : {} ", file.getAbsolutePath());
 			}
 		}
 	}
