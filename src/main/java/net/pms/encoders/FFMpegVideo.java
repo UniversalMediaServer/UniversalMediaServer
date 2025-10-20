@@ -227,7 +227,7 @@ public class FFMpegVideo extends Engine {
 				}
 
 				if (originalSubsFilename != null) {
-					subsFilter.append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
+					subsFilter.append("[v]subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
 					if (params.getSid().isEmbedded()) {
 						subsFilter.append(":si=").append(params.getSid().getId());
 					}
@@ -255,7 +255,7 @@ public class FFMpegVideo extends Engine {
 
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
 						subsFilter.append(",Fontsize=").append(15 * Double.parseDouble(configuration.getAssScale()));
-						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4StylesHexValue());
+						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4PlusStylesHexValueForFFmpeg());
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
 						subsFilter.append(",MarginV=").append(configuration.getAssMargin());
