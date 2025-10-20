@@ -26,6 +26,7 @@
 - Bump `@stylistic/eslint-plugin` from 5.4.0 to 5.5.0 ([#5814](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5814))
 - Bump `@tabler/icons-react` from 3.34.1 to 3.35.0 ([#5768](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5768))
 - Bump `@types/react` from 19.1.13 to 19.2.0 ([#5786](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5786))
+- Bump `@vitejs/plugin-react` from 5.0.2 to 5.0.4 ([#5815](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5815))
 - Bump `actions/setup-node` from 5 to 6 ([#5821](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5821))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.1 to 1.15.4 ([#5775](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5775))
