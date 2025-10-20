@@ -23,6 +23,7 @@
 - Bump `@mantine/hooks` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
 - Bump `@mantine/modals` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
 - Bump `@mantine/notifications` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
+- Bump `@playwright/test` from 1.55.0 to 1.56.1 ([#5812](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5812))
 - Bump `@stylistic/eslint-plugin` from 5.4.0 to 5.5.0 ([#5814](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5814))
 - Bump `@tabler/icons-react` from 3.34.1 to 3.35.0 ([#5768](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5768))
 - Bump `@types/react` from 19.1.13 to 19.2.0 ([#5786](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5786))
