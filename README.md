@@ -1,7 +1,8 @@
 # Universal Media Server
 ![Universal Media Server CI](https://github.com/UniversalMediaServer/UniversalMediaServer/workflows/CI/badge.svg) [![Crowdin](https://badges.crowdin.net/universalmediaserver/localized.svg)](https://crowdin.com/project/universalmediaserver)
 
-[<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA, UPnP and HTTP/S Media Server.
+[<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] 
+Universal Media Server is a DLNA, UPnP and HTTP/S Media Server.
 It is capable of sharing video, audio and images between most modern devices.
 It was originally based on PS3 Media Server by shagrath, in order to ensure greater stability and file-compatibility.
 
@@ -81,6 +82,28 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], t
 * sarraken, bleuecinephile, bd.azerty, fabounnet for the support and feedback
 * ...And you!
 
+---
+
+## 🧩 Contributing
+
+We welcome contributions from everyone!  
+If you'd like to get started:
+
+1. Fork the repository and clone your fork locally.  
+2. Create a feature branch for your change (`git checkout -b feature-name`).  
+3. Make your changes and test them.  
+4. Push to your fork and open a Pull Request on GitHub.
+
+See our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup and coding guidelines.
+
+---
+
+## 📜 License
+
+Universal Media Server is released under the **GNU General Public License (GPL)**.  
+For more information, see the [LICENSE](LICENSE) file included in this repository.
+
+---
 
   [1]: https://www.universalmediaserver.com
   [2]: https://www.universalmediaserver.com/comparison/
