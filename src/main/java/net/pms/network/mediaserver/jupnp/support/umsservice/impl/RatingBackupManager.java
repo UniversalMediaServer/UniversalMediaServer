@@ -55,7 +55,7 @@ public class RatingBackupManager {
 		String backupFilename = getBackupFilename();
 		File f = new File(backupFilename);
 		if (!f.exists()) {
-			throw new RuntimeException("Backup file not present.");
+			throw new RuntimeException("Backup file not present");
 		}
 		try (FileInputStream fis = new FileInputStream(f)) {
 			Properties p = new Properties();
@@ -77,7 +77,7 @@ public class RatingBackupManager {
 						updated++;
 					} else if (numUpdates > 1) {
 						LOGGER.info("File exists multiple times on file system. RUID : '{}'.", ruid);
-						updated++;
+						updated = updated + numUpdates;
 					} else {
 						skipped++;
 					}
