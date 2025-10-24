@@ -14,9 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Button, Group, Modal, Text } from '@mantine/core'
+import { Button, Group, Modal, Text, Switch } from '@mantine/core'
 import axios from 'axios'
-import { useState } from 'react'
+import { useState, ChangeEvent } from 'react'
 
 import { UmsAccounts } from '../../services/accounts-service'
 import { I18nInterface } from '../../services/i18n-service'
@@ -36,98 +36,135 @@ export default function AuthenticationSettings({
   const [authOpened, setAuthOpened] = useState(false)
   const [localhostOpened, setLocalhostOpened] = useState(false)
 
-  const postAccountAuthAction = async (data: Record<string, unknown>, errormessage: string) => {
+  const postAccountAuthAction = async (data: Record<string, unknown>, errormessage: string): Promise<boolean> => {
     try {
       await axios.post(accountApiUrl + 'action', data)
       await session.logout(false)
+      return true
     }
     catch {
       showError({
         title: 'Error',
         message: errormessage,
       })
+      return false
     }
   }
 
-  const handleAuthenticateLocalhostToggle = () => {
+  const handleAuthenticateLocalhostToggle = async (): Promise<boolean> => {
     const data = { operation: 'localhost', enabled: !accounts.localhost }
-    postAccountAuthAction(data, i18n.get('AuthenticationServiceNotToggled'))
+    return await postAccountAuthAction(data, i18n.get('AuthenticationServiceNotToggled'))
   }
-  const handleAuthenticationToggle = () => {
+  const handleAuthenticationToggle = async (): Promise<boolean> => {
     const data = { operation: 'authentication', enabled: !accounts.enabled }
-    postAccountAuthAction(data, accounts.enabled ? i18n.get('AuthenticationServiceNotDisabled') : i18n.get('AuthenticationServiceNotEnabled'))
+    return await postAccountAuthAction(data, accounts.enabled ? i18n.get('AuthenticationServiceNotDisabled') : i18n.get('AuthenticationServiceNotEnabled'))
   }
 
+  const [authLoading, setAuthLoading] = useState(false)
+  const [localhostLoading, setLocalhostLoading] = useState(false)
+
   const AuthenticateLocalhostAdmin = () => {
-    return accounts.localhost
-      ? (
-          <Group justify="flex-start" mt="md">
-            <Button onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get('Disable')}</Button>
-            <Text>{i18n.get('AuthenticateLocalhostAdminEnabled')}</Text>
-          </Group>
-        )
-      : (
-          <Group justify="flex-start" mt="md">
-            <Modal
-              centered
-              opened={localhostOpened}
-              onClose={() => setLocalhostOpened(false)}
-              title={i18n.get('Warning')}
+    const onLocalhostSwitchChange = async (e: ChangeEvent<HTMLInputElement>) => {
+      const checked = e.currentTarget.checked
+      // original behaviour: enabling shows a confirmation modal, disabling acts immediately
+      if (checked) {
+        setLocalhostOpened(true)
+      }
+      else {
+        setLocalhostLoading(true)
+        await handleAuthenticateLocalhostToggle()
+        setLocalhostLoading(false)
+      }
+    }
+
+    return (
+      <>
+        <Modal
+          centered
+          opened={localhostOpened}
+          onClose={() => setLocalhostOpened(false)}
+          title={i18n.get('Warning')}
+        >
+          <Text>{i18n.get('EnablingAuthenticateLocalhost')}</Text>
+          <Group justify="flex-end" mt="md">
+            <Button onClick={() => setLocalhostOpened(false)}>{i18n.get('Cancel')}</Button>
+            <Button
+              color="red"
+              onClick={async () => {
+                setLocalhostOpened(false)
+                setLocalhostLoading(true)
+                await handleAuthenticateLocalhostToggle()
+                setLocalhostLoading(false)
+              }}
             >
-              <Text>{i18n.get('EnablingAuthenticateLocalhost')}</Text>
-              <Group justify="flex-end" mt="md">
-                <Button onClick={() => setLocalhostOpened(false)}>{i18n.get('Cancel')}</Button>
-                <Button
-                  color="red"
-                  onClick={() => {
-                    setLocalhostOpened(false)
-                    handleAuthenticateLocalhostToggle()
-                  }}
-                >
-                  {i18n.get('Confirm')}
-                </Button>
-              </Group>
-            </Modal>
-            <Button onClick={() => setLocalhostOpened(true)}>{i18n.get('Enable')}</Button>
-            <Text>{i18n.get('AuthenticateLocalhostAdminDisabled')}</Text>
+              {i18n.get('Confirm')}
+            </Button>
           </Group>
-        )
+        </Modal>
+
+        <Group justify="flex-start" mt="md">
+          <Switch
+            checked={accounts.localhost}
+            onChange={onLocalhostSwitchChange}
+            disabled={localhostLoading}
+            aria-label={i18n.get('AuthenticateLocalhostAdmin')}
+          />
+          <Text>{accounts.localhost ? i18n.get('AuthenticateLocalhostAdminEnabled') : i18n.get('AuthenticateLocalhostAdminDisabled')}</Text>
+        </Group>
+      </>
+    )
   }
 
   const AuthenticationServiceButton = () => {
-    return accounts.enabled
-      ? (
-          <Group justify="flex-start" mt="md">
-            <Modal
-              centered
-              opened={authOpened}
-              onClose={() => setAuthOpened(false)}
-              title={i18n.get('Warning')}
+    const onAuthSwitchChange = async (e: ChangeEvent<HTMLInputElement>) => {
+      const checked = e.currentTarget.checked
+      // original behaviour: disabling shows confirmation, enabling acts immediately
+      if (checked) {
+        setAuthLoading(true)
+        await handleAuthenticationToggle()
+        setAuthLoading(false)
+      }
+      else {
+        setAuthOpened(true)
+      }
+    }
+
+    return (
+      <>
+        <Modal
+          centered
+          opened={authOpened}
+          onClose={() => setAuthOpened(false)}
+          title={i18n.get('Warning')}
+        >
+          <Text>{allowHtml(i18n.get('DisablingAuthenticationReduces'))}</Text>
+          <Group justify="flex-end" mt="md">
+            <Button onClick={() => setAuthOpened(false)}>{i18n.get('Cancel')}</Button>
+            <Button
+              color="red"
+              onClick={async () => {
+                setAuthOpened(false)
+                setAuthLoading(true)
+                await handleAuthenticationToggle()
+                setAuthLoading(false)
+              }}
             >
-              <Text>{allowHtml(i18n.get('DisablingAuthenticationReduces'))}</Text>
-              <Group justify="flex-end" mt="md">
-                <Button onClick={() => setAuthOpened(false)}>{i18n.get('Cancel')}</Button>
-                <Button
-                  color="red"
-                  onClick={() => {
-                    setAuthOpened(false)
-                    handleAuthenticationToggle()
-                  }}
-                >
-                  {i18n.get('Confirm')}
-                </Button>
-              </Group>
-            </Modal>
-            <Button onClick={() => setAuthOpened(true)}>{i18n.get('Disable')}</Button>
-            <Text>{i18n.get('AuthenticationServiceEnabled')}</Text>
+              {i18n.get('Confirm')}
+            </Button>
           </Group>
-        )
-      : (
-          <Group justify="flex-start" mt="md">
-            <Button onClick={() => handleAuthenticationToggle()}>{i18n.get('Enable')}</Button>
-            <Text>{i18n.get('AuthenticationServiceDisabled')}</Text>
-          </Group>
-        )
+        </Modal>
+
+        <Group justify="flex-start" mt="md">
+          <Switch
+            checked={accounts.enabled}
+            onChange={onAuthSwitchChange}
+            disabled={authLoading}
+            aria-label={i18n.get('AuthenticationService')}
+          />
+          <Text>{accounts.enabled ? i18n.get('AuthenticationServiceEnabled') : i18n.get('AuthenticationServiceDisabled')}</Text>
+        </Group>
+      </>
+    )
   }
 
   return accounts.enabled
