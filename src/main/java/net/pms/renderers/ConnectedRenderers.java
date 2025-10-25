@@ -16,7 +16,6 @@
  */
 package net.pms.renderers;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -122,8 +121,8 @@ public class ConnectedRenderers {
 						List<String> identifiers = getIdentifiers(userAgentString, headers);
 						renderer.setIdentifiers(identifiers);
 						LOGGER.info(
-								"Media renderer was not recognized from IP {}. Possible identifying HTTP headers:\n{}",
-								ia.toString(), StringUtils.join(identifiers, "\n")
+								"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
+								StringUtils.join(identifiers, "\n")
 						);
 						PMS.get().setRendererFound(renderer);
 					}
@@ -573,16 +572,6 @@ public class ConnectedRenderers {
 			}
 		}
 		return renderers;
-	}
-
-	/**
-	 * Invalidates renderer caches for given file resource.
-	 * @param file
-	 */
-	public static void invalidateRendererCache(File file) {
-		for (Renderer connectedRenderer : getConnectedRenderers()) {
-			connectedRenderer.getMediaStore().fileUpdated(file);
-		}
 	}
 
 }
