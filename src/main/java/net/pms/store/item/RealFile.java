@@ -343,8 +343,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	 * @param inputFile
 	 */
 	protected void checkCoverThumb() {
-		if (getMediaInfo() != null && getMediaInfo().isAudio() && getMediaInfo().hasAudioMetadata() &&
-			getMediaInfo().getAudioMetadata() != null) {
+		if (getMediaInfo() != null && getMediaInfo().isAudio() && getMediaInfo().hasAudioMetadata()) {
 			String mbReleaseId = getMediaInfo().getAudioMetadata().getMbidRecord();
 			if (!StringUtils.isAllBlank(mbReleaseId)) {
 				try {
