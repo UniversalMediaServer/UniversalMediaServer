@@ -32,6 +32,9 @@ import java.io.OutputStream;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.SharedContent;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.FFmpegHlsVideo;
 import net.pms.encoders.HlsHelper;
@@ -756,9 +759,36 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 		media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
 		media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && CONFIGURATION.useWebPlayerDownload());
+		//SharedContentConfiguration.getSharedContentArray();
+		// if (item.isFullyPlayedAware()) {
+		// 	media.addProperty("fullyplayed", item.isFullyPlayed());
+		// }
+
 		if (item.isFullyPlayedAware()) {
-			media.addProperty("fullyplayed", item.isFullyPlayed());
-		}
+    boolean fullyPlayedValue = item.isFullyPlayed();
+
+    // Check folder’s monitor setting
+    File file = new File(item.getFileName());
+    String filePath = file.getAbsolutePath();
+
+    List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
+    for (SharedContent sc : sharedContents) {
+        if (sc instanceof FolderContent folder) {
+            File folderFile = folder.getFile();
+            if (folderFile != null && filePath.startsWith(folderFile.getAbsolutePath())) {
+                if (!folder.isMonitored()) {
+                    LOGGER.debug("Overriding 'fullyplayed' for '{}' → monitor disabled in '{}'", filePath, folderFile);
+                    fullyPlayedValue = false; 
+                }
+                break;
+            }
+        }
+    }
+
+    media.addProperty("fullyplayed", fullyPlayedValue);
+}
+
+
 		media.addProperty("hasMediaInfo", true);
 
 		media.add("surroundMedias", getSurroundingByType(item, lang));
