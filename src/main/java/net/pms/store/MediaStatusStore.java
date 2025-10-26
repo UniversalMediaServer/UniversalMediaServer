@@ -92,11 +92,9 @@ public class MediaStatusStore {
 		    File file = new File(filename);
     String filePath = file.getAbsolutePath();
 
-    // 🧩 Get all shared folder configurations
-    List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
+ List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 
-    // 🛑 Step 1: Check if the file is inside a folder that disables monitoring
-    for (SharedContent sc : sharedContents) {
+  for (SharedContent sc : sharedContents) {
         if (sc instanceof FolderContent folder) {
             File folderFile = folder.getFile();
             if (folderFile != null && filePath.startsWith(folderFile.getAbsolutePath())) {
