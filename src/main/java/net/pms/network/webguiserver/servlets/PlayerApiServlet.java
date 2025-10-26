@@ -765,27 +765,27 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		// }
 
 		if (item.isFullyPlayedAware()) {
-    boolean fullyPlayedValue = item.isFullyPlayed();
+			boolean fullyPlayedValue = item.isFullyPlayed();
 
-    // Check folder’s monitor setting
-    File file = new File(item.getFileName());
-    String filePath = file.getAbsolutePath();
+    
+			File file = new File(item.getFileName());
+			String filePath = file.getAbsolutePath();
 
-    List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
-    for (SharedContent sc : sharedContents) {
-        if (sc instanceof FolderContent folder) {
-            File folderFile = folder.getFile();
-            if (folderFile != null && filePath.startsWith(folderFile.getAbsolutePath())) {
-                if (!folder.isMonitored()) {
-                    LOGGER.debug("Overriding 'fullyplayed' for '{}' → monitor disabled in '{}'", filePath, folderFile);
-                    fullyPlayedValue = false; 
-                }
-                break;
-            }
-        }
-    }
+			List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
+			for (SharedContent sc : sharedContents) {
+				if (sc instanceof FolderContent folder) {
+					File folderFile = folder.getFile();
+					if (folderFile != null && filePath.startsWith(folderFile.getAbsolutePath())) {
+						if (!folder.isMonitored()) {
+							LOGGER.debug("Overriding 'fullyplayed' for '{}' → monitor disabled in '{}'", filePath, folderFile);
+							fullyPlayedValue = false; 
+						}
+						break;
+					}
+				}
+			}
 
-    media.addProperty("fullyplayed", fullyPlayedValue);
+    		media.addProperty("fullyplayed", fullyPlayedValue);
 }
 
 

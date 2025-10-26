@@ -95,7 +95,6 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
 			var path = req.getPathInfo();
-			
 			switch (path) {
 				case "/" -> {
 					Account account = AuthService.getAccountLoggedIn(req);
