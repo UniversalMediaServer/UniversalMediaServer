@@ -737,7 +737,6 @@ public class MediaStore extends StoreContainer {
 		for (StoreResource storeResource : findSystemFileResources(file)) {
 			if (storeResource instanceof RealFile rf) {
 				rf.setMediaInfo(null);
-				MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
 				rf.resolve();
 			}
 		}
