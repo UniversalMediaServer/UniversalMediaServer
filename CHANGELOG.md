@@ -53,7 +53,7 @@
 - Bump `react-router-dom` from 7.9.1 to 7.9.4 ([#5796](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5796))
 - Bump `react` from 19.1.1 to 19.2.0 ([#5786](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5786))
 - Bump `stefanzweifel/git-auto-commit-action` from 5 to 7 ([#5799](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5799))
-- Bump `typescript-eslint` from 8.44.0 to 8.45.0 ([#5787](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5787))
+- Bump `typescript-eslint` from 8.44.0 to 8.46.2 ([#5787](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5787), [#5839](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5839))
 - Bump `typescript` from 5.8.3 to 5.9.3 ([#5811](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5811))
 - Bump `vite` from 7.1.6 to 7.1.11 ([#5825](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5825))
 - Bump `yt-dlp` from 2025.09.05 to 2025.10.14
