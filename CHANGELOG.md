@@ -58,7 +58,7 @@
 - Bump `stefanzweifel/git-auto-commit-action` from 5 to 7 ([#5799](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5799))
 - Bump `typescript-eslint` from 8.44.0 to 8.46.2 ([#5787](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5787), [#5839](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5839))
 - Bump `typescript` from 5.8.3 to 5.9.3 ([#5811](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5811))
-- Bump `vite` from 7.1.6 to 7.1.11 ([#5825](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5825))
+- Bump `vite` from 7.1.6 to 7.1.12 ([#5825](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5825), [#5836](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5836))
 - Bump `yt-dlp` from 2025.09.05 to 2025.10.14
 
 ## [15.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.0.0...15.1.0) (2025-09-27)
