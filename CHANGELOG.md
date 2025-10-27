@@ -27,7 +27,7 @@
 - Bump `@stylistic/eslint-plugin` from 5.4.0 to 5.5.0 ([#5814](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5814))
 - Bump `@tabler/icons-react` from 3.34.1 to 3.35.0 ([#5768](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5768))
 - Bump `@types/react` from 19.1.13 to 19.2.0 ([#5786](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5786))
-- Bump `@vitejs/plugin-react` from 5.0.2 to 5.0.4 ([#5815](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5815))
+- Bump `@vitejs/plugin-react` from 5.0.2 to 5.1.0 ([#5815](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5815), [#5835](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5835))
 - Bump `actions/setup-node` from 5 to 6 ([#5821](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5821))
 - Bump `ch.qos.logback:logback-classic` from 1.5.18 to 1.5.20 ([#5816](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5816))
 - Bump `ch.qos.logback:logback-core` from 1.5.18 to 1.5.20 ([#5816](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5816))
