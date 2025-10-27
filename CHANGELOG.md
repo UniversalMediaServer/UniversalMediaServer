@@ -39,6 +39,7 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 11.0.1 to 12.1.0 ([#5818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5818))
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.5 to 4.0.6 ([#5773](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5773))
 - Bump `eslint-plugin-react-refresh` from 0.4.20 to 0.4.23 ([#5785](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5785))
+- Bump `eslint` from 9.32.0 to 9.38.0 ([#5837](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5837))
 - Bump `FFmpeg` from 2025-07-21 to 8.0
 - Bump `jna-version` from 5.17.0 to 5.18.0 ([#5771](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5771))
 - Bump `net.coobird:thumbnailator` from 0.4.20 to 0.4.21 ([#5819](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5819))
