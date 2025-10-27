@@ -42,6 +42,7 @@
 - Bump `jna-version` from 5.17.0 to 5.18.0 ([#5771](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5771))
 - Bump `net.coobird:thumbnailator` from 0.4.20 to 0.4.21 ([#5819](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5819))
 - Bump `org.apache.commons:commons-lang3` from 3.18.0 to 3.19.0 ([#5772](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5772))
+- Bump `org.apache.maven.plugins:maven-antrun-plugin` from 3.1.0 to 3.2.0 ([#5840](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5840))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.5.1 to 3.6.2 ([#5817](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5817))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.1 to 12.1.2 ([#5797](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5797))
