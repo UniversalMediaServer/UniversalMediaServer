@@ -96,9 +96,7 @@ public class MediaStatusStore {
 			if (sc instanceof FolderContent folder) {
 				File folderFile = folder.getFile();
 				if (folderFile != null && filePath.startsWith(folderFile.getAbsolutePath())) {
-					// File is inside this shared folder
 					if (!folder.isMonitored()) {
-						//LOGGER.debug("Skipping marking '{}' as played: Monitor played status disabled for folder '{}'", filePath, folderFile);
 						return; 
 					}
 				}

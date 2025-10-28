@@ -766,11 +766,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 		if (item.isFullyPlayedAware()) {
 			boolean fullyPlayedValue = item.isFullyPlayed();
-
-    
 			File file = new File(item.getFileName());
 			String filePath = file.getAbsolutePath();
-
 			List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 			for (SharedContent sc : sharedContents) {
 				if (sc instanceof FolderContent folder) {
@@ -787,12 +784,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
     		media.addProperty("fullyplayed", fullyPlayedValue);
 }
-
-
 		media.addProperty("hasMediaInfo", true);
-
 		media.add("surroundMedias", getSurroundingByType(item, lang));
-
 		medias.add(media);
 		result.add("medias", medias);
 		result.add("folders", jFolders);
