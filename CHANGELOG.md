@@ -7,10 +7,11 @@
 - Only remux video and audio streams if they match the transcoding goal
 - Ignore commentary tracks when checking renderer compatibility
 - Update metadata when a file has been modified
-- Rename "mark contents fully played" on individual media page (thanks, sccalabr!)
-- Fixed the transcoding settings tab needing two clicks to change settings
-- Fixed typos and linguistic errors in documentation (thanks, Sebastien Dionne!)
-- Fixed failed playback in some situations
+- Rename "mark contents fully played" on individual media page (#5803) (thanks, @sccalabr!)
+- Fixed the transcoding settings tab needing two clicks to change settings (#5389)
+- Fixed typos and linguistic errors in documentation (thanks, @survivant!)
+- Fixed failed playback in some situations (#5781)
+- Added Contributing and License sections in README (thanks, @niveshpadamata1218!)
 
 ### Media players
 - Added detection of more 2024 and 2025 LG TVs
@@ -42,6 +43,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.4.20 to 0.4.23 ([#5785](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5785))
 - Bump `eslint` from 9.32.0 to 9.38.0 ([#5837](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5837))
 - Bump `FFmpeg` from 2025-07-21 to 8.0
+- Bump `Java Runtime Environment` from 17.0.16 to 17.0.17
 - Bump `jna-version` from 5.17.0 to 5.18.0 ([#5771](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5771))
 - Bump `net.coobird:thumbnailator` from 0.4.20 to 0.4.21 ([#5819](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5819))
 - Bump `org.apache.commons:commons-lang3` from 3.18.0 to 3.19.0 ([#5772](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5772))
