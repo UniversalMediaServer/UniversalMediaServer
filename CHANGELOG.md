@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [15.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.1.0...15.2.0) (2025-10-28)
+
 ### General
 - Added Audioaddict Network support
 - Only remux video and audio streams if they match the transcoding goal
