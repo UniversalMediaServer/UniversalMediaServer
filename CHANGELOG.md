@@ -5,14 +5,13 @@
 ## [15.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.1.0...15.2.0) (2025-10-28)
 
 ### General
-- Added Audioaddict Network support
-- Only remux video and audio streams if they match the transcoding goal
+- Added Audioaddict Network support, see our Knowledge Base for more https://support.universalmediaserver.com/configuration/audio-addict/
+- Only remux video and audio streams if they match the transcoding goal (#5592)
 - Ignore commentary tracks when checking renderer compatibility
-- Update metadata when a file has been modified
 - Rename "mark contents fully played" on individual media page (#5803) (thanks, @sccalabr!)
 - Fixed the transcoding settings tab needing two clicks to change settings (#5389)
 - Fixed typos and linguistic errors in documentation (thanks, @survivant!)
-- Fixed failed playback in some situations (#5781)
+- Fixed failed playback in some situations (#5781 and #5592)
 - Added Contributing and License sections in README (thanks, @niveshpadamata1218!)
 
 ### Media players
