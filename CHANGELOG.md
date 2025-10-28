@@ -17,6 +17,10 @@
 - Added detection of more 2024 and 2025 LG TVs
 - Added detection of more Samsung OLED, QLED and UHD LED TVs
 
+### Translation updates via Crowdin
+- Dutch (42%) (thanks, Duraphat!)
+- French (100%) (thanks, Fredo1650!)
+
 ### Dependencies
 - Bump `@mantine/core` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
 - Bump `@mantine/dropzone` from 8.3.1 to 8.3.2 ([#5766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5766))
