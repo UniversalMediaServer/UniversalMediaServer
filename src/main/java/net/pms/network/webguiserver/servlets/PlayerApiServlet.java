@@ -775,14 +775,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					if (folderFile != null && filePath.startsWith(folderFile.getAbsolutePath())) {
 						if (!folder.isMonitored()) {
 							LOGGER.debug("Overriding 'fullyplayed' for '{}' → monitor disabled in '{}'", filePath, folderFile);
-							fullyPlayedValue = false; 
+							fullyPlayedValue = false;
 						}
 						break;
 					}
 				}
 			}
-
-    		media.addProperty("fullyplayed", fullyPlayedValue);
+			media.addProperty("fullyplayed", fullyPlayedValue);
 }
 		media.addProperty("hasMediaInfo", true);
 		media.add("surroundMedias", getSurroundingByType(item, lang));

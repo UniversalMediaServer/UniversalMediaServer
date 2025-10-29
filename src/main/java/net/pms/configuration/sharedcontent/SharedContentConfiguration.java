@@ -152,7 +152,7 @@ public class SharedContentConfiguration {
 	}
 
 	public static void updateSharedContent(SharedContentArray values, boolean save) {
-		LOGGER.debug("New shared content configuration sent.");		
+		LOGGER.debug("New shared content configuration sent.");
 		boolean updated = false;
 		synchronized (SHARED_CONTENT_ARRAY) {
 			if (!values.equals(SHARED_CONTENT_ARRAY)) {

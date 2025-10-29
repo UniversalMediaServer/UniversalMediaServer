@@ -91,13 +91,13 @@ public class MediaStatusStore {
 		//update store
 		File file = new File(filename);
 		String filePath = file.getAbsolutePath();
-		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();    
+		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 		for (SharedContent sc : sharedContents) {
 			if (sc instanceof FolderContent folder) {
 				File folderFile = folder.getFile();
 				if (folderFile != null && filePath.startsWith(folderFile.getAbsolutePath())) {
 					if (!folder.isMonitored()) {
-						return; 
+						return;
 					}
 				}
 			}
