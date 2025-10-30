@@ -1,41 +1,47 @@
 Installers for Windows and macOS, and tarballs for Linux, can be found at:
 
-text
 https://www.universalmediaserver.com
-To install UMS from the tarball on Linux, open a terminal and follow these steps (set VERSION to the version you're installing):
+
+To install Universal Media Server (UMS) from the tarball on Linux, follow these steps:
+(Replace $VERSION with your downloaded version)
 
 Note: These instructions have been tested on Ubuntu 22.04, but should work similarly on most Unix distributions.
 
-Install dependencies (needed only once):
+1. **Install dependencies (run once):**
 
-UMS releases come bundled with Java Runtime Environment (JRE), except for ARM architecture releases.
-If you're using an ARM release, please ensure JRE 17 is installed.
+UMS bundles Java Runtime Environment (JRE), except for ARM releases.
+For ARM, ensure JRE 17 is installed.
 
 Install other prerequisites:
 
-bash
 sudo apt-get update
 sudo apt-get install mediainfo dcraw vlc-bin mplayer mencoder
 Optionally, install dcraw (if not already installed):
 
-bash
-sudo apt-get install dcraw
-Download the tarball:
+2. **Download the tarball:**
 
-Visit https://www.universalmediaserver.com
-Your operating system and architecture are usually detected automatically.
+Go to https://www.universalmediaserver.com  
+The website normally auto-detects your system and architecture.  
 If not, manually select your version by clicking the arrow next to the download button.
 
-Extract the tarball:
-Replace $VERSION with the downloaded version number:
+Alternatively, download directly in terminal (replace $VERSION with the actual version, e.g. 13.5.0-x86_64):
+wget
+ https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/$VERSION/UMS-$VERSION.tgz
 
-bash
-tar xzvf ums-$VERSION.tgz
-Run UMS (do NOT run as root):
 
-bash
-cd ums-$VERSION
+3. **Extract the tarball (replace $VERSION with the actual version):**
+tar xzvf UMS-$VERSION.tgz
+
+
+4. **Run UMS (do NOT run as root):**
+cd UMS-$VERSION
 ./UMS.sh
-UMS accesses some files within the ums-$VERSION/ working directory.
-Other configuration files may be found at: ~/.config/UMS
+- UMS accesses some files in the UMS-$VERSION/ working directory.
+- Other configuration files are located in: ~/.config/UMS
 
+For troubleshooting, you can run:
+
+sh -x UMS.sh
+
+For further help, configuration tips, and advanced topics, visit the user forums and wiki:  
+https://www.universalmediaserver.com/forum/
