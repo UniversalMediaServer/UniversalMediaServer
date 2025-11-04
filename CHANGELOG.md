@@ -3,8 +3,9 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `axios` from 1.12.2 to 1.13.1 ([#5851](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5851))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
 
 ## [15.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.1.0...15.2.0) (2025-10-28)
