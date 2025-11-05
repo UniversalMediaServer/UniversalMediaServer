@@ -18,7 +18,6 @@ package net.pms.store;
 
 import com.sun.jna.Platform;
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -783,8 +782,9 @@ public class MediaStore extends StoreContainer {
 
 	public StoreResource createResourceFromFile(File file, boolean allowHidden) {
 		String fileExt = FilenameUtils.getExtension(file.getName());
-		if (renderer.getUmsConfiguration().getIgnoredFileExtensions().contains(fileExt.toLowerCase()))
+		if (renderer.getUmsConfiguration().getIgnoredFileExtensions().contains(fileExt.toLowerCase())) {
 			return null;
+		}
 
 		if (file == null) {
 			LOGGER.trace("createResourceFromFile return null as file is null.");
