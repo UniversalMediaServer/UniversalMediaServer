@@ -11,6 +11,7 @@
 - Bump `@mantine/notifications` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
 - Bump `axios` from 1.12.2 to 1.13.2 ([#5851](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5851), [#5857](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5857))
 - Bump `eslint` from 9.38.0 to 9.39.0 ([#5850](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5850))
+- Bump `min-document` from 2.19.0 to 2.19.1 ([#5860](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5860))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
