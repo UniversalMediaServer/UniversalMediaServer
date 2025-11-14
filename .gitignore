@@ -54,3 +54,5 @@ react-client/test-results/
 react-client/tests/*/
 ums-testserver.jar
 /osx
+package-lock.json
+react-client/package-lock.json
