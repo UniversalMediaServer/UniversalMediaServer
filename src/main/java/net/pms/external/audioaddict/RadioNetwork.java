@@ -56,6 +56,8 @@ public class RadioNetwork {
 	private HttpClient httpNonBlocking = new HttpClient();
 	private HttpClient httpBlocking = new HttpClient();
 	private HttpClient httpBatch = new HttpClient();
+	private static int maxRetryBatchCount = 5;
+	private static int maxResponseSize = 10 * 1024 * 1024; // 10 MB
 
 	private volatile Root networkBatchRoot = null;
 	private volatile LinkedList<String> filters = new LinkedList<>();;
@@ -97,13 +99,32 @@ public class RadioNetwork {
 			authenticate();
 		}
 
+		readNetworkConfiguration();
+	}
+
+	private void readNetworkConfiguration() {
 		Runnable r = new Runnable() {
 
 			@Override
 			public void run() {
 				LOGGER.info("{} : initializing ...", network.name());
-				readNetworkBatch();
-			}
+				int i = 0;
+				boolean success = false;
+				while (i <= maxRetryBatchCount && !success) {
+					try {
+						readNetworkBatch();
+						success = true;
+					} catch (Exception e) {
+						i++;
+						LOGGER.warn("{} : failed to read batch update network data. Waiting 5 seconds. Retry count {} of {}", network.displayName, i, maxRetryBatchCount);
+						try {
+							Thread.sleep(5000L);
+						} catch (InterruptedException e1) {
+							Thread.interrupted();
+						}
+					}
+				}
+			};
 		};
 		EXEC_SERVICE.execute(r);
 	}
@@ -154,10 +175,17 @@ public class RadioNetwork {
 	}
 
 	public List<AudioAddictChannelDto> getChannel() {
+		if (networkBatchRoot == null) {
+			readNetworkConfiguration();
+		}
 		return channels;
 	}
 
 	public List<AudioAddictChannelDto> getFilteredChannels(String filterName) {
+		if (networkBatchRoot == null) {
+			readNetworkConfiguration();
+		}
+
 		if (channelsFilterMap.get(filterName) == null) {
 			getFilters();
 		}
@@ -196,6 +224,10 @@ public class RadioNetwork {
 	}
 
 	public List<String> getFilters() {
+		if (networkBatchRoot == null) {
+			readNetworkConfiguration();
+		}
+
 		return filters;
 	}
 
@@ -309,7 +341,7 @@ public class RadioNetwork {
 			String url = String.format("https://api.audioaddict.com/v1/%s/members/1/favorites/channels?api_key=%s", network.shortName,
 				apiKey);
 			Request request = httpNonBlocking.newRequest(url);
-			CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, 5 * 1024 * 1024).send();
+			CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
 			completable.whenComplete((response, failure) -> {
 				LOGGER.info("{} : updating favorites", network.displayName);
 				try {
@@ -337,7 +369,7 @@ public class RadioNetwork {
 		LOGGER.debug("{} : reading channel list ... ");
 		String url = String.format("%s/%s", network.listenUrl, quality.path);
 		Request request = httpNonBlocking.newRequest(url);
-		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, 5 * 1024 * 1024).send();
+		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
 		completable.whenComplete((response, failure) -> {
 			LOGGER.info("{} : analyzing channels ...", network.displayName);
 			try {
@@ -355,20 +387,21 @@ public class RadioNetwork {
 	private void readNetworkBatch() {
 		String url = String.format("http://api.audioaddict.com/v1/%s/mobile/batch_update?stream_set_key=", network.shortName);
 		Request request = httpBatch.newRequest(url);
-		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, 5 * 1024 * 1024).send();
+		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
 		completable.whenComplete((response, failure) -> {
-			try {
-				LOGGER.info("{} : analyzing batch update content ...", network.displayName);
-				if (response.getStatus() != 200) {
-					LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.getStatus(),
-						response.getContentAsString());
-				} else {
+			LOGGER.info("{} : analyzing batch update content ...", network.displayName);
+			if (response.getStatus() != 200) {
+				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.getStatus(),
+					response.getContentAsString());
+			} else {
+				try {
 					networkBatchRoot = om.readValue(response.getContentAsString(), Root.class);
-					LOGGER.info("{} : read network root data.", this.network.displayName);
-					readChannels();
+				} catch (JsonProcessingException e) {
+					LOGGER.error("{} : network data not parseable.", this.network.displayName);
+					throw new RuntimeException(e);
 				}
-			} catch (JsonProcessingException e) {
-				LOGGER.error("reading network failed", e);
+				LOGGER.info("{} : read network root data.", this.network.displayName);
+				readChannels();
 			}
 		});
 	}
