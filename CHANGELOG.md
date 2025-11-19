@@ -38,6 +38,24 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `@mantine/core` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
+- Bump `@mantine/dropzone` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
+- Bump `@mantine/form` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
+- Bump `@mantine/hooks` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
+- Bump `@mantine/modals` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
+- Bump `@mantine/notifications` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
+- Bump `axios` from 1.12.2 to 1.13.2 ([#5851](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5851), [#5857](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5857))
+- Bump `eslint` from 9.38.0 to 9.39.0 ([#5850](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5850))
+- Bump `glob` from 10.4.5 to 10.5.0 ([#5866](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5866))
+- Bump `min-document` from 2.19.0 to 2.19.1 ([#5860](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5860))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
+- Bump `react-router-dom` from 7.9.4 to 7.9.5 ([#5849](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5849))
+- Bump `typescript-eslint` from 8.46.2 to 8.46.3 ([#5856](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5856))
+- Bump `vite` from 7.1.12 to 7.2.2 ([#5855](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5855))
+
 ## [15.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.1.0...15.2.0) (2025-10-28)
 
 ### General

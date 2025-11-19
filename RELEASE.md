@@ -78,7 +78,7 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Update the website config.php and upload to the web server (this is done manually for now; it should be automated). When the file is uploaded, there will be up to a 1-hour delay until it is visible on the website due to a 60-minute cache on the front page.
 
-1. Change current version in the Knowledge Base if this was a major release. [See here for an example of promoting the beta docs to "current"](https://github.com/UniversalMediaServer/knowledge-base/commit/a177d1f11b13ff1f6b0e206c6e622b27baec2805)
+1. If this was a major release, change current version in the Knowledge Base. [See here for an example of promoting the beta docs to "current"](https://github.com/UniversalMediaServer/knowledge-base/commit/a177d1f11b13ff1f6b0e206c6e622b27baec2805)
 
 1. Post about the release via:
 
