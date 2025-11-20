@@ -125,6 +125,7 @@ public class RadioNetwork {
 					try {
 						readNetworkBatch();
 						successInit = true;
+						LOGGER.debug("{} : calling callback handler ... ", network.displayName);
 						callback.networkInitilized();
 					} catch (Exception e) {
 						i++;
@@ -132,6 +133,7 @@ public class RadioNetwork {
 						try {
 							Thread.sleep(5000L);
 						} catch (InterruptedException e1) {
+							LOGGER.error("{} : interupted ... ", network.displayName, e);
 							Thread.interrupted();
 						}
 					}

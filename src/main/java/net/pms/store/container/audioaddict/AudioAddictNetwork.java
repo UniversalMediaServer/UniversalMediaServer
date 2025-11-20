@@ -18,12 +18,14 @@ public class AudioAddictNetwork extends StoreContainer implements INetworkInitil
 		this.network = network;
 		AudioAddictService.get().getRadioNetwork(network).addInitCallbackHandler(this);
 		if (AudioAddictService.get().getRadioNetwork(network).isInitilized()) {
+			LOGGER.debug("AudioAddictNetwork store container {} : network is already initilized. ", network.displayName);
 			addChilds();
 		}
 	}
 
 	@Override
 	public void networkInitilized() {
+		LOGGER.debug("AudioAddictNetwork store container {} : received init signal. Adding childs ... ", network.displayName);
 		addChilds();
 	}
 
