@@ -35,6 +35,7 @@ import net.pms.external.audioaddict.mapper.ChannelFilter;
 import net.pms.external.audioaddict.mapper.ChannelJson;
 import net.pms.external.audioaddict.mapper.Favorite;
 import net.pms.external.audioaddict.mapper.Root;
+import net.pms.store.container.audioaddict.INetworkInitilized;
 
 public class RadioNetwork {
 
@@ -71,13 +72,24 @@ public class RadioNetwork {
 	private AudioAddictServiceConfig config = null;
 
 	private Platform network = null;
+	private volatile boolean successInit = false;
+	private INetworkInitilized callback = null;
 
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
 		this.network = network;
 	}
 
+	public void addInitCallbackHandler(INetworkInitilized callback) {
+		this.callback = callback;
+	}
+
+	public boolean isInitilized() {
+		return successInit;
+	}
+
 	public void start() {
+		LOGGER.debug("{} : start() called ...", network.displayName);
 		AuthenticationStore auth = httpBatch.getAuthenticationStore();
 		URI uri = URI.create("http://api.audioaddict.com/v1");
 		auth.addAuthenticationResult(new BasicAuthentication.BasicResult(uri, "ephemeron", "dayeiph0ne@pp"));
@@ -109,11 +121,11 @@ public class RadioNetwork {
 			public void run() {
 				LOGGER.info("{} : initializing ...", network.name());
 				int i = 0;
-				boolean success = false;
-				while (i <= maxRetryBatchCount && !success) {
+				while (i <= maxRetryBatchCount && !successInit) {
 					try {
 						readNetworkBatch();
-						success = true;
+						successInit = true;
+						callback.networkInitilized();
 					} catch (Exception e) {
 						i++;
 						LOGGER.warn("{} : failed to read batch update network data. Waiting 5 seconds. Retry count {} of {}", network.displayName, i, maxRetryBatchCount);
@@ -126,6 +138,7 @@ public class RadioNetwork {
 				}
 			};
 		};
+		LOGGER.debug("{} : creating read thread ...", network.displayName);
 		EXEC_SERVICE.execute(r);
 	}
 
@@ -171,6 +184,7 @@ public class RadioNetwork {
 
 	public void updateConfig(AudioAddictServiceConfig config) {
 		this.config = config;
+		LOGGER.info("{} : configuration changed. Restarting ... ", this.network.displayName);
 		start();
 	}
 
