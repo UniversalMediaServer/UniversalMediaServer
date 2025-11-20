@@ -29,6 +29,7 @@ public class AudioAddictNetwork extends StoreContainer implements INetworkInitil
 
 	private void addChilds() {
 		clearChildren();
+		LOGGER.debug("AudioAddictNetwork store container {} : adding childs ... ", network.displayName);
 		List<String> filterList = AudioAddictService.get().getFiltersForNetwork(this.network);
 		for (String filter : filterList) {
 			LOGGER.debug("AudioAddictNetwork store container {} : adding child {}", network.displayName, filter);
