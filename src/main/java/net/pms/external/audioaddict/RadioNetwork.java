@@ -121,9 +121,11 @@ public class RadioNetwork {
 			public void run() {
 				LOGGER.info("{} : initializing ...", network.name());
 				int i = 0;
-				while (i <= maxRetryBatchCount && !successInit) {
+				boolean successBatchRead = false;
+				while (i <= maxRetryBatchCount && !successBatchRead) {
 					try {
 						readNetworkBatch();
+						successBatchRead = true;
 					} catch (Exception e) {
 						i++;
 						LOGGER.warn("{} : failed to read batch update network data. Waiting 5 seconds. Retry count {} of {}", network.displayName, i, maxRetryBatchCount);
@@ -188,17 +190,10 @@ public class RadioNetwork {
 	}
 
 	public List<AudioAddictChannelDto> getChannel() {
-		if (networkBatchRoot == null) {
-			readNetworkConfiguration();
-		}
 		return channels;
 	}
 
 	public List<AudioAddictChannelDto> getFilteredChannels(String filterName) {
-		if (networkBatchRoot == null) {
-			readNetworkConfiguration();
-		}
-
 		if (channelsFilterMap.get(filterName) == null) {
 			getFilters();
 		}
@@ -237,10 +232,6 @@ public class RadioNetwork {
 	}
 
 	public List<String> getFilters() {
-		if (networkBatchRoot == null) {
-			readNetworkConfiguration();
-		}
-
 		return filters;
 	}
 
