@@ -124,9 +124,6 @@ public class RadioNetwork {
 				while (i <= maxRetryBatchCount && !successInit) {
 					try {
 						readNetworkBatch();
-						successInit = true;
-						LOGGER.debug("{} : calling callback handler ... ", network.displayName);
-						callback.networkInitilized();
 					} catch (Exception e) {
 						i++;
 						LOGGER.warn("{} : failed to read batch update network data. Waiting 5 seconds. Retry count {} of {}", network.displayName, i, maxRetryBatchCount);
@@ -350,6 +347,9 @@ public class RadioNetwork {
 		return streamUrl;
 	}
 
+	/**
+	 * reads favorites if available
+	 */
 	private void readFavorites() {
 		LOGGER.debug("{} : reading favorites ... ", this.network.displayName);
 		favoriteChannelId = new ArrayList<>();
@@ -370,12 +370,21 @@ public class RadioNetwork {
 					LOGGER.warn("failed processing favorites", e);
 				}
 				updateFilters();
+
+				// updateFilters is the last step in initializing the network.
+				initFinished();
 			});
 			completable.get(10, TimeUnit.SECONDS);
 
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			LOGGER.error("{} : readFavorites failed", this.network.displayName, e);
 		}
+	}
+
+	private void initFinished() {
+		successInit = true;
+		LOGGER.debug("{} : Initialization finished. Calling callback handler ... ", network.displayName);
+		callback.networkInitilized();
 	}
 
 	/*
