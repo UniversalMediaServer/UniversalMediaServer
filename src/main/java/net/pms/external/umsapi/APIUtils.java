@@ -854,7 +854,7 @@ public class APIUtils {
 		}
 
 		if (isBlank(episode) && season != null) {
-			LOGGER.trace("Got a season without an episode, likely a parsing error. We have: {} {} {} {} {}", movieOrTVSeriesTitle, year, season, episode, imdbID, pathString);
+			LOGGER.trace("Got a season without an episode, likely a parsing error. We have: {} {} {} {} {} {}", movieOrTVSeriesTitle, year, season, episode, imdbID, pathString);
 			return null;
 		}
 
