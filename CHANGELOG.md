@@ -3,12 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `@mantine/core` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
-- Bump `@mantine/dropzone` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
-- Bump `@mantine/form` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
-- Bump `@mantine/hooks` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
-- Bump `@mantine/modals` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
-- Bump `@mantine/notifications` from 8.3.5 to 8.3.7 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854))
+- Bump `@mantine/core` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
+- Bump `@mantine/dropzone` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
+- Bump `@mantine/form` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
+- Bump `@mantine/hooks` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
+- Bump `@mantine/modals` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
+- Bump `@mantine/notifications` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
 - Bump `@types/lodash` from 4.17.20 to 4.17.21 ([#5874](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5874))
 - Bump `@types/react-dom` from 19.2.2 to 19.2.3 ([#5874](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5874))
 - Bump `axios` from 1.12.2 to 1.13.2 ([#5851](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5851), [#5857](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5857))
