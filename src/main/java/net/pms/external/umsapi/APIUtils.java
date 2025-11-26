@@ -853,6 +853,11 @@ public class APIUtils {
 			return null;
 		}
 
+		if (isBlank(episode) && season != null) {
+			LOGGER.trace("Got a season without an episode, likely a parsing error. We have: {} {} {} {} {} {}", movieOrTVSeriesTitle, year, season, episode, imdbID, pathString);
+			return null;
+		}
+
 		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID);
 
 		String notFoundPartialMessage = "Metadata not found";
