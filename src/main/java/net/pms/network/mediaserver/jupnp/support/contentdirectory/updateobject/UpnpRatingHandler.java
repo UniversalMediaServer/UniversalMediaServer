@@ -6,7 +6,10 @@ import java.sql.SQLException;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
+import net.pms.database.MediaTableFiles;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.store.StoreResource;
+import net.pms.util.ResourceIdentifier;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -48,12 +51,17 @@ public class UpnpRatingHandler extends BaseUpdateObjectHandler {
 					"Value must be between 0 and 5 which is equavalent of a rating from 0 to 5 stars.");
 			}
 			getObjectResource().getMediaInfo().getAudioMetadata().setRating(newValue);
-			updateDatabase();
 
+			String newRuid = null;
+			String filename = getObjectResource().getFileName();
 			if (PMS.getConfiguration().isAudioUpdateTag()) {
-				String filename = getObjectResource().getFileName();
 				setRatingInFile(newValue, filename);
+				newRuid = ResourceIdentifier.getResourceIdentifier(filename);
+				getObjectResource().getMediaInfo().setResourceId(newRuid);
 			}
+			updateDatabase(filename, newRuid);
+			// new RUID must be considered
+			RatingBackupManager.backupRatings();
 		} catch (NullPointerException e) {
 			LOGGER.error("cannot handle update object request", e);
 			throw new ContentDirectoryException(712, "UpdateObject() failed because some TextContent cannot be parsed.");
@@ -165,13 +173,16 @@ public class UpnpRatingHandler extends BaseUpdateObjectHandler {
 		return rating * 20;
 	}
 
-	private void updateDatabase() throws ContentDirectoryException {
+	private void updateDatabase(String filename, String newRuid) throws ContentDirectoryException {
 		try {
 			MediaTableAudioMetadata.updateRatingByAudiotrackId(
 				MediaDatabase.getConnectionIfAvailable(),
 				getObjectResource().getMediaInfo().getAudioMetadata().getRating(),
 				getObjectResource().getMediaInfo().getAudioMetadata().getAudiotrackId()
 				);
+			if (newRuid != null) {
+				MediaTableFiles.updateRuid(filename, newRuid);
+			}
 		} catch (SQLException e) {
 			throw new ContentDirectoryException(712, "UpdateObject() failed because of SQL exception.");
 		}

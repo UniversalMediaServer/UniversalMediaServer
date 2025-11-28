@@ -158,6 +158,9 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
 
+
+	private static final String SQL_UPDATE_RUID = "UPDATE FILES set ruid = ? where filename = ?";
+
 	/**
 	 * Used by child tables
 	 */
@@ -1304,4 +1307,18 @@ public class MediaTableFiles extends MediaTable {
 		return list;
 	}
 
+	public static void updateRuid(String filename, String newRuid) {
+		try (
+			Connection connection = MediaDatabase.getConnectionIfAvailable();
+			PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_RUID);
+		) {
+			if (connection != null) {
+				ps.setString(1, newRuid);
+				ps.setString(2, filename);
+				ps.execute();
+			}
+		} catch (SQLException se) {
+			LOGGER.error("update of resource identifier failed!", se);
+		}
+	}
 }
