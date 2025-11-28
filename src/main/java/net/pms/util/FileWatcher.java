@@ -406,6 +406,9 @@ public class FileWatcher {
 		@Override
 		public boolean equals(Object o) {
 			if (o instanceof Watch other) {
+				if (item == null || other.item == null) {
+					return false;
+				}
 				return listener.get() == other.listener.get() &&
 						(fspec != null && fspec.equals(other.fspec)) &&
 						(item == other.item || (item != null && other.item != null && (item.get() == other.item.get() || item.get().equals(other.item.get())))) &&
