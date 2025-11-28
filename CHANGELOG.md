@@ -13,6 +13,7 @@
 - Bump `@types/react-dom` from 19.2.2 to 19.2.3 ([#5874](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5874))
 - Bump `actions/checkout` from 5 to 6 ([#5878](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5878))
 - Bump `axios` from 1.12.2 to 1.13.2 ([#5851](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5851), [#5857](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5857))
+- Bump `com.puppycrawl.tools:checkstyle` from 12.1.0 to 12.1.2 ([#5877](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5877))
 - Bump `eslint` from 9.38.0 to 9.39.0 ([#5850](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5850))
 - Bump `glob` from 10.4.5 to 10.5.0 ([#5866](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5866))
 - Bump `js-yaml` from 4.1.0 to 4.1.1 ([#5864](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5864))
