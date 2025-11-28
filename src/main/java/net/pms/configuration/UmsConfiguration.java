@@ -306,6 +306,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
+	private static final String KEY_FILE_EXTENSIONS_IGNORED = "file_extensions_ignored";
 	private static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	private static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
@@ -3740,6 +3741,33 @@ public class UmsConfiguration extends BaseConfiguration {
 		} catch (ConfigurationException e) {
 			LOGGER.error("Could not save configuration", e);
 		}
+	}
+
+	List<String> ignoredFileExtensions = new ArrayList<>();
+
+	/**
+	 * Whether file_extensions_ignored has been read.
+	 */
+	private boolean ignoredFileExtensionsRead = false;
+
+	public List<String> getIgnoredFileExtensions() {
+		if (!ignoredFileExtensionsRead) {
+			ignoredFileExtensionsRead = true;
+
+			String ignoredFileExtensionsString = configuration.getString(KEY_FILE_EXTENSIONS_IGNORED, "");
+
+			if (ignoredFileExtensionsString == null || ignoredFileExtensionsString.length() == 0) {
+				return ignoredFileExtensions;
+			}
+
+			String[] fileExtensionsArray = ignoredFileExtensionsString.trim().split("\\s*,\\s*");
+
+			for (String fileExtension : fileExtensionsArray) {
+				ignoredFileExtensions.add(fileExtension.toLowerCase());
+			}
+		}
+
+		return ignoredFileExtensions;
 	}
 
 	private ArrayList<String> ignoredFolderNames;
