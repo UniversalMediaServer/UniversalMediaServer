@@ -586,5 +586,4 @@ public class ConnectedRenderers {
 			connectedRenderer.getMediaStore().fileUpdated(file);
 		}
 	}
-
 }
