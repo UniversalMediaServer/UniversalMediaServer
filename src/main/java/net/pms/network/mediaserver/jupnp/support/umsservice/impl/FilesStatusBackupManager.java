@@ -122,7 +122,7 @@ public class FilesStatusBackupManager {
 		} catch (Exception e) {
 			LOGGER.error("restore files status failed", e);
 		}
-		LOGGER.info("inported {} files status lines", updated);
+		LOGGER.info("imported {} files status lines", updated);
 	}
 
 	private static String getBackupFilename() {
