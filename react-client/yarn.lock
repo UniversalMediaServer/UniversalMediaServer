@@ -1228,14 +1228,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/types@npm:8.48.0, @typescript-eslint/types@npm:^8.48.0":
-  version: 8.48.0
-  resolution: "@typescript-eslint/types@npm:8.48.0"
-  checksum: 10c0/865a8f4ae4a50aa8976f3d7e0f874f1a1c80227ec53ded68644d41011c729a489bb59f70683b29237ab945716ea0258e1d47387163379eab3edaaf5e5cc3b757
-  languageName: node
-  linkType: hard
-
-"@typescript-eslint/types@npm:^8.47.0":
+"@typescript-eslint/types@npm:8.48.0, @typescript-eslint/types@npm:^8.47.0, @typescript-eslint/types@npm:^8.48.0":
   version: 8.48.0
   resolution: "@typescript-eslint/types@npm:8.48.0"
   checksum: 10c0/865a8f4ae4a50aa8976f3d7e0f874f1a1c80227ec53ded68644d41011c729a489bb59f70683b29237ab945716ea0258e1d47387163379eab3edaaf5e5cc3b757
