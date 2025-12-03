@@ -20,7 +20,7 @@ import net.pms.database.MediaDatabase;
 public class RatingBackupManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RatingBackupManager.class.getName());
-	private final static String RATINGS_READ = "SELECT FILES.RUID, AUDIO_METADATA.RATING FROM FILES LEFT JOIN AUDIO_METADATA ON FILES.ID = AUDIO_METADATA.FILEID WHERE RATING is not null";
+	private final static String RATINGS_READ = "SELECT FILES.RUID, AUDIO_METADATA.RATING FROM FILES LEFT JOIN AUDIO_METADATA ON FILES.ID = AUDIO_METADATA.FILEID WHERE RATING is not null and RUID is not null";
 	private final static String RATINGS_WRITE = "UPDATE AUDIO_METADATA a SET a.RATING = ? WHERE a.FILEID in (SELECT ID from FILES WHERE RUID = ?)";
 
 	public RatingBackupManager() {
