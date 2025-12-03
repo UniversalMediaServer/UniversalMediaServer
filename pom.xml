@@ -80,7 +80,7 @@
 		<git-commit-id-plugin-version>9.0.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
-		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
+		<maven-resources-plugin-version>3.4.0</maven-resources-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
