@@ -69,6 +69,7 @@ import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.IOList;
 import net.pms.util.FileUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -588,6 +589,9 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
+		if (file == null) {
+			return new ArrayList<>();
+		}
 		List<StoreResource> systemFileResources = new ArrayList<>();
 		synchronized (weakResources) {
 			for (WeakReference<StoreResource> resource : weakResources.values()) {
@@ -726,6 +730,20 @@ public class MediaStore extends StoreContainer {
 		}
 	}
 
+	/**
+	 * File can have different structure after an update. Therefore, read file metadata again.
+	 * @param file
+	 */
+	public void fileUpdated(File file) {
+		for (StoreResource storeResource : findSystemFileResources(file)) {
+			if (storeResource instanceof RealFile rf) {
+				rf.setMediaInfo(null);
+				rf.resolve();
+			}
+		}
+	}
+
+
 	private StoreResource findResourceFromFile(List<StoreResource> resources, File file) {
 		if (file == null || file.isHidden() || !file.canRead() || !(file.isFile() || file.isDirectory())) {
 			return null;
@@ -780,6 +798,11 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public StoreResource createResourceFromFile(File file, boolean allowHidden) {
+		String fileExt = FilenameUtils.getExtension(file.getName());
+		if (renderer.getUmsConfiguration().getIgnoredFileExtensions().contains(fileExt.toLowerCase())) {
+			return null;
+		}
+
 		if (file == null) {
 			LOGGER.trace("createResourceFromFile return null as file is null.");
 			return null;
@@ -957,5 +980,4 @@ public class MediaStore extends StoreContainer {
 			Thread.sleep(100);
 		}
 	}
-
 }

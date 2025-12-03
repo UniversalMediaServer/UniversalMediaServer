@@ -21,14 +21,14 @@
     "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar",
     "private:removeconfig:macos": "rm -rf ~/Library/'Application Support'/UMS-tests"
   },
-  "packageManager": "yarn@4.10.2",
+  "packageManager": "yarn@4.12.0",
   "dependencies": {
-    "@mantine/core": "8.3.7",
-    "@mantine/dropzone": "8.3.7",
-    "@mantine/form": "8.3.7",
-    "@mantine/hooks": "8.3.7",
-    "@mantine/modals": "8.3.7",
-    "@mantine/notifications": "8.3.7",
+    "@mantine/core": "8.3.9",
+    "@mantine/dropzone": "8.3.9",
+    "@mantine/form": "8.3.9",
+    "@mantine/hooks": "8.3.9",
+    "@mantine/modals": "8.3.9",
+    "@mantine/notifications": "8.3.9",
     "@microsoft/fetch-event-source": "2.0.1",
     "@tabler/icons-react": "^3.35.0",
     "axios": "1.13.2",
@@ -44,10 +44,10 @@
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
-    "@stylistic/eslint-plugin": "5.5.0",
-    "@types/lodash": "4.17.20",
-    "@types/react": "19.2.2",
-    "@types/react-dom": "^19.2.2",
+    "@stylistic/eslint-plugin": "5.6.1",
+    "@types/lodash": "4.17.21",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "5.1.0",
     "eslint": "9.39.1",
     "eslint-plugin-jsx-a11y": "6.10.2",
@@ -55,7 +55,7 @@
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-react-refresh": "0.4.24",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.46.4",
+    "typescript-eslint": "8.48.0",
     "vite": "7.2.2"
   }
 }
