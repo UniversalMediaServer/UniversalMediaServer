@@ -22,6 +22,7 @@
 - Bump `glob` from 10.4.5 to 10.5.0 ([#5866](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5866))
 - Bump `js-yaml` from 4.1.0 to 4.1.1 ([#5864](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5864))
 - Bump `min-document` from 2.19.0 to 2.19.1 ([#5860](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5860))
+- Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.3.1 to 3.4.0 ([#5886](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5886))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.3 to 12.1.4 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.3 to 12.1.4 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.3 to 12.1.4 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875))
