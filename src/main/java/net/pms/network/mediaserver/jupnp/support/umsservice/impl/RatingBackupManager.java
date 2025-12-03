@@ -70,7 +70,7 @@ public class RatingBackupManager {
 				try (PreparedStatement updateStatement = c.prepareStatement(RATINGS_WRITE)) {
 					String ruid = (String) oruid;
 					String rating = (String) p.get(oruid);
-					updateStatement.setLong(1, Integer.parseInt(rating));
+					updateStatement.setInt(1, Integer.parseInt(rating));
 					updateStatement.setString(2, ruid);
 					int numUpdates = updateStatement.executeUpdate();
 					if (numUpdates == 1) {
