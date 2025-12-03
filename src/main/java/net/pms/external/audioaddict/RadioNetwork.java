@@ -65,6 +65,7 @@ public class RadioNetwork {
 	private volatile List<AudioAddictChannelDto> channels = null;
 	private volatile List<Integer> favoriteChannelId = null;
 	private volatile Channel[] channelUrls = null;
+	private volatile List<INetworkInitilized> networkInitCallbacks = new ArrayList<>();
 
 	private ObjectMapper om = null;
 	private StreamListQuality quality = StreamListQuality.MP3_320;
@@ -73,7 +74,6 @@ public class RadioNetwork {
 
 	private Platform network = null;
 	private volatile boolean successInit = false;
-	private INetworkInitilized callback = null;
 
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
@@ -81,7 +81,7 @@ public class RadioNetwork {
 	}
 
 	public void addInitCallbackHandler(INetworkInitilized callback) {
-		this.callback = callback;
+		networkInitCallbacks.add(callback);
 	}
 
 	public boolean isInitilized() {
@@ -375,7 +375,9 @@ public class RadioNetwork {
 	private void initFinished() {
 		successInit = true;
 		LOGGER.debug("{} : Initialization finished. Calling callback handler ... ", network.displayName);
-		callback.networkInitilized();
+		for (INetworkInitilized callback : networkInitCallbacks) {
+			callback.networkInitilized();
+		}
 	}
 
 	/*
