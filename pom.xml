@@ -1023,20 +1023,27 @@
 										<mkdir dir="${project.binaries}/windows/mplayer" />
 
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
-										<get src="${project.binaries-base}/win32/MediaInfo.dll" dest="${project.binaries}/windows/x86/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll" dest="${project.binaries}/windows/x86_64/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
+
+										<!-- MediaInfo binaries -->
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_i386_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x86.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/mediainfo-windows-x86.zip" dest="${project.basedir}/target/mediainfo-windows-x86-folder"></unzip>
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
+										<copy file="${project.basedir}/target/mediainfo-windows-x86-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86/MediaInfo.dll" overwrite="true" />
+										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86_64/MediaInfo.dll" overwrite="true" />
+										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/bin/MediaInfo.dll" overwrite="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/windows/MediaInfo-License.html" usetimestamp="true" />
+
 										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt" dest="${project.binaries}/windows/LICENSE-mplayer.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/builds.txt" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dcrawMS.exe" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
+
+										<!-- FFmpeg binaries -->
 										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
 										<get src="https://github.com/GyanD/codexffmpeg/releases/download/2025-10-01-git-1a02412170/ffmpeg-2025-10-01-git-1a02412170-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
 											<cutdirsmapper dirs="1" />
 										</unzip>
-
-										<!-- Copy FFmpeg binaries -->
 										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe" tofile="${project.binaries}/windows/x86_64/ffmpeg.exe" overwrite="true" />
 										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe" tofile="${project.binaries}/bin/ffmpeg.exe" overwrite="true" />
 
@@ -3528,13 +3535,17 @@
 								<configuration>
 									<target unless="offline">
 										<mkdir dir="${project.binaries}/bin" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
+
+										<!-- MediaInfo binary -->
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
+										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/bin/MediaInfo.dll" overwrite="true" />
+
+										<!-- FFmpeg binary -->
 										<get src="https://github.com/GyanD/codexffmpeg/releases/download/2025-10-01-git-1a02412170/ffmpeg-2025-10-01-git-1a02412170-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
 											<cutdirsmapper dirs="1" />
 										</unzip>
-
-										<!-- Copy FFmpeg binaries -->
 										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe" tofile="${project.binaries}/bin/ffmpeg.exe" overwrite="true" />
 									</target>
 								</configuration>
