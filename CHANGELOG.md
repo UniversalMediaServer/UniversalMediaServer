@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### General
+
+- Added ability to mark directories as fully played for the user on the web player (#5879)
+- Added systray menu item for "Web player (full)", which is the web player with access to the full settings
+- Moved the "mark as fully played/unplayed" feature to the breadcrumbs on the web player
+- Update our file info when they are modified on the hard drive
+- Added `file_extensions_ignored` setting to ignore files based on their extensions (thanks, somanchiu!)
+- Show 10 rating stars instead of 5 on web player
+- Put plot on the same line as the heading on web player
+- Moved the metadata editing/TMDB manual lookup functionality to the "Edit" button on the web player
+- Fix binaries (like FFmpeg, MediaInfo, yt-dlp, etc.) not updating on Windows
+- Stop parsing files that we do not support (#5865)
+
 ### Dependencies
 - Bump `@mantine/core` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
 - Bump `@mantine/dropzone` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
@@ -21,6 +34,7 @@
 - Bump `eslint` from 9.38.0 to 9.39.0 ([#5850](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5850))
 - Bump `glob` from 10.4.5 to 10.5.0 ([#5866](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5866))
 - Bump `js-yaml` from 4.1.0 to 4.1.1 ([#5864](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5864))
+- Bump `MediaInfo` from 25.04 to 25.10
 - Bump `min-document` from 2.19.0 to 2.19.1 ([#5860](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5860))
 - Bump `org.apache.maven.plugins:maven-assembly-plugin` from 3.7.1 to 3.8.0 ([#5887](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5887))
 - Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.3.1 to 3.4.0 ([#5886](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5886))
@@ -34,6 +48,7 @@
 - Bump `react-router-dom` from 7.9.4 to 7.9.6 ([#5849](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5849), [#5883](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5883))
 - Bump `typescript-eslint` from 8.46.2 to 8.48.0 ([#5856](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5856), [#5884](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5884))
 - Bump `vite` from 7.1.12 to 7.2.2 ([#5855](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5855))
+- Bump `yarn` from 4.10.2 to 4.12.0
 
 ## [15.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.1.0...15.2.0) (2025-10-28)
 
