@@ -16,11 +16,16 @@
  */
 package net.pms.store;
 
+import java.io.File;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import net.pms.Messages;
+import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.SharedContent;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -84,6 +89,17 @@ public class MediaStatusStore {
 	 */
 	public static void setFullyPlayed(String filename, int userId, boolean isFullyPlayed, Double lastPlaybackPosition) {
 		//update store
+		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
+		for (SharedContent sc : sharedContents) {
+			if (sc instanceof FolderContent folder) {
+				File folderFile = folder.getFile();
+				if (folderFile != null && filename.startsWith(folderFile.getAbsolutePath())) {
+					if (!folder.isMonitored()) {
+						return;
+					}
+				}
+			}
+		}
 		MediaStatus mediaStatus = getMediaStatus(userId, filename);
 		mediaStatus.setFullyPlayed(isFullyPlayed);
 		if (lastPlaybackPosition != null) {
