@@ -16,6 +16,8 @@
  */
 package net.pms.store;
 
+import com.google.errorprone.annotations.concurrent.GuardedBy;
+import jakarta.annotation.Nonnull;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
@@ -24,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.sharedcontent.FolderContent;
@@ -32,6 +36,8 @@ import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentListener;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
 import net.pms.gui.GuiManager;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.ConnectedRenderers;
@@ -44,10 +50,10 @@ import net.pms.store.item.RealFile;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.InputFile;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.errorprone.annotations.concurrent.GuardedBy;
-import jakarta.annotation.Nonnull;
 
 public class MediaScanner implements SharedContentListener {
 
@@ -350,7 +356,7 @@ public class MediaScanner implements SharedContentListener {
 	private static void updateFileEntry(String filename) {
 		File file = new File(filename);
 		Runnable r = () -> {
-				// Advise renderers about added file.
+			// Advise renderers about added file.
 			File f = new File(filename);
 			InputFile input = new InputFile();
 			input.setFile(file);
@@ -365,6 +371,35 @@ public class MediaScanner implements SharedContentListener {
 		new Thread(r, "MediaScanner File Parser - update").start();
 	}
 
+	private synchronized static final Pattern getFileExtensionAllowlistPattern() {
+		try {
+			if (fileExtensionAllowListPattern == null) {
+				String supportedExtensionsRegex = "";
+				for (Format format : FormatFactory.getSupportedFormats()) {
+					String[] supportedExtensions = format.getSupportedExtensions();
+					if (supportedExtensions != null && supportedExtensions.length > 0) {
+						for (String supportedExtension : supportedExtensions) {
+							if (StringUtils.isNotEmpty(supportedExtensionsRegex)) {
+								supportedExtensionsRegex += "|";
+							}
+							supportedExtensionsRegex += ".*\\." + supportedExtension + "$";
+						}
+					}
+				}
+
+				fileExtensionAllowListPattern = Pattern.compile(supportedExtensionsRegex);
+			}
+
+			return fileExtensionAllowListPattern;
+		} catch (Exception e) {
+			LOGGER.error("An error occurred while building the extension allowlist: {}", e.getMessage());
+			LOGGER.trace("Error: {}", e);
+			return Pattern.compile(".*");
+		}
+	}
+
+	/** Do not access this directly, use getFileExtensionAllowlistPattern */
+	protected static Pattern fileExtensionAllowListPattern = null;
 
 	/**
 	 * Parses a file and adds it to the database along the way.
@@ -373,6 +408,21 @@ public class MediaScanner implements SharedContentListener {
 	 */
 	private static void parseFileEntry(File file, boolean advise, boolean isCrawlingParentDirectory) {
 		String filename = file.getAbsolutePath();
+		String fileExtension = "." + FilenameUtils.getExtension(file.getName());
+
+		Matcher matcher = getFileExtensionAllowlistPattern().matcher(fileExtension);
+		if (!matcher.find()) {
+			LOGGER.trace("Ignoring {} because its extension is not supported", filename);
+			return;
+		} else {
+			LOGGER.trace("Proceeding for {} because its extension is supported", filename);
+		}
+
+		if (RENDERER.getUmsConfiguration().getIgnoredFileExtensions().contains(fileExtension.toLowerCase())) {
+			LOGGER.debug("Ignoring {} because its extension is ignored by user", filename);
+			return;
+		}
+
 		synchronized (FILES_PARSING) {
 			if (FILES_PARSING.contains(filename)) {
 				//parsing of this file is already in progress
