@@ -373,7 +373,7 @@ public class MediaScanner implements SharedContentListener {
 
 	private synchronized static final Pattern getFileExtensionAllowlistPattern() {
 		try {
-			if (FILE_EXTENSION_ALLOWLIST_PATTERN == null) {
+			if (fileExtensionAllowListPattern == null) {
 				String supportedExtensionsRegex = "";
 				for (Format format : FormatFactory.getSupportedFormats()) {
 					String[] supportedExtensions = format.getSupportedExtensions();
@@ -387,10 +387,10 @@ public class MediaScanner implements SharedContentListener {
 					}
 				}
 
-				FILE_EXTENSION_ALLOWLIST_PATTERN = Pattern.compile(supportedExtensionsRegex);
+				fileExtensionAllowListPattern = Pattern.compile(supportedExtensionsRegex);
 			}
 
-			return FILE_EXTENSION_ALLOWLIST_PATTERN;
+			return fileExtensionAllowListPattern;
 		} catch (Exception e) {
 			LOGGER.error("An error occurred while building the extension allowlist: {}", e.getMessage());
 			LOGGER.trace("Error: {}", e);
@@ -399,7 +399,7 @@ public class MediaScanner implements SharedContentListener {
 	}
 
 	/** Do not access this directly, use getFileExtensionAllowlistPattern */
-	protected static Pattern FILE_EXTENSION_ALLOWLIST_PATTERN = null;
+	protected static Pattern fileExtensionAllowListPattern = null;
 
 	/**
 	 * Parses a file and adds it to the database along the way.
