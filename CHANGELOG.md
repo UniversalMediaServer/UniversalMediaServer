@@ -31,6 +31,7 @@
 - Bump `ch.qos.logback:logback-classic` from 1.5.20 to 1.5.21 ([#5876](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5876))
 - Bump `ch.qos.logback:logback-core` from 1.5.20 to 1.5.21 ([#5876](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5876))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.1.0 to 12.1.2 ([#5877](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5877))
+- Bump `commons-codec:commons-codec` from 1.19.0 to 1.20.0 ([#5858](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5858))
 - Bump `commons-io:commons-io` from 2.20.0 to 2.21.0 ([#5859](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5859))
 - Bump `eslint` from 9.38.0 to 9.39.0 ([#5850](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5850))
 - Bump `glob` from 10.4.5 to 10.5.0 ([#5866](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5866))
