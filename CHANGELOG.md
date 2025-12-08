@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### General
+
+- Added ability to mark directories as fully played for the user on the web player (#5879)
+
+  ![mark directories fully played on web player](./changelog-images/15.3.0-mark-played-before-after.png)
+- Added systray menu item for "Web player (full)", which is the web player with access to the full settings
+
+  ![new systray item web player full](./changelog-images/15.3.0-web-player-full.png)
+- Moved the "mark as fully played/unplayed" feature to the breadcrumbs on the web player
+- Update our file info when they are modified on the hard drive
+- Added `file_extensions_ignored` setting to ignore files based on their extensions (thanks, somanchiu!)
+- Show 10 rating stars instead of 5 on web player
+- Put plot on the same line as the heading on web player
+- Moved the metadata editing/TMDB manual lookup functionality to the "Edit" button on the web player
+- Fix binaries (like FFmpeg, MediaInfo, yt-dlp, etc.) not updating on Windows
+- Stop parsing files that we do not support (#5865)
+
 ### Dependencies
 - Bump `@mantine/core` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
 - Bump `@mantine/dropzone` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
@@ -9,29 +26,41 @@
 - Bump `@mantine/hooks` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
 - Bump `@mantine/modals` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
 - Bump `@mantine/notifications` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
+- Bump `@playwright/test` from 1.56.1 to 1.57.0 ([#5901](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5901))
 - Bump `@stylistic/eslint-plugin` from 5.5.0 to 5.6.1 ([#5885](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5885))
 - Bump `@types/lodash` from 4.17.20 to 4.17.21 ([#5874](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5874))
 - Bump `@types/react-dom` from 19.2.2 to 19.2.3 ([#5874](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5874))
 - Bump `@types/react` from 19.2.2 to 19.2.6 ([#5873](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5873))
+- Bump `@vitejs/plugin-react` from 5.1.0 to 5.1.1 ([#5898](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5898))
 - Bump `actions/checkout` from 5 to 6 ([#5878](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5878))
 - Bump `axios` from 1.12.2 to 1.13.2 ([#5851](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5851), [#5857](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5857))
 - Bump `ch.qos.logback:logback-classic` from 1.5.20 to 1.5.21 ([#5876](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5876))
 - Bump `ch.qos.logback:logback-core` from 1.5.20 to 1.5.21 ([#5876](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5876))
-- Bump `com.puppycrawl.tools:checkstyle` from 12.1.0 to 12.1.2 ([#5877](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5877))
+- Bump `com.puppycrawl.tools:checkstyle` from 12.1.0 to 12.2.0 ([#5877](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5877), [#5902](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5902))
+- Bump `commons-codec:commons-codec` from 1.19.0 to 1.20.0 ([#5858](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5858))
+- Bump `commons-io:commons-io` from 2.20.0 to 2.21.0 ([#5859](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5859))
 - Bump `eslint` from 9.38.0 to 9.39.0 ([#5850](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5850))
 - Bump `glob` from 10.4.5 to 10.5.0 ([#5866](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5866))
 - Bump `js-yaml` from 4.1.0 to 4.1.1 ([#5864](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5864))
+- Bump `MediaInfo` from 25.04 to 25.10
 - Bump `min-document` from 2.19.0 to 2.19.1 ([#5860](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5860))
-- Bump `org.eclipse.jetty:jetty-client` from 12.1.3 to 12.1.4 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875))
-- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.3 to 12.1.4 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875))
-- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.3 to 12.1.4 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875))
-- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.3 to 12.1.4 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875))
+- Bump `org.apache.commons:commons-lang3` from 3.19.0 to 3.20.0 ([#5903](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5903))
+- Bump `org.apache.commons:commons-text` from 1.14.0 to 1.15.0 ([#5904](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5904))
+- Bump `org.apache.maven.plugins:maven-assembly-plugin` from 3.7.1 to 3.8.0 ([#5887](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5887))
+- Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.3.1 to 3.4.0 ([#5886](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5886))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.3 to 12.1.5 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875), [#5900](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5900))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.3 to 12.1.5 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875), [#5900](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5900))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.3 to 12.1.5 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875), [#5900](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5900))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.3 to 12.1.5 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875), [#5900](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5900))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.0 to 6.0.1 ([#5852](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5852))
-- Bump `react-router-dom` from 7.9.4 to 7.9.5 ([#5849](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5849))
+- Bump `react-dom` from 19.2.0 to 19.2.1 ([#5897](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5897))
+- Bump `react-router-dom` from 7.9.4 to 7.10.1 ([#5849](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5849), [#5883](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5883), [#5899](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5899))
+- Bump `react` from 19.2.0 to 19.2.1 ([#5897](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5897))
 - Bump `typescript-eslint` from 8.46.2 to 8.48.0 ([#5856](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5856), [#5884](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5884))
 - Bump `vite` from 7.1.12 to 7.2.2 ([#5855](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5855))
+- Bump `yarn` from 4.10.2 to 4.12.0
 
 ## [15.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.1.0...15.2.0) (2025-10-28)
 

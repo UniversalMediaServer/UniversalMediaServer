@@ -29,9 +29,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.Connection;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.FFmpegHlsVideo;
 import net.pms.encoders.HlsHelper;
@@ -60,6 +62,7 @@ import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebGuiRenderer;
+import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
@@ -68,6 +71,7 @@ import net.pms.store.container.CodeEnter;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MediaLibraryTvSeason;
 import net.pms.store.container.MediaLibraryTvSeries;
+import net.pms.store.container.RealFolder;
 import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.item.MediaLibraryTvEpisode;
 import net.pms.store.item.RealFile;
@@ -238,11 +242,27 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					respondBadRequest(req, resp);
 				}
 				case "/setFullyPlayed" -> {
-					if (action.has("id") && !action.get("id").isJsonNull() &&
-						action.has("fullyPlayed") && !action.get("fullyPlayed").isJsonNull()) {
+					if (
+						action.has("id") &&
+						!action.get("id").isJsonNull() &&
+						action.has("fullyPlayed") &&
+						!action.get("fullyPlayed").isJsonNull()
+					) {
 						String id = action.get("id").getAsString();
 						boolean fullyPlayed = action.get("fullyPlayed").getAsBoolean();
-						boolean changed = setFullyPlayed(renderer, id, fullyPlayed);
+
+						int userId;
+						Account account = AuthService.getAccountLoggedIn(req);
+						if (account == null) {
+							userId = 0;
+						} else {
+							userId = account.getUser().getId();
+							if (userId == Integer.MAX_VALUE) {
+								userId = 0;
+							}
+						}
+
+						boolean changed = setFullyPlayed(renderer, id, fullyPlayed, userId);
 						if (changed) {
 							respond(req, resp, "{}", 200, "application/json");
 							return;
@@ -408,9 +428,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		StoreResource rootResource = id.equals("0") ? null : renderer.getMediaStore().getResource(id);
 
 		List<StoreResource> resources = renderer.getMediaStore().getResources(id, true);
-		if (!resources.isEmpty() &&
-				resources.get(0).getParent() != null &&
-				(resources.get(0).getParent() instanceof CodeEnter)) {
+		if (
+			!resources.isEmpty() &&
+			resources.get(0).getParent() != null &&
+			(resources.get(0).getParent() instanceof CodeEnter)
+		) {
 			return null;
 		}
 		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
@@ -418,6 +440,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 
 		boolean hasFile = false;
+		boolean isRealFolder = false;
 		if (
 			!resources.isEmpty() &&
 			resources.get(0).getParent() != null &&
@@ -601,12 +624,19 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 				}
 			}
+		} else if (rootResource instanceof RealFolder) {
+			File requestedDirectoryFile = new File(rootResource.getSystemName());
+			boolean valid = requestedDirectoryFile.exists() && requestedDirectoryFile.isDirectory();
+			if (valid) {
+				isRealFolder = true;
+			}
 		}
 
 		result.addProperty("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 		result.addProperty("name", id.equals("0") || rootResource == null ? CONFIGURATION.getServerDisplayName() : rootResource.getLocalizedDisplayName(lang));
 		result.addProperty("hasFile", hasFile);
 		result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
+		result.addProperty("isRealFolder", isRealFolder);
 		result.add("breadcrumbs", jBreadcrumbs);
 		result.add("mediaLibraryFolders", mediaLibraryFolders);
 		result.add("folders", jFolders);
@@ -893,12 +923,63 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return false;
 	}
 
-	private static boolean setFullyPlayed(WebGuiRenderer renderer, String id, boolean fullyPlayed) throws IOException, InterruptedException {
-		StoreResource resource = renderer.getMediaStore().getResource(id);
-		if (resource.isFullyPlayedAware()) {
-			resource.setFullyPlayed(fullyPlayed);
-			return true;
+	/**
+	 * Sets the fully played status of a resource.
+	 * If the resource is fully played aware, it sets it directly,
+	 * otherwise it starts a loop to set the status for all files
+	 * in the directory.
+	 *
+	 * @param renderer
+	 * @param resourceId
+	 * @param fullyPlayed
+	 * @param userId
+	 * @return
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private static boolean setFullyPlayed(WebGuiRenderer renderer, String resourceId, boolean fullyPlayed, int userId) {
+		try {
+			StoreResource resource = renderer.getMediaStore().getResource(resourceId);
+			if (resource == null) {
+				LOGGER.warn("setFullyPlayed requested for invalid resource id: {}", resourceId);
+				return false;
+			}
+
+			if (resource.isFullyPlayedAware()) {
+				// for files and TV series folders
+				resource.setFullyPlayed(fullyPlayed);
+				return true;
+			} else if (resource instanceof RealFolder) {
+				// for real directories
+				File requestedDirectoryFile = new File(resource.getSystemName());
+				boolean valid = requestedDirectoryFile.exists() && requestedDirectoryFile.isDirectory();
+				if (!valid) {
+					LOGGER.warn("setFullyPlayed requested for invalid directory: {}", resource.getSystemName());
+					return false;
+				}
+
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						String directory = resource.getParent() != null ? resource.getSystemName() : null;
+						if (directory == null) {
+							return false;
+						}
+
+						MediaStatusStore.setDirectoryFullyPlayed(connection, directory, userId, fullyPlayed);
+					}
+				} finally {
+					MediaDatabase.close(connection);
+				}
+
+				return true;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception in setFullyPlayed: {}", e.getMessage());
+			LOGGER.trace("{}", e);
 		}
+
 		return false;
 	}
 

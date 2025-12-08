@@ -14,8 +14,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Breadcrumbs, Button, Group, Image, LoadingOverlay, Paper, ScrollArea, Text } from '@mantine/core'
-import { IconHome } from '@tabler/icons-react'
+import { ActionIcon, Box, Breadcrumbs, Button, Group, Image, LoadingOverlay, Menu, Paper, ScrollArea, Text } from '@mantine/core'
+import { IconChevronDown, IconHome, IconRecordMail, IconRecordMailOff } from '@tabler/icons-react'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -34,7 +34,7 @@ import MediaGrid from './MediaGrid'
 import MediaPanel from './MediaPanel'
 
 const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: SessionInterface, player: PlayerInterface }) => {
-  const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse)
+  const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], isRealFolder: false, medias: [], useWebControl: false } as BaseBrowse)
   const [loading, setLoading] = useState(false)
   const { req, id } = useParams()
 
@@ -54,6 +54,29 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
       session.setDocumentTitle('')
     }
   }, [data.breadcrumbs])
+
+  const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
+    setLoading(true)
+    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: player.uuid, id, fullyPlayed }, { headers: { Player: player.uuid } })
+      .then(function () {
+        refreshPage()
+      })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+        else {
+          showError({
+            id: 'player-fully-played',
+            title: i18n.get('Error'),
+            message: 'Your request was not handled by the server.',
+          })
+        }
+      })
+      .then(function () {
+        setLoading(false)
+      })
+  }
 
   const refreshPage = () => {
     if (player.uuid && player.reqType) {
@@ -94,7 +117,11 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
     return data.breadcrumbs.length > 1
   }
 
-  const PlayerBreadcrumbs = () => {
+  const shouldDisplayBreadcrumbDropdown = () => {
+    return data.fullyplayed === false || data.fullyplayed === true || data.isRealFolder === true
+  }
+
+  const PlayerBreadcrumbs = ({ isFolder, isFullyPlayed, isRealFolder }: { isFolder: boolean, isFullyPlayed: boolean | undefined, isRealFolder: boolean }) => {
     return hasBreadcrumbs()
       ? (
           <Paper
@@ -122,7 +149,7 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
                       </Button>
                     )
                   : (
-                      <LastBreadcrumbButton key={-1} breadcrumb={breadcrumb} />
+                      <LastBreadcrumbButton key={-1} breadcrumb={breadcrumb} isFolder={isFolder} isFullyPlayed={isFullyPlayed} isRealFolder={isRealFolder} />
                     ),
                 )}
               </Breadcrumbs>
@@ -132,15 +159,51 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
       : undefined
   }
 
-  const LastBreadcrumbButton = ({ breadcrumb }: { breadcrumb: BaseMedia }) => (
-    <Button
-      style={{ cursor: 'default' }}
-      color="gray"
-      variant="subtle"
-      size="compact-md"
-    >
-      {i18n.getLocalizedName(breadcrumb.name)}
-    </Button>
+  const LastBreadcrumbButton = ({ breadcrumb, isFolder, isFullyPlayed, isRealFolder }: { breadcrumb: BaseMedia, isFolder: boolean, isFullyPlayed: boolean | undefined, isRealFolder: boolean }) => (
+    <Group wrap="nowrap" gap={0}>
+      <Button
+        style={{ cursor: 'default' }}
+        color="gray"
+        variant="subtle"
+        size="compact-md"
+      >
+        {i18n.getLocalizedName(breadcrumb.name)}
+      </Button>
+      {shouldDisplayBreadcrumbDropdown()
+        && (
+          <Menu transitionProps={{ transition: 'pop' }} position="bottom-end" withinPortal>
+            <Menu.Target>
+              <ActionIcon
+                color="gray"
+                variant="subtle"
+                size="compact-md"
+              >
+                <IconChevronDown size={16} stroke={1.5} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {(isFullyPlayed === false || isRealFolder === true)
+                && (
+                  <Menu.Item
+                    leftSection={<IconRecordMail />}
+                    onClick={() => setFullyPlayed(player.reqId, true)}
+                  >
+                    {i18n.get(isFolder ? 'MarkContentsFullyPlayed' : 'MarkFullyPlayed')}
+                  </Menu.Item>
+                )}
+              {(isFullyPlayed === true || isRealFolder === true)
+                && (
+                  <Menu.Item
+                    leftSection={<IconRecordMailOff />}
+                    onClick={() => setFullyPlayed(player.reqId, false)}
+                  >
+                    {i18n.get('MarkContentsUnplayed')}
+                  </Menu.Item>
+                )}
+            </Menu.Dropdown>
+          </Menu>
+        )}
+    </Group>
   )
 
   const VideoJsMediaPlayer = ({ player, media }: { player: PlayerInterface, media: VideoMedia | AudioMedia }) => {
@@ -270,7 +333,7 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
     ? (
         <Box>
           <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} loaderProps={{ style: { position: 'fixed' } }} />
-          <PlayerBreadcrumbs />
+          <PlayerBreadcrumbs isFolder={data.goal === 'browse'} isFullyPlayed={data.fullyplayed} isRealFolder={data.isRealFolder} />
           <ScrollArea>
             {
               data.goal === 'play'
@@ -281,12 +344,12 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
                   )
                 : data.goal === 'show'
                   ? (
-                      <MediaPanel i18n={i18n} player={player} data={data} refreshPage={refreshPage} setLoading={setLoading} />
+                      <MediaPanel i18n={i18n} player={player} data={data} refreshPage={refreshPage} />
                     )
                   : (
                       <span>
                         <MediaSelections i18n={i18n} session={session} player={player} data={data} />
-                        <MediaPanel i18n={i18n} player={player} data={data} refreshPage={refreshPage} setLoading={setLoading} />
+                        <MediaPanel i18n={i18n} player={player} data={data} refreshPage={refreshPage} />
                         <MediaFolders i18n={i18n} session={session} player={player} data={data} />
                         <MediaGrid i18n={i18n} session={session} player={player} mediaArray={data.medias} />
                       </span>

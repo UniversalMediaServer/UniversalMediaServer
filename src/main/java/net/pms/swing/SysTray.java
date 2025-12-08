@@ -70,9 +70,13 @@ public class SysTray {
 				popup.add(webPlayerItem);
 			}
 
-			MenuItem webGuiItem = new MenuItem(Messages.getGuiString("Settings"));
-			webGuiItem.addActionListener((ActionEvent e) -> PlatformUtils.INSTANCE.browseURI(PMS.get().getGuiServer().getUrl()));
-			popup.add(webGuiItem);
+			MenuItem webPlayerFullItem = new MenuItem(Messages.getGuiString("WebPlayerFull"));
+			webPlayerFullItem.addActionListener((ActionEvent e) -> PlatformUtils.INSTANCE.browseURI(PMS.get().getGuiServer().getUrl() + "/player/"));
+			popup.add(webPlayerFullItem);
+
+			MenuItem webSettingsItem = new MenuItem(Messages.getGuiString("Settings"));
+			webSettingsItem.addActionListener((ActionEvent e) -> PlatformUtils.INSTANCE.browseURI(PMS.get().getGuiServer().getUrl()));
+			popup.add(webSettingsItem);
 
 			MenuItem oldGuiItem = new MenuItem(Messages.getGuiString("SettingsOld"));
 			oldGuiItem.addActionListener((ActionEvent e) -> GuiManager.showSwingFrame());
