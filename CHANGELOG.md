@@ -5,7 +5,11 @@
 ### General
 
 - Added ability to mark directories as fully played for the user on the web player (#5879)
+
+  ![mark directories fully played on web player](./changelog-images/15.3.0-mark-played-before-after.png)
 - Added systray menu item for "Web player (full)", which is the web player with access to the full settings
+
+  ![new systray item web player full](./changelog-images/15.3.0-web-player-full.png)
 - Moved the "mark as fully played/unplayed" feature to the breadcrumbs on the web player
 - Update our file info when they are modified on the hard drive
 - Added `file_extensions_ignored` setting to ignore files based on their extensions (thanks, somanchiu!)
