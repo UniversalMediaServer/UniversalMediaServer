@@ -331,17 +331,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		Account account = AuthService.getPlayerAccountLoggedIn(req);
 		if (account == null || !account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 			return;
-		} else {
-			LOGGER.info("Account {} is creating a new web gui renderer", account.getUser());
 		}
 		try {
 			LOGGER.info("Found new web gui renderer with uuid: {}", uuid);
 			String userAgent = req.getHeader("User-agent");
 			String langs = getRequestLanguages(req);
-			LOGGER.debug("account : {}", account.toString());
-			LOGGER.debug("account has user : {}", account.getUser().toString());
 			LOGGER.debug("account has user id : {}", account.getUser().getId());
-			WebGuiRenderer renderer = new WebGuiRenderer(uuid, account.getUser().getId(), userAgent, langs);
+			int id = account.getUser().getId();
+			WebGuiRenderer renderer = new WebGuiRenderer(uuid, id, userAgent, langs);
 			renderer.associateIP(getInetAddress(req));
 			renderer.setActive(true);
 			ConnectedRenderers.addWebPlayerRenderer(renderer);
