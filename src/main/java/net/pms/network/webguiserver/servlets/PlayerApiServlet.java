@@ -333,14 +333,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
-			LOGGER.info("Found new web gui renderer with uuid: {}", uuid);
 			String userAgent = req.getHeader("User-agent");
 			String langs = getRequestLanguages(req);
-			LOGGER.debug("account has user id : {}", account.getUser().getId());
 			int id = account.getUser().getId();
-			LOGGER.debug("local user id : {}", id);
 			WebGuiRenderer renderer = new WebGuiRenderer(uuid, id, userAgent, langs);
-			LOGGER.debug("renderer created.");
 			renderer.associateIP(getInetAddress(req));
 			renderer.setActive(true);
 			ConnectedRenderers.addWebPlayerRenderer(renderer);
