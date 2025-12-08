@@ -338,6 +338,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			String langs = getRequestLanguages(req);
 			LOGGER.debug("account has user id : {}", account.getUser().getId());
 			int id = account.getUser().getId();
+			LOGGER.debug("local user id : {}", id);
 			WebGuiRenderer renderer = new WebGuiRenderer(uuid, id, userAgent, langs);
 			renderer.associateIP(getInetAddress(req));
 			renderer.setActive(true);
