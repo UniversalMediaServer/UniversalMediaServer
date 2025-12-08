@@ -149,6 +149,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		monitorThread = null;
 		renew = false;
 		data.put(TRANSPORT_STATE, STOPPED);
+		mediaStore.discoverChildren();
 	}
 
 	/**
@@ -261,7 +262,6 @@ public class Renderer extends RendererDeviceConfiguration {
 	 * @return The MediaStore.
 	 */
 	public MediaStore getMediaStore() {
-		mediaStore.discoverChildren();
 		return mediaStore;
 	}
 
