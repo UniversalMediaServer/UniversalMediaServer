@@ -26,6 +26,7 @@
 - Bump `@types/lodash` from 4.17.20 to 4.17.21 ([#5874](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5874))
 - Bump `@types/react-dom` from 19.2.2 to 19.2.3 ([#5874](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5874))
 - Bump `@types/react` from 19.2.2 to 19.2.6 ([#5873](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5873))
+- Bump `@vitejs/plugin-react` from 5.1.0 to 5.1.1 ([#5898](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5898))
 - Bump `actions/checkout` from 5 to 6 ([#5878](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5878))
 - Bump `axios` from 1.12.2 to 1.13.2 ([#5851](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5851), [#5857](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5857))
 - Bump `ch.qos.logback:logback-classic` from 1.5.20 to 1.5.21 ([#5876](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5876))
