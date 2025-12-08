@@ -62,7 +62,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			this.audioAddictPlatform = new AudioAddictPlatform(renderer, "Audio Addict Radio Network");
 			addChild(this.audioAddictPlatform);
 		} else {
-			LOGGER.trace("{} : no audio addict user set. Radio network is unavailable.", renderer.getSimpleName());
+			LOGGER.trace("No audio addict user set. Radio network is unavailable.");
 		}
 	}
 
