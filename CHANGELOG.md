@@ -41,6 +41,7 @@
 - Bump `MediaInfo` from 25.04 to 25.10
 - Bump `min-document` from 2.19.0 to 2.19.1 ([#5860](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5860))
 - Bump `org.apache.commons:commons-lang3` from 3.19.0 to 3.20.0 ([#5903](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5903))
+- Bump `org.apache.commons:commons-text` from 1.14.0 to 1.15.0 ([#5904](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5904))
 - Bump `org.apache.maven.plugins:maven-assembly-plugin` from 3.7.1 to 3.8.0 ([#5887](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5887))
 - Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.3.1 to 3.4.0 ([#5886](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5886))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.3 to 12.1.5 ([#5875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5875), [#5900](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5900))
