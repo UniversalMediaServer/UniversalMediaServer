@@ -116,3 +116,10 @@ nav button .mantine-Button-inner:hover {
 .hidden {
   display: none;
 }
+
+.media-edit-button,
+.media-edit-button:focus {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}

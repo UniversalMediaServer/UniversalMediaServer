@@ -20,20 +20,20 @@ import MediaMetadataPanel from './MediaMetadataPanel'
 import MediaShowPanel from './MediaShowPanel'
 import MediaPanelMenu from './MediaPanelMenu'
 
-export default function MediaPanel({ i18n, player, data, refreshPage, setLoading }: { i18n: I18nInterface, player: PlayerInterface, data: BaseBrowse, refreshPage: () => void, setLoading: (loading: boolean) => void }) {
+export default function MediaPanel({ i18n, player, data, refreshPage }: { i18n: I18nInterface, player: PlayerInterface, data: BaseBrowse, refreshPage: () => void }) {
   const media = data.goal === 'show' ? data.medias[0] : data.breadcrumbs[data.breadcrumbs.length - 1]
   const metadata = data.goal === 'show' ? (media as BaseBrowse | VideoMedia).metadata : data.metadata
 
   return metadata
     ? (
         <MediaMetadataPanel i18n={i18n} player={player} media={media} metadata={metadata}>
-          <MediaPanelMenu i18n={i18n} player={player} data={data} refreshPage={refreshPage} setLoading={setLoading} />
+          <MediaPanelMenu i18n={i18n} player={player} data={data} refreshPage={refreshPage} />
         </MediaMetadataPanel>
       )
     : data.goal === 'show'
       ? (
           <MediaShowPanel i18n={i18n} player={player} media={media}>
-            <MediaPanelMenu i18n={i18n} player={player} data={data} refreshPage={refreshPage} setLoading={setLoading} />
+            <MediaPanelMenu i18n={i18n} player={player} data={data} refreshPage={refreshPage} />
           </MediaShowPanel>
         )
 

@@ -100,6 +100,7 @@ export interface BaseBrowse {
   metadata?: VideoMetadata
   useWebControl: boolean
   fullyplayed?: boolean
+  isRealFolder: boolean
 }
 
 export interface MediaRating {

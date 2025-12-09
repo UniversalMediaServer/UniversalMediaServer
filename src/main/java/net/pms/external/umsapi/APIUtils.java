@@ -965,6 +965,7 @@ public class APIUtils {
 			getParameters.add("imdbID=" + imdbID);
 		}
 		if (isNotBlank(filename)) {
+			filename = URLEncoder.encode(filename, StandardCharsets.UTF_8.toString());
 			getParameters.add("filename=" + filename);
 		}
 		if (!"en-US".equals(CONFIGURATION.getLanguageTag())) {

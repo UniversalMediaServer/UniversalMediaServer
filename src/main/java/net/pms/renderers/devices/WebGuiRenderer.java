@@ -105,7 +105,7 @@ public class WebGuiRenderer extends Renderer {
 	}
 
 	public String getUserName() {
-		if (account.getUser() != null && account.getUser().getId() != Integer.MAX_VALUE) {
+		if (account != null && account.getUser() != null && account.getUser().getId() != Integer.MAX_VALUE) {
 			if (StringUtils.isNotEmpty(account.getUser().getDisplayName())) {
 				return account.getUser().getDisplayName();
 			} else if (StringUtils.isNotEmpty(account.getUser().getUsername())) {

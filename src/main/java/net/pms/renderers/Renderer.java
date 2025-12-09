@@ -102,7 +102,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	private int maximumBitrateTotal = 0;
 	private String automaticVideoQuality = "Automatic (Wireless)";
 
-	private volatile MediaStore mediaStore = new MediaStore(this);
+	private volatile MediaStore mediaStore;
 	private List<String> sharedPath;
 	protected Account account;
 
@@ -149,7 +149,6 @@ public class Renderer extends RendererDeviceConfiguration {
 		monitorThread = null;
 		renew = false;
 		data.put(TRANSPORT_STATE, STOPPED);
-		mediaStore.discoverChildren();
 	}
 
 	/**
@@ -261,7 +260,12 @@ public class Renderer extends RendererDeviceConfiguration {
 	 *
 	 * @return The MediaStore.
 	 */
-	public MediaStore getMediaStore() {
+	public synchronized MediaStore getMediaStore() {
+		if (mediaStore == null) {
+			mediaStore = new MediaStore(this);
+			mediaStore.discoverChildren();
+		}
+
 		return mediaStore;
 	}
 

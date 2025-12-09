@@ -28,6 +28,7 @@ There are a number of manual steps involved in a new version release. This list 
 
      When you know the version number to choose, it should be updated in the `<version>` and the `<project.version.short>` parts of pom.xml. That will include removing `-SNAPSHOT` from `<version>`, which will be added back later.
 
+1. If any binaries (files in /bin like FFmpeg, MediaInfo, yt-dlp, etc.) have changed since the last release, bump `binary-revision`  in [pom.xml](./pom.xml).
 1. Commit those changes in a commit message with the version name
 1. Tag the release with the same version name
 1. Push the commit and tag to GitHub
