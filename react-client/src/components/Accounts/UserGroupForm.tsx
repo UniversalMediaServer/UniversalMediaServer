@@ -47,6 +47,7 @@ export default function UserGroupForm({
         name="groupId"
         disabled={!canManageGroups}
         data={groupSelectionDatas}
+        comboboxProps={{ withinPortal: true }}
         {...userGroupForm.getInputProps('groupId')}
       />
       {canManageGroups && userGroupForm.isDirty() && (
