@@ -19,6 +19,15 @@
 - Fix binaries (like FFmpeg, MediaInfo, yt-dlp, etc.) not updating on Windows
 - Stop parsing files that we do not support (#5865)
 
+### Translation updates via Crowdin
+- Czech (100%)
+- Finnish (70%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Fredo1650!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (56%) (thanks, Karol Szastok!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+- Ukrainian (19%) (thanks, AquaMan Ua!)
+
 ### Dependencies
 - Bump `@mantine/core` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
 - Bump `@mantine/dropzone` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))
