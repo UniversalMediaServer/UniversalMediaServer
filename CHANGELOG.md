@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [15.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.2.0...15.3.0) (2025-12-11)
+
 ### General
 
 - Added ability to mark directories as fully played for the user on the web player (#5879)
