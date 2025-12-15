@@ -13,6 +13,8 @@
 - Bump `actions/cache` from 4 to 5 ([#5916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5916))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.2.0 to 12.3.0 ([#5913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5913))
 - Bump `eslint` from 9.39.1 to 9.39.2 ([#5914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5914))
+- Bump `react-dom` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
+- Bump `react` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
 
 ## [15.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.2.0...15.3.0) (2025-12-11)
 
