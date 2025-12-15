@@ -112,7 +112,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -144,7 +144,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -176,7 +176,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -208,7 +208,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -246,7 +246,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
