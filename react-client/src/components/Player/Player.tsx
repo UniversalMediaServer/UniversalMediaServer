@@ -330,11 +330,14 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
     [data, i18n.get, session.playerNavbar],
   )
 
+  const playMedia = data.goal === 'show' ? (data.medias[0]) as PlayMedia : undefined
+  const fullyplayed = (playMedia && playMedia.fullyplayed != null) ? playMedia.fullyplayed : data.fullyplayed
+
   return (!session.authenticate || session.havePermission(UmsPermission.web_player_browse))
     ? (
         <Box>
           <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} loaderProps={{ style: { position: 'fixed' } }} />
-          <PlayerBreadcrumbs isFolder={data.goal === 'browse'} isFullyPlayed={data.fullyplayed} isRealFolder={data.isRealFolder} />
+          <PlayerBreadcrumbs isFolder={data.goal === 'browse'} isFullyPlayed={fullyplayed} isRealFolder={data.isRealFolder} />
           <ScrollArea>
             {
               data.goal === 'play'
