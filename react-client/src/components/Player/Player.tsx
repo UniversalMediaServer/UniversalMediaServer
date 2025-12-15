@@ -118,7 +118,7 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
   }
 
   const shouldDisplayBreadcrumbDropdown = () => {
-    return data.fullyplayed === false || data.fullyplayed === true || data.isRealFolder === true
+    return data.fullyplayed === false || data.fullyplayed === true || data.isRealFolder === true || data.goal === 'show'
   }
 
   const PlayerBreadcrumbs = ({ isFolder, isFullyPlayed, isRealFolder }: { isFolder: boolean, isFullyPlayed: boolean | undefined, isRealFolder: boolean }) => {
