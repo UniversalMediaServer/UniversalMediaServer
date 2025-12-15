@@ -32,7 +32,7 @@ jobs:
           mkdir dist
           mv ./target/*AppImage* dist/
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: AppImage
           path: 'dist'
