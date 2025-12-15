@@ -9,8 +9,9 @@
 - Bump `@mantine/hooks` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
 - Bump `@mantine/modals` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
 - Bump `@mantine/notifications` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `actions/cache` from 4 to 5 ([#5916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5916))
 - Bump `@mantine/notifications` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `actions/cache` from 4 to 5 ([#5916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5916))
+- Bump `com.puppycrawl.tools:checkstyle` from 12.2.0 to 12.3.0 ([#5913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5913))
 
 ## [15.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.2.0...15.3.0) (2025-12-11)
 
