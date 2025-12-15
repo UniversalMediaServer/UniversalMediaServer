@@ -101,7 +101,7 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS Intel Java tests
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK
@@ -133,7 +133,7 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS ARM Java tests
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK

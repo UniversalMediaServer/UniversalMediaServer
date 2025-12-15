@@ -14,20 +14,20 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Button } from '@mantine/core'
+import { ActionIcon } from '@mantine/core'
 import { IconPencilSearch } from '@tabler/icons-react'
 
 import { I18nInterface } from '../../services/i18n-service'
 
 export default function MediaEditButton({ i18n, setShowVideoMetadataEdit }: { i18n: I18nInterface, setShowVideoMetadataEdit: (loading: boolean) => void }) {
   return (
-    <Button
-      leftSection={<IconPencilSearch />}
-      onClick={() => setShowVideoMetadataEdit(true)}
+    <ActionIcon
       className="media-edit-button"
       variant="default"
+      aria-label={i18n.get('Edit')}
+      onClick={() => setShowVideoMetadataEdit(true)}
     >
-      {i18n.get('Edit')}
-    </Button>
+      <IconPencilSearch size="14" />
+    </ActionIcon>
   )
 }

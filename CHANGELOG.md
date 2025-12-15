@@ -38,6 +38,17 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `@mantine/core` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/dropzone` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/form` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/hooks` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/modals` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/notifications` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+
+## [15.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.2.0...15.3.0) (2025-12-11)
+
 ### General
 
 - Added ability to mark directories as fully played for the user on the web player (#5879)
@@ -54,6 +65,15 @@
 - Moved the metadata editing/TMDB manual lookup functionality to the "Edit" button on the web player
 - Fix binaries (like FFmpeg, MediaInfo, yt-dlp, etc.) not updating on Windows
 - Stop parsing files that we do not support (#5865)
+
+### Translation updates via Crowdin
+- Czech (100%)
+- Finnish (70%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Fredo1650!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (56%) (thanks, Karol Szastok!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+- Ukrainian (19%) (thanks, AquaMan Ua!)
 
 ### Dependencies
 - Bump `@mantine/core` from 8.3.5 to 8.3.9 ([#5848](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5848), [#5854](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5854), [#5872](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5872))

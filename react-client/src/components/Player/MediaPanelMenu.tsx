@@ -30,10 +30,8 @@ export default function MediaPanelMenu({ i18n, player, data, refreshPage }: { i1
   const playMedia = data.goal === 'show' ? (data.medias[0]) as PlayMedia : undefined
   const videoMedia = playMedia && playMedia.mediaType === 'video' ? playMedia as VideoMedia : undefined
   const isVideoMetadataEditable = (data.goal === 'browse' && data.metadata?.isEditable) || (videoMedia && videoMedia.metadata?.isEditable)
-  const fullyplayed = (playMedia && playMedia.fullyplayed != null) ? playMedia.fullyplayed : data.fullyplayed
   const hasMediaInfo = (playMedia && playMedia.hasMediaInfo)
-  const hasFullyplayedValue = fullyplayed != null
-  const hasEditMenu = isVideoMetadataEditable || hasFullyplayedValue
+  const hasEditMenu = isVideoMetadataEditable
 
   return playMedia
     ? (
