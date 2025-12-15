@@ -197,7 +197,7 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
                     leftSection={<IconRecordMailOff />}
                     onClick={() => setFullyPlayed(player.reqId, false)}
                   >
-                    {i18n.get('MarkContentsUnplayed')}
+                    {i18n.get(isFolder ? 'MarkContentsUnplayed' : 'MarkUnplayed')}
                   </Menu.Item>
                 )}
             </Menu.Dropdown>
