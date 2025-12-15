@@ -325,9 +325,10 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
     refreshPage()
   }, [player.uuid, player.reqType, player.reqId, i18n.language])
 
-  useEffect(() => {
-    session.setNavbarValue(session.playerNavbar ? <PlayerNavbar data={data} i18n={i18n} player={player} /> : undefined)
-  }, [data, i18n.get, session.playerNavbar])
+  useEffect(
+    () => { session.setNavbarValue(session.playerNavbar ? <PlayerNavbar data={data} i18n={i18n} player={player} /> : undefined) },
+    [data, i18n.get, session.playerNavbar],
+  )
 
   return (!session.authenticate || session.havePermission(UmsPermission.web_player_browse))
     ? (
