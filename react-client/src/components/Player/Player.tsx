@@ -118,7 +118,7 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
   }
 
   const shouldDisplayBreadcrumbDropdown = () => {
-    return data.fullyplayed === false || data.fullyplayed === true || data.isRealFolder === true
+    return data.fullyplayed === false || data.fullyplayed === true || data.isRealFolder === true || data.goal === 'show'
   }
 
   const PlayerBreadcrumbs = ({ isFolder, isFullyPlayed, isRealFolder }: { isFolder: boolean, isFullyPlayed: boolean | undefined, isRealFolder: boolean }) => {
@@ -197,7 +197,7 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
                     leftSection={<IconRecordMailOff />}
                     onClick={() => setFullyPlayed(player.reqId, false)}
                   >
-                    {i18n.get('MarkContentsUnplayed')}
+                    {i18n.get(isFolder ? 'MarkContentsUnplayed' : 'MarkUnplayed')}
                   </Menu.Item>
                 )}
             </Menu.Dropdown>
@@ -325,15 +325,19 @@ const Player = ({ i18n, session, player }: { i18n: I18nInterface, session: Sessi
     refreshPage()
   }, [player.uuid, player.reqType, player.reqId, i18n.language])
 
-  useEffect(() => {
-    session.setNavbarValue(session.playerNavbar ? <PlayerNavbar data={data} i18n={i18n} player={player} /> : undefined)
-  }, [data, i18n.get, session.playerNavbar])
+  useEffect(
+    () => { session.setNavbarValue(session.playerNavbar ? <PlayerNavbar data={data} i18n={i18n} player={player} /> : undefined) },
+    [data, i18n.get, session.playerNavbar],
+  )
+
+  const playMedia = data.goal === 'show' ? (data.medias[0]) as PlayMedia : undefined
+  const fullyplayed = (playMedia && playMedia.fullyplayed != null) ? playMedia.fullyplayed : data.fullyplayed
 
   return (!session.authenticate || session.havePermission(UmsPermission.web_player_browse))
     ? (
         <Box>
           <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} loaderProps={{ style: { position: 'fixed' } }} />
-          <PlayerBreadcrumbs isFolder={data.goal === 'browse'} isFullyPlayed={data.fullyplayed} isRealFolder={data.isRealFolder} />
+          <PlayerBreadcrumbs isFolder={data.goal === 'browse'} isFullyPlayed={fullyplayed} isRealFolder={data.isRealFolder} />
           <ScrollArea>
             {
               data.goal === 'play'
