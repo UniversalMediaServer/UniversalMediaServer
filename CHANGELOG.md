@@ -16,6 +16,7 @@
 - Bump `eslint` from 9.39.1 to 9.39.2 ([#5914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5914))
 - Bump `react-dom` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
 - Bump `react` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
+- Bump `typescript-eslint` from 8.48.0 to 8.49.0 ([#5915](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5915))
 
 ## [15.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.2.0...15.3.0) (2025-12-11)
 
