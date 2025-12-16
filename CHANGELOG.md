@@ -12,6 +12,8 @@
 - Bump `@mantine/notifications` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
 - Bump `actions/cache` from 4 to 5 ([#5916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5916))
 - Bump `actions/upload-artifact` from 5 to 6 ([#5917](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5917))
+- Bump `ch.qos.logback:logback-classic` from 1.5.21 to 1.5.22 ([#5910](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5910))
+- Bump `ch.qos.logback:logback-core` from 1.5.21 to 1.5.22 ([#5910](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5910))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.2.0 to 12.3.0 ([#5913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5913))
 - Bump `eslint` from 9.39.1 to 9.39.2 ([#5914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5914))
 - Bump `react-dom` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
