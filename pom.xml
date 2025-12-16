@@ -21,7 +21,7 @@
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
 
-	<version>15.2.0-SNAPSHOT</version>
+	<version>15.3.0-SNAPSHOT</version>
 	
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
@@ -55,7 +55,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>15.2.0</project.version.short>
+		<project.version.short>15.3.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -194,7 +194,7 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>1.5.21</version>
+			<version>1.5.22</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -205,7 +205,7 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.5.21</version>
+			<version>1.5.22</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -3569,7 +3569,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>12.2.0</version>
+								<version>12.3.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>

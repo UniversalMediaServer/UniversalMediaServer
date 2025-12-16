@@ -18,7 +18,7 @@ jobs:
       - name: Install MediaInfo
         run: |
           sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_arm64.Ubuntu_24.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
           sudo dpkg -i libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
       - name: Build x86_64 release
         run: mvn package -P linux-x86_64 -DskipTests
@@ -32,7 +32,7 @@ jobs:
           mkdir dist
           mv ./target/*AppImage* dist/
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: AppImage
           path: 'dist'

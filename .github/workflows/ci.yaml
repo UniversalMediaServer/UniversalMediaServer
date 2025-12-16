@@ -84,7 +84,7 @@ jobs:
       - name: Run Playwright tests
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: my-artifact
@@ -101,7 +101,7 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS Intel Java tests
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK
@@ -112,7 +112,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -133,7 +133,7 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS ARM Java tests
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK
@@ -144,7 +144,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -176,7 +176,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -208,7 +208,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -246,7 +246,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
