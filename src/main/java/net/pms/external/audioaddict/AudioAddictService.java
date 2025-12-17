@@ -53,7 +53,7 @@ public class AudioAddictService implements ConfigurationListener {
 		RadioNetwork network = networkSettings.get(platform);
 
 		if (network == null) {
-			LOGGER.info("{} : not yet initilized.", platform.displayName);
+			LOGGER.debug("Initializing network settings for {}", platform.displayName);
 			network = new RadioNetwork(platform, conf);
 			networkSettings.put(platform, network);
 			network.start();
