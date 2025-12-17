@@ -35,7 +35,7 @@ import net.pms.external.audioaddict.mapper.ChannelFilter;
 import net.pms.external.audioaddict.mapper.ChannelJson;
 import net.pms.external.audioaddict.mapper.Favorite;
 import net.pms.external.audioaddict.mapper.Root;
-import net.pms.store.container.audioaddict.INetworkInitilized;
+import net.pms.store.container.audioaddict.INetworkInitialized;
 
 public class RadioNetwork {
 
@@ -65,7 +65,7 @@ public class RadioNetwork {
 	private volatile List<AudioAddictChannelDto> channels = null;
 	private volatile List<Integer> favoriteChannelId = null;
 	private volatile Channel[] channelUrls = null;
-	private volatile List<INetworkInitilized> networkInitCallbacks = new ArrayList<>();
+	private volatile List<INetworkInitialized> networkInitCallbacks = new ArrayList<>();
 
 	private ObjectMapper om = null;
 	private StreamListQuality quality = StreamListQuality.MP3_320;
@@ -80,7 +80,7 @@ public class RadioNetwork {
 		this.network = network;
 	}
 
-	public void addInitCallbackHandler(INetworkInitilized callback) {
+	public void addInitCallbackHandler(INetworkInitialized callback) {
 		networkInitCallbacks.add(callback);
 	}
 
@@ -375,8 +375,8 @@ public class RadioNetwork {
 	private void initFinished() {
 		successInit = true;
 		LOGGER.debug("{} : Initialization finished. Calling callback handler ... ", network.displayName);
-		for (INetworkInitilized callback : networkInitCallbacks) {
-			callback.networkInitilized();
+		for (INetworkInitialized callback : networkInitCallbacks) {
+			callback.networkInitialized();
 		}
 	}
 

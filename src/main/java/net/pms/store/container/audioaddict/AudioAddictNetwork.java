@@ -8,7 +8,7 @@ import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
 
-public class AudioAddictNetwork extends StoreContainer implements INetworkInitilized {
+public class AudioAddictNetwork extends StoreContainer implements INetworkInitialized {
 
 	private Platform network = null;
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictNetwork.class.getName());
@@ -19,17 +19,17 @@ public class AudioAddictNetwork extends StoreContainer implements INetworkInitil
 		AudioAddictService.get().getRadioNetwork(network).addInitCallbackHandler(this);
 		if (AudioAddictService.get().getRadioNetwork(network).isInitilized()) {
 			LOGGER.debug("AudioAddictNetwork store container {} : network is already initilized. ", network.displayName);
-			addChilds();
+			addChildren();
 		}
 	}
 
 	@Override
-	public void networkInitilized() {
+	public void networkInitialized() {
 		LOGGER.debug("AudioAddictNetwork store container {} : received init signal. Adding childs ... ", network.displayName);
-		addChilds();
+		addChildren();
 	}
 
-	private void addChilds() {
+	private void addChildren() {
 		clearChildren();
 		LOGGER.debug("AudioAddictNetwork store container {} : adding childs ... ", network.displayName);
 		List<String> filterList = AudioAddictService.get().getFiltersForNetwork(this.network);
