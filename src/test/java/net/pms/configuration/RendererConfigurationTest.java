@@ -145,7 +145,13 @@ public class RendererConfigurationTest {
 			"friendlyName=[LG] webOS TV OLED55B9SLA"
 		);
 
-		testUPNPDetails("LG OLED 2020+", "modelNumber=OLED65C24LA");
+		testUPNPDetails(
+			"LG OLED 2020/2021",
+			"modelNumber=OLED65CX4LA",
+			"modelNumber=OLED65C14LA"
+		);
+
+		testUPNPDetails("LG OLED 2022", "modelNumber=OLED65C24LA");
 
 // 		This does not match the OLED[0-9]{2} configuration for the LG 2023+ config ...
 //		testUPNPDetails("LG TV 2023+", "modelNumber=UR73003LA");
