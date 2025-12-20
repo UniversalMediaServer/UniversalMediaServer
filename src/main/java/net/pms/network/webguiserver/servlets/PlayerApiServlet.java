@@ -333,18 +333,21 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
-			LOGGER.info("Found new web gui renderer with uuid: {}", uuid);
 			String userAgent = req.getHeader("User-agent");
 			String langs = getRequestLanguages(req);
-			WebGuiRenderer renderer = new WebGuiRenderer(uuid, account.getUser().getId(), userAgent, langs);
+			int id = account.getUser().getId();
+			WebGuiRenderer renderer = new WebGuiRenderer(uuid, id, userAgent, langs);
 			renderer.associateIP(getInetAddress(req));
 			renderer.setActive(true);
 			ConnectedRenderers.addWebPlayerRenderer(renderer);
 			LOGGER.debug("Created web gui renderer for " + renderer.getRendererName());
 		} catch (ConfigurationException ex) {
-			LOGGER.warn("Error in loading configuration of WebPlayerRenderer");
+			LOGGER.warn("Error in loading configuration of WebPlayerRenderer", ex);
 		} catch (InterruptedException ex) {
+			LOGGER.error("Timeout Exception", ex);
 			Thread.currentThread().interrupt();
+		} catch (Exception ex) {
+			LOGGER.error("Exception creating WebRenderer", ex);
 		}
 	}
 

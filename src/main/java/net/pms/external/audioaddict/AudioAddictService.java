@@ -17,7 +17,7 @@ public class AudioAddictService implements ConfigurationListener {
 
 	private AudioAddictServiceConfig conf = new AudioAddictServiceConfig();
 
-	private ConcurrentHashMap<Platform, RadioNetwork> networkSettings = new ConcurrentHashMap<>();
+	private volatile ConcurrentHashMap<Platform, RadioNetwork> networkSettings = new ConcurrentHashMap<>();
 
 	public static AudioAddictService get() {
 		return singleton;
@@ -53,6 +53,7 @@ public class AudioAddictService implements ConfigurationListener {
 		RadioNetwork network = networkSettings.get(platform);
 
 		if (network == null) {
+			LOGGER.debug("Initializing network settings for {}", platform.displayName);
 			network = new RadioNetwork(platform, conf);
 			networkSettings.put(platform, network);
 			network.start();
