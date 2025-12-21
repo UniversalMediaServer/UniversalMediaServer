@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -428,6 +429,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		JsonArray jFolders = new JsonArray();
 		JsonArray mediaLibraryFolders = new JsonArray();
 		JsonArray jMedias = new JsonArray();
+		List<JsonObject> sortMedia = new ArrayList<>();
 		StoreResource rootResource = id.equals("0") ? null : renderer.getMediaStore().getResource(id);
 
 		List<StoreResource> resources = renderer.getMediaStore().getResources(id, true);
@@ -585,8 +587,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			} else {
 				// The resource is a media file
 				hasFile = true;
+				if (resource.isFullyPlayed()) {
+					sortMedia.add(getMediaJsonObject(resource, lang));
+					continue;
+				}
 				jMedias.add(getMediaJsonObject(resource, lang));
+
 			}
+		}
+
+		for (JsonObject media:sortMedia) {
+			jMedias.add(media);
 		}
 
 		if (rootResource instanceof MediaLibraryFolder folder) {
@@ -649,6 +660,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 	private static JsonObject getMediaJsonObject(StoreResource resource, String lang) {
 		JsonObject jMedia = new JsonObject();
+
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
 			jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
