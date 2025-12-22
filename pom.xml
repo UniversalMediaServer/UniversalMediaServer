@@ -76,7 +76,7 @@
 		<!-- This MUST be bumped every time binaries (files in /bin) are changed, or the Windows installer will not replace them -->
 		<binary-revision>219</binary-revision>
 
-		<exec-maven-plugin-version>3.6.2</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.6.3</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
 		<git-commit-id-plugin-version>9.0.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.8.0</maven-assembly-plugin-version>
@@ -194,7 +194,7 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>1.5.22</version>
+			<version>1.5.23</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -205,7 +205,7 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.5.22</version>
+			<version>1.5.23</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -445,7 +445,7 @@
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>0.12.18</version>
+			<version>0.12.19</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
