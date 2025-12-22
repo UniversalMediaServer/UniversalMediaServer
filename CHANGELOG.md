@@ -17,6 +17,7 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 12.2.0 to 12.3.0 ([#5913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5913))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.18 to 0.12.19 ([#5935](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5935))
 - Bump `eslint` from 9.39.1 to 9.39.2 ([#5914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5914))
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.6.2 to 3.6.3 ([#5934](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5934))
 - Bump `react-dom` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
 - Bump `react-router-dom` from 7.10.1 to 7.11.0 ([#5928](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5928))
 - Bump `react` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
