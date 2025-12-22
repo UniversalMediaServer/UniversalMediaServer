@@ -17,6 +17,7 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 12.2.0 to 12.3.0 ([#5913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5913))
 - Bump `eslint` from 9.39.1 to 9.39.2 ([#5914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5914))
 - Bump `react-dom` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
+- Bump `react-router-dom` from 7.10.1 to 7.11.0 ([#5928](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5928))
 - Bump `react` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
 - Bump `typescript-eslint` from 8.48.0 to 8.49.0 ([#5915](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5915))
 
