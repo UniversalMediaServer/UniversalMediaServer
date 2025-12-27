@@ -158,9 +158,36 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails(
 			"LG TV 2023+",
+			// 2023 starts here
 			"modelDescription=LG WebOSTV DMRplus OLED65C3AUA",
-			"modelNumber=65QNED91T6A",
-			"modelDescription=LG WebOSTV DMRplus OLED65M5AUA"
+			// 2024 starts here
+			"modelNumber=65QNED91T6A", // 65 Inch LG QNED MiniLED AI QNED91 4K Smart TV 2024
+			"modelNumber=OLED77B46LA", // 77 Inch LG OLED AI B4 4K Smart TV 2024
+			"modelNumber=55UT80506LA", // 55 Inch LG UHD AI UT80 4K Smart TV 2024
+			"modelNumber=86UT81006LA", // 86 Inch LG UHD AI UT81 4K Smart TV 2024
+			"modelNumber=OLED48C46LA", // 48 Inch LG OLED evo AI C4 4K Smart TV 2024
+			"modelNumber=OLED65M46LA" // World’s First True Wireless TV 65 inch LG OLED evo AI M4 with 4K 144Hz Video & Audio Transfer 
+		);
+
+		testUPNPDetails(
+			"LG TV 2025+",
+			// 2025 starts here
+			"modelNumber=65QNED70A6A", // 65 inch LG QNED AI QNED70 4K Smart TV 2025
+			"modelNumber=65QNED80A6A", // 65 inch LG QNED AI QNED80 4K Smart TV 2025
+			"modelNumber=65QNED93ASA", // 65 Inch LG QNED evo AI Mini LED QNED93A 4K Smart TV
+			"modelNumber=65QNED86A6A", // 65 Inch LG QNED evo AI Mini LED QNED86A 4K Smart TV
+			"modelNumber=OLED77B56LA", // 77 inch LG OLED AI B5 4K Smart TV 2025
+			"modelNumber=OLED42C54LA", // 42 inch LG OLED evo AI C5 4K Smart TV 2025
+			"modelNumber=OLED83G56LA", // 83 inch LG OLED evo AI G5 4K Smart TV 2025
+			"modelNumber=OLED65M59LA", // 65 Inch LG OLED evo AI M5 4K Smart TV with True Wireless Video & Audio Transfer
+			"modelNumber=65NANO80A6A", // 65 inch LG NanoCell AI NANO80 4K Smart TV 2025
+			"modelNumber=65UA8450PSA", // 65 Inch LG UHD AI UA84 4K Smart TV 2025
+			"modelNumber=65UA7350PSB", // 65 Inch LG UHD AI UA73 4K Smart TV 2025
+			"modelNumber=75QNED86A6A", // 75 Inch LG QNED evo AI Mini LED QNED86A 4K Smart TV
+			"modelNumber=75QNED70A6A", // 75 inch LG QNED AI QNED70 4K Smart TV 2025
+			"modelNumber=75QNED93ASA", // 75 Inch LG QNED evo AI Mini LED QNED93A 4K Smart TV
+			"modelNumber=75QNED80A6A", // 75 inch LG QNED AI QNED80 4K Smart TV 2025
+			"modelNumber=OLED83C56LA" // 83 inch LG OLED evo AI C5 4K Smart TV 2025
 		);
 
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
