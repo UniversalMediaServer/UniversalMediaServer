@@ -267,7 +267,7 @@
 		</dependency>
 		<!--
 		   If any ImageIO plugins are added or removed, corresponding changes
-		   must be made in src/main/external-resources/META-INF/services
+		   must be made in net.pms.formats, net.pms.image and so on
 		-->
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
@@ -345,9 +345,9 @@
 			<version>3.13.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.sejda.imageio</groupId>
-			<artifactId>webp-imageio</artifactId>
-			<version>0.1.6</version>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-webp</artifactId>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
