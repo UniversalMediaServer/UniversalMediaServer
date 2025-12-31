@@ -16,6 +16,7 @@
 - Bump `actions/upload-artifact` from 5 to 6 ([#5917](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5917))
 - Bump `ch.qos.logback:logback-classic` from 1.5.21 to 1.5.23 ([#5910](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5910), [#5930](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5930))
 - Bump `ch.qos.logback:logback-core` from 1.5.21 to 1.5.23 ([#5910](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5910), [#5930](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5930))
+- Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.4 to 2.0.0 ([#5932](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5932))
 - Bump `com.github.oshi:oshi-core` from 6.9.1 to 6.9.2 ([#5933](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5933))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.2.0 to 12.3.0 ([#5913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5913))
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.12.0 to 3.13.0 ([#5944](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5944))
