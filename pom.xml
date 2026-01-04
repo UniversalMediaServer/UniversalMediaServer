@@ -267,87 +267,87 @@
 		</dependency>
 		<!--
 		   If any ImageIO plugins are added or removed, corresponding changes
-		   must be made in src/main/external-resources/META-INF/services
+		   must be made in net.pms.formats, net.pms.image and so on
 		-->
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-icns</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-iff</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-hdr</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-metadata</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pcx</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pict</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pnm</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-psd</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-sgi</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tga</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>3.12.0</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.sejda.imageio</groupId>
-			<artifactId>webp-imageio</artifactId>
-			<version>0.1.6</version>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-webp</artifactId>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
@@ -464,7 +464,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.9.1</version>
+			<version>6.9.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -901,7 +901,7 @@
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.15.4</version>
+				<version>2.0.0</version>
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
