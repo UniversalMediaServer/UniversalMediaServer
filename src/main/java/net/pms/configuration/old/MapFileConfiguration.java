@@ -172,7 +172,7 @@ class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 			LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
 			return null;
 		} catch (FileNotFoundException e) {
-			LOGGER.warn("Folder not found: {}", e.getMessage());
+			LOGGER.warn("MapFileConfiguration: Folder not found: {}", e.getMessage());
 			return null;
 		}
 	}

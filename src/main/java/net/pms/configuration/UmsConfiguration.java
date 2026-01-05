@@ -226,6 +226,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
+	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
+	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
@@ -303,6 +306,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
+	private static final String KEY_FILE_EXTENSIONS_IGNORED = "file_extensions_ignored";
 	private static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	private static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
@@ -1001,6 +1005,30 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean isCustomProgramPathsSupported() {
 		return programPaths instanceof ConfigurableProgramPaths;
+	}
+
+	public String getAudioAddictUser() {
+		return getString(KEY_AUDIO_ADDICT_USER, null);
+	}
+
+	public void setAudioAddictUser(String userName) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_USER, userName);
+	}
+
+	public String getAudioAddictPassword() {
+		return getString(KEY_AUDIO_ADDICT_PASS, null);
+	}
+
+	public void setAudioAddictPassword(String password) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_PASS, password);
+	}
+
+	public boolean isAudioAddictEuropeanServer() {
+		return getBoolean(KEY_AUDIO_ADDICT_EUROPE, true);
+	}
+
+	public void setAudioAddictEuropeanServer(boolean europeServer) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_EUROPE, europeServer);
 	}
 
 	public boolean isAudioUpdateTag() {
@@ -3722,6 +3750,33 @@ public class UmsConfiguration extends BaseConfiguration {
 		} catch (ConfigurationException e) {
 			LOGGER.error("Could not save configuration", e);
 		}
+	}
+
+	List<String> ignoredFileExtensions = new ArrayList<>();
+
+	/**
+	 * Whether file_extensions_ignored has been read.
+	 */
+	private boolean ignoredFileExtensionsRead = false;
+
+	public List<String> getIgnoredFileExtensions() {
+		if (!ignoredFileExtensionsRead) {
+			ignoredFileExtensionsRead = true;
+
+			String ignoredFileExtensionsString = configuration.getString(KEY_FILE_EXTENSIONS_IGNORED, "");
+
+			if (ignoredFileExtensionsString == null || ignoredFileExtensionsString.length() == 0) {
+				return ignoredFileExtensions;
+			}
+
+			String[] fileExtensionsArray = ignoredFileExtensionsString.trim().split("\\s*,\\s*");
+
+			for (String fileExtension : fileExtensionsArray) {
+				ignoredFileExtensions.add(fileExtension.toLowerCase());
+			}
+		}
+
+		return ignoredFileExtensions;
 	}
 
 	private ArrayList<String> ignoredFolderNames;

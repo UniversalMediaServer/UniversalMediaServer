@@ -34,6 +34,7 @@ import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.item.VirtualVideoAction;
 import net.pms.store.item.VirtualVideoActionLocalized;
 import net.pms.store.utils.StoreResourceSorter;
+import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -430,7 +431,7 @@ public class StoreContainer extends StoreResource {
 	 * global ID repository.
 	 */
 	protected synchronized void addChildInternal(StoreResource child, boolean isAddGlobally) {
-		if (child.getId() != null) {
+		if (child.getId() != null && !child.getId().startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			LOGGER.debug("Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 					new Object[]{child.getClass().getName(), child.getResourceId(), child.getParent()});
 		}
@@ -559,7 +560,12 @@ public class StoreContainer extends StoreResource {
 				return null;
 			}
 		}
-		return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.getResourceInputStream(thumbnailIcon));
+
+		if (FileUtil.isUrl(thumbnailIcon)) {
+			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.downloadAndSend(thumbnailIcon, true));
+		} else {
+			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.getResourceInputStream(thumbnailIcon));
+		}
 	}
 
 	/**

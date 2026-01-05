@@ -829,12 +829,15 @@ public class APIUtils {
 		String apiResult;
 		String imdbID = null;
 		String pathString = "";
+		String filename = null;
+
 		if (file != null) {
 			path = file.toPath();
+			filename = FileUtil.getFileNameWithoutExtension(file.getName());
 			pathString = path.toString();
 			imdbID = ImdbUtil.extractImdbId(path, false);
 			if (isBlank(movieOrTVSeriesTitle)) {
-				movieOrTVSeriesTitle = FileUtil.getFileNameWithoutExtension(file.getName());
+				movieOrTVSeriesTitle = filename;
 			}
 		}
 
@@ -853,7 +856,12 @@ public class APIUtils {
 			return null;
 		}
 
-		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID);
+		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID, filename);
+
+		if (isBlank(episode) && season != null) {
+			LOGGER.trace("Got a season without an episode, likely a parsing error. We have: {} {} {} {} {} {}", movieOrTVSeriesTitle, year, season, episode, imdbID, pathString);
+			return null;
+		}
 
 		String notFoundPartialMessage = "Metadata not found";
 		if (apiResult == null || Strings.CS.contains(apiResult, notFoundPartialMessage)) {
@@ -894,7 +902,7 @@ public class APIUtils {
 			formattedName = formattedName.substring(0, startYearIndex);
 		}
 
-		apiResult = getInfoFromAllExtractedData(formattedName, true, startYear, null, null, imdbID);
+		apiResult = getInfoFromAllExtractedData(formattedName, true, startYear, null, null, imdbID, null);
 
 		String notFoundPartialMessage = "Metadata not found";
 		if (apiResult == null || Strings.CS.contains(apiResult, notFoundPartialMessage)) {
@@ -935,7 +943,8 @@ public class APIUtils {
 		Integer year,
 		Integer season,
 		String episode,
-		String imdbID
+		String imdbID,
+		String filename
 	) throws IOException {
 		String endpoint = isSeries ? "series/v2" : "video/v2";
 		ArrayList<String> getParameters = new ArrayList<>();
@@ -954,6 +963,10 @@ public class APIUtils {
 		}
 		if (isNotBlank(imdbID)) {
 			getParameters.add("imdbID=" + imdbID);
+		}
+		if (isNotBlank(filename)) {
+			filename = URLEncoder.encode(filename, StandardCharsets.UTF_8.toString());
+			getParameters.add("filename=" + filename);
 		}
 		if (!"en-US".equals(CONFIGURATION.getLanguageTag())) {
 			getParameters.add("language=" + CONFIGURATION.getLanguageTag());

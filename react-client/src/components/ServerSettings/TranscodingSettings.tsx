@@ -242,7 +242,7 @@ export default function TranscodingSettings({
     return 'rgba(' + red.toString() + ', ' + green.toString() + ', ' + blue.toString() + ', ' + alpha.toString() + ')'
   }
 
-  const TranscodingCommon = () => {
+  const getTranscodingCommon = () => {
     return (
       <>
         <Title mt="sm" order={5}>{i18n.get('CommonTranscodeSettings')}</Title>
@@ -578,7 +578,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const SimpleTranscodingCommon = () => {
+  const getSimpleTranscodingCommon = () => {
     return (
       <>
         <Title mt="sm" order={5}>{i18n.get('CommonTranscodeSettings')}</Title>
@@ -613,7 +613,7 @@ export default function TranscodingSettings({
     return
   }
 
-  const VLCWebVideo = () => {
+  const getVLCWebVideo = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
@@ -639,7 +639,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const FFMPEGAudio = () => {
+  const getFFMPEGAudio = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
@@ -659,7 +659,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const TsMuxerVideo = () => {
+  const getTsMuxerVideo = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
@@ -685,7 +685,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const MEncoderVideo = () => {
+  const getMEncoderVideo = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
@@ -851,7 +851,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const AviSynthFFMPEG = () => {
+  const getAviSynthFFMPEG = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
@@ -986,7 +986,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const FFMPEGVideo = () => {
+  const getFFMPEGVideo = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
@@ -1063,7 +1063,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const NoSettingsForNow = () => {
+  const noSettingsForNow = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
@@ -1076,7 +1076,7 @@ export default function TranscodingSettings({
     )
   }
 
-  const EngineNotKnown = () => {
+  const engineNotKnown = () => {
     const status = getEngineStatus()
     if (status) {
       return (status)
@@ -1089,42 +1089,42 @@ export default function TranscodingSettings({
     )
   }
 
-  const TranscodingContent = () => {
+  const getTranscodingContent = () => {
     switch (transcodingContent) {
       case 'common':
-        return <TranscodingCommon />
+        return getTranscodingCommon()
       case 'DCRaw':
-        return <NoSettingsForNow />
+        return noSettingsForNow()
       case 'FFmpegAudio':
-        return <FFMPEGAudio />
+        return getFFMPEGAudio()
       case 'FFmpegVideo':
-        return <FFMPEGVideo />
+        return getFFMPEGVideo()
       case 'AviSynthFFmpeg':
-        return <AviSynthFFMPEG />
+        return getAviSynthFFMPEG()
       case 'FFmpegHlsVideo':
-        return <NoSettingsForNow />
+        return noSettingsForNow()
       case 'FFmpegWebVideo':
-        return <NoSettingsForNow />
+        return noSettingsForNow()
       case 'MEncoderVideo':
-        return <MEncoderVideo />
+        return getMEncoderVideo()
       case 'MEncoderWebVideo':
-        return <NoSettingsForNow />
+        return noSettingsForNow()
       case 'tsMuxeRAudio':
-        return <NoSettingsForNow />
+        return noSettingsForNow()
       case 'tsMuxeRVideo':
-        return <TsMuxerVideo />
+        return getTsMuxerVideo()
       case 'VLCAudioStreaming':
-        return <NoSettingsForNow />
+        return noSettingsForNow()
       case 'VLCVideo':
-        return <VLCWebVideo />
+        return getVLCWebVideo()
       case 'VLCWebVideo':
-        return <VLCWebVideo />
+        return getVLCWebVideo()
       case 'VLCVideoStreaming':
-        return <NoSettingsForNow />
+        return noSettingsForNow()
       case 'youtubeDl':
-        return <NoSettingsForNow />
+        return noSettingsForNow()
       default:
-        return <EngineNotKnown />
+        return engineNotKnown()
     }
   }
 
@@ -1146,9 +1146,9 @@ export default function TranscodingSettings({
             </Box>
           </Grid.Col>
           <Grid.Col span={7}>
-            <TranscodingContent />
+            {getTranscodingContent()}
           </Grid.Col>
         </Grid>
       )
-    : <SimpleTranscodingCommon />
+    : getSimpleTranscodingCommon()
 }

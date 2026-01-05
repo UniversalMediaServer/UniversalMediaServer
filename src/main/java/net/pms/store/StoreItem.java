@@ -516,8 +516,7 @@ public abstract class StoreItem extends StoreResource {
 				LOGGER.debug(prependTranscodingReason + "streaming of DVD video tracks isn't supported", getName());
 			} else if (!format.isCompatible(this, renderer)) {
 				isIncompatible = true;
-				LOGGER.debug(prependTranscodingReason + "it is not supported by the renderer {}", getName(),
-						renderer.getRendererName());
+				LOGGER.debug(prependTranscodingReason + "it is not supported by the renderer {}", getName(), renderer.getRendererName());
 			} else if (renderer.getUmsConfiguration().isEncodedAudioPassthrough()) {
 				if (
 					mediaAudio != null &&

@@ -17,8 +17,10 @@
 package net.pms.store.container;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -49,6 +51,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,9 +59,13 @@ public final class PlaylistFolder extends StoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
 
+	public static final String DIRECTIVE_ALBUMART_URI = "#EXTIMG:";
+	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
+
 	private final String uri;
 	private final boolean isweb;
 	private final int defaultContent;
+	private boolean utf8 = false;
 
 	public PlaylistFolder(Renderer renderer, String name, String uri, int type) {
 		super(renderer, name, null);
@@ -66,6 +73,7 @@ public final class PlaylistFolder extends StoreContainer {
 		isweb = FileUtil.isUrl(uri);
 		super.setLastModified(isweb ? 0 : new File(uri).lastModified());
 		defaultContent = (type != 0 && type != Format.UNKNOWN) ? type : Format.VIDEO;
+		utf8 = "m3u8".equalsIgnoreCase(getExtension().toLowerCase());
 	}
 
 	public PlaylistFolder(Renderer renderer, File f) {
@@ -74,6 +82,7 @@ public final class PlaylistFolder extends StoreContainer {
 		isweb = false;
 		super.setLastModified(f.lastModified());
 		defaultContent = Format.VIDEO;
+		utf8 = "m3u8".equalsIgnoreCase(getExtension().toLowerCase());
 	}
 
 	public File getPlaylistfile() {
@@ -100,9 +109,24 @@ public final class PlaylistFolder extends StoreContainer {
 		resolve();
 	}
 
-	private BufferedReader getBufferedReader() throws IOException {
+	private boolean isM3uPlaylist() {
+		if (getExtension() != null) {
+			// m3u is not required to have a header, if there is an extension and it matches known m3u, assume m3u
+			switch (getExtension()) {
+				case "m3u" -> {
+					return true;
+				}
+				case "m3u8" -> {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/** Attempts to return a lowercase file extension from uri (excluding the dot) or null */
+	private String getExtension() {
 		String extension;
-		Charset charset;
 		if (FileUtil.isUrl(uri)) {
 			extension = FileUtil.getUrlExtension(uri);
 		} else {
@@ -111,7 +135,12 @@ public final class PlaylistFolder extends StoreContainer {
 		if (extension != null) {
 			extension = extension.toLowerCase(PMS.getLocale());
 		}
-		if (extension != null && (extension.equals("m3u8") || extension.equals(".cue"))) {
+		return extension;
+	}
+
+	private BufferedReader getBufferedReader(boolean utf8) throws IOException {
+		Charset charset;
+		if (utf8) {
 			charset = StandardCharsets.UTF_8;
 		} else {
 			charset = StandardCharsets.ISO_8859_1;
@@ -236,28 +265,147 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
-	private List<Entry> getPlaylistEntries() {
-		List<Entry> entries = new ArrayList<>();
-		boolean m3u = false;
-		boolean pls = false;
-		try (BufferedReader br = getBufferedReader()) {
-			String line;
-			while (!m3u && !pls && br != null && (line = br.readLine()) != null) {
+	public boolean deleteEntry(String url) {
+		try (BufferedReader br = getBufferedReader(utf8)) {
+			boolean entryRemoved = false;
+			StringBuilder out = new StringBuilder();
+			StringBuilder lastEntry = new StringBuilder();
+			if (!isM3uPlaylist()) {
+				LOGGER.debug("deleting playlists entries active only for m3u or m3u8 files. This playlist is {}", getExtension());
+				return false;
+			}
+			out.append(lastEntry);
+			String line = "";
+			lastEntry = new StringBuilder();
+			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
-				if (line.startsWith("#EXTM3U")) {
-					m3u = true;
-					LOGGER.debug("Reading m3u playlist: " + getName());
-				} else if (line.length() > 0 && line.equals("[playlist]")) {
-					pls = true;
-					LOGGER.debug("Reading PLS playlist: " + getName());
+				if (line.startsWith("#")) {
+					lastEntry.append(line).append(System.getProperty("line.separator"));
+				} else if (StringUtils.isAllBlank(line)) {
+					lastEntry.append(System.getProperty("line.separator"));
+				} else {
+					// Parsing finished. This line is the filename.
+					if (!line.equalsIgnoreCase(url)) {
+						lastEntry.append(line).append(System.getProperty("line.separator"));
+						out.append(lastEntry);
+					} else {
+						entryRemoved = true;
+					}
+					lastEntry = new StringBuilder();
 				}
 			}
+
+			if (entryRemoved) {
+				writeContentToFile(out);
+			}
+			return entryRemoved;
+		} catch (Exception er) {
+			LOGGER.error("deleteEntry", er);
+			throw new RuntimeException("deleteEntry", er);
+		}
+	}
+
+
+	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
+		boolean firstline = true;
+		try (BufferedReader br = getBufferedReader(utf8)) {
+			StringBuilder out = new StringBuilder();
+			if (!isM3uPlaylist()) {
+				LOGGER.debug("updating album art is only possible for m3u or m3u8 files. This playlist is {}", getExtension());
+				return;
+			}
+			String line = "";
+			StringBuilder lastEntry = new StringBuilder();
+			String lastAlbumArtDirective = null;
+			while (br != null &&  (line = br.readLine()) != null) {
+				line = line.trim();
+				if (firstline) {
+					firstline = false;
+					if (!"#EXTM3U".equals(line.trim())) {
+						LOGGER.debug("adding missing #EXTM3U directive.");
+						lastEntry.append("#EXTM3U\n\n");
+					}
+				}
+				if (line.startsWith(DIRECTIVE_ALBUMART_URI)) {
+					lastAlbumArtDirective = line.substring(DIRECTIVE_ALBUMART_URI.length());
+				} else if (line.startsWith("#")) {
+					lastEntry.append(line).append(System.getProperty("line.separator"));
+				} else if (StringUtils.isAllBlank(line)) {
+					lastEntry.append(System.getProperty("line.separator"));
+				} else {
+					// Parsing finished. This line is the filename.
+					if (line.equalsIgnoreCase(url)) {
+						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(externalAlbumArtUri).append(System.getProperty("line.separator"));
+					} else {
+						if (lastAlbumArtDirective != null) {
+							lastEntry.append(DIRECTIVE_ALBUMART_URI).append(lastAlbumArtDirective).append(System.getProperty("line.separator"));
+						}
+					}
+					lastEntry.append(line).append(System.getProperty("line.separator"));
+					out.append(lastEntry);
+					lastEntry = new StringBuilder();
+					lastAlbumArtDirective = null;
+				}
+			}
+
+			writeContentToFile(out);
+		} catch (Exception er) {
+			LOGGER.error("updateAlbumArtUriDirective", er);
+		}
+	}
+
+	private void writeContentToFile(StringBuilder out) throws IOException {
+		File file = new File(getFileName());
+		BufferedWriter writer = null;
+		try {
+			LOGGER.debug("writing playlist file ...");
+			writer = new BufferedWriter(new FileWriter(file));
+			writer.append(out);
+			file.setLastModified(System.currentTimeMillis());
+		} catch (Exception e) {
+			LOGGER.warn("cannot update playlist", e);
+		} finally {
+			if (writer != null) {
+				writer.close();
+			}
+		}
+	}
+
+	private boolean isExtendedM3uPlaylist(BufferedReader br) throws IOException {
+		return isExtendedM3uPlaylist(br, null);
+	}
+
+	private boolean isExtendedM3uPlaylist(BufferedReader br, StringBuilder cache) throws IOException {
+		String line;
+		while (br != null && (line = br.readLine()) != null) {
+			if (cache != null) {
+				cache.append(line).append(System.getProperty("line.separator"));
+			}
+			line = line.trim();
+			if (line.startsWith("#EXTM3U")) {
+				LOGGER.debug("Reading m3u playlist: " + getName());
+				return true;
+			} else if (line.length() > 0 && line.equals("[playlist]")) {
+				LOGGER.debug("Reading PLS playlist: " + getName());
+				return false;
+			}
+		}
+		LOGGER.debug("unknown playlist type: " + getName());
+		return false;
+	}
+
+	private List<Entry> getPlaylistEntries() {
+		List<Entry> entries = new ArrayList<>();
+		String extension = getExtension();
+		try (BufferedReader br = getBufferedReader(utf8)) {
+			String line;
 			String fileName;
 			String title = null;
+			String playlistType = getExtension();
 			Map<String, String> directives = new HashMap<>();
 			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
-				if (pls) {
+				if ("pls".equals(playlistType)) {
 					if (line.length() > 0 && !line.startsWith("#")) {
 						int eq = line.indexOf('=');
 						if (eq != -1) {
@@ -291,7 +439,7 @@ public final class PlaylistFolder extends StoreContainer {
 							}
 						}
 					}
-				} else if (m3u) {
+				} else if (isM3uPlaylist()) {
 					if (line.startsWith("#EXTINF:")) {
 						line = line.substring(8).trim();
 						if (line.matches("^-?\\d+,.+")) {
@@ -299,8 +447,10 @@ public final class PlaylistFolder extends StoreContainer {
 						} else {
 							title = line;
 						}
-					} else if (line.startsWith("#RADIOBROWSERUUID:")) {
-						directives.put("RADIOBROWSERUUID", line.substring(18));
+					} else if (line.toUpperCase().startsWith(DIRECTIVE_RADIOBROWSERUUID)) {
+						directives.put(DIRECTIVE_RADIOBROWSERUUID, line.substring(DIRECTIVE_RADIOBROWSERUUID.length()));
+					} else if (line.toUpperCase().startsWith(DIRECTIVE_ALBUMART_URI)) {
+						directives.put(DIRECTIVE_ALBUMART_URI, line.substring(DIRECTIVE_ALBUMART_URI.length()));
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
 						// Non-comment and non-empty line contains the filename
 						fileName = line;

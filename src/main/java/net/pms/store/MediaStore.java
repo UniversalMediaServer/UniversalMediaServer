@@ -20,9 +20,6 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -72,7 +69,7 @@ import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.IOList;
 import net.pms.util.FileUtil;
-import net.pms.util.SimpleThreadFactory;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -462,8 +459,8 @@ public class MediaStore extends StoreContainer {
 			}
 			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					// this is direct acceded resource.
-					// as we don't know what was it's parent, let find one or fail.
+					// this is a directly accessed resource.
+					// as we don't know what its parent was, let's find one or fail.
 					DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
 					return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
 				} catch (Exception e) {
@@ -592,6 +589,9 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
+		if (file == null) {
+			return new ArrayList<>();
+		}
 		List<StoreResource> systemFileResources = new ArrayList<>();
 		synchronized (weakResources) {
 			for (WeakReference<StoreResource> resource : weakResources.values()) {
@@ -667,16 +667,6 @@ public class MediaStore extends StoreContainer {
 						if (count > 0) {
 							String systemName = storeContainer.getSystemName();
 							LOGGER.trace("Start of analysis for " + systemName);
-							ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
-
-							int nParallelThreads = 3;
-							if (storeContainer instanceof DVDISOFile) {
-								// Some DVD drives die with 3 parallel threads
-								nParallelThreads = 1;
-							}
-
-							ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
-									new SimpleThreadFactory("LibraryResource resolver thread", true));
 
 							if (shouldDoAudioTrackSorting(storeContainer)) {
 								sortChildrenWithAudioElements(storeContainer);
@@ -684,19 +674,10 @@ public class MediaStore extends StoreContainer {
 							for (int i = 0; i < storeContainer.getChildren().size(); i++) {
 								final StoreResource child = storeContainer.getChildren().get(i);
 								if (child != null) {
-									tpe.execute(child);
 									resources.add(child);
 								} else {
 									LOGGER.warn("null child at index {} in {}", i, systemName);
 								}
-							}
-
-							try {
-								tpe.shutdown();
-								tpe.awaitTermination(20, TimeUnit.SECONDS);
-							} catch (InterruptedException e) {
-								LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
-								Thread.currentThread().interrupt();
 							}
 
 							LOGGER.trace("End of analysis for " + systemName);
@@ -748,6 +729,20 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 	}
+
+	/**
+	 * File can have different structure after an update. Therefore, read file metadata again.
+	 * @param file
+	 */
+	public void fileUpdated(File file) {
+		for (StoreResource storeResource : findSystemFileResources(file)) {
+			if (storeResource instanceof RealFile rf) {
+				rf.setMediaInfo(null);
+				rf.resolve();
+			}
+		}
+	}
+
 
 	private StoreResource findResourceFromFile(List<StoreResource> resources, File file) {
 		if (file == null || file.isHidden() || !file.canRead() || !(file.isFile() || file.isDirectory())) {
@@ -803,6 +798,11 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public StoreResource createResourceFromFile(File file, boolean allowHidden) {
+		String fileExt = FilenameUtils.getExtension(file.getName());
+		if (renderer.getUmsConfiguration().getIgnoredFileExtensions().contains(fileExt.toLowerCase())) {
+			return null;
+		}
+
 		if (file == null) {
 			LOGGER.trace("createResourceFromFile return null as file is null.");
 			return null;
@@ -980,5 +980,4 @@ public class MediaStore extends StoreContainer {
 			Thread.sleep(100);
 		}
 	}
-
 }

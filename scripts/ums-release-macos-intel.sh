@@ -36,7 +36,7 @@ mvn -P docker install -DskipTests=true
 ./scripts/dependencies/gon ./gon-config-prebuild.json
 ./scripts/dependencies/gon ./gon-config-build-intel.json
 
-Clear the folder for a clean build
+# Clear the folder for a clean build
 rm UMS--pre10.15.dmg
 rm -fr target/ums*
 rm -rf target/antrun

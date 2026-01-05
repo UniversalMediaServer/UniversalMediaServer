@@ -16,6 +16,7 @@
  */
 package net.pms.renderers;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.WebGuiRenderer;
+import net.pms.store.MediaInfoStore;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -121,8 +123,8 @@ public class ConnectedRenderers {
 						List<String> identifiers = getIdentifiers(userAgentString, headers);
 						renderer.setIdentifiers(identifiers);
 						LOGGER.info(
-								"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
-								StringUtils.join(identifiers, "\n")
+								"Media renderer was not recognized from IP {}. Possible identifying HTTP headers:\n{}",
+								ia.toString(), StringUtils.join(identifiers, "\n")
 						);
 						PMS.get().setRendererFound(renderer);
 					}
@@ -574,4 +576,14 @@ public class ConnectedRenderers {
 		return renderers;
 	}
 
+	/**
+	 * Invalidates renderer caches for given file resource.
+	 * @param file
+	 */
+	public static void invalidateRendererCache(File file) {
+		MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
+		for (Renderer connectedRenderer : getConnectedRenderers()) {
+			connectedRenderer.getMediaStore().fileUpdated(file);
+		}
+	}
 }

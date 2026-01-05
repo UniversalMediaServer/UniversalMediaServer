@@ -7,10 +7,10 @@ There are a number of manual steps involved in a new version release. This list 
 1. Pull the latest translations from Crowdin by running `mvn crowdin:pull`
 
      This relies on the [Crowdin Maven Plugin](https://github.com/DigitalMediaServer/crowdin-maven-plugin/)
-1. Update [the changelog](./CHANGELOG.md) by changing the `Unreleased` section to the version name (see the next step for which value to use) and populating the sections.
+1. Update [the changelog](./CHANGELOG.md) by changing the `Unreleased` section to the version name (see the next step for which value to use) and populate the sections.
 
-     There are 4 usual sections in a changelog:
-   - `General` contains most of our code changes like new features, improvements and bugfixes
+     There are 4 common sections in a changelog:
+   - `General` contains most of our code changes, such as new features, improvements, and bugfixes
    - `Translation updates via Crowdin` contains thanks and progress percentages
    - `Media players` contains changes that are specific to certain media players
    - `Dependencies` is mostly automated by [the changelog GitHub Action](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/47ed539c03f01f5198988a9a2388ae2aafc5a998/.github/workflows/ci.yaml#L258-L276) supported by dangoslen/dependabot-changelog-helper and stefanzweifel/git-auto-commit-action.
@@ -20,25 +20,26 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Update the version in [pom.xml](./pom.xml).
 
-     The version number will be dictated by the changes that are included in the release. There are 4 types of releases that can happen:
+     The version number will be dictated by the changes included in the release. There are 4 types of releases that can happen:
    - `Major (1.2.3 to 2.0.0)` is for a large feature-set and is usually the result of beta releases to get community feedback
    - `Minor (1.2.3 to 1.3.0)` is for minor features or added media player configs
    - `Patch (1.2.3 to 1.2.4)` is for bugfixes
-   - `Hotfix (1.2.3 to 1.2.3.1)` is rare, unplanned and contains a fix for an urgent problem in the last release
+   - `Hotfix (1.2.3 to 1.2.3.1)` is rare, unplanned, and contains a fix for an urgent problem in the last release
 
      When you know the version number to choose, it should be updated in the `<version>` and the `<project.version.short>` parts of pom.xml. That will include removing `-SNAPSHOT` from `<version>`, which will be added back later.
 
+1. If any binaries (files in /bin like FFmpeg, MediaInfo, yt-dlp, etc.) have changed since the last release, bump `binary-revision`  in [pom.xml](./pom.xml).
 1. Commit those changes in a commit message with the version name
 1. Tag the release with the same version name
 1. Push the commit and tag to GitHub
 
 ## Release
 
-1. Compile the releases, the instructions are detailed in [the How to build UMS wiki article](https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS).
+1. Compile the releases. The instructions are detailed in [the How to build UMS wiki article](https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS).
 
-     I (SubJunk) use 3 machines to compile the releases, mostly due to macOS making things difficult. I compile the Windows and Linux releases on my Windows PC, which is a simple `.bat` file with the commands in it.
+     I (SubJunk) use 3 machines to compile the releases, mostly due to macOS making things difficult. I compile the Windows and Linux releases on my Windows PC using a simple `.bat` file with the commands in it.
 
-     For 2 the 3 types of macOS releases (pre-10.15 and default) I use an older Intel MacBook with x86_64 architecture. This also requires signing with my paid Apple Developer account, which I sign with our forked version of the [Gon](https://github.com/UniversalMediaServer/gon) project since the original project is archived. That requires some setup that should be documented in this file.
+     For 2 of the 3 types of macOS releases (pre-10.15 and default), I use an older Intel MacBook with x86_64 architecture. This also requires signing with my paid Apple Developer account, which I sign with our forked version of the [Gon](https://github.com/UniversalMediaServer/gon) project since the original project is archived. That requires some setup that should be documented in this file.
 
      I also do the Docker release from that Intel MacBook, which requires the `linux` directory to be manually created/updated to contain the binaries for Linux.
 
@@ -50,7 +51,7 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Upload the releases.
 
-     After each of the 3 machines are done compiling, I upload the binaries directly to Patreon. The first machine you do it on will create draft post, then you can find the draft post on the remaining machines and add their binaries to that. I hope Patreon will add that ability to their API some day!
+     After each of the 3 machines is done compiling, I upload the binaries directly to Patreon. The first machine you use will create a draft post, then you can find the draft post on the remaining machines and add their binaries to that. I hope Patreon will add that ability to their API someday!
 
 1. Write a release post.
 
@@ -74,13 +75,15 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Add `-SNAPSHOT` to the `<version>` in `pom.xml` to show you are now ahead of the version you just released to Patreon.
 
-1. Commit the changes as `Post-release` and push.
+1. Commit the changes with the message `Post-release` and push.
 
-1. Update the website config.php and upload to the web server (this is done manually for now, should be automated). When the file is uploaded there will be up to a 1-hour delay until it is visible on the website, because of a 60-minute cache on the front page.
+1. Update the website config.php and upload to the web server (this is done manually for now; it should be automated). When the file is uploaded, there will be up to a 1-hour delay until it is visible on the website due to a 60-minute cache on the front page.
+
+1. If this was a major release, change current version in the Knowledge Base. [See here for an example of promoting the beta docs to "current"](https://github.com/UniversalMediaServer/knowledge-base/commit/a177d1f11b13ff1f6b0e206c6e622b27baec2805)
 
 1. Post about the release via:
 
-     - Buffer, which posts to Bluesky, X, and Facebook: https://publish.buffer.com/all-channels
-     - Our forum: https://www.universalmediaserver.com/forum/viewforum.php?f=3
+     - [Buffer](https://publish.buffer.com/all-channels), which posts to Bluesky, X, and Facebook
+     - [Our forum](https://www.universalmediaserver.com/forum/viewforum.php?f=3)
 
      Follow the conventions for the previous posts. The forum announcement will automatically add an entry to the front page and the News section of our website.

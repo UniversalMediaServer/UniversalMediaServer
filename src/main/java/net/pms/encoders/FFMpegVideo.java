@@ -227,7 +227,7 @@ public class FFMpegVideo extends Engine {
 				}
 
 				if (originalSubsFilename != null) {
-					subsFilter.append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
+					subsFilter.append("[v]subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
 					if (params.getSid().isEmbedded()) {
 						subsFilter.append(":si=").append(params.getSid().getId());
 					}
@@ -255,7 +255,7 @@ public class FFMpegVideo extends Engine {
 
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
 						subsFilter.append(",Fontsize=").append(15 * Double.parseDouble(configuration.getAssScale()));
-						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4StylesHexValue());
+						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4PlusStylesHexValueForFFmpeg());
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
 						subsFilter.append(",MarginV=").append(configuration.getAssMargin());
@@ -382,7 +382,7 @@ public class FFMpegVideo extends Engine {
 					) ||
 					!params.getAid().isAC3()
 				) &&
-				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid(), encodingFormat) &&
+				renderer.doesAudioStreamMatchTranscodingGoal(params.getAid(), encodingFormat) &&
 				!isAviSynthEngine() &&
 				!isSubtitlesAndTimeseek &&
 				ffmpegSupportsRemuxingAudioStreamToTranscodingContainer(params.getAid(), encodingFormat.getTranscodingContainer())
@@ -401,7 +401,7 @@ public class FFMpegVideo extends Engine {
 					if (!configuration.isAudioRemuxAC3() && params.getAid().isAC3()) {
 						LOGGER.trace(logPrepend + "audio is AC-3 and the user setting to remux AC-3 is disabled");
 					}
-					if (!renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid(), encodingFormat)) {
+					if (!renderer.doesAudioStreamMatchTranscodingGoal(params.getAid(), encodingFormat)) {
 						LOGGER.trace(logPrepend + "audio stream type {} is not supported inside the container {}", params.getAid().getAudioCodec(), encodingFormat);
 					}
 					if (!ffmpegSupportsRemuxingAudioStreamToTranscodingContainer(params.getAid(), encodingFormat.getTranscodingContainer())) {
@@ -970,7 +970,7 @@ public class FFMpegVideo extends Engine {
 		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, null)) {
+			if (!renderer.doesDefaultVideoStreamMatchTranscodingGoal(media, encodingFormat)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (item.isInsideTranscodeFolder()) {

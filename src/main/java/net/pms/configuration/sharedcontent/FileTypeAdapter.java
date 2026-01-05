@@ -50,7 +50,7 @@ public class FileTypeAdapter implements JsonSerializer<File>, JsonDeserializer<F
 			}
 			return file;
 		} catch (FileNotFoundException e) {
-			LOGGER.warn("Folder not found: {}", e.getMessage());
+			LOGGER.warn("FileTypeAdapter: Folder not found: {}", e.getMessage());
 			return null;
 		}
 	}

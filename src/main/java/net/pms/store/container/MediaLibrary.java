@@ -16,6 +16,10 @@
  */
 package net.pms.store.container;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import net.pms.PMS;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -24,6 +28,7 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.database.MediaTableVideotracks;
 import net.pms.renderers.Renderer;
+import net.pms.store.container.audioaddict.AudioAddictPlatform;
 import net.pms.util.FullyPlayedAction;
 
 /**
@@ -32,6 +37,8 @@ import net.pms.util.FullyPlayedAction;
  */
 public class MediaLibrary extends MediaLibraryAbstract {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibrary.class);
+
 	private MediaLibraryFolder allFolder;
 	private MediaLibraryFolder albumFolder;
 	private MediaLibraryFolder artistFolder;
@@ -39,11 +46,28 @@ public class MediaLibrary extends MediaLibraryAbstract {
 	private MediaLibraryFolder playlistFolder;
 	private LocalizedStoreContainer vfAudio = null;
 
+	public AudioAddictPlatform audioAddictPlatform = null;
+
 	public MediaLibrary(Renderer renderer) {
 		super(renderer, "MediaLibrary", "/images/store/media-library.png");
 		addVideoFolder();
 		addAudioFolder();
 		addImageFolder();
+		addAudioAddictNetwork(renderer);
+	}
+
+	private void addAudioAddictNetwork(Renderer renderer) {
+		if (!StringUtils.isAllBlank(PMS.getConfiguration().getAudioAddictUser())) {
+			LOGGER.trace("{} : Audio Addict user set. Adding Audio Addict folder to media store ...", renderer.getSimpleName());
+			this.audioAddictPlatform = new AudioAddictPlatform(renderer, "Audio Addict Radio Network");
+			addChild(this.audioAddictPlatform);
+		} else {
+			LOGGER.trace("No audio addict user set. Radio network is unavailable.");
+		}
+	}
+
+	public AudioAddictPlatform getAudioAddictPlatformFolder() {
+		return audioAddictPlatform;
 	}
 
 	private void addVideoFolder() {
@@ -64,7 +88,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(renderer, "Movies", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(renderer, "3dMovies", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + IS_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(renderer, "Unsorted", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + UNSORTED_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
-		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(renderer, "RecentlyAdded", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100, FILES_NOSORT);
+		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(renderer, "RecentlyAdded", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + PARSER_NOT_NULL + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_DATEADDED + DESC + "," + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100, FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(renderer, "AllVideos", SELECT_FILES_STATUS_WHERE  + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedVideosByDate = new MediaLibraryFolder(
 			renderer,
@@ -117,7 +141,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
 			renderer,
 			"RecentlyAdded",
-			new String[]{SELECT_ALL + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + ORDER_BY + MediaTableFiles.TABLE_COL_DATEADDED + DESC + "," + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100},
+			new String[]{SELECT_ALL + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + AND + PARSER_NOT_NULL + ORDER_BY + MediaTableFiles.TABLE_COL_DATEADDED + DESC + "," + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100},
 			new int[]{FILES_NOSORT}
 		);
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(
