@@ -24,16 +24,12 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
-import net.pms.util.FilePermissions;
-import net.pms.util.FileUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class FileTypeAdapter implements JsonSerializer<File>, JsonDeserializer<File> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentConfiguration.class);
-
+/**
+ * Based on FileTypeAdapter but more forgiving: does not check for file existence or permissions.
+ */
+public class FileTypeForgivingAdapter implements JsonSerializer<File>, JsonDeserializer<File> {
 	@Override
 	public JsonElement serialize(File src, Type typeOfSrc, JsonSerializationContext context) {
 		return new JsonPrimitive(src.getAbsolutePath());
@@ -43,16 +39,6 @@ public class FileTypeAdapter implements JsonSerializer<File>, JsonDeserializer<F
 	public File deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		File file = new File(json.getAsJsonPrimitive().getAsString());
 
-		try {
-			FilePermissions permissions = FileUtil.getFilePermissions(file);
-			if (!permissions.isBrowsable()) {
-				LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
-			}
-			return file;
-		} catch (FileNotFoundException e) {
-			LOGGER.warn("FileTypeAdapter: Folder not found: {}", e.getMessage());
-			return null;
-		}
+		return file;
 	}
-
 }

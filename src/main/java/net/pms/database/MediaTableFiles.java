@@ -16,8 +16,14 @@
  */
 package net.pms.database;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -25,7 +31,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import net.pms.Messages;
+import net.pms.configuration.sharedcontent.FileTypeForgivingAdapter;
+import net.pms.configuration.sharedcontent.SharedContent;
+import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentTypeAdapter;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
@@ -169,6 +179,12 @@ public class MediaTableFiles extends MediaTable {
 	 * Database column sizes
 	 */
 	private static final int SIZE_CONTAINER = 32;
+
+	protected static final Gson GSON = new GsonBuilder()
+		.setPrettyPrinting()
+		.registerTypeAdapter(SharedContent.class, new SharedContentTypeAdapter())
+		.registerTypeAdapter(File.class, new FileTypeForgivingAdapter())
+		.create();
 
 	/*
 	 * Checks and creates or upgrades the table as needed.
@@ -1109,6 +1125,10 @@ public class MediaTableFiles extends MediaTable {
 			 *
 			 * Removes entries that are not on the hard drive anymore, and
 			 * ones that are no longer shared.
+			 *
+			 * This MUST not remove entries that might come back later, e.g.
+			 * files in a disconnected drive.
+			 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/issues/5356
 			 */
 			int dbCount = 0;
 			try (
@@ -1128,15 +1148,58 @@ public class MediaTableFiles extends MediaTable {
 					List<Long> removedIds = new ArrayList<>();
 					int oldpercent = 0;
 					int i = 0;
+					SharedContentArray allSharedFoldersInUserConf = null;
+					SharedContentArray foldersToIgnore = null;
+
+					// load all shared content from SHARED.conf. This gives us a full list including those on disconnected drives.
+					try {
+						Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+						if (Files.exists(sharedConfFilePath)) {
+							String sharedFoldersJsonString = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
+							allSharedFoldersInUserConf = GSON.fromJson(sharedFoldersJsonString, SharedContentArray.class);
+						}
+					} catch (IOException e) {
+						LOGGER.error("Error reading shared content configuration file: {}", e.getMessage());
+					}
+
+					if (allSharedFoldersInUserConf != null) {
+						// find folders to ignore (i.e. not mounted currently but still shared)
+						foldersToIgnore = new SharedContentArray();
+						for (SharedContent sharedContent : allSharedFoldersInUserConf) {
+							if (!SharedContentConfiguration.isFolderShared(sharedContent.toString())) {
+								foldersToIgnore.add(sharedContent);
+							}
+						}
+					}
+
 					while (rs.next()) {
 						String filename = rs.getString(COL_FILENAME);
 						Long id = toLong(rs, COL_ID);
 						if (Boolean.FALSE.equals(MediaTableContainerFiles.isInContainer(connection, id))) {
 							if (!FileUtil.isUrl(filename)) {
-								//this is a real file not in container
+								// this is a real file, not in a container or online
 								long modified = rs.getTimestamp(COL_MODIFIED).getTime();
 								File file = new File(filename);
-								if (!file.exists() || file.lastModified() != modified) {
+								if (
+									!file.exists() ||
+									file.lastModified() != modified
+								) {
+									// the file no longer exists on the hard drive but it might comes back later (e.g. disconnected drive)
+									boolean isFileStillShared = false;
+									if (foldersToIgnore != null) {
+										for (SharedContent sharedContent : foldersToIgnore) {
+											if (filename.startsWith(sharedContent.toString())) {
+												isFileStillShared = true;
+												break;
+											}
+										}
+									}
+
+									if (isFileStillShared) {
+										LOGGER.trace("Not removing the file {} from our database because it might come back later", filename);
+										continue;
+									}
+
 									LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
 									rs.deleteRow();
 									removedIds.add(id);
@@ -1157,7 +1220,7 @@ public class MediaTableFiles extends MediaTable {
 									}
 								}
 							} else {
-								//check for url shared content
+								// TODO: check for url shared content
 							}
 						}
 						i++;
