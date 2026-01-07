@@ -1041,7 +1041,7 @@
 
 										<!-- FFmpeg binaries -->
 										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
-										<get src="https://github.com/GyanD/codexffmpeg/releases/download/2025-10-01-git-1a02412170/ffmpeg-2025-10-01-git-1a02412170-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
+										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.0.1/ffmpeg-8.0.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
 											<cutdirsmapper dirs="1" />
 										</unzip>
@@ -2120,7 +2120,7 @@
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
 										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-121256-g0fdb5829e3.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.0.1.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
 											<cutdirsmapper dirs="1" />
 										</unzip>
@@ -3470,7 +3470,7 @@
 										<mkdir dir="${project.binaries}/osx" />
 
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-121256-g0fdb5829e3.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.0.1.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
 											<cutdirsmapper dirs="1" />
 										</unzip>
@@ -3543,7 +3543,7 @@
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/bin/MediaInfo.dll" overwrite="true" />
 
 										<!-- FFmpeg binary -->
-										<get src="https://github.com/GyanD/codexffmpeg/releases/download/2025-10-01-git-1a02412170/ffmpeg-2025-10-01-git-1a02412170-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
+										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.0.1/ffmpeg-8.0.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
 											<cutdirsmapper dirs="1" />
 										</unzip>

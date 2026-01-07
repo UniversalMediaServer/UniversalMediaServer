@@ -76,7 +76,7 @@ Function InstallTypeShow
 	Pop $0
 
 	${If} $CurrentInstallType == ""
-		${NSD_CreateRadioButton} 0% 20% 100% 12u "Install for all users (recommanded)"
+		${NSD_CreateRadioButton} 0% 20% 100% 12u "Install for all users (recommended)"
 		pop $InstallSystemButton
 		${NSD_CreateLabel} 3% 30% 100% 12u "This will install ${PROJECT_NAME} on this computer for all users"
 		${NSD_CreateAdditionalRadioButton} 0% 40% 100% 12u "Install for the current user only"
