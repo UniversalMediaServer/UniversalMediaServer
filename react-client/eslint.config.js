@@ -4,8 +4,9 @@ import hooksPlugin from 'eslint-plugin-react-hooks'
 import refreshPlugin from 'eslint-plugin-react-refresh'
 import stylisticPlugin from '@stylistic/eslint-plugin'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
+import { defineConfig } from 'eslint/config'
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: [
       '.yarn/**',
