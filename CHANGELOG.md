@@ -10,7 +10,7 @@
 - Bump `@mantine/modals` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
 - Bump `@mantine/notifications` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
 - Bump `@mantine/notifications` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `@tabler/icons-react` from 3.35.0 to 3.36.0 ([#5943](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5943))
+- Bump `@tabler/icons-react` from 3.35.0 to 3.36.1 ([#5943](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5943), [#5946](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5946))
 - Bump `@vitejs/plugin-react` from 5.1.1 to 5.1.2 ([#5931](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5931))
 - Bump `actions/cache` from 4 to 5 ([#5916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5916))
 - Bump `actions/upload-artifact` from 5 to 6 ([#5917](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5917))
