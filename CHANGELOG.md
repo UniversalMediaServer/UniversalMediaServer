@@ -38,6 +38,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.4.24 to 0.4.26 ([#5927](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5927))
 - Bump `eslint` from 9.39.1 to 9.39.2 ([#5914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5914))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.6.2 to 3.6.3 ([#5934](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5934))
+- Bump `org.jsoup:jsoup` from 1.21.2 to 1.22.1 ([#5948](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5948))
 - Bump `react-dom` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
 - Bump `react-router-dom` from 7.10.1 to 7.11.0 ([#5928](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5928))
 - Bump `react` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
