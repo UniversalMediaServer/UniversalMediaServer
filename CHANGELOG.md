@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-??)
+## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
 ### General
 - Changed Edit button to an icon on the web player
@@ -14,7 +14,7 @@
 - Fixed being unable to assign user to group on mobile (#5800) (thanks, @rtivital and @rilrom!)
 - Fixed files marked as fully played despite "Monitor played status" being disabled (#5828) (thanks, @dheerajmuppalla!)
 - Fixed AudioAddict stability and recovery from network timeouts
-- Fixed "recommended" being written as "recommanded" in the Windows installer (thanks, Colin von Heuring!)
+- Fixed "recommended" being written as "recommanded" in the Windows installer (thanks, @colinvh!)
 
 ### Media players
 - Added native support for Dolby Vision in MKV files on LG TVs from 2022 onwards
