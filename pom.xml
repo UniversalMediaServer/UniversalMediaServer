@@ -74,7 +74,7 @@
 		<project.binaries-base>https://www.universalmediaserver.com/binaries</project.binaries-base>
 
 		<!-- This MUST be bumped every time binaries (files in /bin) are changed, or the Windows installer will not replace them -->
-		<binary-revision>219</binary-revision>
+		<binary-revision>220</binary-revision>
 
 		<exec-maven-plugin-version>3.6.3</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
