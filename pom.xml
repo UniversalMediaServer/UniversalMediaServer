@@ -3678,8 +3678,8 @@
 										<mkdir dir="${project.basedir}/target/docker/profile/renderers" />
 										<copy file="${project.external-resources}/docker/Dockerfile-ubuntu"
 											  tofile="${project.basedir}/target/docker/Dockerfile-ubuntu" overwrite="true" />
-										<copy file="${project.external-resources}/docker/Dockerfile"
-											  tofile="${project.basedir}/target/docker/Dockerfile" overwrite="true" />
+										<copy file="${project.external-resources}/docker/Dockerfile-alpine"
+											  tofile="${project.basedir}/target/docker/Dockerfile-alpine" overwrite="true" />
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 											  tofile="${project.basedir}/target/docker/app/${project.artifactId}.jar" overwrite="true" />
 										<copy todir="${project.basedir}/target/docker/app">
@@ -3706,10 +3706,10 @@
 								<configuration>
 									<target>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
-											<arg line="build . -f Dockerfile-ubuntu -t universalmediaserver/ums-ubuntu:${project.version} -t universalmediaserver/ums-ubuntu:latest" />
+											<arg line="build . -f Dockerfile-ubuntu -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest" />
 										</exec>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
-											<arg line="build . -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest" />
+											<arg line="build . -t Dockerfile-alpine universalmediaserver/ums-alpine:${project.version} -t universalmediaserver/ums-alpine:latest" />
 										</exec>
 									</target>
 								</configuration>
@@ -3727,6 +3727,12 @@
 										</exec>
 										<exec executable="docker">
 											<arg line="push universalmediaserver/ums:latest" />
+										</exec>
+										<exec executable="docker">
+											<arg line="push universalmediaserver/ums-alpine:${project.version}" />
+										</exec>
+										<exec executable="docker">
+											<arg line="push universalmediaserver/ums-alpine:latest" />
 										</exec>
 									</target>
 								</configuration>

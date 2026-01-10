@@ -5,6 +5,7 @@
 ## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
 ### General
+- Switched the default Docker operating system from Alpine Linux to Ubuntu, which fixes memory and stability problems. If you want to continue to use Alpine Linux, you can change to the `universalmediaserver/ums-alpine` repository
 - Changed Edit button to an icon on the web player
 - Added a tooltip to the "Media info" button on the web player
 - Fixed menu item saying "mark contents unplayed" instead of "mark unplayed" on videos

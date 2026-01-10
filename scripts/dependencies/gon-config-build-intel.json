@@ -14,7 +14,7 @@
         "deep": true
     },
     "dmg" :{
-        "output_path": "UMS-macOS--x86_64.dmg",
+        "output_path": "UMS-macOS-14.1.0-x86_64.dmg",
         "volume_name": "Universal Media Server"
     }
 }
