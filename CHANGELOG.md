@@ -21,6 +21,18 @@
 - Improved detection of 2023-2025 LG TVs
 - Fixed support for DTS and DTS-HD on 2025+ LG TVs
 
+### Translation updates via Crowdin
+- Bulgarian (42%) (thanks, ScarletZero06!)
+- Czech (100%)
+- Dutch (43%) (thanks, Leander Torres Falcato Simoes and SSS-Idee-en-Raad!)
+- Finnish (70%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Fredo1650!)
+- Hungarian (89%) (thanks, efi99!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (70%) (thanks, Karol Szastok and Michu!)
+- Russian (96%) (thanks, Александр Радьков and vanapro1)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
 ### Dependencies
 - Replaced `imageio-webp` plugin with `twelvemonkeys imageio-webp`
 - Bump `@mantine/core` from 8.3.9 to 8.3.11 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
