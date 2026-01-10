@@ -3709,7 +3709,7 @@
 											<arg line="build . -f Dockerfile -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest" />
 										</exec>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
-											<arg line="build . -t Dockerfile-alpine universalmediaserver/ums-alpine:${project.version} -t universalmediaserver/ums-alpine:latest" />
+											<arg line="build . -f Dockerfile-alpine -t universalmediaserver/ums-alpine:${project.version} -t universalmediaserver/ums-alpine:latest" />
 										</exec>
 									</target>
 								</configuration>
