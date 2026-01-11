@@ -218,7 +218,14 @@ public class RendererConfigurationTest {
 			"modelNumber=75QNED93ASA", // 75 Inch LG QNED evo AI Mini LED QNED93A 4K Smart TV
 			"modelNumber=75QNED80A6A", // 75 inch LG QNED AI QNED80 4K Smart TV 2025
 			"modelNumber=75QNED81ASA", // 75 inch LG QNED AI QNED81 4K Smart TV 2025
-			"modelNumber=OLED83C56LA" // 83 inch LG OLED evo AI C5 4K Smart TV 2025
+			"modelNumber=OLED83C56LA", // 83 inch LG OLED evo AI C5 4K Smart TV 2025
+			// 2026 starts here
+			"modelNumber=OLED42C64LA", // prediction
+			"modelNumber=OLED83G66LA", // prediction
+			"modelNumber=MRGB95", // prediction
+			"modelNumber=QNED85B", // prediction
+			"modelNumber=QNED86B" // prediction
+
 		);
 
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
@@ -397,7 +404,15 @@ public class RendererConfigurationTest {
 			// 2025 Crystal UHD
 			"modelName=UA43UE100FSXNZ", // 43" Crystal UHD UE100F 4K Smart TV (2025)
 			"modelName=UA75U8500FSXNZ", // 75" Crystal UHD U8500F 4K Smart TV (2025)
-			"modelName=UA75U8000FSXNZ" // 75" Crystal UHD U8000F 4K Smart TV (2025)
+			"modelName=UA75U8000FSXNZ", // 75" Crystal UHD U8000F 4K Smart TV (2025)
+			// 2026 starts here (H Series)
+			"modelName=R90H", // a prediction
+			"modelName=R95H", // a prediction
+			"modelName=S85H", // a prediction
+			"modelName=S90H", // a prediction
+			"modelName=S95H", // a prediction
+			"modelName=QN80H", // a prediction
+			"modelName=QN990H" // a prediction
 		);
 
 		testUPNPDetails(
