@@ -222,7 +222,9 @@ public class RendererConfigurationTest {
 			// 2026 starts here
 			"modelNumber=OLED42C64LA", // prediction
 			"modelNumber=OLED83G66LA", // prediction
-			"modelNumber=MRGB95" // prediction
+			"modelNumber=MRGB95", // prediction
+			"modelNumber=QNED85B", // prediction
+			"modelNumber=QNED86B" // prediction
 
 		);
 
