@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.1 to 6.0.2 ([#5957](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5957))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.1 to 6.0.2 ([#5957](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5957))
+
 ## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
 ### General
