@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `@types/lodash` from 4.17.21 to 4.17.23 ([#5964](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5964))
+
 ## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
 ### General
