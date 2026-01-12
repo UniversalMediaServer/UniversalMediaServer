@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `com.puppycrawl.tools:checkstyle` from 12.3.0 to 12.3.1 ([#5959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5959))
+
 ## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
 ### General
