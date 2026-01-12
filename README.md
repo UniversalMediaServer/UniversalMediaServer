@@ -6,6 +6,8 @@ Universal Media Server is a DLNA, UPnP and HTTP/S Media Server.
 It is capable of sharing video, audio and images between most modern devices.
 It was originally based on PS3 Media Server by shagrath, in order to ensure greater stability and file-compatibility.
 
+some user interface options include tooltips that indicate default values to help clarify initial configuration behavior.
+
 Universal Media Server supports all major operating systems, with versions for Windows, Linux and macOS.
 The program streams or transcodes many different media formats with little or no configuration.
 It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], tsMuxeR, AviSynth, VLC, and more, which combine to offer support for a wide range of media formats.
