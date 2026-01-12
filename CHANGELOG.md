@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `vite` from 7.3.0 to 7.3.1 ([#5965](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5965))
+
 ## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
 ### General
