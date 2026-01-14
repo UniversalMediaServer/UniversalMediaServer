@@ -5418,8 +5418,11 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_UPNP_JUPNP_DIDL, false);
 	}
 
+	/**
+	 * This allow remote device to modify CDS.
+	 */
 	public boolean isUpnpCdsWrite() {
-		return getBoolean(KEY_UPNP_CDS_WRITE, true);
+		return getBoolean(KEY_UPNP_CDS_WRITE, false);
 	}
 
 	public boolean setUpnpCdsWrite(boolean newUpnpCdsWrite) {
@@ -5431,8 +5434,11 @@ public class UmsConfiguration extends BaseConfiguration {
 		}
 	}
 
+	/**
+	 * This allow anonymous remote devices to add/replace files and folders.
+	 */
 	public boolean isAnonymousDevicesWrite() {
-		return getBoolean(KEY_ANONYMOUS_DEVICES_WRITE, true);
+		return getBoolean(KEY_ANONYMOUS_DEVICES_WRITE, false);
 	}
 
 	public boolean setAnonymousDevicesWrite(boolean newAnonymousDevicesWrite) {

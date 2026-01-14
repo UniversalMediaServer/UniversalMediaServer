@@ -39,14 +39,56 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `@mantine/core` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `@mantine/dropzone` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `@mantine/form` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `@mantine/hooks` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `@mantine/modals` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `@mantine/notifications` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `@mantine/notifications` from 8.3.9 to 8.3.10 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
-- Bump `@tabler/icons-react` from 3.35.0 to 3.36.0 ([#5943](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5943))
+
+- Bump `@mantine/core` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/dropzone` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/form` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/hooks` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/modals` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/notifications` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+
+## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
+
+### General
+- Switched the default Docker operating system from Alpine Linux to Ubuntu, which fixes memory and stability problems. If you want to continue to use Alpine Linux, you can change to the `universalmediaserver/ums-alpine` repository
+- Changed Edit button to an icon on the web player
+- Added a tooltip to the "Media info" button on the web player
+- Fixed menu item saying "mark contents unplayed" instead of "mark unplayed" on videos
+- Fixed fully played status for files on web player
+- Fixed breadcrumb dropdown not showing for files on web player (#5909)
+- Fixed inaccessible files that are still shared being removed from local database (#5356)
+- Fixed being unable to assign user to group on mobile (#5800) (thanks, @rtivital and @rilrom!)
+- Fixed files marked as fully played despite "Monitor played status" being disabled (#5828) (thanks, @dheerajmuppalla!)
+- Fixed AudioAddict stability and recovery from network timeouts
+- Fixed "recommended" being written as "recommanded" in the Windows installer (thanks, @colinvh!)
+
+### Media players
+- Added native support for Dolby Vision in MKV files on LG TVs from 2022 onwards
+- Improved detection of 2023-2025 LG TVs
+- Fixed support for DTS and DTS-HD on 2025+ LG TVs
+
+### Translation updates via Crowdin
+- Bulgarian (42%) (thanks, ScarletZero06!)
+- Czech (100%)
+- Dutch (43%) (thanks, Leander Torres Falcato Simoes and SSS-Idee-en-Raad!)
+- Finnish (70%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Fredo1650!)
+- Hungarian (89%) (thanks, efi99!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (70%) (thanks, Karol Szastok and Michu!)
+- Russian (96%) (thanks, Александр Радьков and vanapro1)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies
+- Replaced `imageio-webp` plugin with `twelvemonkeys imageio-webp`
+- Bump `@mantine/core` from 8.3.9 to 8.3.11 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/dropzone` from 8.3.9 to 8.3.11 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/form` from 8.3.9 to 8.3.11 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/hooks` from 8.3.9 to 8.3.11 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/modals` from 8.3.9 to 8.3.11 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/notifications` from 8.3.9 to 8.3.11 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@mantine/notifications` from 8.3.9 to 8.3.11 ([#5911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5911))
+- Bump `@tabler/icons-react` from 3.35.0 to 3.36.1 ([#5943](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5943), [#5946](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5946))
 - Bump `@vitejs/plugin-react` from 5.1.1 to 5.1.2 ([#5931](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5931))
 - Bump `actions/cache` from 4 to 5 ([#5916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5916))
 - Bump `actions/upload-artifact` from 5 to 6 ([#5917](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5917))
@@ -71,19 +113,21 @@
 - Bump `com.twelvemonkeys.imageio:imageio-tga` from 3.12.0 to 3.13.0 ([#5944](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5944))
 - Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.12.0 to 3.13.0 ([#5944](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5944))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.18 to 0.12.19 ([#5935](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5935))
+- Bump `eslint-plugin-react-hooks` from 5.2.0 to 7.0.1
 - Bump `eslint-plugin-react-refresh` from 0.4.24 to 0.4.26 ([#5927](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5927))
 - Bump `eslint` from 9.39.1 to 9.39.2 ([#5914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5914))
+- Bump `FFmpeg` to 8.0.1
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.6.2 to 3.6.3 ([#5934](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5934))
+- Bump `org.jsoup:jsoup` from 1.21.2 to 1.22.1 ([#5948](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5948))
 - Bump `react-dom` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
 - Bump `react-router-dom` from 7.10.1 to 7.11.0 ([#5928](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5928))
 - Bump `react` from 19.2.1 to 19.2.3 ([#5912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5912))
-- Bump `typescript-eslint` from 8.48.0 to 8.50.1 ([#5915](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5915), [#5942](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5942))
+- Bump `typescript-eslint` from 8.48.0 to 8.51.0 ([#5915](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5915), [#5942](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5942), [#5947](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5947))
 - Bump `vite` from 7.2.2 to 7.3.0 ([#5929](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5929))
 
 ## [15.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.2.0...15.3.0) (2025-12-11)
 
 ### General
-
 - Added ability to mark directories as fully played for the user on the web player (#5879)
 
   ![mark directories fully played on web player](./changelog-images/15.3.0-mark-played-before-after.png)

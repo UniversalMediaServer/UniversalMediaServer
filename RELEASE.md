@@ -41,7 +41,7 @@ There are a number of manual steps involved in a new version release. This list 
 
      For 2 of the 3 types of macOS releases (pre-10.15 and default), I use an older Intel MacBook with x86_64 architecture. This also requires signing with my paid Apple Developer account, which I sign with our forked version of the [Gon](https://github.com/UniversalMediaServer/gon) project since the original project is archived. That requires some setup that should be documented in this file.
 
-     I also do the Docker release from that Intel MacBook, which requires the `linux` directory to be manually created/updated to contain the binaries for Linux.
+     I also do the Docker release from that Intel MacBook.
 
      The script for the two paragraphs above is [ums-release-macos-intel.sh](./scripts/ums-release-macos-intel.sh), and it contains its own setup instructions to elaborate on this.
 

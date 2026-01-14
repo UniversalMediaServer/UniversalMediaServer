@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
-import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
 
@@ -52,15 +51,6 @@ public class UmsExtendedServices {
 	@UpnpStateVariable(name = "AnonymousDevicesWrite", defaultValue = "false", sendEvents = true)
 	public boolean anonymousDevicesWrite = false;
 
-	@UpnpStateVariable(name = "AudioAddictUser", defaultValue = "", sendEvents = true)
-	public String audioAddictUser = "";
-
-	@UpnpStateVariable(name = "AudioAddictPass", defaultValue = "", sendEvents = true)
-	public String audioAddictPass = "";
-
-	@UpnpStateVariable(name = "AudioAddictEurope", defaultValue = "false", sendEvents = true)
-	public boolean audioAddictEurope = false;
-
 
 	public UmsExtendedServices() {
 		readConfig();
@@ -74,13 +64,22 @@ public class UmsExtendedServices {
 	}
 
 	private void readConfig() {
-		this.audioUpdateRatingTag = PMS.getConfiguration().isAudioUpdateTag();
-		this.audioLikesVisibleRoot = PMS.getConfiguration().displayAudioLikesInRootFolder();
-		this.upnpCdsWrite = PMS.getConfiguration().isUpnpCdsWrite();
-		this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
-		this.audioAddictUser = PMS.getConfiguration().getAudioAddictUser();
-		this.audioAddictPass = PMS.getConfiguration().getAudioAddictPassword();
-		this.audioAddictEurope = PMS.getConfiguration().isAudioAddictEuropeanServer();
+		if (this.audioUpdateRatingTag != PMS.getConfiguration().isAudioUpdateTag()) {
+			LOG.debug("isAudioUpdateTag has changed to {} ", PMS.getConfiguration().isAudioUpdateTag());
+			this.audioUpdateRatingTag = PMS.getConfiguration().isAudioUpdateTag();
+		}
+		if (this.audioLikesVisibleRoot != PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+			LOG.debug("audioLikesVisibleRoot has changed to {} ", PMS.getConfiguration().displayAudioLikesInRootFolder());
+			this.audioLikesVisibleRoot = PMS.getConfiguration().displayAudioLikesInRootFolder();
+		}
+		if (this.upnpCdsWrite != PMS.getConfiguration().isUpnpCdsWrite()) {
+			LOG.debug("upnpCdsWrite has changed to {} ", PMS.getConfiguration().isUpnpCdsWrite());
+			this.upnpCdsWrite = PMS.getConfiguration().isUpnpCdsWrite();
+		}
+		if (this.anonymousDevicesWrite != PMS.getConfiguration().isAnonymousDevicesWrite()) {
+			LOG.debug("anonymousDevicesWrite has changed to {} ", PMS.getConfiguration().isAnonymousDevicesWrite());
+			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
+		}
 	}
 
 	@UpnpAction
@@ -109,27 +108,6 @@ public class UmsExtendedServices {
 		this.anonymousDevicesWrite = newAnonymousDevicesWrite;
 		boolean changed = PMS.getConfiguration().setAnonymousDevicesWrite(newAnonymousDevicesWrite);
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
-	}
-
-	@UpnpAction
-	public void setAudioAddictUser(@UpnpInputArgument(name = "AudioAddictUser") String newAudioAddictUser) {
-		this.audioAddictUser = newAudioAddictUser;
-		PMS.getConfiguration().setAudioAddictUser(newAudioAddictUser);
-		LOG.debug("updating audioAddictUser to {}. Value changed : {}", newAudioAddictUser);
-	}
-
-	@UpnpAction
-	public void setAudioAddictPass(@UpnpInputArgument(name = "AudioAddictPass") String newAudioAddictPass) {
-		this.audioAddictPass = newAudioAddictPass;
-		PMS.getConfiguration().setAudioAddictPassword(newAudioAddictPass);
-		LOG.debug("updating audioAddictPass to {}.", newAudioAddictPass);
-	}
-
-	@UpnpAction
-	public void setAudioAddictEurope(@UpnpInputArgument(name = "AudioAddictEurope") boolean newAudioAddictEurope) {
-		this.audioAddictEurope = newAudioAddictEurope;
-		PMS.getConfiguration().setAudioAddictEuropeanServer(newAudioAddictEurope);
-		LOG.debug("updating audioAddictEurope to {}. Value changed : {}", newAudioAddictEurope);
 	}
 
 	@UpnpAction
@@ -193,27 +171,4 @@ public class UmsExtendedServices {
 		LOG.debug("dislike album with musicbrainz release id {} ", musicBrainzReleaseId);
 		likeMusic.dislikeAlbum(musicBrainzReleaseId);
 	}
-
-	@UpnpAction
-	public void backupRatings() throws UmsExtendedServicesException {
-		LOG.debug("backing up ratings ... ");
-		try {
-			RatingBackupManager.backupRatings();
-		} catch (Exception e) {
-			LOG.error("failed backup ratings", e);
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
-		}
-	}
-
-	@UpnpAction
-	public void restoreRatings() throws UmsExtendedServicesException {
-		LOG.debug("restoring ratings ... ");
-		try {
-			RatingBackupManager.restoreRating();
-		} catch (Exception e) {
-			LOG.warn("restore failed", e);
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
-		}
-	}
-
 }

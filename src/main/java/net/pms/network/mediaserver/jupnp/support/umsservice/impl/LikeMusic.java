@@ -38,7 +38,7 @@ import net.pms.network.mediaserver.jupnp.support.umsservice.UmsExtendedServicesE
 
 public class LikeMusic {
 
-	private static final Logger LOG = LoggerFactory.getLogger(LikeMusic.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(LikeMusic.class.getName());
 	public static final String PATH_MATCH = "like";
 	private final String backupFilename;
 
@@ -66,7 +66,7 @@ public class LikeMusic {
 	public void likeAlbum(String musicBrainzReleaseId) throws UmsExtendedServicesException {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection == null) {
-				LOG.warn("no database connection");
+				LOGGER.warn("likeAlbum action failed because database connection is null");
 				return;
 			}
 			String sql = "MERGE INTO " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " KEY (MBID_RELEASE) values (?)";
@@ -74,9 +74,9 @@ public class LikeMusic {
 				ps.setString(1, musicBrainzReleaseId);
 				ps.executeUpdate();
 			}
-			LOG.debug("album liked with musicBrainzReleaseId {}", musicBrainzReleaseId);
+			LOGGER.debug("album liked with musicBrainzReleaseId {}", musicBrainzReleaseId);
 		} catch (SQLException e) {
-			LOG.warn("like album failed : ", e);
+			LOGGER.warn("like album failed : ", e);
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Like album : " + e.getMessage());
 		}
 	}
@@ -84,7 +84,7 @@ public class LikeMusic {
 	public void dislikeAlbum(String musicBrainzReleaseId) throws UmsExtendedServicesException {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection == null) {
-				LOG.warn("no database connection");
+				LOGGER.warn("dislikeAlbum action failed because database connection is null");
 				return;
 			}
 			String sql = "DELETE FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
@@ -92,9 +92,9 @@ public class LikeMusic {
 				ps.setString(1, musicBrainzReleaseId);
 				ps.executeUpdate();
 			}
-			LOG.debug("disliked album with musicBrainzReleaseId {}", musicBrainzReleaseId);
+			LOGGER.debug("disliked album with musicBrainzReleaseId {}", musicBrainzReleaseId);
 		} catch (SQLException e) {
-			LOG.warn("dislike album failed : ", e);
+			LOGGER.warn("dislike album failed : ", e);
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Dislike album : " + e.getMessage());
 		}
 	}
@@ -107,7 +107,7 @@ public class LikeMusic {
 				return rs.getLong(1) > 0;
 			}
 		} catch (SQLException e) {
-			throw new RuntimeException("cannot handle request", e);
+			throw new RuntimeException("LikeMusic failed. Cannot handle request, because of an SQLException", e);
 		}
 		return false;
 	}
@@ -128,15 +128,15 @@ public class LikeMusic {
 				try {
 					RunScript.execute(connection, new FileReader(backupFilename));
 				} catch (FileNotFoundException | SQLException e) {
-					LOG.error("restoring MUSIC_BRAINZ_RELEASE_LIKE table : failed");
+					LOGGER.error("restoring MUSIC_BRAINZ_RELEASE_LIKE table : failed");
 					throw new RuntimeException("restoring MUSIC_BRAINZ_RELEASE_LIKE table failed", e);
 				}
 				connection.commit();
-				LOG.trace("restoring MUSIC_BRAINZ_RELEASE_LIKE table : success");
+				LOGGER.trace("restoring MUSIC_BRAINZ_RELEASE_LIKE table : success");
 			}
 		} else {
 			if (!StringUtils.isEmpty(backupFilename)) {
-				LOG.trace("Backup file doesn't exist : " + backupFilename);
+				LOGGER.trace("LikeMusik: Backup file doesn't exist : " + backupFilename);
 				throw new RuntimeException("Backup file doesn't exist : " + backupFilename);
 			} else {
 				throw new RuntimeException("Backup filename not set !");

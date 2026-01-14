@@ -37,7 +37,6 @@ mvn -P docker install -DskipTests=true
 ./scripts/dependencies/gon ./gon-config-build-intel.json
 
 # Clear the folder for a clean build
-rm UMS--pre10.15.dmg
 rm -fr target/ums*
 rm -rf target/antrun
 rm -rf target/archive-tmp
@@ -50,4 +49,4 @@ rm -rf target/test-classes
 
 mvn -P macos-pre1015 package -DskipTests=true
 
-hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS--pre10.15.dmg
+hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-14.1.0-pre10.15.dmg
