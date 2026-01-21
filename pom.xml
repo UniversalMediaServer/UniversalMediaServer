@@ -601,7 +601,7 @@
 		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>radiobrowser4j</artifactId>
-			<version>3.2.1</version>
+			<version>3.3.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -3569,7 +3569,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>12.3.0</version>
+								<version>12.3.1</version>
 							</dependency>
 						</dependencies>
 						<configuration>
