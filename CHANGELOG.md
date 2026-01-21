@@ -15,6 +15,7 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 12.3.0 to 12.3.1 ([#5959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5959))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.2.1 to 3.3.0 ([#5962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5962))
 - Bump `tar` from 7.4.3 to 7.5.3 ([#5971](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5971))
+- Bump `vite` from 7.3.0 to 7.3.1 ([#5965](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5965))
 
 ## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
