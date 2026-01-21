@@ -4,7 +4,16 @@
 
 ### Dependencies
 
+- Bump `@mantine/core` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/dropzone` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/form` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/hooks` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/modals` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/notifications` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@mantine/notifications` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@types/lodash` from 4.17.21 to 4.17.23 ([#5964](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5964))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.2.1 to 3.3.0 ([#5962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5962))
+- Bump `tar` from 7.4.3 to 7.5.3 ([#5971](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5971))
 
 ## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
