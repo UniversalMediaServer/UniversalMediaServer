@@ -776,9 +776,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:^8.3.11":
-  version: 8.3.11
-  resolution: "@mantine/core@npm:8.3.11"
+"@mantine/core@npm:^8.3.12":
+  version: 8.3.12
+  resolution: "@mantine/core@npm:8.3.12"
   dependencies:
     "@floating-ui/react": "npm:^0.27.16"
     clsx: "npm:^2.1.1"
@@ -787,81 +787,81 @@ __metadata:
     react-textarea-autosize: "npm:8.5.9"
     type-fest: "npm:^4.41.0"
   peerDependencies:
-    "@mantine/hooks": 8.3.11
+    "@mantine/hooks": 8.3.12
     react: ^18.x || ^19.x
     react-dom: ^18.x || ^19.x
-  checksum: 10c0/09942a37b77626f197bc8b302da5473d82694a26ed345c62811134af174095e80548a35201fd4c0ad67d7ea48c90c2585b7bda9d8dab69a9a9fa2a3ec735b320
+  checksum: 10c0/8c7986c3202026651749d6fe96ab01ca4d72df5c81b791d693e7d41bf3122baaa1244f4a1d74ab7dc86949c1842bfe407441ab609951a358fee54e7582700d07
   languageName: node
   linkType: hard
 
-"@mantine/dropzone@npm:^8.3.11":
-  version: 8.3.11
-  resolution: "@mantine/dropzone@npm:8.3.11"
+"@mantine/dropzone@npm:^8.3.12":
+  version: 8.3.12
+  resolution: "@mantine/dropzone@npm:8.3.12"
   dependencies:
     react-dropzone: "npm:14.3.8"
   peerDependencies:
-    "@mantine/core": 8.3.11
-    "@mantine/hooks": 8.3.11
+    "@mantine/core": 8.3.12
+    "@mantine/hooks": 8.3.12
     react: ^18.x || ^19.x
     react-dom: ^18.x || ^19.x
-  checksum: 10c0/9e48bec2854837168562a3b5b6291d188e97dab9d514eb3879537b6070448d1d57cb5af113ad9a20d7ee26db9507fb15ff5143e1d70ce34c53d9d955cfbc0aa1
+  checksum: 10c0/f690c92e4a67fcf43ad6c7556e2834b127abc7cb9cd2adaaf024d1dde5df0df6c1090e384028035d278430cb06bb3cf5ea8ffa2d9542059223d5d7b0aa0ea174
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:^8.3.11":
-  version: 8.3.11
-  resolution: "@mantine/form@npm:8.3.11"
+"@mantine/form@npm:^8.3.12":
+  version: 8.3.12
+  resolution: "@mantine/form@npm:8.3.12"
   dependencies:
     fast-deep-equal: "npm:^3.1.3"
     klona: "npm:^2.0.6"
   peerDependencies:
     react: ^18.x || ^19.x
-  checksum: 10c0/967db8a285be000ce6104da31bf386bf3cd05a3502d3c90586203aff66125e0a22d79bc682b01975e6ec65793de8f58914e9f4054ef5847a0940af1afc2a554a
+  checksum: 10c0/29300d9b44f4235a0f0e599ccbbbd65cf93d9d19dd4a2e6eb35ac8540de22321fce3ada897e850364a26d77f86f6ad5dff0d8ce686f7bb16388975ccc475f177
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:^8.3.11":
-  version: 8.3.11
-  resolution: "@mantine/hooks@npm:8.3.11"
+"@mantine/hooks@npm:^8.3.12":
+  version: 8.3.12
+  resolution: "@mantine/hooks@npm:8.3.12"
   peerDependencies:
     react: ^18.x || ^19.x
-  checksum: 10c0/7256b04df9ab8750d45a1c74f25b32763a4ca043ba777908f5869250792eaded395ce00d54455637cbaad0d2c7c20f224e5d40772d8605c811b5c381e4bf4da6
+  checksum: 10c0/a2e0ef9a47155f1c73e8b4e9a111ebfd822d01cc98ac048c938c7e9fa734191d789e8121617800ae803f27dd1ff213e1ef891cb6a1ba224f69b0b51ac258a2a3
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:^8.3.11":
-  version: 8.3.11
-  resolution: "@mantine/modals@npm:8.3.11"
+"@mantine/modals@npm:^8.3.12":
+  version: 8.3.12
+  resolution: "@mantine/modals@npm:8.3.12"
   peerDependencies:
-    "@mantine/core": 8.3.11
-    "@mantine/hooks": 8.3.11
+    "@mantine/core": 8.3.12
+    "@mantine/hooks": 8.3.12
     react: ^18.x || ^19.x
     react-dom: ^18.x || ^19.x
-  checksum: 10c0/ab1bf34d549f213b88c1bdaf3437cf4cee392d8885ed763a70296e7dff42a9f5c2fb2e6010315303d117b00468b9ab3de39a2ba2136ecd301c91147f952d01e8
+  checksum: 10c0/202895b8fabc5a9330e7dc924772585e0287e0b392f4d098c0b74c1c4cc3e82947519bedeafd84729683e7337bcfb15ddba29f53ada43769372006176f863d26
   languageName: node
   linkType: hard
 
-"@mantine/notifications@npm:^8.3.11":
-  version: 8.3.11
-  resolution: "@mantine/notifications@npm:8.3.11"
+"@mantine/notifications@npm:^8.3.12":
+  version: 8.3.12
+  resolution: "@mantine/notifications@npm:8.3.12"
   dependencies:
-    "@mantine/store": "npm:8.3.11"
+    "@mantine/store": "npm:8.3.12"
     react-transition-group: "npm:4.4.5"
   peerDependencies:
-    "@mantine/core": 8.3.11
-    "@mantine/hooks": 8.3.11
+    "@mantine/core": 8.3.12
+    "@mantine/hooks": 8.3.12
     react: ^18.x || ^19.x
     react-dom: ^18.x || ^19.x
-  checksum: 10c0/58ad4cb311ca189cfb155b92ddd2fec05544ea8dadc5dd9be5407fb3e2a35087345e1e7a89f9402bf4e29ca96e86782f372c29a0451b125c57232dbc78f1528f
+  checksum: 10c0/2635320566552172390b86b26bdc309518d9b740cb96d41ad551a9bc53f30e6b6b906da8c98f252e3b418ef5878e96ebccc46aa20ec0520b4d569fa14ccf89c1
   languageName: node
   linkType: hard
 
-"@mantine/store@npm:8.3.11":
-  version: 8.3.11
-  resolution: "@mantine/store@npm:8.3.11"
+"@mantine/store@npm:8.3.12":
+  version: 8.3.12
+  resolution: "@mantine/store@npm:8.3.12"
   peerDependencies:
     react: ^18.x || ^19.x
-  checksum: 10c0/93b62d8db6557229e1e2ab06ed37934608f0ec669339670db17a3166efa0f735ae858eca37bc715e231f9649ccb8b8519b9995335993b14f011e5edfedbaf64f
+  checksum: 10c0/f5ab5b8ebc690cbd447b97ab8654c9e7173006011a03156030b08dbe23ad19cdbaf104368735042df6048030676dd23e3f8ee8c50db09c55d11a21a3a7e5d896
   languageName: node
   linkType: hard
 
@@ -3608,12 +3608,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mkdirp@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "mkdirp@npm:3.0.1"
-  bin:
-    mkdirp: dist/cjs/src/bin.js
-  checksum: 10c0/9f2b975e9246351f5e3a40dcfac99fcd0baa31fbfab615fe059fb11e51f10e4803c63de1f384c54d656e4db31d000e4767e9ef076a22e12a641357602e31d57d
+"minizlib@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "minizlib@npm:3.1.0"
+  dependencies:
+    minipass: "npm:^7.1.2"
+  checksum: 10c0/5aad75ab0090b8266069c9aabe582c021ae53eb33c6c691054a13a45db3b4f91a7fb1bd79151e6b4e9e9a86727b522527c0a06ec7d45206b745d54cd3097bcec
   languageName: node
   linkType: hard
 
@@ -4747,16 +4747,15 @@ __metadata:
   linkType: hard
 
 "tar@npm:^7.4.3":
-  version: 7.4.3
-  resolution: "tar@npm:7.4.3"
+  version: 7.5.3
+  resolution: "tar@npm:7.5.3"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
     minipass: "npm:^7.1.2"
-    minizlib: "npm:^3.0.1"
-    mkdirp: "npm:^3.0.1"
+    minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
-  checksum: 10c0/d4679609bb2a9b48eeaf84632b6d844128d2412b95b6de07d53d8ee8baf4ca0857c9331dfa510390a0727b550fd543d4d1a10995ad86cdf078423fbb8d99831d
+  checksum: 10c0/e5e3237bca325fbb33282d92d9807f4c8d81abaf71bf2627efdf93bd5610c146460c78fc7e9767d4ab5ae3c0b18af8197314c964f8cbd23b30b25bf4d42d7cb4
   languageName: node
   linkType: hard
 
@@ -4904,12 +4903,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ums-gui@workspace:."
   dependencies:
-    "@mantine/core": "npm:^8.3.11"
-    "@mantine/dropzone": "npm:^8.3.11"
-    "@mantine/form": "npm:^8.3.11"
-    "@mantine/hooks": "npm:^8.3.11"
-    "@mantine/modals": "npm:^8.3.11"
-    "@mantine/notifications": "npm:^8.3.11"
+    "@mantine/core": "npm:^8.3.12"
+    "@mantine/dropzone": "npm:^8.3.12"
+    "@mantine/form": "npm:^8.3.12"
+    "@mantine/hooks": "npm:^8.3.12"
+    "@mantine/modals": "npm:^8.3.12"
+    "@mantine/notifications": "npm:^8.3.12"
     "@microsoft/fetch-event-source": "npm:2.0.1"
     "@playwright/test": "npm:1.57.0"
     "@stylistic/eslint-plugin": "npm:5.6.1"
