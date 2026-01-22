@@ -33,7 +33,7 @@
     "@tabler/icons-react": "^3.36.1",
     "axios": "1.13.2",
     "jwt-decode": "4.0.0",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "react": "19.2.3",
     "react-country-flag": "3.1.0",
     "react-dom": "^19.2.3",
