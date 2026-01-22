@@ -12,6 +12,7 @@
 - Bump `@mantine/notifications` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
 - Bump `@types/lodash` from 4.17.21 to 4.17.23 ([#5964](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5964))
 - Bump `@types/react` from 19.2.7 to 19.2.8 ([#5963](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5963))
+- Bump `com.ibm.icu:icu4j` from 75.1 to 78.2 ([#5961](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5961))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.3.0 to 12.3.1 ([#5959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5959))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.2.1 to 3.3.0 ([#5962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5962))
 - Bump `lodash` from 4.17.21 to 4.17.23 ([#5973](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5973))
