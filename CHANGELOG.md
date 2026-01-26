@@ -12,6 +12,7 @@
 - Bump `@mantine/notifications` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
 - Bump `@types/lodash` from 4.17.21 to 4.17.23 ([#5964](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5964))
 - Bump `@types/react` from 19.2.7 to 19.2.8 ([#5963](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5963))
+- Bump `axios` from 1.13.2 to 1.13.3 ([#5978](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5978))
 - Bump `ch.qos.logback:logback-classic` from 1.5.23 to 1.5.24 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958))
 - Bump `ch.qos.logback:logback-core` from 1.5.23 to 1.5.24 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.3.0 to 12.3.1 ([#5959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5959))
