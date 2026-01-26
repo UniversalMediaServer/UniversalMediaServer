@@ -10,6 +10,7 @@
 - Bump `@mantine/modals` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
 - Bump `@mantine/notifications` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
 - Bump `@mantine/notifications` from 8.3.11 to 8.3.12 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960))
+- Bump `@stylistic/eslint-plugin` from 5.6.1 to 5.7.1 ([#5980](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5980))
 - Bump `@types/lodash` from 4.17.21 to 4.17.23 ([#5964](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5964))
 - Bump `@types/react` from 19.2.7 to 19.2.8 ([#5963](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5963))
 - Bump `ch.qos.logback:logback-classic` from 1.5.23 to 1.5.24 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958))
