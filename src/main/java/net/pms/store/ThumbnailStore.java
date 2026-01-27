@@ -18,8 +18,7 @@ package net.pms.store;
 
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +34,9 @@ public class ThumbnailStore {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailStore.class.getName());
 
-	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new ConcurrentHashMap<>();
+	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new HashMap<>();
 
-	private static final AtomicLong TEMP_ID = new AtomicLong(Long.MAX_VALUE);
+	private static Long tempId = Long.MAX_VALUE;
 
 	private ThumbnailStore() {
 		//should not be instantiated
@@ -47,20 +46,22 @@ public class ThumbnailStore {
 		if (thumbnail == null) {
 			return null;
 		}
-		Connection connection = null;
-		Long id = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				id = MediaTableThumbnails.setThumbnail(connection, thumbnail);
-				if (id != null) {
-					STORE.put(id, new WeakReference<>(thumbnail));
+		synchronized (STORE) {
+			Connection connection = null;
+			Long id = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					id = MediaTableThumbnails.setThumbnail(connection, thumbnail);
+					if (id != null) {
+						STORE.put(id, new WeakReference<>(thumbnail));
+					}
 				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
-		} finally {
-			MediaDatabase.close(connection);
+			return id;
 		}
-		return id;
 	}
 
 	public static Long updateThumbnailByURI(String uri, String filePath, ThumbnailSource thumbnailSource) {
@@ -120,37 +121,35 @@ public class ThumbnailStore {
 		if (thumbnail == null) {
 			return null;
 		}
-		//resume/temp thumbnail
-		Long id = TEMP_ID.decrementAndGet();
-		STORE.put(id, new WeakReference<>(thumbnail));
-		return id;
+		synchronized (STORE) {
+			//resume/temp thumbnail
+			Long id = tempId--;
+			STORE.put(id, new WeakReference<>(thumbnail));
+			return id;
+		}
 	}
 
 	public static DLNAThumbnail getThumbnail(Long id) {
 		if (id == null) {
 			return null;
 		}
-		// Check if already in cache
-		WeakReference<DLNAThumbnail> ref = STORE.get(id);
-		if (ref != null) {
-			DLNAThumbnail cached = ref.get();
-			if (cached != null) {
-				return cached;
+		synchronized (STORE) {
+			if (STORE.containsKey(id) && STORE.get(id).get() != null) {
+				return STORE.get(id).get();
 			}
-		}
-		// Not in cache or GC'd, load from database
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				DLNAThumbnail thumbnail = MediaTableThumbnails.getThumbnail(connection, id);
-				if (thumbnail != null) {
-					STORE.put(id, new WeakReference<>(thumbnail));
-					return thumbnail;
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					DLNAThumbnail thumbnail = MediaTableThumbnails.getThumbnail(connection, id);
+					if (thumbnail != null) {
+						STORE.put(id, new WeakReference<>(thumbnail));
+						return thumbnail;
+					}
 				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
-		} finally {
-			MediaDatabase.close(connection);
 		}
 		return null;
 	}
@@ -163,18 +162,18 @@ public class ThumbnailStore {
 	public static void resetLanguage() {
 		synchronized (STORE) {
 			STORE.clear();
-			TEMP_ID.set(Long.MAX_VALUE);
-		}
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				MediaTableFiles.resetLocalizedThumbnail(connection);
-				MediaTableTVSeries.resetLocalizedThumbnail(connection);
-				MediaTableThumbnails.cleanup(connection);
+			tempId = Long.MAX_VALUE;
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableFiles.resetLocalizedThumbnail(connection);
+					MediaTableTVSeries.resetLocalizedThumbnail(connection);
+					MediaTableThumbnails.cleanup(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
-		} finally {
-			MediaDatabase.close(connection);
 		}
 	}
 
