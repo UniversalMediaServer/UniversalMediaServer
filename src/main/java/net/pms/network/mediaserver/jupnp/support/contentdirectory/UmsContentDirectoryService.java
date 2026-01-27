@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -28,7 +29,28 @@ import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import net.pms.configuration.RendererConfigurations;
+import org.jupnp.binding.annotations.UpnpAction;
+import org.jupnp.binding.annotations.UpnpInputArgument;
+import org.jupnp.binding.annotations.UpnpOutputArgument;
+import org.jupnp.binding.annotations.UpnpService;
+import org.jupnp.binding.annotations.UpnpServiceId;
+import org.jupnp.binding.annotations.UpnpServiceType;
+import org.jupnp.binding.annotations.UpnpStateVariable;
+import org.jupnp.binding.annotations.UpnpStateVariables;
+import org.jupnp.model.profile.RemoteClientInfo;
+import org.jupnp.model.types.ErrorCode;
+import org.jupnp.model.types.UnsignedIntegerFourBytes;
+import org.jupnp.model.types.csv.CSV;
+import org.jupnp.model.types.csv.CSVString;
+import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
+import org.jupnp.support.contentdirectory.ContentDirectoryException;
+import org.jupnp.support.model.BrowseFlag;
+import org.jupnp.support.model.BrowseResult;
+import org.jupnp.support.model.SearchResult;
+import org.jupnp.support.model.SortCriterion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
@@ -53,28 +75,6 @@ import net.pms.store.container.PlaylistFolder;
 import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
-import org.jupnp.binding.annotations.UpnpAction;
-import org.jupnp.binding.annotations.UpnpInputArgument;
-import org.jupnp.binding.annotations.UpnpOutputArgument;
-import org.jupnp.binding.annotations.UpnpService;
-import org.jupnp.binding.annotations.UpnpServiceId;
-import org.jupnp.binding.annotations.UpnpServiceType;
-import org.jupnp.binding.annotations.UpnpStateVariable;
-import org.jupnp.binding.annotations.UpnpStateVariables;
-import org.jupnp.model.profile.RemoteClientInfo;
-import org.jupnp.model.types.ErrorCode;
-import org.jupnp.model.types.UnsignedIntegerFourBytes;
-import org.jupnp.model.types.csv.CSV;
-import org.jupnp.model.types.csv.CSVString;
-import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
-import org.jupnp.support.contentdirectory.ContentDirectoryException;
-import org.jupnp.support.model.BrowseFlag;
-import org.jupnp.support.model.BrowseResult;
-import org.jupnp.support.model.SearchResult;
-import org.jupnp.support.model.SortCriterion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 @UpnpService(
 		serviceId =
@@ -388,6 +388,7 @@ public class UmsContentDirectoryService {
 
 				StoreResource resource = null;
 				if (!modelObjectToAdd.getItems().isEmpty()) {
+					LOGGER.debug("Creating item resource {} in container {}", modelObjectToAdd.getItems().get(0).getTitle(), parentContainer.getName());
 					resource = createItemResource(storeContainer, modelObjectToAdd.getItems().get(0), resource);
 				}
 				if (!modelObjectToAdd.getContainers().isEmpty()) {
@@ -435,8 +436,10 @@ public class UmsContentDirectoryService {
 	private StoreResource createItemResource(StoreContainer storeContainer, Item itemToCreate, StoreResource resource) throws Exception {
 		if (itemToCreate != null) {
 			if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				LOGGER.debug("Creating empty playlist {}", itemToCreate.getTitle());
 				resource = PlaylistManager.createPlaylist(storeContainer, itemToCreate.getTitle());
 			} else if ("object.item".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				LOGGER.debug("Creating empty item {}", itemToCreate.getTitle());
 				resource = createEmptyItem(storeContainer, itemToCreate.getTitle());
 			} else {
 				LOGGER.error("CreateObject of unknown upnp:class : " + itemToCreate.getUpnpClassName());
@@ -469,7 +472,7 @@ public class UmsContentDirectoryService {
 					fileWriter.write(EMPTY_FILE_CONTENT);
 				}
 
-				StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newItem);
+				StoreResource newResource = ControlPoint.getRenderer().getMediaStore().createResourceFromFile(newItem);
 				storeContainer.addChild(newResource);
 				if (newResource.getId() != null) {
 					LOGGER.error("created resource at {} got a NULL id!", newResource.getFileName());
@@ -480,7 +483,28 @@ public class UmsContentDirectoryService {
 				return null;
 			}
 		} else {
-			LOGGER.warn("Folder or file already exists for path {}", newItem.getAbsolutePath());
+			try {
+				LOGGER.info("existing file item {} has a size of {}", Files.size(newItem.toPath()));
+				if (newItem.isFile() && (Files.size(newItem.toPath()) == EMPTY_FILE_CONTENT.length())) {
+					LOGGER.info("File stub {} already exists. Identifying upload store id ... ", newItem.getAbsoluteFile());
+					StoreResource existing = storeContainer.getChildren().stream()
+						.filter(child -> child.getFileName().equals(newItem.getAbsolutePath()))
+						.findFirst()
+						.orElse(null);
+
+					if (existing != null) {
+						LOGGER.info("File stub {} already exists with id {}", newItem.getAbsoluteFile(), existing.getId());
+						return existing;
+					} else {
+						LOGGER.warn("File stub already exists on file system, but it's object id is unknown to media store.", newItem.getAbsolutePath());
+						return null;
+					}
+				} else {
+					LOGGER.info("Cannot create file {} because it already exists.", newItem.getAbsoluteFile());
+				}
+			} catch (IOException e) {
+				LOGGER.warn("cannot access file item size", e);
+			}
 			return null;
 		}
 	}
@@ -490,7 +514,7 @@ public class UmsContentDirectoryService {
 		File newContainer = new File(storeContainer.getFileName(), title);
 		if (!newContainer.exists()) {
 			newContainer.mkdir();
-			StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newContainer);
+			StoreResource newResource = ControlPoint.getRenderer().getMediaStore().createResourceFromFile(newContainer);
 			storeContainer.addChild(newResource);
 			return newResource;
 		} else {
