@@ -370,7 +370,7 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			Renderer renderer = RendererConfigurations.getDefaultRenderer();
+			Renderer renderer = ControlPoint.getRenderer();
 
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
@@ -507,7 +507,7 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			Renderer renderer = RendererConfigurations.getDefaultRenderer();
+			Renderer renderer = ControlPoint.getRenderer();
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
@@ -553,7 +553,7 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			Renderer renderer = RendererConfigurations.getDefaultRenderer();
+			Renderer renderer = ControlPoint.getRenderer();
 
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
@@ -596,7 +596,7 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			Renderer renderer = RendererConfigurations.getDefaultRenderer();
+			Renderer renderer = ControlPoint.getRenderer();
 
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
@@ -803,7 +803,7 @@ public class UmsContentDirectoryService {
 			SortCriterion[] orderBy,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		Renderer renderer = RendererConfigurations.getDefaultRenderer();
+		Renderer renderer = ControlPoint.getRenderer();
 
 		try {
 			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
@@ -1024,7 +1024,7 @@ public class UmsContentDirectoryService {
 			String rId,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		Renderer renderer = RendererConfigurations.getDefaultRenderer();
+		Renderer renderer = ControlPoint.getRenderer();
 		if (posSecond == 0) {
 			// Sometimes when Samsung device is starting to play the video
 			// it sends X_SetBookmark message immediatelly with the position=0.
@@ -1046,7 +1046,7 @@ public class UmsContentDirectoryService {
 	private static String samsungGetFeaturesList(
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		Renderer renderer = RendererConfigurations.getDefaultRenderer();
+		Renderer renderer = ControlPoint.getRenderer();
 
 		StringBuilder features = new StringBuilder();
 		String mediaStoreId = renderer.getMediaStore().getResourceId();
