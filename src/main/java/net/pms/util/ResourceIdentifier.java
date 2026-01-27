@@ -16,6 +16,7 @@
  */
 package net.pms.util;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -119,7 +120,7 @@ public class ResourceIdentifier {
 		String pathname = file.getAbsolutePath();
 		LOGGER.debug(LOG_RUID_CREATE, "big file", pathname);
 		Blake3 blake3 = Blake3.initHash();
-		try (InputStream is = Files.newInputStream(file.toPath())) {
+		try (InputStream is = new BufferedInputStream(Files.newInputStream(file.toPath()), BUFFER_SIZE)) {
 			//put file size
 			blake3.update(ByteBuffer.wrap(new byte[8]).putLong(fileSize).array());
 			//we will hash 4 block of the file
@@ -162,7 +163,7 @@ public class ResourceIdentifier {
 		String pathname = file.getAbsolutePath();
 		LOGGER.debug(LOG_RUID_CREATE, "small file", pathname);
 		Blake3 blake3 = Blake3.initHash();
-		try (InputStream is = Files.newInputStream(file.toPath())) {
+		try (InputStream is = new BufferedInputStream(Files.newInputStream(file.toPath()), BUFFER_SIZE)) {
 			//put file size
 			blake3.update(ByteBuffer.wrap(new byte[8]).putLong(fileSize).array());
 			byte[] buffer = new byte[BUFFER_SIZE];
