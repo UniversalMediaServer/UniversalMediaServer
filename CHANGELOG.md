@@ -17,6 +17,7 @@
 - Bump `ch.qos.logback:logback-classic` from 1.5.23 to 1.5.26 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958), [#5975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5975))
 - Bump `ch.qos.logback:logback-core` from 1.5.23 to 1.5.26 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958), [#5975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5975))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.3.0 to 12.3.1 ([#5959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5959))
+- Bump `commons-codec:commons-codec` from 1.20.0 to 1.21.0 ([#5988](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5988))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.2.1 to 3.3.0 ([#5962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5962))
 - Bump `lodash` from 4.17.21 to 4.17.23 ([#5973](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5973))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.1 to 6.0.2 ([#5957](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5957))
