@@ -13,7 +13,7 @@
 - Bump `@stylistic/eslint-plugin` from 5.6.1 to 5.7.1 ([#5980](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5980))
 - Bump `@types/lodash` from 4.17.21 to 4.17.23 ([#5964](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5964))
 - Bump `@types/react` from 19.2.7 to 19.2.8 ([#5963](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5963))
-- Bump `axios` from 1.13.2 to 1.13.3 ([#5978](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5978))
+- Bump `axios` from 1.13.2 to 1.13.4 ([#5978](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5978), [#5993](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5993))
 - Bump `ch.qos.logback:logback-classic` from 1.5.23 to 1.5.26 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958), [#5975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5975))
 - Bump `ch.qos.logback:logback-core` from 1.5.23 to 1.5.26 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958), [#5975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5975))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.3.0 to 12.3.1 ([#5959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5959))
