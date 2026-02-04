@@ -178,7 +178,6 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 
 	private static String constructTagWhere(final MusicBrainzTagInfo tagInfo, final boolean includeAll) {
 		StringBuilder where = new StringBuilder(" WHERE ");
-		final String and = " AND ";
 		boolean added = false;
 
 		if (includeAll || StringUtil.hasValue(tagInfo.artistId)) {
@@ -207,8 +206,13 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				where.append(AND);
 			}
 			where.append(COL_MEDIA_YEAR).append(sqlNullIfBlank(tagInfo.year, true, false));
+			added = true;
 		}
 
+		if (!added) {
+			LOGGER.trace("No valid fields found in TagInfo to construct WHERE clause for MusicBrainz releases table.");
+			return null;
+		}
 		return where.toString();
 	}
 
@@ -223,8 +227,13 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	public static void writeMBID(final Connection connection, final String mBID, final MusicBrainzTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
+		String whereTag = constructTagWhere(tagInfo, false);
+		if (whereTag == null) {
+			return;
+		}
+
 		try {
-			String query = SELECT_ALL + FROM + TABLE_NAME + constructTagWhere(tagInfo, true) + LIMIT_1;
+			String query = SELECT_ALL + FROM + TABLE_NAME + whereTag + LIMIT_1;
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
 			}
@@ -297,8 +306,12 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 		MusicBrainzReleasesResult result;
 
+		String whereTag = constructTagWhere(tagInfo, false);
+		if (whereTag == null) {
+			return new MusicBrainzReleasesResult();
+		}
 		try {
-			String query = SELECT + COL_MBID + COMMA + COL_MODIFIED + FROM + TABLE_NAME + constructTagWhere(tagInfo, false) + LIMIT_1;
+			String query = SELECT + COL_MBID + COMMA + COL_MODIFIED + FROM + TABLE_NAME + whereTag + LIMIT_1;
 
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\"", query);
