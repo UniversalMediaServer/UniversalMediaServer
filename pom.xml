@@ -3706,7 +3706,7 @@
 								<configuration>
 									<target>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
-											<arg line="build . -f Dockerfile -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest" />
+											<arg line="buildx build --platform linux/amd64,linux/arm64 . -f Dockerfile -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest" />
 										</exec>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
 											<arg line="build . -f Dockerfile-alpine -t universalmediaserver/ums-alpine:${project.version} -t universalmediaserver/ums-alpine:latest" />
