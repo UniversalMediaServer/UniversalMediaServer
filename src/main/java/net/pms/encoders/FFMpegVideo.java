@@ -227,7 +227,7 @@ public class FFMpegVideo extends Engine {
 				}
 
 				if (originalSubsFilename != null) {
-					subsFilter.append("[v]subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
+					subsFilter.append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
 					if (params.getSid().isEmbedded()) {
 						subsFilter.append(":si=").append(params.getSid().getId());
 					}
@@ -313,7 +313,7 @@ public class FFMpegVideo extends Engine {
 
 		if (!filterChain.isEmpty()) {
 			videoFilterOptions.add("-filter_complex");
-			videoFilterOptions.add(StringUtils.join(filterChain, ","));
+			videoFilterOptions.add("[v]" + StringUtils.join(filterChain, ","));
 		}
 
 		return videoFilterOptions;
