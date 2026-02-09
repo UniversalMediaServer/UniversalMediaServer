@@ -4933,7 +4933,7 @@ __metadata:
     react-use-websocket: "npm:4.13.0"
     typescript: "npm:5.9.3"
     typescript-eslint: "npm:8.54.0"
-    video.js: "npm:8.23.4"
+    video.js: "npm:8.23.6"
     vite: "npm:7.3.1"
   languageName: unknown
   linkType: soft
@@ -5060,9 +5060,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.23.4":
-  version: 8.23.4
-  resolution: "video.js@npm:8.23.4"
+"video.js@npm:8.23.6":
+  version: 8.23.6
+  resolution: "video.js@npm:8.23.6"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
     "@videojs/http-streaming": "npm:^3.17.2"
@@ -5076,7 +5076,7 @@ __metadata:
     videojs-contrib-quality-levels: "npm:4.1.0"
     videojs-font: "npm:4.2.0"
     videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/3f6f0ce1b2f62cc91a9872ef33c46dcd28b88a445ea7182bbeae94e3c5e11036018e3cc665f2e810d0b0f5d141fb9e4d834b3d86406559da73e5db86bcc9204e
+  checksum: 10c0/cb80716154a4e34288671448960feae06d3751f300dbd8b7e74faf54a218bf94b3f3ff856b97a6a43bf10b3ed215fd4e5ba1d0e2971b1bb2859730573847a7c2
   languageName: node
   linkType: hard
 
