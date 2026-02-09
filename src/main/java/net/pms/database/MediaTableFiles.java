@@ -503,7 +503,6 @@ public class MediaTableFiles extends MediaTable {
 					}
 					case 44 -> {
 						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + "FILES_FILENAME on " + TABLE_NAME + " (FILENAME)");
-//						CREATE INDEX idx_files_filename ON PUBLIC.FILES(FILENAME);
 					}
 					default -> {
 						// Do the dumb way
