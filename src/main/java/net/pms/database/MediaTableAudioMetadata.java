@@ -47,7 +47,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 * Version notes:
 	 * - 2: FILEID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * COLUMNS NAMES
@@ -131,6 +131,17 @@ public class MediaTableAudioMetadata extends MediaTable {
 			switch (version) {
 				case 1 -> {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILEID + BIGINT);
+				}
+				case 2 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ALBUM + VARCHAR_IGNORECASE_255);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ARTIST + VARCHAR_IGNORECASE_255);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ALBUMARTIST + VARCHAR_IGNORECASE_255);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_COMPOSER + VARCHAR_IGNORECASE_1024);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_CONDUCTOR + VARCHAR_IGNORECASE_1024);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_GENRE + VARCHAR_IGNORECASE_255);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_SONGNAME + VARCHAR_IGNORECASE_255);
+
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + "IDX_AUDIO_METADATA_FILEID_SONGNAME on " + TABLE_NAME + " (" + COL_FILEID + ", " + COL_SONGNAME + ")");
 				}
 				default -> {
 					throw new IllegalStateException(

@@ -98,7 +98,7 @@ public class MediaTableFiles extends MediaTable {
 	 * - 43: clear ffmpeg data parsed
 	 * - 44: added DATEADDED and RUID
 	 */
-	private static final int TABLE_VERSION = 44;
+	private static final int TABLE_VERSION = 45;
 
 	/**
 	 * COLUMNS NAMES
@@ -500,6 +500,9 @@ public class MediaTableFiles extends MediaTable {
 					case 43 -> {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DATEADDED + TIMESTAMP + DEFAULT + CURRENT_TIMESTAMP);
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_RESOURCE_UID + VARCHAR);
+					}
+					case 44 -> {
+						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + "FILES_FILENAME on " + TABLE_NAME + " (FILENAME)");
 					}
 					default -> {
 						// Do the dumb way
