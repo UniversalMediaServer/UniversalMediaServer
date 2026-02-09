@@ -289,7 +289,7 @@ public class SearchRequestHandler {
 				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
 			}
 			case TYPE_FOLDER -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT child.NAME) from STORE_IDS child, STORE_IDS parent where tree.name = child.name and ";
+				return getTreeStatement(subtreeId) + "select count(DISTINCT child.NAME) from tree JOIN STORE_IDS child on tree.id = child.id, STORE_IDS parent where ";
 			}
 			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
