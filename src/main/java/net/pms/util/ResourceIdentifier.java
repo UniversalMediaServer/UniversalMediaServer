@@ -93,7 +93,7 @@ public class ResourceIdentifier {
 
 	/**
 	 * Calculates the XXH3 hash and returns the value as a 16 character hex
-	 * string. File has to be smaller than 2 GB for correct hashing.
+	 * string.
 	 *
 	 * @param file the file to identify
 	 * @return the pseudo unique file identifier.
