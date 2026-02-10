@@ -39,7 +39,7 @@ public class ResourceIdentifier {
 
 	private static final int SMALL_BYTES_THRESHOLD = 1024 * 1024 * 100; // 100 MB
 	private static final int BIG_BYTES_THRESHOLD = Integer.MAX_VALUE; 	// 2 GB
-	private static final long VERY_BIG_FILES_SEGMENT_SIZE = Integer.MAX_VALUE; // 1 GB
+	private static final long VERY_BIG_FILES_SEGMENT_SIZE = 1024 * 1024 * 256; // 256 MB
 
 	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
 	private static final String LOG_RUID_RESULTS = "RUID for \"{}\": {}";
