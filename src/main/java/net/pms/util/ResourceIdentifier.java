@@ -17,9 +17,9 @@
 package net.pms.util;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.net.URI;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -37,9 +37,9 @@ public class ResourceIdentifier {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceIdentifier.class);
 
-	private static final int SMALL_BYTES_THRESHOLD = 1024 * 1024 * 100; // 100 MB
-	private static final int BIG_BYTES_THRESHOLD = Integer.MAX_VALUE; 	// 2 GB
-	private static final long VERY_BIG_FILES_SEGMENT_SIZE = 1024 * 1024 * 256; // 256 MB
+	// 100 MB threshold for small files
+	private static final int SMALL_BYTES_THRESHOLD = 1024 * 1024 * 100;
+
 
 	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
 	private static final String LOG_RUID_RESULTS = "RUID for \"{}\": {}";
@@ -68,11 +68,8 @@ public class ResourceIdentifier {
 			long fileSize = file.length();
 			if (fileSize < SMALL_BYTES_THRESHOLD) {
 				return getSmallFileIdentifier(file, fileSize);
-			}
-			if (fileSize < BIG_BYTES_THRESHOLD) {
-				return getBigFileIdentifier(file);
 			} else {
-				return getVeryBigFileIdentifier(file);
+				return getBigFileIdentifier(file);
 			}
 		}
 		return getTextIdentifier(uri);
@@ -103,46 +100,17 @@ public class ResourceIdentifier {
 	 * @throws IOException
 	 */
 	private static String getBigFileIdentifier(final File file) {
-		try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
-			MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-			String ruid = Long.toHexString(LongHashFunction.xx3().hashBytes(buffer));
-			LOGGER.trace(LOG_RUID_RESULTS, file.getAbsolutePath(), ruid);
-			return ruid;
-		} catch (IOException ex) {
-			LOGGER.error(LOG_RUID_ERROR, "big file", file.getAbsolutePath());
-			LOGGER.trace("", ex);
-		}
-		return null;
-	}
+		try (Arena arena = Arena.ofConfined(); FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
 
-	/**
-	 * Calculates the XXH3 hash for files > 2GB by processing them in segments.
-	 * @param file
-	 * @return
-	 */
-	private static String getVeryBigFileIdentifier(final File file) {
-		LongHashFunction xxh3 = LongHashFunction.xx3();
-		try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
-			long fileSize = channel.size();
+			MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size(), arena);
 
-			int numSegments = (int) Math.ceil((double) fileSize / VERY_BIG_FILES_SEGMENT_SIZE);
-			LOGGER.trace("getVeryBigFileIdentifier : {}  segments for file: {}", numSegments, file.getAbsolutePath());
-			long[] segmentHashes = new long[numSegments];
+			long hash = LongHashFunction.xx3().hashMemory(segment.address(), segment.byteSize());
 
-			for (int i = 0; i < numSegments; i++) {
-				long position = i * VERY_BIG_FILES_SEGMENT_SIZE;
-				long sizeToRead = Math.min(VERY_BIG_FILES_SEGMENT_SIZE, fileSize - position);
-
-				// Segment mappen
-				var buffer = channel.map(FileChannel.MapMode.READ_ONLY, position, sizeToRead);
-				segmentHashes[i] = xxh3.hashBytes(buffer);
-			}
-
-			String ruid = Long.toHexString(LongHashFunction.xx3().hashLongs(segmentHashes));
+			String ruid = Long.toHexString(hash);
 			LOGGER.trace(LOG_RUID_RESULTS, file.getAbsolutePath(), ruid);
 			return ruid;
 		} catch (Exception ex) {
-			LOGGER.error(LOG_RUID_ERROR, "very big file", file.getAbsolutePath());
+			LOGGER.error(LOG_RUID_ERROR, "big file", file.getAbsolutePath());
 			LOGGER.trace("", ex);
 		}
 		return null;
