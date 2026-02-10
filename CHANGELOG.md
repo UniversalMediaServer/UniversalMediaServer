@@ -17,6 +17,7 @@
 - Bump `axios` from 1.13.2 to 1.13.4 ([#5978](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5978), [#5993](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5993))
 - Bump `ch.qos.logback:logback-classic` from 1.5.23 to 1.5.27 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958), [#5975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5975), [#5986](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5986))
 - Bump `ch.qos.logback:logback-core` from 1.5.23 to 1.5.27 ([#5958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5958), [#5975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5975), [#5986](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5986))
+- Bump `com.github.oshi:oshi-core` from 6.9.2 to 6.9.3 ([#6007](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6007))
 - Bump `com.puppycrawl.tools:checkstyle` from 12.3.0 to 12.3.1 ([#5959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5959))
 - Bump `commons-codec:commons-codec` from 1.20.0 to 1.21.0 ([#5988](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5988))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.2.1 to 3.3.0 ([#5962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5962))
