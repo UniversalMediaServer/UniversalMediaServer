@@ -18,13 +18,12 @@ package net.pms.util;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import net.pms.parsers.ParserTest;
 import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 public class ResourceIdentifierTest {
-	private static final Class<?> CLASS = ParserTest.class;
+	private static final Class<?> CLASS = ResourceIdentifierTest.class;
 
 	public void testResourceIdentifier(String test, String uri, String expected) {
 		String actual = ResourceIdentifier.getResourceIdentifier(uri);
@@ -38,20 +37,20 @@ public class ResourceIdentifierTest {
 	@Test
 	public void testResourceIdentifiers() {
 		//test with file
-		File file = getTestFile("video-h264-aac.mp4");
+		File file = getTestFile("/net/pms/parsers/video-h264-aac.mp4");
 		String filePath = file.getAbsolutePath();
-		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "da9f270b9c36097d8ac15e676ebaeb34d730e999df4e8852a3335e692186610a");
+		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "5a508e91e1f042a9");
 		//test with file url
 		try {
 			String fileUrl = file.toURI().toURL().toString();
-			testResourceIdentifier("file url: " + fileUrl, fileUrl, "da9f270b9c36097d8ac15e676ebaeb34d730e999df4e8852a3335e692186610a");
+			testResourceIdentifier("file url: " + fileUrl, fileUrl, "5a508e91e1f042a9");
 		} catch (MalformedURLException ex) {
 			// Can't happen
 		}
 		//test with url
-		testResourceIdentifier("url", "http://test.me", "ba610fb1aa3d0bfbc7387aee991b734a66c12c9713695bee0e3a675285a6bb2c");
+		testResourceIdentifier("url", "http://test.me", "60cb8b08c493ec5b");
 		//test with text
-		testResourceIdentifier("text", "something", "7f3ce09f78cacd8045e9b3d539d22b200c0a34ebb7a70b98b45ab23dd4ddebb1");
+		testResourceIdentifier("text", "something", "97a313603bc96153");
 		//test with null
 		testResourceIdentifier("null", null, null);
 	}
