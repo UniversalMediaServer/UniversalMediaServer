@@ -200,8 +200,8 @@ public abstract class DatabaseHelper {
 	protected static final String VARCHAR_20000 = VARCHAR + "(20000)";
 
 	protected static final String VARCHAR_IGNORECASE = " VARCHAR_IGNORECASE";
-	protected static final String VARCHAR_IGNORECASE_255 = VARCHAR_IGNORECASE + "(255)";
-	protected static final String VARCHAR_IGNORECASE_1024 = VARCHAR_IGNORECASE + "(1024)";
+	protected static final String VARCHAR_IGNORECASE_MAX = VARCHAR_IGNORECASE + "(" + SIZE_MAX + ")";
+	protected static final String VARCHAR_IGNORECASE_1024 = VARCHAR_IGNORECASE + "(" + SIZE_1024 + ")";
 
 	protected static final String AUTO_INCREMENT = " AUTO_INCREMENT";
 	protected static final String CONSTRAINT_SEPARATOR = "_";

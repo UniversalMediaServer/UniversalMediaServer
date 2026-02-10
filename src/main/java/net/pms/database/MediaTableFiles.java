@@ -502,7 +502,7 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_RESOURCE_UID + VARCHAR);
 					}
 					case 44 -> {
-						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + "FILES_FILENAME on " + TABLE_NAME + " (FILENAME)");
+						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + IDX_MARKER + COL_FILENAME + ON + TABLE_NAME + " (" + COL_FILENAME + ")");
 					}
 					default -> {
 						// Do the dumb way
@@ -587,6 +587,9 @@ public class MediaTableFiles extends MediaTable {
 
 		LOGGER.trace("Creating index on " + COL_THUMBID);
 		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_THUMBID + ")");
+
+		LOGGER.trace("Creating index on " + COL_FILENAME);
+		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + IDX_MARKER + COL_FILENAME + ON + TABLE_NAME + " (" + COL_FILENAME + ")");
 	}
 
 	/**
