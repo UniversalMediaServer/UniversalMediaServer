@@ -31,6 +31,10 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Locale;
@@ -249,27 +253,47 @@ public abstract class HttpServletHelper extends HttpServlet {
 	}
 
 	private static void copyStream(final InputStream in, final OutputStream os, final AsyncContext context, final UmsAsyncListener umsAsyncListener) {
-		byte[] buffer = new byte[32 * 1024];
-		int bytes;
+		ByteBuffer buffer = ByteBuffer.allocateDirect(64 * 1024);
 		long sendBytes = 0;
+		boolean hasListener = umsAsyncListener != null;
+		int flushInterval = 512 * 1024; // Flush every 512KB
+		long lastFlushBytes = 0;
 
-		try {
-			while ((bytes = in.read(buffer)) != -1) {
-				os.write(buffer, 0, bytes);
-				sendBytes += bytes;
-				os.flush();
-				if (umsAsyncListener != null) {
+		try (ReadableByteChannel inChannel = Channels.newChannel(in);
+			WritableByteChannel outChannel = Channels.newChannel(os)) {
+
+			while (inChannel.read(buffer) != -1) {
+				buffer.flip(); // Prepare buffer for writing
+				int bytesWritten = outChannel.write(buffer);
+				sendBytes += bytesWritten;
+
+				if (sendBytes - lastFlushBytes >= flushInterval) {
+					if (os instanceof java.io.BufferedOutputStream) {
+						os.flush();
+					}
+					lastFlushBytes = sendBytes;
+				}
+
+				if (hasListener) {
 					umsAsyncListener.setBytesSent(sendBytes);
 				}
+
+				buffer.clear();
 			}
-			LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
+
+			os.flush();
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Sending stream finished after: {} bytes.", sendBytes);
+			}
 		} catch (IOException | IndexOutOfBoundsException e) {
 			String reason = e.getMessage();
 			if (reason == null && e.getCause() != null) {
 				reason = e.getCause().getMessage();
 			}
-			LOGGER.debug("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + reason);
-			if (umsAsyncListener != null) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Sending stream with premature end: {} bytes. Reason: {}", sendBytes, reason);
+			}
+			if (hasListener) {
 				umsAsyncListener.onPrematureEnd(reason);
 			}
 		} finally {
