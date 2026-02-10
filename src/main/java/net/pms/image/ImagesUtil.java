@@ -1208,7 +1208,13 @@ public class ImagesUtil {
 			DLNAComplianceResult complianceResult;
 			switch (outputFormat) {
 				case GIF, JPEG, PNG -> {
-					ImageInfo imageInfo = ImageInfo.create(
+					ImageInfo imageInfo;
+					// metadata is only null at this stage if inputImage != null and no rotation was necessary
+					if (metadata == null) {
+						// TODO: why imageInfo is assign and reassing just after
+						imageInfo = inputImage.getImageInfo();
+					}
+					imageInfo = ImageInfo.create(
 							bufferedImage.getWidth(),
 							bufferedImage.getHeight(),
 							inputResult.imageFormat,
@@ -1359,6 +1365,7 @@ public class ImagesUtil {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		Thumbnails.of(bufferedImage)
+			.scale(1.0d)
 			.outputFormat(outputFormat.toString())
 			.outputQuality(0.8f)
 			.toOutputStream(outputStream);
