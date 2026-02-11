@@ -147,21 +147,21 @@ public class FFMpegVideo extends Engine {
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
 		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && mediaInfo.getWidth() < 720)) { // Do not rescale for SD video and higher
 			if (defaultVideoTrack != null && defaultVideoTrack.is3dFullSbsOrOu()) {
-				scalePadFilterChain.add(String.format("[0:v]scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 			} else {
-				scalePadFilterChain.add(String.format("[0:v]scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-				scalePadFilterChain.add(String.format("[0:v]pad=ceil(iw/4)*4:ceil(ih/4)*4:(ow-iw)/2:(oh-ih)/2"));  // ensure height and width are divisible by 4
+				scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				scalePadFilterChain.add(String.format("pad=ceil(iw/4)*4:ceil(ih/4)*4:(ow-iw)/2:(oh-ih)/2"));  // ensure height and width are divisible by 4
 
 				if (keepAR) {
-					scalePadFilterChain.add(String.format("[0:v]pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+					scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				}
 			}
 		} else if (keepAR && isMediaValid) {
 			if ((mediaInfo.getWidth() / (double) mediaInfo.getHeight()) >= (16 / (double) 9)) {
-				scalePadFilterChain.add("[0:v]pad=iw:iw/(16/9):0:(oh-ih)/2");
+				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
 				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
 			} else {
-				scalePadFilterChain.add("[0:v]pad=ih*(16/9):ih:(ow-iw)/2:0");
+				scalePadFilterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
 				scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
 			}
 
@@ -177,7 +177,7 @@ public class FFMpegVideo extends Engine {
 				scaleWidth  = renderer.getMaxVideoWidth();
 			}
 
-			scalePadFilterChain.add("[0:v]scale=" + scaleWidth + ":" + scaleHeight);
+			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 		filterChain.addAll(scalePadFilterChain);
 
@@ -266,13 +266,13 @@ public class FFMpegVideo extends Engine {
 				StringBuilder subsPictureFilter = new StringBuilder();
 				if (params.getSid().isEmbedded()) {
 					// Embedded
-					subsPictureFilter.append("[0:v][0:s:").append(mediaInfo.getSubtitlesTracks().indexOf(params.getSid())).append("]overlay,format=yuv420p");
+					subsPictureFilter.append("[0:s:").append(mediaInfo.getSubtitlesTracks().indexOf(params.getSid())).append("]overlay,format=yuv420p");
 					isSubsManualTiming = false;
 				} else if (params.getSid().getExternalFile() != null) {
 					// External
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.getSid().getExternalFile().getPath());
-					subsPictureFilter.append("[0:v][1:s]overlay,format=yuv420p"); // this assumes the sub file is single-language
+					subsPictureFilter.append("[1:s]overlay,format=yuv420p"); // this assumes the sub file is single-language
 				}
 				filterChain.add(0, subsPictureFilter.toString());
 			}
@@ -313,7 +313,7 @@ public class FFMpegVideo extends Engine {
 
 		if (!filterChain.isEmpty()) {
 			videoFilterOptions.add("-filter_complex");
-			videoFilterOptions.add("[v]" + StringUtils.join(filterChain, ","));
+			videoFilterOptions.add("[0:v]" + StringUtils.join(filterChain, ","));
 		}
 
 		return videoFilterOptions;
