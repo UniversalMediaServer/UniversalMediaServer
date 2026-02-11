@@ -56,7 +56,7 @@
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
 		<project.version.short>15.4.0</project.version.short>
-		<project.jre-version>25</project.jre-version>
+		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
@@ -733,7 +733,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire-version}</version>
 					<configuration>
-						<argLine>-Dfile.encoding=${project.encoding}</argLine>
+						<argLine>-Dfile.encoding=${project.encoding} --add-opens java.base/sun.nio.ch=ALL-UNNAMED</argLine>
 					</configuration>
 				</plugin>
 
@@ -2212,6 +2212,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2451,6 +2452,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2681,6 +2683,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
