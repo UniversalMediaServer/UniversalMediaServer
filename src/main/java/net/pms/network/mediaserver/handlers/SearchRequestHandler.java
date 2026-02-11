@@ -241,7 +241,7 @@ public class SearchRequestHandler {
 				return "select count (DISTINCT A.ALBUMARTIST) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select count(DISTINCT A.AUDIOTRACK_ID) from AUDIO_METADATA as A where ";
+				return "select count(DISTINCT A.ALBUM) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
@@ -280,7 +280,7 @@ public class SearchRequestHandler {
 				return "select count (DISTINCT A.ALBUMARTIST) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select count(DISTINCT A.AUDIOTRACK_ID) from AUDIO_METADATA as A where ";
+				return "select count(DISTINCT A.ALBUM) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
