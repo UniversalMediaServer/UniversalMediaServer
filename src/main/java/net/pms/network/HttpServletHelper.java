@@ -66,6 +66,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
+	private static final ThreadLocal<ByteBuffer> BUFFER = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(64 * 1024));
 	/**
 	 * This class is not meant to be instantiated directly.
 	 */
@@ -253,7 +254,8 @@ public abstract class HttpServletHelper extends HttpServlet {
 	}
 
 	private static void copyStream(final InputStream in, final OutputStream os, final AsyncContext context, final UmsAsyncListener umsAsyncListener) {
-		ByteBuffer buffer = ByteBuffer.allocateDirect(64 * 1024);
+		ByteBuffer buffer = BUFFER.get();
+		buffer.clear();
 		long sendBytes = 0;
 		boolean hasListener = umsAsyncListener != null;
 		int flushInterval = 512 * 1024;
@@ -264,17 +266,20 @@ public abstract class HttpServletHelper extends HttpServlet {
 
 			while (inChannel.read(buffer) != -1) {
 				buffer.flip();
-				int bytesWritten = outChannel.write(buffer);
-				sendBytes += bytesWritten;
-
-				if (sendBytes - lastFlushBytes >= flushInterval) {
-					if (os instanceof java.io.BufferedOutputStream) {
-						os.flush();
+				while (buffer.hasRemaining()) {
+					int bytesWritten = outChannel.write(buffer);
+					if (bytesWritten == 0) {
+						continue;
 					}
-					lastFlushBytes = sendBytes;
-				}
-				if (hasListener) {
-					umsAsyncListener.setBytesSent(sendBytes);
+					sendBytes += bytesWritten;
+
+					if (sendBytes - lastFlushBytes >= flushInterval) {
+						os.flush();
+						lastFlushBytes = sendBytes;
+					}
+					if (hasListener) {
+						umsAsyncListener.setBytesSent(sendBytes);
+					}
 				}
 				buffer.clear();
 			}
@@ -291,19 +296,8 @@ public abstract class HttpServletHelper extends HttpServlet {
 				umsAsyncListener.onPrematureEnd(reason);
 			}
 		} finally {
-			try {
-				in.close();
-			} catch (IOException e) {
-				//do not care
-			}
+			context.complete();
 		}
-
-		try {
-			os.close();
-		} catch (IOException e) {
-			//do not care
-		}
-		context.complete();
 	}
 
 	protected static void copyStreamAsync(final InputStream in, final OutputStream os, final AsyncContext context, final StartStopListener startStopListener) {
