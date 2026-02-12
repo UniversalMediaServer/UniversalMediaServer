@@ -1153,9 +1153,7 @@ public class ImagesUtil {
 			oldBufferedImage.flush();
 			// Re-parse the metadata after rotation as these are newly generated.
 			ByteArrayOutputStream tmpOutputStream = new ByteArrayOutputStream(inputByteArray.length);
-			if (!ImageIO.write(bufferedImage, outputFormat.toString(), tmpOutputStream)) {
-				throw new IOException("No appropriate writer found for format: " + outputFormat);
-			}
+			Thumbnails.of(bufferedImage).scale(1.0d).outputFormat(outputFormat.toString()).toOutputStream(tmpOutputStream);
 			try {
 				metadata = MetadataExtractorParser.getMetadata(tmpOutputStream.toByteArray(), outputFormat);
 			} catch (IOException | ImageProcessingException e) {
@@ -1366,21 +1364,11 @@ public class ImagesUtil {
 		}
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		if (outputFormat == ImageFormat.JPEG) {
-			javax.imageio.ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
-			javax.imageio.stream.ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream);
-			writer.setOutput(ios);
-			javax.imageio.ImageWriteParam param = writer.getDefaultWriteParam();
-			param.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
-			param.setCompressionQuality(0.8f);
-			writer.write(null, new javax.imageio.IIOImage(bufferedImage, null, null), param);
-			writer.dispose();
-			ios.close();
-		} else {
-			if (!ImageIO.write(bufferedImage, outputFormat.toString(), outputStream)) {
-				throw new IOException("No appropriate writer found for format: " + outputFormat);
-			}
-		}
+		Thumbnails.of(bufferedImage)
+			.scale(1.0d)
+			.outputFormat(outputFormat.toString())
+			.outputQuality(0.8f)
+			.toOutputStream(outputStream);
 
 		byte[] outputByteArray = outputStream.toByteArray();
 
