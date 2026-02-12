@@ -256,14 +256,14 @@ public abstract class HttpServletHelper extends HttpServlet {
 		ByteBuffer buffer = ByteBuffer.allocateDirect(64 * 1024);
 		long sendBytes = 0;
 		boolean hasListener = umsAsyncListener != null;
-		int flushInterval = 512 * 1024; // Flush every 512KB
+		int flushInterval = 512 * 1024;
 		long lastFlushBytes = 0;
 
 		try (ReadableByteChannel inChannel = Channels.newChannel(in);
 			WritableByteChannel outChannel = Channels.newChannel(os)) {
 
 			while (inChannel.read(buffer) != -1) {
-				buffer.flip(); // Prepare buffer for writing
+				buffer.flip();
 				int bytesWritten = outChannel.write(buffer);
 				sendBytes += bytesWritten;
 
@@ -273,26 +273,20 @@ public abstract class HttpServletHelper extends HttpServlet {
 					}
 					lastFlushBytes = sendBytes;
 				}
-
 				if (hasListener) {
 					umsAsyncListener.setBytesSent(sendBytes);
 				}
-
 				buffer.clear();
 			}
 
 			os.flush();
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Sending stream finished after: {} bytes.", sendBytes);
-			}
+			LOGGER.trace("Sending stream finished after: {} bytes.", sendBytes);
 		} catch (IOException | IndexOutOfBoundsException e) {
 			String reason = e.getMessage();
 			if (reason == null && e.getCause() != null) {
 				reason = e.getCause().getMessage();
 			}
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Sending stream with premature end: {} bytes. Reason: {}", sendBytes, reason);
-			}
+			LOGGER.debug("Sending stream with premature end: {} bytes. Reason: {}", sendBytes, reason);
 			if (hasListener) {
 				umsAsyncListener.onPrematureEnd(reason);
 			}
