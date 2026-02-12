@@ -47,7 +47,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 * Version notes:
 	 * - 2: FILEID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * COLUMNS NAMES
@@ -132,6 +132,17 @@ public class MediaTableAudioMetadata extends MediaTable {
 				case 1 -> {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILEID + BIGINT);
 				}
+				case 2 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ALBUM + VARCHAR_IGNORECASE_MAX);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ARTIST + VARCHAR_IGNORECASE_MAX);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ALBUMARTIST + VARCHAR_IGNORECASE_MAX);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_COMPOSER + VARCHAR_IGNORECASE_1024);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_CONDUCTOR + VARCHAR_IGNORECASE_1024);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_GENRE + VARCHAR_IGNORECASE_MAX);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_SONGNAME + VARCHAR_IGNORECASE_MAX);
+
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")");
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -154,19 +165,19 @@ public class MediaTableAudioMetadata extends MediaTable {
 			CREATE_TABLE + TABLE_NAME + " (" +
 				COL_FILEID              + BIGINT                         + PRIMARY_KEY       + COMMA +
 				COL_AUDIOTRACK_ID       + INTEGER                        + AUTO_INCREMENT    + COMMA +
-				COL_ALBUM               + VARCHAR_SIZE_MAX                                   + COMMA +
-				COL_ARTIST              + VARCHAR_SIZE_MAX                                   + COMMA +
-				COL_ALBUMARTIST         + VARCHAR_SIZE_MAX                                   + COMMA +
-				COL_SONGNAME            + VARCHAR_SIZE_MAX                                   + COMMA +
-				COL_GENRE               + VARCHAR_SIZE_MAX                                   + COMMA +
+				COL_ALBUM               + VARCHAR_IGNORECASE_MAX                             + COMMA +
+				COL_ARTIST              + VARCHAR_IGNORECASE_MAX                             + COMMA +
+				COL_ALBUMARTIST         + VARCHAR_IGNORECASE_MAX                             + COMMA +
+				COL_SONGNAME            + VARCHAR_IGNORECASE_MAX                             + COMMA +
+				COL_GENRE               + VARCHAR_IGNORECASE_MAX                             + COMMA +
 				COL_MEDIA_YEAR          + INTEGER                                            + COMMA +
 				COL_MBID_RECORD         + UUID_TYPE                                          + COMMA +
 				COL_MBID_TRACK          + UUID_TYPE                                          + COMMA +
 				COL_TRACK               + INTEGER                                            + COMMA +
 				COL_DISC                + INTEGER                                            + COMMA +
 				COL_RATING              + INTEGER                                            + COMMA +
-				COL_COMPOSER            + VARCHAR_1024                                       + COMMA +
-				COL_CONDUCTOR           + VARCHAR_1024                                       + COMMA +
+				COL_COMPOSER            + VARCHAR_IGNORECASE_1024                            + COMMA +
+				COL_CONDUCTOR           + VARCHAR_IGNORECASE_1024                            + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableFiles.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
 			")",
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ARTIST + IDX_MARKER + ON + TABLE_NAME + " (" + COL_ARTIST + ASC + ")",
@@ -177,7 +188,8 @@ public class MediaTableAudioMetadata extends MediaTable {
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_AUDIOTRACK_ID + IDX_MARKER + ON + TABLE_NAME + " (" + COL_AUDIOTRACK_ID + ")",
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_COMPOSER + IDX_MARKER + ON + TABLE_NAME + " (" + COL_COMPOSER + ")",
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_CONDUCTOR + IDX_MARKER + ON + TABLE_NAME + " (" + COL_CONDUCTOR + ")",
-			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MEDIA_YEAR + IDX_MARKER + ON + TABLE_NAME + " (" + COL_MEDIA_YEAR + ")"
+			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MEDIA_YEAR + IDX_MARKER + ON + TABLE_NAME + " (" + COL_MEDIA_YEAR + ")",
+			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")"
 		);
 	}
 

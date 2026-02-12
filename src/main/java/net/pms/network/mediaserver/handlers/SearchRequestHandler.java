@@ -126,9 +126,9 @@ public class SearchRequestHandler {
 		StringBuilder dlnaItems = new StringBuilder();
 		DbIdMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
 
-		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
+		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType, requestMessage.getContainerId()));
 
-		String sqlFiles = convertToFilesSql(requestMessage, requestType);
+		String sqlFiles = convertToFilesSql(requestMessage, requestType, requestMessage.getContainerId());
 		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
 			numberReturned++;
 			dlnaItems.append(DidlHelper.getDidlString(resource));
@@ -184,6 +184,45 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
+	private static String addSqlSelectByType(DbIdMediaType requestType, String subtreeId) {
+		switch (requestType) {
+			case TYPE_AUDIO -> {
+				return getTreeStatement(subtreeId) + "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+			}
+			case TYPE_PERSON -> {
+				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+			}
+			case TYPE_PERSON_CONDUCTOR -> {
+				return "select DISTINCT ON (FILENAME) A.CONDUCTOR as FILENAME, A.A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+			}
+			case TYPE_PERSON_COMPOSER -> {
+				return "select DISTINCT ON (FILENAME) A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+			}
+			case TYPE_PERSON_ALBUMARTIST -> {
+				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+			}
+			case TYPE_ALBUM -> {
+				return "select DISTINCT ON (album) mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
+			}
+			case TYPE_PLAYLIST -> {
+				return getTreeStatement(subtreeId) + "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+			}
+			case TYPE_FOLDER -> {
+				return getTreeStatement(subtreeId) + "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from tree JOIN STORE_IDS child on tree.name = child.name, STORE_IDS parent where ";
+			}
+			case TYPE_VIDEO, TYPE_IMAGE -> {
+				return getTreeStatement(subtreeId) + "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+			}
+			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
+		}
+	}
+
+	/**
+	 * Beginning part of SQL statement, by type.
+	 *
+	 * @param requestType
+	 * @return
+	 */
 	private static String addSqlSelectCountByType(DbIdMediaType requestType) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
@@ -202,7 +241,7 @@ public class SearchRequestHandler {
 				return "select count (DISTINCT A.ALBUMARTIST) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select count(DISTINCT A.AUDIOTRACK_ID) from AUDIO_METADATA as A where ";
+				return "select count(DISTINCT A.ALBUM) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
@@ -217,9 +256,52 @@ public class SearchRequestHandler {
 		}
 	}
 
-	public static String convertToFilesSql(SearchRequest requestMessage, DbIdMediaType requestType) {
+	/**
+	 * Beginning part of SQL statement, by type.
+	 *
+	 * @param requestType
+	 * @return
+	 */
+	private static String addSqlSelectCountByType(DbIdMediaType requestType, String subtreeId) {
+		switch (requestType) {
+			case TYPE_AUDIO -> {
+				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+			}
+			case TYPE_PERSON -> {
+				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
+			}
+			case TYPE_PERSON_CONDUCTOR -> {
+				return "select count (DISTINCT A.CONDUCTOR) from AUDIO_METADATA as A where ";
+			}
+			case TYPE_PERSON_COMPOSER -> {
+				return "select count (DISTINCT A.COMPOSER) from AUDIO_METADATA as A where ";
+			}
+			case TYPE_PERSON_ALBUMARTIST -> {
+				return "select count (DISTINCT A.ALBUMARTIST) from AUDIO_METADATA as A where ";
+			}
+			case TYPE_ALBUM -> {
+				return "select count(DISTINCT A.ALBUM) from AUDIO_METADATA as A where ";
+			}
+			case TYPE_PLAYLIST -> {
+				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+			}
+			case TYPE_VIDEO, TYPE_IMAGE -> {
+				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+			}
+			case TYPE_FOLDER -> {
+				return getTreeStatement(subtreeId) + "select count(DISTINCT child.NAME) from tree JOIN STORE_IDS child on tree.id = child.id, STORE_IDS parent where ";
+			}
+			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
+		}
+	}
+
+	public static String convertToFilesSql(SearchRequest requestMessage, DbIdMediaType requestType, String subtreeId) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(addSqlSelectByType(requestType));
+		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+			sb.append(addSqlSelectByType(requestType));
+		} else {
+			sb.append(addSqlSelectByType(requestType, subtreeId));
+		}
 		addSqlWherePart(requestMessage.getSearchCriteria(), requestType, sb);
 		addOrderBy(requestMessage.getSortCriteria(), requestType, sb);
 		addLimit(requestMessage.getStartingIndex(), requestMessage.getRequestedCount(), sb);
@@ -228,9 +310,13 @@ public class SearchRequestHandler {
 	}
 
 	public static String convertToFilesSql(String searchCriteria, long startingIndex, long requestedCount, SortCriterion[] orderBy,
-		DbIdMediaType requestType) {
+		DbIdMediaType requestType, String subtreeId) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(addSqlSelectByType(requestType));
+		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+			sb.append(addSqlSelectByType(requestType));
+		} else {
+			sb.append(addSqlSelectByType(requestType, subtreeId));
+		}
 		addSqlWherePart(searchCriteria, requestType, sb);
 		addOrderBy(orderBy, requestType, sb);
 		addLimit(startingIndex, requestedCount, sb);
@@ -296,9 +382,13 @@ public class SearchRequestHandler {
 		sb.append(String.format(" LIMIT %d OFFSET %d ", limit, startingIndex));
 	}
 
-	public static String convertToCountSql(String upnpSearch, DbIdMediaType requestType) {
+	public static String convertToCountSql(String upnpSearch, DbIdMediaType requestType, String subtreeId) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(addSqlSelectCountByType(requestType));
+		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+			sb.append(addSqlSelectCountByType(requestType));
+		} else {
+			sb.append(addSqlSelectCountByType(requestType, subtreeId));
+		}
 		addSqlWherePart(upnpSearch, requestType, sb);
 		return sb.toString();
 	}
@@ -337,7 +427,7 @@ public class SearchRequestHandler {
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
 		} else if ("contains".equals(op)) {
-			sb.append(String.format("LOWER(%s) LIKE '%%%s%%'", getField(property, requestType), escapeH2dbSql(val).toLowerCase()));
+			sb.append(String.format("%s ILIKE '%%%s%%'", getField(property, requestType), escapeH2dbSql(val)));
 		} else {
 			throw new RuntimeException("unknown or unimplemented operator : " + op);
 		}
@@ -638,4 +728,20 @@ public class SearchRequestHandler {
 		return response;
 	}
 
+	private static String getTreeStatement(String subtreeId) {
+		String tree = String.format("WITH RECURSIVE tree(id, parent_id, name) AS (" +
+			"    SELECT id, parent_id, name" +
+			"    FROM STORE_IDS" +
+			"    WHERE id = %s" +
+			"\n" +
+			"    UNION ALL" +
+			"\n" +
+			"    SELECT t.id, t.parent_id, t.name" +
+			"    FROM STORE_IDS t" +
+			"    INNER JOIN tree ON t.parent_id = tree.id " +
+			")\n" +
+			"", subtreeId);
+
+		return tree;
+	}
 }
