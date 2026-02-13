@@ -529,8 +529,10 @@ public abstract class StoreItem extends StoreResource {
 					LOGGER.debug(prependTranscodingReason + "the audio will use the encoded audio passthrough feature", getName());
 				} else {
 					for (MediaAudio audioTrack : mediaInfo.getAudioTracks()) {
-						if (audioTrack != null && (FormatConfiguration.AC3.equals(audioTrack.getAudioCodec()) ||
-								FormatConfiguration.DTS.equals(audioTrack.getAudioCodec()))) {
+						if (audioTrack != null && (
+							FormatConfiguration.AC3.equals(audioTrack.getAudioCodec()) ||
+							FormatConfiguration.DTS.equals(audioTrack.getAudioCodec())
+						)) {
 							isIncompatible = true;
 							LOGGER.debug(prependTranscodingReason + "the audio will use the encoded audio passthrough feature", getName());
 							break;
@@ -545,9 +547,7 @@ public abstract class StoreItem extends StoreResource {
 
 				if (renderer.isKeepAspectRatio() && !"16:9".equals(mediaVideo.getDisplayAspectRatio())) {
 					isIncompatible = true;
-					LOGGER.debug(
-							prependTranscodingReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.",
-							getName(), mediaVideo.getDisplayAspectRatio());
+					LOGGER.debug(prependTranscodingReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), mediaVideo.getDisplayAspectRatio());
 				} else if (!renderer.isResolutionCompatibleWithRenderer(mediaVideo.getWidth(), mediaVideo.getHeight())) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the resolution is incompatible with the renderer.", getName());
@@ -570,8 +570,7 @@ public abstract class StoreItem extends StoreResource {
 				} else if (mediaVideo.is3d() && StringUtils.isNotBlank(renderer.getOutput3DFormat()) &&
 						(!mediaVideo.get3DLayout().toString().toLowerCase(Locale.ROOT).equals(renderer.getOutput3DFormat()))) {
 					forceTranscode = true;
-					LOGGER.debug(prependTranscodingReason + "it is 3D and is forced to transcode to the format \"{}\"", getName(),
-							renderer.getOutput3DFormat());
+					LOGGER.debug(prependTranscodingReason + "it is 3D and is forced to transcode to the format \"{}\"", getName(), renderer.getOutput3DFormat());
 				}
 			}
 
@@ -800,8 +799,7 @@ public abstract class StoreItem extends StoreResource {
 		LOGGER.trace("Asked stream chunk: " + range + " of " + getName() + " and engine " + getTranscodingSettings());
 
 		boolean timeseekAuto = false;
-		// Ditlew - We convert byteoffset to timeoffset here. This needs the
-		// stream to be CBR!
+		// Ditlew - We convert byteoffset to timeoffset here. This needs the stream to be CBR!
 		int cbrVideoBitrate = renderer.getCBRVideoBitrate();
 		long low = (range instanceof ByteRange byteRange) ? byteRange.getStartOrZero() : 0;
 		long high = (range instanceof ByteRange byteRange && range.isEndLimitAvailable()) ? (long) byteRange.getEnd() : -1;
@@ -980,10 +978,8 @@ public abstract class StoreItem extends StoreResource {
 		}
 
 		// fail fast: don't leave a process running indefinitely if it's
-		// not producing output after params.waitbeforestart milliseconds + 5
-		// seconds
-		// this cleans up lingering MEncoder web video transcode processes that
-		// hang
+		// not producing output after params.waitbeforestart milliseconds + 5 seconds
+		// this cleans up lingering MEncoder web video transcode processes that hang
 		// instead of exiting
 		if (is == null && !externalProcess.isDestroyed()) {
 			Runnable r = () -> {
