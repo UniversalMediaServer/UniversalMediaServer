@@ -31,6 +31,10 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Locale;
@@ -62,6 +66,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
+	private static final ThreadLocal<ByteBuffer> BUFFER = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(64 * 1024));
 	/**
 	 * This class is not meant to be instantiated directly.
 	 */
@@ -249,43 +254,50 @@ public abstract class HttpServletHelper extends HttpServlet {
 	}
 
 	private static void copyStream(final InputStream in, final OutputStream os, final AsyncContext context, final UmsAsyncListener umsAsyncListener) {
-		byte[] buffer = new byte[32 * 1024];
-		int bytes;
+		ByteBuffer buffer = BUFFER.get();
+		buffer.clear();
 		long sendBytes = 0;
+		boolean hasListener = umsAsyncListener != null;
+		int flushInterval = 512 * 1024;
+		long lastFlushBytes = 0;
 
-		try {
-			while ((bytes = in.read(buffer)) != -1) {
-				os.write(buffer, 0, bytes);
-				sendBytes += bytes;
-				os.flush();
-				if (umsAsyncListener != null) {
-					umsAsyncListener.setBytesSent(sendBytes);
+		try (ReadableByteChannel inChannel = Channels.newChannel(in);
+			WritableByteChannel outChannel = Channels.newChannel(os)) {
+
+			while (inChannel.read(buffer) != -1) {
+				buffer.flip();
+				while (buffer.hasRemaining()) {
+					int bytesWritten = outChannel.write(buffer);
+					if (bytesWritten == 0) {
+						continue;
+					}
+					sendBytes += bytesWritten;
+
+					if (sendBytes - lastFlushBytes >= flushInterval) {
+						os.flush();
+						lastFlushBytes = sendBytes;
+					}
+					if (hasListener) {
+						umsAsyncListener.setBytesSent(sendBytes);
+					}
 				}
+				buffer.clear();
 			}
-			LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
+
+			os.flush();
+			LOGGER.trace("Sending stream finished after: {} bytes.", sendBytes);
 		} catch (IOException | IndexOutOfBoundsException e) {
 			String reason = e.getMessage();
 			if (reason == null && e.getCause() != null) {
 				reason = e.getCause().getMessage();
 			}
-			LOGGER.debug("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + reason);
-			if (umsAsyncListener != null) {
+			LOGGER.debug("Sending stream with premature end: {} bytes. Reason: {}", sendBytes, reason);
+			if (hasListener) {
 				umsAsyncListener.onPrematureEnd(reason);
 			}
 		} finally {
-			try {
-				in.close();
-			} catch (IOException e) {
-				//do not care
-			}
+			context.complete();
 		}
-
-		try {
-			os.close();
-		} catch (IOException e) {
-			//do not care
-		}
-		context.complete();
 	}
 
 	protected static void copyStreamAsync(final InputStream in, final OutputStream os, final AsyncContext context, final StartStopListener startStopListener) {
