@@ -610,6 +610,10 @@ public class FileUtil {
 	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
 	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
 
+	private static final String MIXED_EPISODE_CONVENTION2 = "[sS](\\d{2})\\s(?:Episode)\\s(\\d{1,2})(?:\\s|$)";
+	private static final String MIXED_EPISODE_CONVENTION2_MATCH = ".*" + MIXED_EPISODE_CONVENTION2 + ".*";
+	private static final Pattern MIXED_EPISODE_CONVENTION2_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION2);
+
 	private static final String SCENE_P2P_MOVIE_MATCH = "^(?!.*\\d{1,3}[\\s:][\\s-]\\s).*\\s(?:19|20)\\d{2}.*";
 
 	private static final String MINISERIES_CONVENTION = "\\s(\\d{1,2})of\\d{1,2}\\s";
@@ -985,6 +989,9 @@ public class FileUtil {
 					tvSeason = "0" + tvSeason;
 				}
 				tvEpisodeNumber = matcher.group(2);
+				if (tvEpisodeNumber.length() == 1) {
+					tvEpisodeNumber = "0" + tvEpisodeNumber;
+				}
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
@@ -1001,6 +1008,47 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll(SCENE_P2P_EPISODE_REGEX, " S" + tvSeason + "E$2");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(MIXED_EPISODE_CONVENTION2_MATCH)) {
+			if (verboseDevLogging) {
+				System.out.println("MIXED_EPISODE_CONVENTION2_MATCH: " + formattedName);
+			}
+			// This matches a mixed convention, like:
+			// e.g. Universal Media Server - s01 Episode 2.mp4
+			matcher = MIXED_EPISODE_CONVENTION2_PATTERN.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				if (tvSeason.length() == 1) {
+					tvSeason = "0" + tvSeason;
+				}
+				tvEpisodeNumber = matcher.group(2);
+				if (tvEpisodeNumber.length() == 1) {
+					tvEpisodeNumber = "0" + tvEpisodeNumber;
+				}
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
+			}
+
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+
+			// Here we match existing case, otherwise we risk breaking the Title Case conversion later
+			String seasonLetterReplace = "S";
+			String episodeLetterReplace = "E";
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				seasonLetterReplace = "s";
+				episodeLetterReplace = "e";
+			}
+			formattedName = formattedName.replaceAll(MIXED_EPISODE_CONVENTION2, " " + seasonLetterReplace + tvSeason + episodeLetterReplace + tvEpisodeNumber + " - ");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+			if (verboseDevLogging) {
+				System.out.println("MIXED_EPISODE_CONVENTION2_MATCH final: " + formattedName);
+			}
 		} else if (formattedName.matches(".*" + SCENE_P2P_EPISODE_SPECIAL_REGEX + ".*")) {
 			if (verboseDevLogging) {
 				System.out.println("SCENE_P2P_EPISODE_SPECIAL_REGEX: " + formattedName);
