@@ -3491,38 +3491,6 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>com.github.eirslett</groupId>
-						<artifactId>frontend-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>install node and corepack</id>
-								<goals>
-									<goal>install-node-and-corepack</goal>
-								</goals>
-							</execution>
-							<!-- download Node.js dependencies -->
-							<execution>
-								<id>yarn install</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn install</arguments>
-								</configuration>
-							</execution>
-							<!-- compile the react client to the web directory -->
-							<execution>
-								<id>yarn build</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn build</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>${maven-antrun-plugin-version}</version>
