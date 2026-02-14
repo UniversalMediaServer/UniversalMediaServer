@@ -631,5 +631,14 @@
 		"metadata": {
 			"type": "scene"
 		}
+	},
+	{
+		"note": "Should not match 4",
+		"comment": "Video of a scene of a movie, with a scene name",
+		"filename": "UniversalMediaServer-Scene5_s05_Mysterious_Wordplay.mkv",
+		"prettified": "UniversalMediaServer-Scene5 s05 Mysterious Wordplay",
+		"metadata": {
+			"type": "scene"
+		}
 	}
 ]

@@ -1049,7 +1049,7 @@ public class FileUtil {
 			if (verboseDevLogging) {
 				System.out.println("MIXED_EPISODE_CONVENTION2_MATCH final: " + formattedName);
 			}
-		} else if (formattedName.matches(".*" + SCENE_P2P_EPISODE_SPECIAL_REGEX + ".*")) {
+		} else if (formattedName.matches(".*" + SCENE_P2P_EPISODE_SPECIAL_REGEX + ".*") && !formattedName.matches(".*[sS]cene\\d.*")) {
 			if (verboseDevLogging) {
 				System.out.println("SCENE_P2P_EPISODE_SPECIAL_REGEX: " + formattedName);
 			}
