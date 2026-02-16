@@ -40,7 +40,7 @@
     "react-movable": "3.4.1",
     "react-router-dom": "7.13.0",
     "react-use-websocket": "4.13.0",
-    "video.js": "8.23.6"
+    "video.js": "8.23.7"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
