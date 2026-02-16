@@ -156,17 +156,18 @@ public class StoreContainer extends StoreResource {
 
 				StoreItem resumeRes = null;
 
-				ResumeObj resumeObject = ResumeObj.create(item);
 				if (
 					isAddGlobally &&
-					resumeObject != null &&
 					!renderer.disableUmsResume() &&
 					!renderer.isSamsung() &&
 					renderer.getUmsConfiguration().isResumeEnabled()
 				) {
-					resumeRes = item.clone();
-					resumeRes.setResume(resumeObject);
-					resumeRes.setResumeHash(item.resumeHash());
+					ResumeObj resumeObject = ResumeObj.create(item);
+					if (resumeObject != null) {
+						resumeRes = item.clone();
+						resumeRes.setResume(resumeObject);
+						resumeRes.setResumeHash(item.resumeHash());
+					}
 				}
 
 				if (isAddGlobally && item.getFormat() != null) {
