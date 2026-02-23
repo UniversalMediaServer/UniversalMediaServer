@@ -1236,14 +1236,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tabler/icons-react@npm:^3.36.1":
-  version: 3.36.1
-  resolution: "@tabler/icons-react@npm:3.36.1"
+"@tabler/icons-react@npm:^3.37.1":
+  version: 3.37.1
+  resolution: "@tabler/icons-react@npm:3.37.1"
   dependencies:
     "@tabler/icons": "npm:"
   peerDependencies:
     react: ">= 16"
-  checksum: 10c0/325dd0c7a780ec4713a93790b15517dc176af5778c36c49e1fe586113040d2e71330aa85aa9f5900cbae0fe0b78f69016ba73b4b490783c9b7292215f29c686a
+  checksum: 10c0/115857abe5f15e252cd69b7c9b64ac91c9e0e7f7cb3a30a0dd56fdb463d96f68612713544fa856dd4b142503456ca314f619f32e9d255bbef11f50d3d6cd0ed5
   languageName: node
   linkType: hard
 
@@ -5073,7 +5073,7 @@ __metadata:
     "@microsoft/fetch-event-source": "npm:2.0.1"
     "@playwright/test": "npm:1.58.2"
     "@stylistic/eslint-plugin": "npm:5.8.0"
-    "@tabler/icons-react": "npm:^3.36.1"
+    "@tabler/icons-react": "npm:^3.37.1"
     "@types/lodash": "npm:4.17.23"
     "@types/react": "npm:19.2.14"
     "@types/react-dom": "npm:^19.2.3"
