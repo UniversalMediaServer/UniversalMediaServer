@@ -131,7 +131,7 @@ export default function SharedContent({ i18n, session }: { i18n: I18nInterface, 
           {sharedContents && configuration && (
             <SharedContentSettings i18n={i18n} canModify={canModify} scan={session.mediaScan} sharedContents={sharedContents} setSharedContents={setSharedContents} configuration={configuration} />
           )}
-          {canModify && modified && (
+          {canModify && (modified || isLoading) &&(   
             <Box h={50}>
               <Affix withinPortal={false} position={{ bottom: 20, right: 20 }}>
                 <Button
