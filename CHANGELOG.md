@@ -12,6 +12,7 @@
 - Bump `@mantine/notifications` from 8.3.11 to 8.3.15 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960), [#5976](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5976), [#6032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6032))
 - Bump `@playwright/test` from 1.57.0 to 1.58.2 ([#5992](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5992), [#6005](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6005))
 - Bump `@stylistic/eslint-plugin` from 5.6.1 to 5.8.0 ([#5980](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5980), [#6020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6020))
+- Bump `@tabler/icons-react` from 3.36.1 to 3.37.1 ([#6034](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6034))
 - Bump `@types/lodash` from 4.17.21 to 4.17.23 ([#5964](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5964))
 - Bump `@types/react` from 19.2.7 to 19.2.14 ([#5963](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5963), [#5990](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5990), [#6002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6002), [#6017](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6017))
 - Bump `@vitejs/plugin-react` from 5.1.2 to 5.1.4 ([#6021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6021))
