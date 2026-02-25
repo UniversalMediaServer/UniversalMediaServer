@@ -97,7 +97,7 @@
 		-->
 		<slf4j-api-version>2.0.17</slf4j-api-version>
 
-		<surefire-version>3.5.4</surefire-version>
+		<surefire-version>3.5.5</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
-			<version>4.5.0</version>
+			<version>4.5.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -194,7 +194,7 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>1.5.31</version>
+			<version>1.5.32</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -205,7 +205,7 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.5.31</version>
+			<version>1.5.32</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -272,82 +272,82 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-icns</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-iff</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-hdr</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-metadata</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pcx</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pict</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pnm</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-psd</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-sgi</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tga</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-webp</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
@@ -464,7 +464,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.9.3</version>
+			<version>6.10.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
