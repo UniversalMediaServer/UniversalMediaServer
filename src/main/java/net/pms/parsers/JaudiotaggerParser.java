@@ -195,6 +195,7 @@ public class JaudiotaggerParser {
 				af = AudioFileIO.read(file);
 			}
 			addMusicBrainzIDs(af, audioMetadata);
+			addDiscogsID(af, audioMetadata);
 			addAudioTrackRating(af, audioMetadata);
 		} catch (Exception e) {
 			LOGGER.debug("Could not parse audio file");
@@ -329,7 +330,19 @@ public class JaudiotaggerParser {
 				audioMetadata.setMbidTrack(val.isEmpty() ? null : val);
 			}
 		} catch (UnsupportedOperationException | KeyNotFoundException e) {
-			LOGGER.trace("audio musicBrainz tag not parsed: " + e.getMessage());
+			LOGGER.trace("audio musicBrainz tag not parsed", e);
+		}
+	}
+
+	private static void addDiscogsID(AudioFile af, MediaAudioMetadata audioMetadata) {
+		try {
+			Tag t = af.getTag();
+			if (t != null) {
+				String val = t.getFirst(FieldKey.URL_DISCOGS_RELEASE_SITE);
+				audioMetadata.setMbidRecord(val.isEmpty() ? null : val.substring(val.lastIndexOf("/") + 1));
+			}
+		} catch (UnsupportedOperationException | KeyNotFoundException e) {
+			LOGGER.trace("audio discogs tag not parsed", e);
 		}
 	}
 
@@ -340,7 +353,7 @@ public class JaudiotaggerParser {
 				audioMetadata.setRating(convertTagRatingToStar(t));
 			}
 		} catch (Exception e) {
-			LOGGER.trace("audio rating tag not parsed: " + e.getMessage());
+			LOGGER.trace("audio rating tag not parsed.", e);
 		}
 	}
 
