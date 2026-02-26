@@ -31,7 +31,9 @@ import net.pms.store.StoreResource;
 	@UpnpStateVariable(name = "A_ARG_TYPE_MusicBrainzReleaseID", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_DiscogsReleaseID", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean")
+	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictUser", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string")
 	})
 public class UmsExtendedServices {
 
@@ -124,6 +126,18 @@ public class UmsExtendedServices {
 		this.anonymousDevicesWrite = newAnonymousDevicesWrite;
 		boolean changed = PMS.getConfiguration().setAnonymousDevicesWrite(newAnonymousDevicesWrite);
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
+	}
+
+	@UpnpAction
+	public void setAudioAddictUser(@UpnpInputArgument(name = "AudioAddictUser") String audioAddictUser) {
+		PMS.getConfiguration().setAudioAddictUser(audioAddictUser);
+		LOG.debug("updated AudioAddict user");
+	}
+
+	@UpnpAction
+	public void setAudioAddictPass(@UpnpInputArgument(name = "AudioAddictPass") String audioAddictPass) {
+		PMS.getConfiguration().setAudioAddictPassword(audioAddictPass);
+		LOG.debug("updated AudioAddict password");
 	}
 
 	@UpnpAction
