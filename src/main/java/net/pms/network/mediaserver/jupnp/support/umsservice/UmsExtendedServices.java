@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
 
@@ -213,6 +214,28 @@ public class UmsExtendedServices {
 			return Long.valueOf(discogsReleaseId.trim());
 		} catch (NumberFormatException e) {
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Invalid Discogs release id: " + discogsReleaseId);
+		}
+	}
+
+	@UpnpAction
+	public void backupRatings() throws UmsExtendedServicesException {
+		LOG.debug("backing up audio ratings ... ");
+		try {
+			RatingBackupManager.backupRatings();
+		} catch (Exception e) {
+			LOG.error("failed backup audio ratings", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
+		}
+	}
+
+	@UpnpAction
+	public void restoreRatings() throws UmsExtendedServicesException {
+		LOG.debug("restoring audio ratings ... ");
+		try {
+			RatingBackupManager.restoreRatings();
+		} catch (Exception e) {
+			LOG.error("failed restore audio ratings", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
 		}
 	}
 }
