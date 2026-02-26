@@ -27,8 +27,10 @@ import net.pms.store.StoreResource;
 	version = 1))
 @UpnpStateVariables({
 	@UpnpStateVariable(name = "A_ARG_TYPE_ObjectID", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_MusicBraizReleaseID", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean")
+	@UpnpStateVariable(name = "A_ARG_TYPE_MusicBrainzReleaseID", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_DiscogsReleaseID", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean")
 	})
 public class UmsExtendedServices {
 
@@ -51,6 +53,8 @@ public class UmsExtendedServices {
 	@UpnpStateVariable(name = "AnonymousDevicesWrite", defaultValue = "false", sendEvents = true)
 	public boolean anonymousDevicesWrite = false;
 
+	@UpnpStateVariable(name = "PreferEuropeanServer", defaultValue = "false", sendEvents = true)
+	public boolean preferEuropeanServer = false;
 
 	public UmsExtendedServices() {
 		readConfig();
@@ -80,6 +84,17 @@ public class UmsExtendedServices {
 			LOG.debug("anonymousDevicesWrite has changed to {} ", PMS.getConfiguration().isAnonymousDevicesWrite());
 			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
 		}
+		if (this.preferEuropeanServer != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
+			LOG.debug("prefer european srevers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
+			this.anonymousDevicesWrite = PMS.getConfiguration().isAudioAddictEuropeanServer();
+		}
+	}
+
+	@UpnpAction
+	public void setPreferEuropeanServer(@UpnpInputArgument(name = "PreferEuropeanServer") boolean preferEuropeanServer) {
+		LOG.debug("updating preferEuropeanServer to {}. Value changed from : {}", preferEuropeanServer, this.preferEuropeanServer);
+		PMS.getConfiguration().setAudioAddictEuropeanServer(preferEuropeanServer);
+		this.preferEuropeanServer = preferEuropeanServer;
 	}
 
 	@UpnpAction
@@ -155,20 +170,49 @@ public class UmsExtendedServices {
 	}
 
 	@UpnpAction(out = @UpnpOutputArgument(name = "AlbumLikedValue"))
-	public boolean isAlbumLiked(@UpnpInputArgument(name = "MusicBraizReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
+	public boolean isAlbumLikedMusicBrainz(@UpnpInputArgument(name = "MusicBrainzReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
 		LOG.debug("check album liked for musicbrainz release id of {} ", musicBrainzReleaseId);
-		return likeMusic.isAlbumLiked(musicBrainzReleaseId);
+		return likeMusic.isAlbumLikedMB(musicBrainzReleaseId);
 	}
 
 	@UpnpAction
-	public void likeAlbum(@UpnpInputArgument(name = "MusicBraizReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
+	public void likeAlbumMusicBrainz(@UpnpInputArgument(name = "MusicBrainzReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
 		LOG.debug("like album with musicbrainz release id {} ", musicBrainzReleaseId);
-		likeMusic.likeAlbum(musicBrainzReleaseId);
+		likeMusic.likeAlbumMB(musicBrainzReleaseId);
 	}
 
 	@UpnpAction
-	public void dislikeAlbum(@UpnpInputArgument(name = "MusicBraizReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
+	public void dislikeAlbumMusicBrainz(@UpnpInputArgument(name = "MusicBrainzReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
 		LOG.debug("dislike album with musicbrainz release id {} ", musicBrainzReleaseId);
-		likeMusic.dislikeAlbum(musicBrainzReleaseId);
+		likeMusic.dislikeAlbumMB(musicBrainzReleaseId);
+	}
+
+	@UpnpAction(out = @UpnpOutputArgument(name = "AlbumLikedValue"))
+	public boolean isAlbumLikedDiscogs(@UpnpInputArgument(name = "DiscogsReleaseID") String discogsReleaseId) throws UmsExtendedServicesException {
+		LOG.debug("check album liked for discogs release id of {} ", discogsReleaseId);
+		return likeMusic.isAlbumLikedDiscogs(parseDiscogsReleaseId(discogsReleaseId));
+	}
+
+	@UpnpAction
+	public void likeAlbumDiscogs(@UpnpInputArgument(name = "DiscogsReleaseID") String discogsReleaseId) throws UmsExtendedServicesException {
+		LOG.debug("like album with discogs release id {} ", discogsReleaseId);
+		likeMusic.likeAlbumDiscogs(parseDiscogsReleaseId(discogsReleaseId));
+	}
+
+	@UpnpAction
+	public void dislikeAlbumDiscogs(@UpnpInputArgument(name = "DiscogsReleaseID") String discogsReleaseId) throws UmsExtendedServicesException {
+		LOG.debug("dislike album with discogs release id {} ", discogsReleaseId);
+		likeMusic.dislikeAlbumDiscogs(parseDiscogsReleaseId(discogsReleaseId));
+	}
+
+	private Long parseDiscogsReleaseId(String discogsReleaseId) throws UmsExtendedServicesException {
+		if (discogsReleaseId == null || discogsReleaseId.isBlank()) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Discogs release id is required");
+		}
+		try {
+			return Long.valueOf(discogsReleaseId.trim());
+		} catch (NumberFormatException e) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Invalid Discogs release id: " + discogsReleaseId);
+		}
 	}
 }

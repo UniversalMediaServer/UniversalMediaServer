@@ -61,12 +61,31 @@ public class LikeMusic {
 		}
 	}
 
-	public boolean isAlbumLiked(String musicBrainzReleaseId) throws UmsExtendedServicesException {
+	private boolean baseDbRequest(String sql, Long key) throws UmsExtendedServicesException {
+		if (key == null) {
+			return false;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection == null) {
+				throw new RuntimeException("cannot acquire database connection.");
+			}
+			return isCountGreaterZero(sql, connection, key);
+		} catch (SQLException e) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Like album : " + e.getMessage());
+		}
+	}
+
+	public boolean isAlbumLikedMB(String musicBrainzReleaseId) throws UmsExtendedServicesException {
 		String sql = "SELECT COUNT(*) FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
 		return baseDbRequest(sql, musicBrainzReleaseId);
 	}
 
-	public void likeAlbum(String musicBrainzReleaseId) throws UmsExtendedServicesException {
+	public boolean isAlbumLikedDiscogs(Long discogsReleaseId) throws UmsExtendedServicesException {
+		String sql = "SELECT COUNT(*) FROM " + MediaTableDiscogsReleaseLike.TABLE_NAME + " WHERE " + MediaTableDiscogsReleaseLike.TABLE_COL_DISCOGS_RELEASE_ID + " = ?";
+		return baseDbRequest(sql, discogsReleaseId);
+	}
+
+	public void likeAlbumMB(String musicBrainzReleaseId) throws UmsExtendedServicesException {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection == null) {
 				LOGGER.warn("likeAlbum action failed because database connection is null");
@@ -84,7 +103,28 @@ public class LikeMusic {
 		}
 	}
 
-	public void dislikeAlbum(String musicBrainzReleaseId) throws UmsExtendedServicesException {
+	public void likeAlbumDiscogs(Long discogsReleaseId) throws UmsExtendedServicesException {
+		if (discogsReleaseId == null) {
+			return;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection == null) {
+				LOGGER.warn("likeAlbumDiscogs action failed because database connection is null");
+				return;
+			}
+			String sql = "MERGE INTO " + MediaTableDiscogsReleaseLike.TABLE_NAME + " KEY (DISCOGS_RELEASE_ID) values (?)";
+			try (PreparedStatement ps = connection.prepareStatement(sql)) {
+				ps.setLong(1, discogsReleaseId);
+				ps.executeUpdate();
+			}
+			LOGGER.debug("album liked with discogsReleaseId {}", discogsReleaseId);
+		} catch (SQLException e) {
+			LOGGER.warn("like album failed : ", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Like album : " + e.getMessage());
+		}
+	}
+
+	public void dislikeAlbumMB(String musicBrainzReleaseId) throws UmsExtendedServicesException {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection == null) {
 				LOGGER.warn("dislikeAlbum action failed because database connection is null");
@@ -102,9 +142,43 @@ public class LikeMusic {
 		}
 	}
 
+	public void dislikeAlbumDiscogs(Long discogsReleaseId) throws UmsExtendedServicesException {
+		if (discogsReleaseId == null) {
+			return;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection == null) {
+				LOGGER.warn("dislikeAlbumDiscogs action failed because database connection is null");
+				return;
+			}
+			String sql = "DELETE FROM " + MediaTableDiscogsReleaseLike.TABLE_NAME + " WHERE " + MediaTableDiscogsReleaseLike.TABLE_COL_DISCOGS_RELEASE_ID + " = ?";
+			try (PreparedStatement ps = connection.prepareStatement(sql)) {
+				ps.setLong(1, discogsReleaseId);
+				ps.executeUpdate();
+			}
+			LOGGER.debug("disliked album with discogsReleaseId {}", discogsReleaseId);
+		} catch (SQLException e) {
+			LOGGER.warn("dislike album failed : ", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Dislike album : " + e.getMessage());
+		}
+	}
+
 	private boolean isCountGreaterZero(String sql, Connection connection, String key) {
 		try (PreparedStatement ps = connection.prepareStatement(sql);) {
 			ps.setString(1, key);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getLong(1) > 0;
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException("LikeMusic failed. Cannot handle request, because of an SQLException", e);
+		}
+		return false;
+	}
+
+	private boolean isCountGreaterZero(String sql, Connection connection, Long key) {
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.setLong(1, key);
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
 				return rs.getLong(1) > 0;
