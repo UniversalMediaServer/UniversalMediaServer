@@ -1,4 +1,4 @@
-/*
+ /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or modify it
@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Group, Menu } from '@mantine/core'
+import { ActionIcon, Group, Menu, Switch } from '@mantine/core'
 import { IconEdit, IconMenu2, IconShare, IconShareOff, IconSquareX } from '@tabler/icons-react'
 import _ from 'lodash'
 
@@ -59,18 +59,16 @@ export default function SharedContentItemMenu({
 
   return (
     <Group justify="flex-end">
-      <ActionIcon
-        variant="subtle"
-        size={30}
-        color={value.active ? 'blue' : 'orange'}
+      <Switch
+        checked={value.active}
+        color="blue"
         disabled={!canModify}
         visibleFrom="sm"
-        onClick={() => toogleSharedContentItemActive(value)}
-      >
-        {value.active
-          ? <IconShare size={16} />
-          : <IconShareOff size={16} />}
-      </ActionIcon>
+        onChange={() => toogleSharedContentItemActive(value)}
+        onLabel={<IconShare size={14} />}
+        offLabel={<IconShareOff size={14} />}
+        aria-label={value.active ? i18n.get('Disable') : i18n.get('Enable')}
+      />
       <Menu zIndex={5000}>
         <Menu.Target>
           <ActionIcon variant="default" size={30}>
@@ -95,7 +93,7 @@ export default function SharedContentItemMenu({
           >
             {value.active ? i18n.get('Disable') : i18n.get('Enable')}
           </Menu.Item>
-          { value.type == 'Folder'
+          {value.type == 'Folder'
             ? (
                 <SharedContentFolderActions
                   i18n={i18n}
