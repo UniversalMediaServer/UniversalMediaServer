@@ -51,7 +51,7 @@ public class RatingBackupManager {
 		LOGGER.info("save {} items into backup file {} ", items, getBackupFilename());
 	}
 
-	public static void restoreRatings() {
+	public static void restoreRating() {
 		String backupFilename = getBackupFilename();
 		File f = new File(backupFilename);
 		if (!f.exists()) {

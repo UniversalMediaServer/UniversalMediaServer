@@ -232,7 +232,7 @@ public class UmsExtendedServices {
 	public void restoreRatings() throws UmsExtendedServicesException {
 		LOG.debug("restoring audio ratings ... ");
 		try {
-			RatingBackupManager.restoreRatings();
+			RatingBackupManager.restoreRating();
 		} catch (Exception e) {
 			LOG.error("failed restore audio ratings", e);
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
