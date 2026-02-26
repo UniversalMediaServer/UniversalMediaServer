@@ -339,7 +339,13 @@ public class JaudiotaggerParser {
 			Tag t = af.getTag();
 			if (t != null) {
 				String val = t.getFirst(FieldKey.URL_DISCOGS_RELEASE_SITE);
-				audioMetadata.setMbidRecord(val.isEmpty() ? null : val.substring(val.lastIndexOf("/") + 1));
+				if (StringUtils.isNotBlank(val)) {
+					val = val.substring(val.lastIndexOf("/") + 1);
+				}
+				if (StringUtils.isNotBlank(val)) {
+					Long discogsId = Long.parseLong(val);
+					audioMetadata.setDiscogsReleaseId(discogsId);
+				}
 			}
 		} catch (UnsupportedOperationException | KeyNotFoundException e) {
 			LOGGER.trace("audio discogs tag not parsed", e);

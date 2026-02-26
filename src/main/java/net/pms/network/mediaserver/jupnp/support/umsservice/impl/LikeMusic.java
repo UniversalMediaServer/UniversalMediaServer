@@ -34,17 +34,20 @@ import org.slf4j.LoggerFactory;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableMusicBrainzReleaseLike;
+import net.pms.database.MediaTableDiscogsReleaseLike;
 import net.pms.network.mediaserver.jupnp.support.umsservice.UmsExtendedServicesException;
 
 public class LikeMusic {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LikeMusic.class.getName());
 	public static final String PATH_MATCH = "like";
-	private final String backupFilename;
+	private final String backupFilenameMusicBrainz;
+	private final String backupFilenameDiscogs;
 
 	public LikeMusic() {
 		String dir = FilenameUtils.concat(UmsConfiguration.getProfileDirectory(), "database_backup");
-		backupFilename = FilenameUtils.concat(dir, "MUSIC_BRAINZ_RELEASE_LIKE");
+		backupFilenameMusicBrainz = FilenameUtils.concat(dir, "MUSIC_BRAINZ_RELEASE_LIKE");
+		backupFilenameDiscogs = FilenameUtils.concat(dir, "DISCOGS_RELEASE_LIKE");
 	}
 
 	private boolean baseDbRequest(String sql, String key) throws UmsExtendedServicesException {
@@ -114,19 +117,27 @@ public class LikeMusic {
 
 	public void backupLikedAlbums() throws SQLException {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			Script.process(connection, backupFilename, "", "TABLE " + MediaTableMusicBrainzReleaseLike.TABLE_NAME);
+			Script.process(connection, backupFilenameMusicBrainz, "", "TABLE " + MediaTableMusicBrainzReleaseLike.TABLE_NAME);
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			Script.process(connection, backupFilenameDiscogs, "", "TABLE " + MediaTableDiscogsReleaseLike.TABLE_NAME);
 		}
 	}
 
 	public void restoreLikedAlbums() throws SQLException, FileNotFoundException {
-		File backupFile = new File(backupFilename);
+		restoreMusicBrainzLikedAlbums();
+		restoreDiscogsLikedAlbums();
+	}
+
+	private void restoreMusicBrainzLikedAlbums() throws SQLException, FileNotFoundException {
+		File backupFile = new File(backupFilenameMusicBrainz);
 		if (backupFile.exists() && backupFile.isFile()) {
 			try (Connection connection = MediaDatabase.getConnectionIfAvailable(); Statement stmt = connection.createStatement()) {
 				String sql;
 				sql = "DROP TABLE " + MediaTableMusicBrainzReleaseLike.TABLE_NAME;
 				stmt.execute(sql);
 				try {
-					RunScript.execute(connection, new FileReader(backupFilename));
+					RunScript.execute(connection, new FileReader(backupFilenameMusicBrainz));
 				} catch (FileNotFoundException | SQLException e) {
 					LOGGER.error("restoring MUSIC_BRAINZ_RELEASE_LIKE table : failed");
 					throw new RuntimeException("restoring MUSIC_BRAINZ_RELEASE_LIKE table failed", e);
@@ -135,9 +146,35 @@ public class LikeMusic {
 				LOGGER.trace("restoring MUSIC_BRAINZ_RELEASE_LIKE table : success");
 			}
 		} else {
-			if (!StringUtils.isEmpty(backupFilename)) {
-				LOGGER.trace("LikeMusik: Backup file doesn't exist : " + backupFilename);
-				throw new RuntimeException("Backup file doesn't exist : " + backupFilename);
+			if (!StringUtils.isEmpty(backupFilenameMusicBrainz)) {
+				LOGGER.trace("LikeMusik: Backup file doesn't exist : " + backupFilenameMusicBrainz);
+				throw new RuntimeException("Backup file doesn't exist : " + backupFilenameMusicBrainz);
+			} else {
+				throw new RuntimeException("Backup filename not set !");
+			}
+		}
+	}
+
+	private void restoreDiscogsLikedAlbums() throws SQLException, FileNotFoundException {
+		File backupFile = new File(backupFilenameDiscogs);
+		if (backupFile.exists() && backupFile.isFile()) {
+			try (Connection connection = MediaDatabase.getConnectionIfAvailable(); Statement stmt = connection.createStatement()) {
+				String sql;
+				sql = "DROP TABLE " + MediaTableDiscogsReleaseLike.TABLE_NAME;
+				stmt.execute(sql);
+				try {
+					RunScript.execute(connection, new FileReader(backupFilenameDiscogs));
+				} catch (FileNotFoundException | SQLException e) {
+					LOGGER.error("restoring DISCOGS_RELEASE_LIKE table : failed");
+					throw new RuntimeException("restoring DISCOGS_RELEASE_LIKE table failed", e);
+				}
+				connection.commit();
+				LOGGER.trace("restoring DISCOGS_RELEASE_LIKE table : success");
+			}
+		} else {
+			if (!StringUtils.isEmpty(backupFilenameDiscogs)) {
+				LOGGER.trace("LikeMusik: Backup file doesn't exist : " + backupFilenameDiscogs);
+				throw new RuntimeException("Backup file doesn't exist : " + backupFilenameDiscogs);
 			} else {
 				throw new RuntimeException("Backup filename not set !");
 			}
