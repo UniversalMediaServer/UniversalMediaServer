@@ -32,6 +32,7 @@ public class MediaAudioMetadata {
 	private String albumartist;
 	private String mbidRecord;
 	private String mbidTrack;
+	private Long discogsReleaseId;
 	private Integer rating;
 	private int audiotrackId;
 
@@ -89,6 +90,14 @@ public class MediaAudioMetadata {
 	 */
 	public String getMbidTrack() {
 		return this.mbidTrack;
+	}
+
+	public Long getDiscogsReleaseId() {
+		return discogsReleaseId;
+	}
+
+	public void setDiscogsReleaseId(Long discogsReleaseId) {
+		this.discogsReleaseId = discogsReleaseId;
 	}
 
 	/**

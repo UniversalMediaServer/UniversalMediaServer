@@ -116,6 +116,7 @@ public class MediaDatabase extends Database {
 				MediaTableAudioMetadata.checkTable(connection);
 				MediaTableAudiotracks.checkTable(connection);
 				MediaTableMusicBrainzReleaseLike.checkTable(connection);
+				MediaTableDiscogsReleaseLike.checkTable(connection);
 
 				// Container Files
 				MediaTableContainerFiles.checkTable(connection);

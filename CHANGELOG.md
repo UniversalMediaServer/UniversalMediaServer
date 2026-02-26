@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### General
+- Added UPnP service for extended functionality and configuration
+- Added ARM64 Docker build, alongside the existing x86_64 one
+- Added support for subtree (folder) searching via UPnP
+- Improved filename recognition, allowing more metadata matching and accurate prettifying
+- Fixed a database error (#5994)
+- Improved performance of searching
+- Improved performance while browsing folders with many items
+- Fixed transcoded subtitles timing while seeking (#5970)
+- Fixed videos being unnecessarily transcoded when they are resumed (#5995)
+
+### Media players
+- Added support for 2026 LG and Samsung TVs
+
 ### Dependencies
 - Bump `@mantine/core` from 8.3.11 to 8.3.15 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960), [#5976](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5976), [#5989](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5989), [#6032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6032))
 - Bump `@mantine/dropzone` from 8.3.11 to 8.3.15 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960), [#5976](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5976), [#5989](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5989), [#6032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6032))
@@ -41,6 +55,7 @@
 - Bump `commons-codec:commons-codec` from 1.20.0 to 1.21.0 ([#5988](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5988))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.2.1 to 3.3.0 ([#5962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5962))
 - Bump `eslint-plugin-react-refresh` from 0.4.26 to 0.5.0 ([#6004](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6004))
+- Bump `Java Runtime Environment` from 17.0.17 to 17.0.18
 - Bump `lodash` from 4.17.21 to 4.17.23 ([#5973](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5973))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.14.1 to 3.15.0 ([#5987](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5987))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.4 to 3.5.5 ([#6031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6031))
@@ -57,6 +72,7 @@
 - Bump `typescript-eslint` from 8.52.0 to 8.56.0 ([#5979](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5979), [#5991](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5991), [#6036](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6036))
 - Bump `video.js` from 8.23.4 to 8.23.7 ([#6008](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6008), [#6022](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6022))
 - Bump `vite` from 7.3.0 to 7.3.1 ([#5965](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5965))
+- Bump `yt-dlp` from 2025.10.14 to 2026.02.04
 
 ## [15.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.3.0...15.4.0) (2026-01-11)
 
