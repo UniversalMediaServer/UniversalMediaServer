@@ -16,6 +16,18 @@
 ### Media players
 - Added support for 2026 LG and Samsung TVs
 
+### Translation updates via Crowdin
+- Bulgarian (42%) (thanks, Vlckz!)
+- Chinese Simplified (65%) (thanks, 杨鑫炜!)
+- English (United Kingdom) (60%) (thanks, Andi Chandler!)
+- German (99%) (thanks, papioara!)
+- Japanese (77%) (thanks, kita77777 and sand gli!)
+- Portuguese (81%) (thanks, ikemega!)
+- Portuguese (Brazilian) (72%) (thanks, ikemega!)
+- Romanian (41%) (thanks, Alex and Jacob02!)
+- Spanish (72%) (thanks, Carlos Suárez!)
+- Russian (100%) (thanks, vanapro1!)
+
 ### Dependencies
 - Bump `@mantine/core` from 8.3.11 to 8.3.15 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960), [#5976](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5976), [#5989](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5989), [#6032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6032))
 - Bump `@mantine/dropzone` from 8.3.11 to 8.3.15 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960), [#5976](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5976), [#5989](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5989), [#6032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6032))
