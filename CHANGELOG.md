@@ -2,16 +2,28 @@
 
 ## [Unreleased]
 
+## [15.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.4.0...15.5.0) (2026-02-28)
+
 ### General
 - Added UPnP service for extended functionality and configuration
 - Added ARM64 Docker build, alongside the existing x86_64 one
 - Added support for subtree (folder) searching via UPnP
+- Added relevant dependency changes to the bottom of the General section in the changelog
 - Improved filename recognition, allowing more metadata matching and accurate prettifying
 - Fixed a database error (#5994)
 - Improved performance of searching
 - Improved performance while browsing folders with many items
 - Fixed transcoded subtitles timing while seeking (#5970)
 - Fixed videos being unnecessarily transcoded when they are resumed (#5995)
+- Changed the directory enable/disable button to a switch (#5829) (thanks, @NotDari!)
+- Fixed bugs with deprecated GUI (via Java)
+- Fixed memory leaks (via Java)
+- Improved performance of UPnP communication (via Jetty)
+- Harden against DoS attacks (via React)
+- Harden against CSRF and XXS attacks (via React Router)
+- Fixed current time display showing 0:00 during seek on the web player (via video.js)
+- Fixed calculating time offsets in live streams on the web player (via video.js)
+- Fixed YouTube support (via yt-dlp)
 
 ### Media players
 - Added support for 2026 LG and Samsung TVs
