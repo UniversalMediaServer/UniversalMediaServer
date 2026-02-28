@@ -69,6 +69,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.4.26 to 0.5.0 ([#6004](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6004))
 - Bump `Java Runtime Environment` from 17.0.17 to 17.0.18
 - Bump `lodash` from 4.17.21 to 4.17.23 ([#5973](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5973))
+- Bump `minimatch` from 3.1.2 to 3.1.5 ([#6040](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6040))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.14.1 to 3.15.0 ([#5987](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5987))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.4 to 3.5.5 ([#6031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6031))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.5 to 12.1.6 ([#5985](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5985))
