@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `rollup` from 4.50.1 to 4.59.0 ([#6043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6043))
+
 ## [15.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.4.0...15.5.0) (2026-02-28)
 
 ### General
