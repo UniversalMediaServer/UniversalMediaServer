@@ -16,6 +16,8 @@
 - Fixed transcoded subtitles timing while seeking (#5970)
 - Fixed videos being unnecessarily transcoded when they are resumed (#5995)
 - Changed the directory enable/disable button to a switch (#5829) (thanks, @NotDari!)
+
+  ![a screenshot showing the change from button to switch](./changelog-images/15.5.0-shared-content-after.png)
 - Fixed bugs with deprecated GUI (via Java)
 - Fixed memory leaks (via Java)
 - Improved performance of UPnP communication (via Jetty)

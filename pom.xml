@@ -21,7 +21,7 @@
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
 
-	<version>15.5.0</version>
+	<version>15.5.0-SNAPSHOT</version>
 	
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
