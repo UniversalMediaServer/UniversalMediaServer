@@ -4,9 +4,10 @@
 
 ### Dependencies
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
+- Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
+- Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `rollup` from 4.50.1 to 4.59.0 ([#6043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6043))
-- Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 
 ## [15.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.4.0...15.5.0) (2026-02-28)
 
