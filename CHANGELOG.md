@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
