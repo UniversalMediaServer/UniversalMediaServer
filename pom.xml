@@ -445,7 +445,7 @@
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>0.12.19</version>
+			<version>0.12.20</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
