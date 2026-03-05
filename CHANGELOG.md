@@ -2,19 +2,54 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
+- Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
+- Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
+- Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
+- Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
+- Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
+- Bump `rollup` from 4.50.1 to 4.59.0 ([#6043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6043))
+
+## [15.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.4.0...15.5.0) (2026-02-28)
+
 ### General
 - Added UPnP service for extended functionality and configuration
 - Added ARM64 Docker build, alongside the existing x86_64 one
 - Added support for subtree (folder) searching via UPnP
+- Added relevant dependency changes to the bottom of the General section in the changelog
 - Improved filename recognition, allowing more metadata matching and accurate prettifying
 - Fixed a database error (#5994)
 - Improved performance of searching
 - Improved performance while browsing folders with many items
 - Fixed transcoded subtitles timing while seeking (#5970)
 - Fixed videos being unnecessarily transcoded when they are resumed (#5995)
+- Changed the directory enable/disable button to a switch (#5829) (thanks, @NotDari!)
+
+  ![a screenshot showing the change from button to switch](./changelog-images/15.5.0-shared-content-after.png)
+- Fixed bugs with deprecated GUI (via Java)
+- Fixed memory leaks (via Java)
+- Improved performance of UPnP communication (via Jetty)
+- Harden against DoS attacks (via React)
+- Harden against CSRF and XXS attacks (via React Router)
+- Fixed current time display showing 0:00 during seek on the web player (via video.js)
+- Fixed calculating time offsets in live streams on the web player (via video.js)
+- Fixed YouTube support (via yt-dlp)
 
 ### Media players
 - Added support for 2026 LG and Samsung TVs
+
+### Translation updates via Crowdin
+- Bulgarian (42%) (thanks, Vlckz!)
+- Chinese Simplified (65%) (thanks, 杨鑫炜!)
+- English (United Kingdom) (60%) (thanks, Andi Chandler!)
+- German (99%) (thanks, papioara!)
+- Japanese (77%) (thanks, kita77777 and sand gli!)
+- Portuguese (81%) (thanks, ikemega!)
+- Portuguese (Brazilian) (72%) (thanks, ikemega!)
+- Romanian (41%) (thanks, Alex and Jacob02!)
+- Spanish (72%) (thanks, Carlos Suárez!)
+- Russian (100%) (thanks, vanapro1!)
 
 ### Dependencies
 - Bump `@mantine/core` from 8.3.11 to 8.3.15 ([#5960](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5960), [#5976](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5976), [#5989](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5989), [#6032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6032))
@@ -57,6 +92,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.4.26 to 0.5.0 ([#6004](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6004))
 - Bump `Java Runtime Environment` from 17.0.17 to 17.0.18
 - Bump `lodash` from 4.17.21 to 4.17.23 ([#5973](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5973))
+- Bump `minimatch` from 3.1.2 to 3.1.5 ([#6040](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6040))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.14.1 to 3.15.0 ([#5987](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5987))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.4 to 3.5.5 ([#6031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6031))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.5 to 12.1.6 ([#5985](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5985))

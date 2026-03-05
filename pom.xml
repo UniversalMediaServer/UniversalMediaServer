@@ -21,7 +21,7 @@
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
 
-	<version>15.4.0-SNAPSHOT</version>
+	<version>15.5.0-SNAPSHOT</version>
 	
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
@@ -55,8 +55,8 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>15.4.0</project.version.short>
-		<project.jre-version>25</project.jre-version>
+		<project.version.short>15.5.0</project.version.short>
+		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
@@ -74,7 +74,7 @@
 		<project.binaries-base>https://www.universalmediaserver.com/binaries</project.binaries-base>
 
 		<!-- This MUST be bumped every time binaries (files in /bin) are changed, or the Windows installer will not replace them -->
-		<binary-revision>220</binary-revision>
+		<binary-revision>221</binary-revision>
 
 		<exec-maven-plugin-version>3.6.3</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
@@ -373,7 +373,7 @@
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>7.5.7</version>
+			<version>7.5.8</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -445,7 +445,7 @@
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>0.12.19</version>
+			<version>0.12.20</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -624,14 +624,6 @@
 			<artifactId>directories</artifactId>
 			<version>26</version>
 		</dependency>
-
-		<!-- xxh3 - fast hash algorithm-->		
-		<dependency>
-		    <groupId>net.openhft</groupId>
-		    <artifactId>zero-allocation-hashing</artifactId>
-		    <version>2026.0</version>
-		    <scope>compile</scope>
-		</dependency>		
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
