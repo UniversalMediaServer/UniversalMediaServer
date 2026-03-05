@@ -76,6 +76,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 */
 	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
 	public static final String TABLE_COL_MBID_RECORD = TABLE_NAME + "." + COL_MBID_RECORD;
+	public static final String TABLE_COL_DISCOGS_RELEASE_ID = TABLE_NAME + "." + COL_DISCOGS_RELEASE_ID;
 	public static final String TABLE_COL_MBID_TRACK = TABLE_NAME + "." + COL_MBID_TRACK;
 	public static final String TABLE_COL_MEDIA_YEAR = TABLE_NAME + "." + COL_MEDIA_YEAR;
 	public static final String TABLE_COL_GENRE = TABLE_NAME + "." + COL_GENRE;
