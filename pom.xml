@@ -624,6 +624,13 @@
 			<artifactId>directories</artifactId>
 			<version>26</version>
 		</dependency>
+		<!-- xxh3 - fast hash algorithm-->
+		<dependency>
+		    <groupId>net.openhft</groupId>
+		    <artifactId>zero-allocation-hashing</artifactId>
+		    <version>2026.0</version>
+		    <scope>compile</scope>
+		</dependency>		
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
