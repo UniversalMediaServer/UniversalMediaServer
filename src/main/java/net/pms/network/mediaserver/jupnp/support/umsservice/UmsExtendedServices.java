@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
+import jakarta.annotation.Nullable;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;
@@ -13,6 +14,7 @@ import org.jupnp.binding.annotations.UpnpServiceType;
 import org.jupnp.binding.annotations.UpnpStateVariable;
 import org.jupnp.binding.annotations.UpnpStateVariables;
 import org.jupnp.model.types.ErrorCode;
+import org.jupnp.model.types.UnsignedIntegerFourBytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -28,8 +30,10 @@ import net.pms.store.StoreResource;
 	version = 1))
 @UpnpStateVariables({
 	@UpnpStateVariable(name = "A_ARG_TYPE_ObjectID", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_MusicBrainzId", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_DiscogsId", sendEvents = false, datatype = "ui4"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_MusicBrainzReleaseID", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_DiscogsReleaseID", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_DiscogsReleaseID", sendEvents = false, datatype = "ui4"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictUser", sendEvents = false, datatype = "string"),
@@ -184,50 +188,80 @@ public class UmsExtendedServices {
 		}
 	}
 
+	/**
+	 * Check if an album is liked using MusicBrainz and/or Discogs IDs.
+	 * At least one of the IDs must be provided.
+	 *
+	 * @return true if the album is liked via either MusicBrainz or Discogs
+	 * @throws UmsExtendedServicesException if both IDs are missing or invalid
+	 */
 	@UpnpAction(out = @UpnpOutputArgument(name = "AlbumLikedValue"))
-	public boolean isAlbumLikedMusicBrainz(@UpnpInputArgument(name = "MusicBrainzReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("check album liked for musicbrainz release id of {} ", musicBrainzReleaseId);
-		return likeMusic.isAlbumLikedMB(musicBrainzReleaseId);
-	}
+	public boolean isAlbumLiked(
+			@Nullable @UpnpInputArgument(name = "MusicBrainzId") String musicBrainzId,
+			@Nullable @UpnpInputArgument(name = "DiscogsId") UnsignedIntegerFourBytes discogsId) throws UmsExtendedServicesException {
 
-	@UpnpAction
-	public void likeAlbumMusicBrainz(@UpnpInputArgument(name = "MusicBrainzReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("like album with musicbrainz release id {} ", musicBrainzReleaseId);
-		likeMusic.likeAlbumMB(musicBrainzReleaseId);
-	}
+		Long discogsIdLong = discogsId != null ? discogsId.getValue().longValue() : null;
+		AlbumId albumId = new AlbumId(musicBrainzId, discogsIdLong);
+		LOG.debug("check album liked for albumId: musicBrainzId={}, discogsId={}", albumId.musicBrainzId, albumId.discogsId);
 
-	@UpnpAction
-	public void dislikeAlbumMusicBrainz(@UpnpInputArgument(name = "MusicBrainzReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("dislike album with musicbrainz release id {} ", musicBrainzReleaseId);
-		likeMusic.dislikeAlbumMB(musicBrainzReleaseId);
-	}
+		boolean likedViaMusicBrainz = false;
+		boolean likedViaDiscogs = false;
 
-	@UpnpAction(out = @UpnpOutputArgument(name = "AlbumLikedValue"))
-	public boolean isAlbumLikedDiscogs(@UpnpInputArgument(name = "DiscogsReleaseID") String discogsReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("check album liked for discogs release id of {} ", discogsReleaseId);
-		return likeMusic.isAlbumLikedDiscogs(parseDiscogsReleaseId(discogsReleaseId));
-	}
-
-	@UpnpAction
-	public void likeAlbumDiscogs(@UpnpInputArgument(name = "DiscogsReleaseID") String discogsReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("like album with discogs release id {} ", discogsReleaseId);
-		likeMusic.likeAlbumDiscogs(parseDiscogsReleaseId(discogsReleaseId));
-	}
-
-	@UpnpAction
-	public void dislikeAlbumDiscogs(@UpnpInputArgument(name = "DiscogsReleaseID") String discogsReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("dislike album with discogs release id {} ", discogsReleaseId);
-		likeMusic.dislikeAlbumDiscogs(parseDiscogsReleaseId(discogsReleaseId));
-	}
-
-	private Long parseDiscogsReleaseId(String discogsReleaseId) throws UmsExtendedServicesException {
-		if (discogsReleaseId == null || discogsReleaseId.isBlank()) {
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Discogs release id is required");
+		if (albumId.musicBrainzId != null && !albumId.musicBrainzId.isBlank()) {
+			likedViaMusicBrainz = likeMusic.isAlbumLikedMB(albumId.musicBrainzId.trim());
 		}
-		try {
-			return Long.valueOf(discogsReleaseId.trim());
-		} catch (NumberFormatException e) {
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Invalid Discogs release id: " + discogsReleaseId);
+
+		if (albumId.discogsId != null) {
+			likedViaDiscogs = likeMusic.isAlbumLikedDiscogs(albumId.discogsId);
+		}
+
+		return likedViaMusicBrainz || likedViaDiscogs;
+	}
+
+	/**
+	 * Like an album using MusicBrainz and/or Discogs IDs.
+	 * If both IDs are provided, both will be liked.
+	 */
+	@UpnpAction
+	public void likeAlbum(
+			@Nullable @UpnpInputArgument(name = "MusicBrainzId") String musicBrainzId,
+			@Nullable @UpnpInputArgument(name = "DiscogsId") UnsignedIntegerFourBytes discogsId) throws UmsExtendedServicesException {
+
+		Long discogsIdLong = discogsId != null ? discogsId.getValue().longValue() : null;
+		AlbumId albumId = new AlbumId(musicBrainzId, discogsIdLong);
+		LOG.debug("like album for albumId: musicBrainzId={}, discogsId={}", albumId.musicBrainzId, albumId.discogsId);
+
+		if (albumId.musicBrainzId != null && !albumId.musicBrainzId.isBlank()) {
+			likeMusic.likeAlbumMB(albumId.musicBrainzId.trim());
+			LOG.debug("liked album via MusicBrainz: {}", albumId.musicBrainzId);
+		}
+
+		if (albumId.discogsId != null) {
+			likeMusic.likeAlbumDiscogs(albumId.discogsId);
+			LOG.debug("liked album via Discogs: {}", albumId.discogsId);
+		}
+	}
+
+	/**
+	 * Dislike an album using MusicBrainz and/or Discogs IDs.
+	 */
+	@UpnpAction
+	public void dislikeAlbum(
+			@Nullable @UpnpInputArgument(name = "MusicBrainzId") String musicBrainzId,
+			@Nullable @UpnpInputArgument(name = "DiscogsId") UnsignedIntegerFourBytes discogsId) throws UmsExtendedServicesException {
+
+		Long discogsIdLong = discogsId != null ? discogsId.getValue().longValue() : null;
+		AlbumId albumId = new AlbumId(musicBrainzId, discogsIdLong);
+		LOG.debug("dislike album for albumId: musicBrainzId={}, discogsId={}", albumId.musicBrainzId, albumId.discogsId);
+
+		if (albumId.musicBrainzId != null && !albumId.musicBrainzId.isBlank()) {
+			likeMusic.dislikeAlbumMB(albumId.musicBrainzId.trim());
+			LOG.debug("disliked album via MusicBrainz: {}", albumId.musicBrainzId);
+		}
+
+		if (albumId.discogsId != null) {
+			likeMusic.dislikeAlbumDiscogs(albumId.discogsId);
+			LOG.debug("disliked album via Discogs: {}", albumId.discogsId);
 		}
 	}
 
