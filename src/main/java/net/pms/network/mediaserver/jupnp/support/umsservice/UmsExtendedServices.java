@@ -277,7 +277,7 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * Backup audio ratings to a file. 
+	 * Backup audio ratings to a file.
 	 */
 	@UpnpAction
 	public void backupRatings() throws UmsExtendedServicesException {
@@ -291,7 +291,7 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * Restores audio ratings from a backup file created by the backupRatings action. 
+	 * Restores audio ratings from a backup file created by the backupRatings action.
 	 */
 	@UpnpAction
 	public void restoreRatings() throws UmsExtendedServicesException {
