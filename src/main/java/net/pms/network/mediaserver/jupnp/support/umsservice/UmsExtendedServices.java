@@ -132,12 +132,20 @@ public class UmsExtendedServices {
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
 	}
 
+	/**
+	 * Set the AudioAddict username in the UMS configuration.
+	 * @param audioAddictUser
+	 */
 	@UpnpAction
 	public void setAudioAddictUser(@UpnpInputArgument(name = "AudioAddictUser") String audioAddictUser) {
 		PMS.getConfiguration().setAudioAddictUser(audioAddictUser);
 		LOG.debug("updated AudioAddict user");
 	}
 
+	/**
+	 * Set the AudioAddict password in the UMS configuration. Note that the password is stored in plain text in the configuration file.
+	 * @param audioAddictPass
+	 */
 	@UpnpAction
 	public void setAudioAddictPass(@UpnpInputArgument(name = "AudioAddictPass") String audioAddictPass) {
 		PMS.getConfiguration().setAudioAddictPassword(audioAddictPass);
@@ -163,6 +171,9 @@ public class UmsExtendedServices {
 		MediaScanner.backgroundScanFileOrFolder(sr.getFileName());
 	}
 
+	/*
+	 * Backup audio likes to a file.
+	 */
 	@UpnpAction
 	public void backupAudioLikes() throws UmsExtendedServicesException {
 		LOG.debug("backing up audio likes table ... ");
@@ -174,6 +185,9 @@ public class UmsExtendedServices {
 		}
 	}
 
+	/**
+	 * Restore audio likes from a backup file created by the backupAudioLikes action.
+	 */
 	@UpnpAction
 	public void restoreAudioLikes() throws UmsExtendedServicesException {
 		LOG.debug("restoring audio likes table ... ");
@@ -190,10 +204,8 @@ public class UmsExtendedServices {
 
 	/**
 	 * Check if an album is liked using MusicBrainz and/or Discogs IDs.
-	 * At least one of the IDs must be provided.
 	 *
 	 * @return true if the album is liked via either MusicBrainz or Discogs
-	 * @throws UmsExtendedServicesException if both IDs are missing or invalid
 	 */
 	@UpnpAction(out = @UpnpOutputArgument(name = "AlbumLikedValue"))
 	public boolean isAlbumLiked(
@@ -219,8 +231,7 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * Like an album using MusicBrainz and/or Discogs IDs.
-	 * If both IDs are provided, both will be liked.
+	 * Like an album using MusicBrainz and/or Discogs IDs. If both IDs are provided, both will be liked.
 	 */
 	@UpnpAction
 	public void likeAlbum(
@@ -265,6 +276,9 @@ public class UmsExtendedServices {
 		}
 	}
 
+	/**
+	 * Backup audio ratings to a file. 
+	 */
 	@UpnpAction
 	public void backupRatings() throws UmsExtendedServicesException {
 		LOG.debug("backing up audio ratings ... ");
@@ -276,6 +290,9 @@ public class UmsExtendedServices {
 		}
 	}
 
+	/**
+	 * Restores audio ratings from a backup file created by the backupRatings action. 
+	 */
 	@UpnpAction
 	public void restoreRatings() throws UmsExtendedServicesException {
 		LOG.debug("restoring audio ratings ... ");
