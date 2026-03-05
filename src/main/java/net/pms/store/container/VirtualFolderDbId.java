@@ -140,7 +140,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 											MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudioMetadata.TABLE_NAME + " ON " +
 											MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudioMetadata.TABLE_COL_FILEID + " " + "WHERE ( " +
 											MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 and " + MediaTableAudioMetadata.TABLE_COL_MBID_RECORD +
-											" = '%s' ) ORDER BY " + MediaTableAudioMetadata.TABLE_COL_MBID_TRACK, StringEscapeUtils.escapeSql(typeIdent.ident));
+											" = '%s' ) ORDER BY ID ", StringEscapeUtils.escapeSql(typeIdent.ident));
 								if (LOGGER.isTraceEnabled()) {
 									LOGGER.trace(String.format("SQL TYPE_MUSICBRAINZ_RECORDID : %s", sql));
 								}
@@ -151,7 +151,56 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 										// Find "best track" logic should be
 										// optimized !!
 										setName(resultSet.getString(MediaTableAudioMetadata.TABLE_COL_ALBUM));
-										String currentUuidTrack = resultSet.getString("MBID_TRACK");
+										String currentUuidTrack = resultSet.getString("ID");
+										if (!currentUuidTrack.equals(lastUuidTrack)) {
+											lastUuidTrack = currentUuidTrack;
+											filesListFromDb.add(new File(resultSet.getString("FILENAME")));
+										}
+									}
+								} catch (Exception e) {
+									LOGGER.error("Error in SQL : " + sql, e);
+								}
+							}
+						}
+						case TYPE_DISCOGS_RELEASEID -> {
+							if (StringUtils.isAllBlank(typeIdent.ident)) {
+								LOGGER.debug("collecting all music albums having a discogs identifier ...");
+								sql = "SELECT DISTINCT ON (DISCOGS_RELEASE_ID) DISCOGS_RELEASE_ID, " +
+									MediaTableAudioMetadata.TABLE_COL_ALBUM + ", " + MediaTableAudioMetadata.TABLE_COL_GENRE + ", " +
+									MediaTableAudioMetadata.TABLE_COL_ARTIST + ", " + MediaTableAudioMetadata.TABLE_COL_MEDIA_YEAR + " FROM " +
+									MediaTableAudioMetadata.TABLE_NAME + " WHERE DISCOGS_RELEASE_ID IS NOT NULL";
+								if (LOGGER.isTraceEnabled()) {
+									LOGGER.trace(String.format("SQL DISCOGS_RELEASE_ID : %s", sql));
+								}
+								try (ResultSet resultSet = statement.executeQuery(sql)) {
+									while (resultSet.next()) {
+										AlbumMetadata mbAlbum = new AlbumMetadata(null, resultSet.getLong("DISCOGS_RELEASE_ID"), resultSet.getString("ALBUM"),
+											resultSet.getString("ARTIST"), Integer.toString(resultSet.getInt("MEDIA_YEAR")), resultSet.getString("GENRE"));
+										addChild(new MusicAlbumFolder(renderer, mbAlbum));
+									}
+								} catch (Exception e) {
+									LOGGER.error("Error in SQL : " + sql, e);
+								}
+							} else {
+								LOGGER.debug("collecting songs for discogs album {}", typeIdent.toString());
+								sql = String
+									.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableAudioMetadata.TABLE_COL_MBID_TRACK +
+											", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableAudioMetadata.TABLE_COL_ALBUM + " FROM " +
+											MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudioMetadata.TABLE_NAME + " ON " +
+											MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudioMetadata.TABLE_COL_FILEID + " " + "WHERE ( " +
+											MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 and " + MediaTableAudioMetadata.TABLE_COL_DISCOGS_RELEASE_ID +
+											" = %s ) ORDER BY ID ", typeIdent.ident);
+								if (LOGGER.isTraceEnabled()) {
+									LOGGER.trace(String.format("SQL TYPE_DISCOGS_RELEASEID : %s", sql));
+								}
+								try (ResultSet resultSet = statement.executeQuery(sql)) {
+									filesListFromDb = new ArrayList<>();
+									String lastUuidTrack = "";
+									while (resultSet.next()) {
+										// Find "best track" logic should be
+										// optimized !!
+										setName(resultSet.getString(MediaTableAudioMetadata.TABLE_COL_ALBUM));
+										String currentUuidTrack = resultSet.getString("ID");
 										if (!currentUuidTrack.equals(lastUuidTrack)) {
 											lastUuidTrack = currentUuidTrack;
 											filesListFromDb.add(new File(resultSet.getString("FILENAME")));
@@ -177,7 +226,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								"LEFT JOIN DISCOGS_RELEASE_LIKE DRL " +
 								"    ON DRL.DISCOGS_RELEASE_ID = AM.DISCOGS_RELEASE_ID " +
 								"WHERE MBRL.MBID_RELEASE IS NOT NULL " +
-								"   OR AM.DISCOGS_RELEASE_ID IS NOT NULL;";
+								"   OR DRL.DISCOGS_RELEASE_ID IS NOT NULL;";
 
 							LOGGER.debug("VirtualFolderDbid TYPE_MYMUSIC_ALBUM.");
 							DoubleRecordFilter filter = new DoubleRecordFilter();
@@ -270,7 +319,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								addChild(res);
 							}
 						}
-						default -> throw new RuntimeException("Unknown Type");
+						default -> throw new RuntimeException("Unknown Type : " + typeIdent);
 					}
 					if (filesListFromDb != null) {
 						for (File file : filesListFromDb) {
