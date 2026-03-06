@@ -634,6 +634,9 @@ public abstract class DatabaseHelper {
 			try (Statement stmt = conn.createStatement()) {
 				LOGGER.trace("Execute Update with SQL \"{}\"", sql);
 				stmt.executeUpdate(sql);
+			} catch (Exception e) {
+				LOGGER.error("error during executing update with SQL \"" + sql + "\":" + e.getMessage(), e);
+				throw e;
 			}
 		}
 	}
