@@ -16,6 +16,10 @@
  */
 package net.pms.media.audio.metadata;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class keeps track of the metadata of audio media.
  */
@@ -35,6 +39,26 @@ public class MediaAudioMetadata {
 	private Long discogsReleaseId;
 	private Integer rating;
 	private int audiotrackId;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaAudioMetadata.class.getName());
+
+	/**
+	 * Returns the album ID for this track. The album ID is determined by first checking for the presence of a MusicBrainz release ID
+	 * in the audio metadata. If a MusicBrainz release ID is not found, it then checks for the presence of a Discogs release ID.
+	 * If neither is found, it returns null.
+	 */
+	public String getAlbumId() {
+		String albumId = getMbidRecord();
+		if (StringUtils.isBlank(albumId)) {
+			LOGGER.trace("no MusicBrainz release ID found in audio metadata, trying to get Discogs release ID");
+			if (getDiscogsReleaseId() != null) {
+				albumId = getDiscogsReleaseId().toString();
+			} else {
+				LOGGER.trace("no Discogs release ID found in audio metadata");
+			}
+		}
+		return albumId;
+	}
 
 	/**
 	 * Returns the name of the album to which an audio track belongs.

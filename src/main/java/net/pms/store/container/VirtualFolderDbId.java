@@ -234,7 +234,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								while (resultSet.next()) {
 									String mbid = resultSet.getString("MBID_RELEASE");
 									Long discogs = resultSet.getLong("DISCOGS_RELEASE_ID");
-									filter.addAlbum(generateMusicBrainzAlbum(mbid, discogs, resultSet));
+									filter.addAlbum(generateMusicAlbum(mbid, discogs, resultSet));
 								}
 								for (AlbumMetadata album : filter.getUniqueAlbumSet()) {
 									MusicAlbumFolder albumFolder = new MusicAlbumFolder(renderer, album);
@@ -262,7 +262,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 									String mbid = resultSet.getString("MBID_RECORD");
 									Long discogs = resultSet.getObject("DISCOGS_RELEASE_ID", Long.class);
 									if (StringUtils.isNotBlank(mbid) || discogs != null) {
-										addChild(new MusicAlbumFolder(renderer, generateMusicBrainzAlbum(mbid, discogs, resultSet)));
+										addChild(new MusicAlbumFolder(renderer, generateMusicAlbum(mbid, discogs, resultSet)));
 									} else {
 										StoreResource sr = DbIdResourceLocator.getAlbumFromMediaLibrary(renderer, typeIdent.ident);
 										if (sr != null) {
@@ -347,7 +347,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 		sortChildrenIfNeeded();
 	}
 
-	private AlbumMetadata generateMusicBrainzAlbum(String mbid, Long discogs, ResultSet resultSet) throws SQLException {
+	private AlbumMetadata generateMusicAlbum(String mbid, Long discogs, ResultSet resultSet) throws SQLException {
 		return new AlbumMetadata(mbid, discogs, resultSet.getString("ALBUM"),
 				resultSet.getString("ARTIST"), Integer.toString(resultSet.getInt("MEDIA_YEAR")), resultSet.getString("GENRE"));
 	}
