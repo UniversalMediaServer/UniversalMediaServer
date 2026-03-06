@@ -624,6 +624,21 @@
 			<artifactId>directories</artifactId>
 			<version>26</version>
 		</dependency>
+		
+		<!-- Lucene search support -->
+		<!-- Attention: Lucene 10+ requires JDK 21+ (i.e. 10.4.0) -->
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-core</artifactId>
+		    <version>9.12.3</version>
+		    <scope>compile</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-queryparser</artifactId>
+		    <version>9.12.3</version>
+		    <scope>compile</scope>
+		</dependency>		
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>

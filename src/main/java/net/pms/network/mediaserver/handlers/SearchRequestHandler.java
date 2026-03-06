@@ -69,6 +69,9 @@ public class SearchRequestHandler {
 
 	private static final Pattern TOKENIZER_PATTERN = Pattern.compile(
 		"(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z@\\[\\]\"=]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
+	private static final Pattern LUCENE_PATTERN = Pattern.compile("([-+&|!(){}\\[\\]^\"~*?:/\\\\])");
+
+	public record SearchToken(String attr, String op, String val) { }
 
 	public static DbIdMediaType getRequestType(String searchCriteria) {
 		LOGGER.debug("search criteria : {}", searchCriteria);
@@ -145,10 +148,12 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectByType(DbIdMediaType requestType) {
+	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				return "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+				String title = getLuceneTitleMatch(list);
+				return String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID as OID, FT.SCORE FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT " +
+					"ON F.ID = CAST(FT.KEYS[1] AS LONG) JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
@@ -184,10 +189,12 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectByType(DbIdMediaType requestType, String subtreeId) {
+	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				return getTreeStatement(subtreeId) + "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+				String title = getLuceneTitleMatch(list);
+				return getTreeStatement(subtreeId) + String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID as OID, FT.SCORE FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT " +
+					"ON F.ID = CAST(FT.KEYS[1] AS LONG) JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
@@ -221,12 +228,16 @@ public class SearchRequestHandler {
 	 * Beginning part of SQL statement, by type.
 	 *
 	 * @param requestType
+	 * @param subtreeId
+	 * @param list
 	 * @return
 	 */
-	private static String addSqlSelectCountByType(DbIdMediaType requestType) {
+	private static String addSqlSelectCountByType(DbIdMediaType requestType, List<SearchToken> list) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				return "select count(DISTINCT F.id) from FILES as F left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+				String title = getLuceneTitleMatch(list);
+				return String.format("SELECT COUNT(*) FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT ON F.ID = CAST(FT.KEYS[1] AS LONG) " +
+					"JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -262,10 +273,12 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectCountByType(DbIdMediaType requestType, String subtreeId) {
+	private static String addSqlSelectCountByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+				String title = getLuceneTitleMatch(list);
+				return getTreeStatement(subtreeId) + String.format("SELECT COUNT(*) FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT ON F.ID = CAST(FT.KEYS[1] AS LONG) " +
+					"JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -295,12 +308,24 @@ public class SearchRequestHandler {
 		}
 	}
 
+	private static String getLuceneTitleMatch(List<SearchToken> list) {
+		String title = list.stream().filter(t -> "dc:title".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.val).orElse("");
+		String op = list.stream().filter(t -> "dc:title".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.op).orElse("");
+		// Escape lucene special characters
+		title = LUCENE_PATTERN.matcher(title).replaceAll("\\\\$1");
+		if ("contains".equalsIgnoreCase(op)) {
+			title = title + "~2";
+		}
+		return title;
+	}
+
 	public static String convertToFilesSql(SearchRequest requestMessage, DbIdMediaType requestType, String subtreeId) {
 		StringBuilder sb = new StringBuilder();
+		List<SearchToken> tokens = getSearchTokens(requestMessage.getSearchCriteria());
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
-			sb.append(addSqlSelectByType(requestType));
+			sb.append(addSqlSelectByType(requestType, tokens));
 		} else {
-			sb.append(addSqlSelectByType(requestType, subtreeId));
+			sb.append(addSqlSelectByType(requestType, tokens, subtreeId));
 		}
 		addSqlWherePart(requestMessage.getSearchCriteria(), requestType, sb);
 		addOrderBy(requestMessage.getSortCriteria(), requestType, sb);
@@ -311,11 +336,12 @@ public class SearchRequestHandler {
 
 	public static String convertToFilesSql(String searchCriteria, long startingIndex, long requestedCount, SortCriterion[] orderBy,
 		DbIdMediaType requestType, String subtreeId) {
+		List<SearchToken> tokens = getSearchTokens(searchCriteria);
 		StringBuilder sb = new StringBuilder();
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
-			sb.append(addSqlSelectByType(requestType));
+			sb.append(addSqlSelectByType(requestType, tokens));
 		} else {
-			sb.append(addSqlSelectByType(requestType, subtreeId));
+			sb.append(addSqlSelectByType(requestType, tokens, subtreeId));
 		}
 		addSqlWherePart(searchCriteria, requestType, sb);
 		addOrderBy(orderBy, requestType, sb);
@@ -385,12 +411,21 @@ public class SearchRequestHandler {
 	public static String convertToCountSql(String upnpSearch, DbIdMediaType requestType, String subtreeId) {
 		StringBuilder sb = new StringBuilder();
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
-			sb.append(addSqlSelectCountByType(requestType));
+			sb.append(addSqlSelectCountByType(requestType, getSearchTokens(upnpSearch)));
 		} else {
-			sb.append(addSqlSelectCountByType(requestType, subtreeId));
+			sb.append(addSqlSelectCountByType(requestType, getSearchTokens(upnpSearch), subtreeId));
 		}
 		addSqlWherePart(upnpSearch, requestType, sb);
 		return sb.toString();
+	}
+
+	private static List<SearchToken> getSearchTokens(String searchCriteria) {
+		List<SearchToken> result = new ArrayList<>();
+		Matcher matcher = TOKENIZER_PATTERN.matcher(searchCriteria);
+		while (matcher.find()) {
+			result.add(new SearchToken(matcher.group("property"), matcher.group("op"), matcher.group("val")));
+		}
+		return result;
 	}
 
 	private static void addSqlWherePart(String searchCriteria, DbIdMediaType requestType, StringBuilder sb) {
@@ -424,6 +459,11 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 */
 	private static void appendProperty(StringBuilder sb, String property, String op, String val, DbIdMediaType requestType) {
+		if (requestType.equals(DbIdMediaType.TYPE_AUDIO) && "dc:title".equalsIgnoreCase(property)) {
+			LOGGER.trace("song titles are searched by luccene index. Ignore this property for SQL generation.");
+			sb.append("1 = 1 ");
+			return;
+		}
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
 		} else if ("contains".equals(op)) {

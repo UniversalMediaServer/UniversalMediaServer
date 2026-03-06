@@ -46,8 +46,9 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 *
 	 * Version notes:
 	 * - 2: FILEID as BIGINT
+	 * - 3: Lucene support
 	 */
-	private static final int TABLE_VERSION = 3;
+	private static final int TABLE_VERSION = 4;
 
 	/**
 	 * COLUMNS NAMES
@@ -143,6 +144,12 @@ public class MediaTableAudioMetadata extends MediaTable {
 
 					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")");
 				}
+				case 3 -> {
+					executeUpdate(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'org.h2.fulltext.FullTextLucene.init';");
+					executeUpdate(connection, "CALL FTL_INIT();");
+					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME');");
+					executeUpdate(connection, "CALL FTL_REINDEX();");
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -191,6 +198,11 @@ public class MediaTableAudioMetadata extends MediaTable {
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MEDIA_YEAR + IDX_MARKER + ON + TABLE_NAME + " (" + COL_MEDIA_YEAR + ")",
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")"
 		);
+
+		execute(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR \"org.h2.fulltext.FullTextLucene.init\";");
+		execute(connection, "CALL FTL_INIT();");
+		execute(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME');");
+
 	}
 
 	/**
