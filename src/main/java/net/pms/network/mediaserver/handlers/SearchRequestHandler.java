@@ -152,7 +152,7 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String title = getLuceneTitleMatch(list);
-				return String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID as OID, FT.SCORE FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT " +
+				return String.format("SELECT DISTINCT ON (FILENAME) A.SONGNAME, A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID as OID, FT.SCORE FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT " +
 					"ON F.ID = CAST(FT.KEYS[1] AS LONG) JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
@@ -193,7 +193,7 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String title = getLuceneTitleMatch(list);
-				return getTreeStatement(subtreeId) + String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID as OID, FT.SCORE FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT " +
+				return getTreeStatement(subtreeId) + String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID as OID, FT.SCORE FROM tree JOIN FILES F ON F.FILENAME = tree.name JOIN FTL_SEARCH_DATA('%s', 0, 0) FT " +
 					"ON F.ID = CAST(FT.KEYS[1] AS LONG) JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
@@ -277,7 +277,7 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String title = getLuceneTitleMatch(list);
-				return getTreeStatement(subtreeId) + String.format("SELECT COUNT(*) FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT ON F.ID = CAST(FT.KEYS[1] AS LONG) " +
+				return getTreeStatement(subtreeId) + String.format("SELECT COUNT(*) FROM tree JOIN FILES F ON F.FILENAME = tree.name JOIN FTL_SEARCH_DATA('%s', 0, 0) FT ON F.ID = CAST(FT.KEYS[1] AS LONG) " +
 					"JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
