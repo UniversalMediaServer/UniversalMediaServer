@@ -46,11 +46,8 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 *
 	 * Version notes:
 	 * - 2: FILEID as BIGINT
-<<<<<<< HEAD
-	 * - 4: Add DISCOGS_RELEASE_ID
-=======
-	 * - 3: Lucene support
->>>>>>> feature/lucene
+	 * - 3: Add DISCOGS_RELEASE_ID
+	 * - 4: Lucene support
 	 */
 	private static final int TABLE_VERSION = 5;
 
