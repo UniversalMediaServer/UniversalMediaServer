@@ -215,18 +215,20 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							clearChildren();
 							sql = "SELECT DISTINCT ON (MBID_RELEASE, DISCOGS_RELEASE_ID) " +
 								"    AM.DISCOGS_RELEASE_ID, " +
-								"    MBRL.MBID_RELEASE, " +
+								"    AM.MBID_RECORD AS MBID_RELEASE, " +
 								"    AM.ALBUM, " +
 								"    AM.GENRE, " +
 								"    AM.ARTIST, " +
 								"    AM.MEDIA_YEAR " +
 								"FROM AUDIO_METADATA AM " +
-								"LEFT JOIN MUSIC_BRAINZ_RELEASE_LIKE MBRL " +
-								"    ON MBRL.MBID_RELEASE = AM.MBID_RECORD " +
-								"LEFT JOIN DISCOGS_RELEASE_LIKE DRL " +
-								"    ON DRL.DISCOGS_RELEASE_ID = AM.DISCOGS_RELEASE_ID " +
-								"WHERE MBRL.MBID_RELEASE IS NOT NULL " +
-								"   OR DRL.DISCOGS_RELEASE_ID IS NOT NULL;";
+								"WHERE EXISTS ( " +
+								"    SELECT 1 FROM MUSIC_BRAINZ_RELEASE_LIKE MBRL " +
+								"    WHERE MBRL.MBID_RELEASE = AM.MBID_RECORD " +
+								") " +
+								"OR EXISTS ( " +
+								"    SELECT 1 FROM DISCOGS_RELEASE_LIKE DRL " +
+								"    WHERE DRL.DISCOGS_RELEASE_ID = AM.DISCOGS_RELEASE_ID " +
+								");";
 
 							LOGGER.debug("VirtualFolderDbid TYPE_MYMUSIC_ALBUM.");
 							DoubleRecordFilter filter = new DoubleRecordFilter();
