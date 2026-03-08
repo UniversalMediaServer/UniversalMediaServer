@@ -575,6 +575,9 @@ public class StoreResourceHelper {
 				desc.setType("ums-tags");
 				desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
 				desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
+				if (audioMetadata.getDiscogsReleaseId() != null) {
+					desc.addMetadata("discogsreleaseid", audioMetadata.getDiscogsReleaseId().toString());
+				}
 				desc.addMetadata("resourceid", mediaInfo.getResourceId());
 				if (audioMetadata.getDisc() > 0) {
 					desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
