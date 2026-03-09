@@ -26,7 +26,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.PMS;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DidlHelper;
@@ -43,11 +48,6 @@ import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.MusicBrainzPersonFolder;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jupnp.support.model.SortCriterion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <pre>
@@ -73,6 +73,17 @@ public class SearchRequestHandler {
 	private static final Pattern LUCENE_PATTERN = Pattern.compile("([-+&|!(){}\\[\\]^\"~*?:/\\\\])");
 
 	public record SearchToken(String attr, String op, String val) { }
+
+	private static UmsConfiguration umsConfiguration;
+
+	static {
+		try {
+			umsConfiguration = new UmsConfiguration();
+		} catch (ConfigurationException | InterruptedException e) {
+			LOGGER.error("Error while initializing SearchRequestHandler : ", e);
+			throw new RuntimeException(e);
+		}
+	}
 
 	public static DbIdMediaType getRequestType(String searchCriteria) {
 		LOGGER.debug("search criteria : {}", searchCriteria);
@@ -130,9 +141,9 @@ public class SearchRequestHandler {
 		StringBuilder dlnaItems = new StringBuilder();
 		DbIdMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
 
-		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType, requestMessage.getContainerId()));
+		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestType, requestMessage));
 
-		String sqlFiles = convertToFilesSql(requestMessage, requestType, requestMessage.getContainerId());
+		String sqlFiles = convertToFilesSql(requestMessage, requestType);
 		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
 			numberReturned++;
 			dlnaItems.append(DidlHelper.getDidlString(resource));
@@ -143,18 +154,25 @@ public class SearchRequestHandler {
 		return createResponse(response.toString());
 	}
 
+	private static String getFormattedLuceneString(String sql, List<SearchToken> list, SearchRequest requestMessage) {
+		String title = getLuceneTitleMatch(list);
+		int count = requestMessage.getRequestedCount() != null ? requestMessage.getRequestedCount() : 0;
+		int startIndex = requestMessage.getStartingIndex() != null ? requestMessage.getStartingIndex() : 0;
+		return String.format(sql, title, count, startIndex);
+	}
+
 	/**
 	 * Beginning part of SQL statement, by type.
 	 *
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list) {
+	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list, SearchRequest requestMessage) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				String title = getLuceneTitleMatch(list);
-				return String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('SONGNAME:%s', 0, 0) FT " +
-					"JOIN PUBLIC.AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN PUBLIC.FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
+				String sql = "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('SONGNAME:%s', %d, %d) FT " +
+					"JOIN PUBLIC.AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN PUBLIC.FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString(sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
@@ -190,14 +208,14 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId) {
+	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId, SearchRequest requestMessage) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				String title = getLuceneTitleMatch(list);
-
-				return getTreeStatement(subtreeId) + String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE FROM FTL_SEARCH_DATA('SONGNAME:%s', 0, 0) FT " +
+				String sql = getTreeStatement(subtreeId) + "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE " +
+					"FROM FTL_SEARCH_DATA('SONGNAME:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
+					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString(sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
@@ -235,12 +253,12 @@ public class SearchRequestHandler {
 	 * @param list
 	 * @return
 	 */
-	private static String addSqlSelectCountByType(DbIdMediaType requestType, List<SearchToken> list) {
+	private static String addSqlSelectCountByType(DbIdMediaType requestType, List<SearchToken> list, SearchRequest requestMessage) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				String title = getLuceneTitleMatch(list);
-				return String.format("SELECT COUNT(*) FROM FTL_SEARCH_DATA('SONGNAME:%s', 0, 0) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
-					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
+				String sql = "SELECT COUNT(*) FROM FTL_SEARCH_DATA('SONGNAME:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
+					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString(sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -276,13 +294,13 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectCountByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId) {
+	private static String addSqlSelectCountByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId, SearchRequest requestMessage) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				String title = getLuceneTitleMatch(list);
-				return getTreeStatement(subtreeId) + String.format("SELECT COUNT(*) FROM FTL_SEARCH_DATA('SONGNAME:%s', 0, 0) FT " +
+				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(*) FROM FTL_SEARCH_DATA('SONGNAME:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
+					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString(sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -318,68 +336,49 @@ public class SearchRequestHandler {
 		// Escape lucene special characters
 		title = LUCENE_PATTERN.matcher(title).replaceAll("\\\\$1");
 		if ("contains".equalsIgnoreCase(op)) {
-			if (PMS.getConfiguration().getLuceneContainsFuzzySearch()) {
-				title = title + "~";
+			if (umsConfiguration.getLuceneContainsFuzzySearch()) {
+				title = prepareLuceneSearch(title, "~");
 			} else {
-				title = title + "*";
+				title = prepareLuceneSearch(title, "*");
 			}
 		}
 		if ("=".equalsIgnoreCase(op)) {
-			if (PMS.getConfiguration().getLuceneEqualFuzzySearch()) {
-				title = title + "~";
+			if (umsConfiguration.getLuceneEqualFuzzySearch()) {
+				title = prepareLuceneSearch(title, "~");
 			}
 		}
+		title = title.replace("'", "''");
 		return title;
 	}
 
-	public static String convertToFilesSql(SearchRequest requestMessage, DbIdMediaType requestType, String subtreeId) {
+	private static String prepareLuceneSearch(String title, String seachToken) {
+		String[] words = title.split("\\s+");
+		StringBuilder fuzzyQuery = new StringBuilder();
+		for (String word : words) {
+			if (!word.isEmpty()) {
+				if (fuzzyQuery.length() > 0) {
+					fuzzyQuery.append(" ");
+				}
+				fuzzyQuery.append(word).append(seachToken);
+			}
+		}
+		return fuzzyQuery.toString();
+	}
+
+	public static String convertToFilesSql(SearchRequest requestMessage, DbIdMediaType requestType) {
 		StringBuilder sb = new StringBuilder();
+		String subtreeId = requestMessage.getContainerId();
 		List<SearchToken> tokens = getSearchTokens(requestMessage.getSearchCriteria());
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
-			sb.append(addSqlSelectByType(requestType, tokens));
+			sb.append(addSqlSelectByType(requestType, tokens, requestMessage));
 		} else {
-			sb.append(addSqlSelectByType(requestType, tokens, subtreeId));
+			sb.append(addSqlSelectByType(requestType, tokens, subtreeId, requestMessage));
 		}
 		addSqlWherePart(requestMessage.getSearchCriteria(), requestType, sb);
 		addOrderBy(requestMessage.getSortCriteria(), requestType, sb);
-		addLimit(requestMessage.getStartingIndex(), requestMessage.getRequestedCount(), sb);
+		addLimit(requestType, requestMessage, sb);
 		LOGGER.debug(sb.toString());
 		return sb.toString();
-	}
-
-	public static String convertToFilesSql(String searchCriteria, long startingIndex, long requestedCount, SortCriterion[] orderBy,
-		DbIdMediaType requestType, String subtreeId) {
-		List<SearchToken> tokens = getSearchTokens(searchCriteria);
-		StringBuilder sb = new StringBuilder();
-		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
-			sb.append(addSqlSelectByType(requestType, tokens));
-		} else {
-			sb.append(addSqlSelectByType(requestType, tokens, subtreeId));
-		}
-		addSqlWherePart(searchCriteria, requestType, sb);
-		addOrderBy(orderBy, requestType, sb);
-		addLimit(startingIndex, requestedCount, sb);
-		LOGGER.trace(sb.toString());
-		return sb.toString();
-	}
-
-	private static void addOrderBy(SortCriterion[] orderBy, DbIdMediaType requestType, StringBuilder sb) {
-		sb.append(" ORDER BY ");
-		try {
-			for (SortCriterion sort : orderBy) {
-				if (!StringUtils.isAllBlank(sort.getPropertyName())) {
-					String field = getField(sort.getPropertyName(), requestType);
-					if (!StringUtils.isAllBlank(field)) {
-						sb.append(field);
-						sb.append(sort.isAscending() ? " ASC " : " DESC ");
-						sb.append(", ");
-					}
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.trace("ERROR while processing 'addOrderBy'");
-		}
-		sb.append(String.format(" oid "));
 	}
 
 	private static void addOrderBy(String sortCriteria, DbIdMediaType requestType, StringBuilder sb) {
@@ -413,20 +412,29 @@ public class SearchRequestHandler {
 		return "";
 	}
 
-	private static void addLimit(long startingIndex, long requestedCount, StringBuilder sb) {
-		long limit = requestedCount;
-		if (limit == 0) {
-			limit = 999; // performance issue: do only deliver top 999 items
+	private static void addLimit(DbIdMediaType requestType, SearchRequest requestMessage, StringBuilder sb) {
+		switch (requestType) {
+			case TYPE_AUDIO -> {
+				// do nothing, since the FTL search already delivers the correct subset of data based on the startingIndex and requestedCount parameters.
+				}
+			default -> {
+				long limit = requestMessage.getRequestedCount();
+				if (limit == 0) {
+					limit = 999; // performance issue: do only deliver top 999 items
+				}
+				sb.append(String.format(" LIMIT %d OFFSET %d ", limit, requestMessage.getStartingIndex()));
+			}
 		}
-		sb.append(String.format(" LIMIT %d OFFSET %d ", limit, startingIndex));
 	}
 
-	public static String convertToCountSql(String upnpSearch, DbIdMediaType requestType, String subtreeId) {
+	public static String convertToCountSql(DbIdMediaType requestType, SearchRequest requestMessage) {
 		StringBuilder sb = new StringBuilder();
+		String subtreeId = requestMessage.getContainerId();
+		String upnpSearch = requestMessage.getSearchCriteria();
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
-			sb.append(addSqlSelectCountByType(requestType, getSearchTokens(upnpSearch)));
+			sb.append(addSqlSelectCountByType(requestType, getSearchTokens(upnpSearch), requestMessage));
 		} else {
-			sb.append(addSqlSelectCountByType(requestType, getSearchTokens(upnpSearch), subtreeId));
+			sb.append(addSqlSelectCountByType(requestType, getSearchTokens(upnpSearch), subtreeId, requestMessage));
 		}
 		addSqlWherePart(upnpSearch, requestType, sb);
 		return sb.toString();
