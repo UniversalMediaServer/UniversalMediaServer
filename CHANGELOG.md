@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@tabler/icons-react` from 3.37.1 to 3.40.0 ([#6061](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6061))
 - Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
 - Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
