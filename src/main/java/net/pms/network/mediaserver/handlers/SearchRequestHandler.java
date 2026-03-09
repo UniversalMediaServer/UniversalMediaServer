@@ -522,6 +522,8 @@ public class SearchRequestHandler {
 			return " rating ";
 		} else if ("ums:likedalbum".equals(property)) {
 			return " liked ";
+		} else if ("ums:score".equals(property)) {
+			return " score ";
 		}
 
 		throw new RuntimeException("unknown or unimplemented property: >" + property + "<");
