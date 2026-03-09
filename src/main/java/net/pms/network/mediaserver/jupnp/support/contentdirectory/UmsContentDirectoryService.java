@@ -877,6 +877,7 @@ public class UmsContentDirectoryService {
 		try {
 			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
 			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType, containerId));
+			LOGGER.debug("searchCriteria: {} - COUNT MATCHES : {}", searchCriteria, totalMatches);
 			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType, containerId);
 			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
 

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DidlHelper;
@@ -152,8 +153,8 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String title = getLuceneTitleMatch(list);
-				return String.format("SELECT DISTINCT ON (FILENAME) A.SONGNAME, A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID as OID, FT.SCORE FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT " +
-					"ON F.ID = CAST(FT.KEYS[1] AS LONG) JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
+				return String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('SONGNAME:%s', 0, 0) FT " +
+					"JOIN PUBLIC.AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN PUBLIC.FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
@@ -193,8 +194,10 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String title = getLuceneTitleMatch(list);
-				return getTreeStatement(subtreeId) + String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID as OID, FT.SCORE FROM tree JOIN FILES F ON F.FILENAME = tree.name JOIN FTL_SEARCH_DATA('%s', 0, 0) FT " +
-					"ON F.ID = CAST(FT.KEYS[1] AS LONG) JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
+
+				return getTreeStatement(subtreeId) + String.format("SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE FROM FTL_SEARCH_DATA('SONGNAME:%s', 0, 0) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
+					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
@@ -236,8 +239,8 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String title = getLuceneTitleMatch(list);
-				return String.format("SELECT COUNT(*) FROM FILES F JOIN FTL_SEARCH_DATA('%s', 0, 0) FT ON F.ID = CAST(FT.KEYS[1] AS LONG) " +
-					"JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
+				return String.format("SELECT COUNT(*) FROM FTL_SEARCH_DATA('SONGNAME:%s', 0, 0) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
+					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -277,8 +280,9 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String title = getLuceneTitleMatch(list);
-				return getTreeStatement(subtreeId) + String.format("SELECT COUNT(*) FROM tree JOIN FILES F ON F.FILENAME = tree.name JOIN FTL_SEARCH_DATA('%s', 0, 0) FT ON F.ID = CAST(FT.KEYS[1] AS LONG) " +
-					"JOIN AUDIO_METADATA A ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
+				return getTreeStatement(subtreeId) + String.format("SELECT COUNT(*) FROM FTL_SEARCH_DATA('SONGNAME:%s', 0, 0) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
+					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ", title);
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -314,7 +318,16 @@ public class SearchRequestHandler {
 		// Escape lucene special characters
 		title = LUCENE_PATTERN.matcher(title).replaceAll("\\\\$1");
 		if ("contains".equalsIgnoreCase(op)) {
-			title = title + "~2";
+			if (PMS.getConfiguration().getLuceneContainsFuzzySearch()) {
+				title = title + "~";
+			} else {
+				title = title + "*";
+			}
+		}
+		if ("=".equalsIgnoreCase(op)) {
+			if (PMS.getConfiguration().getLuceneEqualFuzzySearch()) {
+				title = title + "~";
+			}
 		}
 		return title;
 	}
@@ -614,6 +627,8 @@ public class SearchRequestHandler {
 					LOGGER.trace("getLibraryResourceCountFromSQL", e);
 				}
 			}
+		} catch (Exception e) {
+			LOGGER.warn("getLibraryResourceCountFromSQL", e);
 		} finally {
 			MediaDatabase.close(connection);
 		}
