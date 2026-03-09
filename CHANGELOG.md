@@ -9,6 +9,7 @@
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
+- Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.4.0 to 3.5.0 ([#6058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6058))
 - Bump `rollup` from 4.50.1 to 4.59.0 ([#6043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6043))
 - Bump `tar` from 7.5.9 to 7.5.10 ([#6055](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6055))
 
