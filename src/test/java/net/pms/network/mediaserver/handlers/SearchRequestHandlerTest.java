@@ -42,7 +42,7 @@ public class SearchRequestHandlerTest {
 		sr.setSearchCriteria(s);
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String result = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(s), "0");
+		String result = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(s));
 		LOG.info(result);  // \\s+
 		assertTrue(result.matches(
 				"select\\s+FILENAME\\s*,\\s*MODIFIED\\s*,\\s*F\\.ID\\s+as\\s+FID\\s*,\\s*F\\.ID\\s+as\\s+oid\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s*\\(\\s*F\\.FORMAT_TYPE\\s*=\\s*4\\s*\\)\\s*ORDER\\s+BY\\s+oid\\s+LIMIT\\s+999\\s+OFFSET\\s+0\\s*"));
@@ -53,8 +53,14 @@ public class SearchRequestHandlerTest {
 	 */
 	@Test
 	public void testLinnAppComposerSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Composer\"] contains \"tchaikovsky\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
+		SearchRequest requestMessage = new SearchRequest();
+		requestMessage.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Composer\"] contains \"tchaikovsky\"");
+		requestMessage.setContainerId("0");
+		requestMessage.setRequestedCount(900);
+		requestMessage.setStartingIndex(0);
+		String countSQL = SearchRequestHandler.convertToCountSql(
+				SearchRequestHandler.getRequestType(requestMessage.getSearchCriteria()),
+				requestMessage);
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.COMPOSER\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+ \\s*A.COMPOSER\\s+ILIKE\\s+'%tchaikovsky%'"));
@@ -65,8 +71,12 @@ public class SearchRequestHandlerTest {
 	 */
 	@Test
 	public void testLinnAppConductorSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Conductor\"] contains \"bernstein\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Conductor\"] contains \"bernstein\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s*A.CONDUCTOR\\s+ILIKE\\s+'%bernstein%'"));
@@ -74,8 +84,12 @@ public class SearchRequestHandlerTest {
 
 	@Test
 	public void testAlbumArtistSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"AlbumArtist\"] contains \"tchaikovsky\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"AlbumArtist\"] contains \"tchaikovsky\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ALBUMARTIST\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+A.ALBUMARTIST\\s+ILIKE\\s+'%tchaikovsky%'"));
@@ -83,23 +97,37 @@ public class SearchRequestHandlerTest {
 
 	@Test
 	public void testArtistSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist contains \"tchaikovsky\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist contains \"tchaikovsky\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ARTIST\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+A.ARTIST\\s+ILIKE\\s+'%tchaikovsky%'"));
 	}
 
 	/**
-	 * Tests SearchCriteria issued by LINN app (iOS) for Composer
+	 * Tests SearchCriteria issued by LINN app (iOS). Tests if special char "'" is escaped.
 	 */
 	@Test
 	public void testLinnAppSpecialCharSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.item.audioItem\" and dc:title contains \"love don't\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.item.audioItem\" and dc:title contains \"love don't\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-				"select\\s+count\\s*\\(\\s*DISTINCT\\s+F.id\\s*\\)\\s+from\\s+FILES\\s+as\\s+F\\s+left\\s+outer\\s+join\\s+AUDIO_METADATA\\s+as\\s+A\\s+on\\s+F.ID\\s*=\\s*A.FILEID\\s+where\\s+F.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+A.SONGNAME\\s+ILIKE\\s+'%love don''t%'"));
+			"(?i)SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:love~\\s+don''t~'\\s*,\\s*900\\s*,\\s*0\\s*\\)\\s+FT" +
+			"\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A.FILEID\\s*=\\s*FT.KEYS\\[1\\]" +
+			"\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F.ID\\s*=\\s*A.FILEID" +
+			"\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'" +
+			"\\s+AND\\s+F.FORMAT_TYPE\\s*=\\s*1" +
+			".*"
+		));
 	}
 
 	/**
@@ -114,11 +142,14 @@ public class SearchRequestHandlerTest {
 
 		String searchCriteria = "upnp:class derivedfrom \"object.container\" and dc:title contains \"music\"";
 
-
-
-		String countSql = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "134");
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria(searchCriteria);
+		sr.setContainerId("134");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+		String countSql = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(searchCriteria), sr);
 		LOG.info(countSql);
-		String sql = SearchRequestHandler.convertToFilesSql(searchCriteria, 0, 200, null, SearchRequestHandler.getRequestType(searchCriteria), "134");
+		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(sql);
 	}
 

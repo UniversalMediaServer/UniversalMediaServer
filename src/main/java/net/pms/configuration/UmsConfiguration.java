@@ -399,6 +399,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
+	private static final String KEY_SEARCH_LUCENE_EQUAL_FUZZ = "search_lucene_equal_fuzzy";
+	private static final String KEY_SEARCH_LUCENE_CONTAINS_FUZZ = "search_lucene_contains_fuzzy";
 	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
 	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
@@ -997,6 +999,24 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public int getMencoderMaxThreads() {
 		return Math.min(getInt(KEY_MENCODER_MAX_THREADS, getNumberOfCpuCores()), MENCODER_MAX_THREADS);
+	}
+
+	/**
+	 * Indicates whether the Lucene search should use fuzzy search for equal matches. This can be used to find matches with typos or similar
+	 * but not exact matches.
+	 *
+	 * @return true : Use fuzzy search for equal matches, false : use exact search for equal matches.
+	 */
+	public boolean getLuceneEqualFuzzySearch() {
+		return getBoolean(KEY_SEARCH_LUCENE_EQUAL_FUZZ, false);
+	}
+
+	/**
+	 *
+	 * @return true : Use fuzzy search for contains matches, false : use exact search for contains matches.
+	 */
+	public boolean getLuceneContainsFuzzySearch() {
+		return getBoolean(KEY_SEARCH_LUCENE_CONTAINS_FUZZ, true);
 	}
 
 	/**
