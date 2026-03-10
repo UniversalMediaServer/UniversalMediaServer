@@ -1061,14 +1061,7 @@
 										<get src="${project.binaries-base}/win32/dcrawMS.exe" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
 
 										<!-- FFmpeg binaries -->
-										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
-										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.0.1/ffmpeg-8.0.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
-											<cutdirsmapper dirs="1" />
-										</unzip>
-										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe" tofile="${project.binaries}/windows/x86_64/ffmpeg.exe" overwrite="true" />
-										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe" tofile="${project.binaries}/bin/ffmpeg.exe" overwrite="true" />
-
+										<!-- removed ffmpeg download/unpack/copy to avoid fetching ffmpeg during build -->
 										<get src="${project.binaries-base}/win32/flac.exe" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mencoder.exe" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer.exe" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
@@ -1452,11 +1445,8 @@
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/linux" />
 										<mkdir dir="${project.binaries}/linux/arm64" />
-										<mkdir dir="${project.binaries}/linux/arm64/ffmpeg" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/arm64/ffmpeg/ffmpeg" dest="${project.binaries}/linux/arm64/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.04/yt-dlp_linux_aarch64" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1593,8 +1583,6 @@
 										<mkdir dir="${project.binaries}/linux/armel/ffmpeg" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.04/yt-dlp" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1731,7 +1719,6 @@
 										<mkdir dir="${project.binaries}/linux/armhf/ffmpeg" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1869,10 +1856,6 @@
 										<mkdir dir="${project.binaries}/linux/x86/jre${project.jre-version}" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.04/yt-dlp" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2010,9 +1993,6 @@
 										<mkdir dir="${project.binaries}/linux/x86_64/jre${project.jre-version}" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.04/yt-dlp_linux" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2120,25 +2100,13 @@
 										<mkdir dir="${project.binaries}/osx/10.15" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.04/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
 
 										<!-- Copy FFmpeg binary -->
 
-										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mplayer" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
 
 										<!-- Make all downloaded binaries executable -->
-										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
-										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
@@ -2355,26 +2323,12 @@
 										<mkdir dir="${project.binaries}/osx/arm" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.04/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
 
 										<!-- Copy FFmpeg binary -->
 
-										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mplayer" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
-
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
 
 										<!-- Make all downloaded binaries executable -->
-										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
-										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
-										<chmod dir="${project.binaries}/osx/arm" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
@@ -2589,21 +2543,10 @@
 										<mkdir dir="${project.binaries}/osx" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.04/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
 
 										<!-- Make all downloaded binaries executable -->
-										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
@@ -2797,257 +2740,13 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-				</plugins>
-			</build>
-		</profile>
-
-		<!--
-			This profile allows running UMS from inside Eclipse
-			(Requires a "mvn clean package" to download the binaries first)
-		-->
-		<profile>
-			<id>run-from-eclipse</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>exec-maven-plugin</artifactId>
-						<version>${exec-maven-plugin-version}</version>
-						<executions>
-							<execution>
-								<phase>test</phase>
-								<goals>
-									<goal>java</goal>
-								</goals>
-								<configuration>
-									<classpathScope>test</classpathScope>
-									<mainClass>${project.mainclass}</mainClass>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<!--
-			This profile is only active when the property "m2e.version"
-			is set, which is the case when building in Eclipse with m2e.
-		-->
-		<profile>
-			<id>m2e</id>
-			<activation>
-				<property>
-					<name>m2e.version</name>
-				</property>
-			</activation>
-			<build>
-				<pluginManagement>
-					<plugins>
-						<!--
-							This plugin's configuration is used to store Eclipse m2e settings only.
-							It has no influence on the Maven build itself.
-						-->
-						<plugin>
-							<groupId>org.eclipse.m2e</groupId>
-							<artifactId>lifecycle-mapping</artifactId>
-							<version>1.0.0</version>
-							<configuration>
-								<lifecycleMappingMetadata>
-									<pluginExecutions>
-										<pluginExecution>
-											<pluginExecutionFilter>
-												<groupId>
-													org.apache.maven.plugins
-												</groupId>
-												<artifactId>
-													maven-antrun-plugin
-												</artifactId>
-												<versionRange>
-													[1.7,)
-												</versionRange>
-												<goals>
-													<goal>run</goal>
-												</goals>
-											</pluginExecutionFilter>
-											<action>
-												<ignore></ignore>
-											</action>
-										</pluginExecution>
-										<pluginExecution>
-											<pluginExecutionFilter>
-												<groupId>
-													io.github.git-commit-id
-												</groupId>
-												<artifactId>
-													git-commit-id-maven-plugin
-												</artifactId>
-												<versionRange>
-													[${git-commit-id-plugin-version},)
-												</versionRange>
-												<goals>
-													<goal>revision</goal>
-												</goals>
-											</pluginExecutionFilter>
-											<action>
-												<ignore></ignore>
-											</action>
-										</pluginExecution>
-									</pluginExecutions>
-								</lifecycleMappingMetadata>
-							</configuration>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-			</build>
-		</profile>
-
-		<!--
-			Quick run profiles: Builds, replaces and runs ums.jar in the default installation directory.
-			For extra quickness, run with the skipTests and offline flags: mvn -P quickrun-windows package -DskipTests -Doffline
-		-->
-		<profile>
-			<id>quickrun-windows-x86</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.github.eirslett</groupId>
-						<artifactId>frontend-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>install node and corepack</id>
-								<goals>
-									<goal>install-node-and-corepack</goal>
-								</goals>
-							</execution>
-							<!-- download Node.js dependencies -->
-							<execution>
-								<id>yarn install</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn install</arguments>
-								</configuration>
-							</execution>
-							<!-- compile the react client to the web directory -->
-							<execution>
-								<id>yarn build</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn build</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<!-- Plugin to assemble a jar with dependencies -->
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-							</descriptors>
-							<archive>
-								<manifest>
-									<mainClass>${project.mainclass}</mainClass>
-									<!--
-										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
-										without it, the following exception is thrown when UMS starts:
-
-										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
-											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
-												java.lang.IllegalArgumentException: vendorName == null!
-
-										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
-									-->
-									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-								</manifest>
-							</archive>
-						</configuration>
-						<executions>
-							<execution>
-								<id>make-jar-with-dependencies</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-
-					<!--
-						Plugin to move the ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>prepare-package-windows</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 											  tofile="C:/Program Files (x86)/Universal Media Server/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
 						</executions>
 					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-resources-plugin</artifactId>
-						<version>${maven-resources-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>copy-resources</id>
-								<phase>validate</phase>
-								<goals>
-									<goal>copy-resources</goal>
-								</goals>
-								<configuration>
-									<outputDirectory>C:/Program Files (x86)/Universal Media Server</outputDirectory>
-									<fileMode>0644</fileMode>
-									<directoryMode>0755</directoryMode>
-									<resources>
-										<resource>
-											<directory>${project.external-resources}</directory>
-										</resource>
-									</resources>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>exec-maven-plugin</artifactId>
-						<version>${exec-maven-plugin-version}</version>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>exec</goal>
-								</goals>
-								<configuration>
-									<executable>C:/Program Files (x86)/Universal Media Server/${project.name.short}.exe</executable>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
+
 				</plugins>
 			</build>
 		</profile>
@@ -3464,15 +3163,7 @@
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/osx" />
 
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.0.1.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
-											<cutdirsmapper dirs="1" />
-										</unzip>
-										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
-
 										<!-- Make all downloaded binaries executable -->
-										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
@@ -3501,16 +3192,8 @@
 										<mkdir dir="${project.binaries}/bin" />
 
 										<!-- MediaInfo binary -->
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
-										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/bin/MediaInfo.dll" overwrite="true" />
 
 										<!-- FFmpeg binary -->
-										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.0.1/ffmpeg-8.0.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
-											<cutdirsmapper dirs="1" />
-										</unzip>
-										<copy file="${project.basedir}/target/ffmpeg-x64-folder/bin/ffmpeg.exe" tofile="${project.binaries}/bin/ffmpeg.exe" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3655,8 +3338,6 @@
 												<include name="web/**"/>
 											</fileset>
 										</copy>
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR" dest="${project.basedir}/target/docker/app/linux/tsMuxeR" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.04/yt-dlp_linux" dest="${project.basedir}/target/docker/app/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
