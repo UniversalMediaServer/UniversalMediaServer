@@ -147,7 +147,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 				case 3 -> {
 					executeUpdate(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'org.h2.fulltext.FullTextLucene.init';");
 					executeUpdate(connection, "CALL FTL_INIT();");
-					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST');");
+					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
 					executeUpdate(connection, "CALL FTL_REINDEX();");
 				}
 				default -> {
@@ -199,9 +199,9 @@ public class MediaTableAudioMetadata extends MediaTable {
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")"
 		);
 
-		execute(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR \"org.h2.fulltext.FullTextLucene.init\";");
+		execute(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'org.h2.fulltext.FullTextLucene.init';");
 		execute(connection, "CALL FTL_INIT();");
-		execute(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST');");
+		execute(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
 
 	}
 
