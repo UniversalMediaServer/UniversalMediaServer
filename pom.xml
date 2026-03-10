@@ -1340,7 +1340,7 @@
 				and is needed for the Hudson profile to work
 			-->
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 			</activation>
 
 			<build>
@@ -1391,26 +1391,6 @@
 								<configuration>
 									<descriptors>
 										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>${project.mainclass}</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-
-							<!-- Assemble the distribution file. -->
-							<execution>
-								<id>build-ums-linux-arm64</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux-arm64.xml</descriptor>
 									</descriptors>
 									<archive>
 										<manifest>
@@ -1475,7 +1455,7 @@
 				and is needed for the Hudson profile to work
 			-->
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 			</activation>
 
 			<build>
@@ -1611,7 +1591,7 @@
 				and is needed for the Hudson profile to work
 			-->
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 			</activation>
 
 			<build>
@@ -1747,7 +1727,7 @@
 				and is needed for the Hudson profile to work
 			-->
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 			</activation>
 
 			<build>
