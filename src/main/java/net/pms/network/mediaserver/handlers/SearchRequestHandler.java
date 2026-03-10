@@ -69,7 +69,9 @@ public class SearchRequestHandler {
 	private static final Pattern ARTIST_ROLE = Pattern.compile("upnp:class.*role\\s*=\\s*\"(?<val>.*?)\".*", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern TOKENIZER_PATTERN = Pattern.compile(
-		"(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z@\\[\\]\"=]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
+		"(?<property>((dc)|(upnp)):[A-Za-z@\\[\\]\"=]+)\\s+" +
+		"(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>([^\"]|\"\")*)\"", Pattern.CASE_INSENSITIVE);
+
 	private static final Pattern LUCENE_PATTERN = Pattern.compile("([-+&|!(){}\\[\\]^\"~*?:/\\\\])");
 
 	public record SearchToken(String attr, String op, String val) { }
@@ -340,6 +342,13 @@ public class SearchRequestHandler {
 		}
 	}
 
+	/**
+	 * Attention: If a clients asks for an exact match or proximity search, it should put '"' around the search term.
+	 * Example : dc:title contains "dark side of the moon".
+	 *
+	 * @param list
+	 * @return
+	 */
 	private static String getLuceneTitleMatch(List<SearchToken> list) {
 		String title = list.stream().filter(t -> "dc:title".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.val).orElse("");
 		String op = list.stream().filter(t -> "dc:title".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.op).orElse("");
@@ -347,21 +356,41 @@ public class SearchRequestHandler {
 		title = LUCENE_PATTERN.matcher(title).replaceAll("\\\\$1");
 		if ("contains".equalsIgnoreCase(op)) {
 			if (umsConfiguration.getLuceneContainsFuzzySearch()) {
-				title = prepareLuceneSearch(title, "~");
+				title = prepareLuceneSearch(title, "~2");
 			} else {
-				title = prepareLuceneSearch(title, "*");
+				if (!(title.startsWith("\"") && title.endsWith("\""))) {
+					LOGGER.debug("for classical contains logic, title must be between \"\".");
+					title = prepareLuceneSearch(title, "*");
+				}
 			}
 		}
 		if ("=".equalsIgnoreCase(op)) {
 			if (umsConfiguration.getLuceneEqualFuzzySearch()) {
-				title = prepareLuceneSearch(title, "~");
+				title = prepareLuceneSearch(title, "~2");
 			}
 		}
 		title = title.replace("'", "''");
+		LOGGER.debug("lucene search term is : {}", title);
 		return title;
 	}
 
-	private static String prepareLuceneSearch(String title, String seachToken) {
+	/**
+	 * Lucene doesn't support proximity and fuzzy search at the same time. So we check if the search term is an exact match (between " ").
+	 * If so, we use proximity search, else we split the search term into words and add the fuzzy or wildcard operator to each word.
+	 *
+	 * I think this is what the user expects most.
+	 * @param title
+	 * @param searchType
+	 * @return
+	 */
+	private static String prepareLuceneSearch(String title, String searchType) {
+		if (title.startsWith("\"") && title.endsWith("\"")) {
+			LOGGER.debug("search request is for an Proximity Search ...");
+			if ("*".equals(searchType)) {
+				return title;
+			}
+			return title + searchType;
+		}
 		String[] words = title.split("\\s+");
 		StringBuilder fuzzyQuery = new StringBuilder();
 		for (String word : words) {
@@ -369,7 +398,7 @@ public class SearchRequestHandler {
 				if (fuzzyQuery.length() > 0) {
 					fuzzyQuery.append(" ");
 				}
-				fuzzyQuery.append(word).append(seachToken);
+				fuzzyQuery.append(word).append(searchType);
 			}
 		}
 		return fuzzyQuery.toString();
@@ -391,6 +420,14 @@ public class SearchRequestHandler {
 		return sb.toString();
 	}
 
+	/**
+	 * For lucene searches, be aware, that the result set is already ordered by relevance (score). By adding an additional order by clause,
+	 * we might mess up the relevance ordering.
+	 *
+	 * @param sortCriteria
+	 * @param requestType
+	 * @param sb
+	 */
 	private static void addOrderBy(String sortCriteria, DbIdMediaType requestType, StringBuilder sb) {
 		sb.append(" ORDER BY ");
 		if (!StringUtils.isAllBlank(sortCriteria)) {
@@ -407,7 +444,7 @@ public class SearchRequestHandler {
 					}
 				}
 			} catch (Exception e) {
-				LOGGER.trace("ERROR while processing 'addOrderBy'");
+				LOGGER.debug("ERROR while processing 'addOrderBy'", e);
 			}
 		}
 		sb.append(String.format(" oid "));
@@ -454,9 +491,13 @@ public class SearchRequestHandler {
 		List<SearchToken> result = new ArrayList<>();
 		Matcher matcher = TOKENIZER_PATTERN.matcher(searchCriteria);
 		while (matcher.find()) {
-			result.add(new SearchToken(matcher.group("property"), matcher.group("op"), matcher.group("val")));
+			result.add(new SearchToken(matcher.group("property"), matcher.group("op"), makeClean(matcher.group("val"))));
 		}
 		return result;
+	}
+
+	private static String makeClean(String val) {
+		return val.replace("\"\"", "\"");
 	}
 
 	private static void addSqlWherePart(String searchCriteria, DbIdMediaType requestType, StringBuilder sb) {
