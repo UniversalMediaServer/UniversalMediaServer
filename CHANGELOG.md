@@ -16,6 +16,7 @@
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
+- Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.4.0 to 3.5.0 ([#6058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6058))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
