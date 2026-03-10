@@ -22,38 +22,6 @@
 			<fileMode>0644</fileMode>
 			<lineEnding>keep</lineEnding>
 		</file>
-
-		<!-- Include the FFmpeg binary -->
-		<file>
-			<source>${project.binaries}/linux/x86_64/ffmpeg/ffmpeg</source>
-			<outputDirectory>./linux</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
-
-		<!-- Include the tsMuxeR binaries -->
-		<file>
-			<source>${project.binaries}/linux/x86_64/tsMuxeR</source>
-			<outputDirectory>./linux</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
-
-		<!-- Include executable script UMS.sh -->
-		<file>
-			<source>${project.external-resources}/UMS.sh</source>
-			<outputDirectory>.</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>unix</lineEnding>
-		</file>
-
-		<!-- Include the youtube-dl binary -->
-		<file>
-			<source>${project.binaries}/linux/youtube-dl</source>
-			<outputDirectory>./linux</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
 	</files>
 	<fileSets>
 		<fileSet>
