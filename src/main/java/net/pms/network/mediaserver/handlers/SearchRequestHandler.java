@@ -154,11 +154,19 @@ public class SearchRequestHandler {
 		return createResponse(response.toString());
 	}
 
-	private static String getFormattedLuceneString(String sql, List<SearchToken> list, SearchRequest requestMessage) {
+	private static String getFormattedLuceneString(String sql, List<SearchToken> list, SearchRequest requestMessage, boolean ignoreCountLimit) {
 		String title = getLuceneTitleMatch(list);
 		int count = requestMessage.getRequestedCount() != null ? requestMessage.getRequestedCount() : 0;
 		int startIndex = requestMessage.getStartingIndex() != null ? requestMessage.getStartingIndex() : 0;
-		return String.format(sql, title, count, startIndex);
+		if (ignoreCountLimit) {
+			return String.format(sql, title, 0, 0);
+		} else {
+			return String.format(sql, title, count, startIndex);
+		}
+	}
+
+	private static String getFormattedLuceneString(String sql, List<SearchToken> list, SearchRequest requestMessage) {
+		return getFormattedLuceneString(sql, list, requestMessage, false);
 	}
 
 	/**
@@ -246,7 +254,8 @@ public class SearchRequestHandler {
 	}
 
 	/**
-	 * Beginning part of SQL statement, by type.
+	 * Beginning part of SQL statement, by type. We ignore the count and startIndex parameters, since the totalMatches count should
+	 * be independent of the requested subset of data.
 	 *
 	 * @param requestType
 	 * @param subtreeId
@@ -258,7 +267,7 @@ public class SearchRequestHandler {
 			case TYPE_AUDIO -> {
 				String sql = "SELECT COUNT(*) FROM FTL_SEARCH_DATA('SONGNAME:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString(sql, list, requestMessage);
+				return getFormattedLuceneString(sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -289,7 +298,8 @@ public class SearchRequestHandler {
 	}
 
 	/**
-	 * Beginning part of SQL statement, by type.
+	 * Beginning part of SQL statement, by type. We ignore the count and startIndex parameters, since the totalMatches count should
+	 * be independent of the requested subset of data.
 	 *
 	 * @param requestType
 	 * @return
@@ -300,7 +310,7 @@ public class SearchRequestHandler {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(*) FROM FTL_SEARCH_DATA('SONGNAME:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
 					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString(sql, list, requestMessage);
+				return getFormattedLuceneString(sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
