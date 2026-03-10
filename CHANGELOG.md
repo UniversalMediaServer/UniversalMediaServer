@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@mantine/core` from 8.3.15 to 8.3.16 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059))
+- Bump `@mantine/dropzone` from 8.3.15 to 8.3.16 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059))
+- Bump `@mantine/form` from 8.3.15 to 8.3.16 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059))
+- Bump `@mantine/hooks` from 8.3.15 to 8.3.16 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059))
+- Bump `@mantine/modals` from 8.3.15 to 8.3.16 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059))
+- Bump `@mantine/notifications` from 8.3.15 to 8.3.16 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059))
+- Bump `@tabler/icons-react` from 3.37.1 to 3.40.0 ([#6061](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6061))
 - Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
 - Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
@@ -10,6 +17,10 @@
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.4.0 to 3.5.0 ([#6058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6058))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
 - Bump `rollup` from 4.50.1 to 4.59.0 ([#6043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6043))
 - Bump `tar` from 7.5.9 to 7.5.10 ([#6055](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6055))
 
