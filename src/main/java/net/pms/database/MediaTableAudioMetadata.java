@@ -46,10 +46,9 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 *
 	 * Version notes:
 	 * - 2: FILEID as BIGINT
-	 * - 3: Add DISCOGS_RELEASE_ID
-	 * - 4: Lucene support
+	 * - 3: Lucene support
 	 */
-	private static final int TABLE_VERSION = 5;
+	private static final int TABLE_VERSION = 4;
 
 	/**
 	 * COLUMNS NAMES
@@ -67,7 +66,6 @@ public class MediaTableAudioMetadata extends MediaTable {
 	private static final String COL_SONGNAME = "SONGNAME";
 	private static final String COL_MBID_RECORD = "MBID_RECORD";
 	private static final String COL_MBID_TRACK = "MBID_TRACK";
-	private static final String COL_DISCOGS_RELEASE_ID = "DISCOGS_RELEASE_ID";
 	private static final String COL_AUDIOTRACK_ID = "AUDIOTRACK_ID";
 	//this is a user param / rating as well when it's changed by the user
 	private static final String COL_RATING = "RATING";
@@ -77,7 +75,6 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 */
 	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
 	public static final String TABLE_COL_MBID_RECORD = TABLE_NAME + "." + COL_MBID_RECORD;
-	public static final String TABLE_COL_DISCOGS_RELEASE_ID = TABLE_NAME + "." + COL_DISCOGS_RELEASE_ID;
 	public static final String TABLE_COL_MBID_TRACK = TABLE_NAME + "." + COL_MBID_TRACK;
 	public static final String TABLE_COL_MEDIA_YEAR = TABLE_NAME + "." + COL_MEDIA_YEAR;
 	public static final String TABLE_COL_GENRE = TABLE_NAME + "." + COL_GENRE;
@@ -148,11 +145,6 @@ public class MediaTableAudioMetadata extends MediaTable {
 					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")");
 				}
 				case 3 -> {
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DISCOGS_RELEASE_ID + BIGINT);
-				}
-				case 4 -> {
-					executeUpdate(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'org.h2.fulltext.FullTextLucene.init';");
-					executeUpdate(connection, "CALL FTL_INIT();");
 					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
 					executeUpdate(connection, "CALL FTL_REINDEX();");
 				}
@@ -186,7 +178,6 @@ public class MediaTableAudioMetadata extends MediaTable {
 				COL_MEDIA_YEAR          + INTEGER                                            + COMMA +
 				COL_MBID_RECORD         + UUID_TYPE                                          + COMMA +
 				COL_MBID_TRACK          + UUID_TYPE                                          + COMMA +
-				COL_DISCOGS_RELEASE_ID  + BIGINT                                             + COMMA +
 				COL_TRACK               + INTEGER                                            + COMMA +
 				COL_DISC                + INTEGER                                            + COMMA +
 				COL_RATING              + INTEGER                                            + COMMA +
@@ -206,10 +197,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")"
 		);
 
-		execute(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'org.h2.fulltext.FullTextLucene.init';");
-		execute(connection, "CALL FTL_INIT();");
 		execute(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
-
 	}
 
 	/**
@@ -304,7 +292,6 @@ public class MediaTableAudioMetadata extends MediaTable {
 		result.updateInt(COL_TRACK, audioMetadata.getTrack());
 		result.updateInt(COL_DISC, audioMetadata.getDisc());
 		updateInteger(result, COL_RATING, audioMetadata.getRating());
-		updateLong(result, COL_DISCOGS_RELEASE_ID, audioMetadata.getDiscogsReleaseId());
 	}
 
 	private static MediaAudioMetadata resultSetToAudioMetadata(ResultSet resultset) throws SQLException {
@@ -321,7 +308,6 @@ public class MediaTableAudioMetadata extends MediaTable {
 		audioMetadata.setAudiotrackId(resultset.getInt(COL_AUDIOTRACK_ID));
 		audioMetadata.setMbidRecord(resultset.getString(COL_MBID_RECORD));
 		audioMetadata.setMbidTrack(resultset.getString(COL_MBID_TRACK));
-		audioMetadata.setDiscogsReleaseId(toLong(resultset, COL_DISCOGS_RELEASE_ID));
 		audioMetadata.setComposer(resultset.getString(COL_COMPOSER));
 		audioMetadata.setConductor(resultset.getString(COL_CONDUCTOR));
 		return audioMetadata;
