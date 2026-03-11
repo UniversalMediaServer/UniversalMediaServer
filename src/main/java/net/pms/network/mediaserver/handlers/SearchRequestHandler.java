@@ -181,13 +181,13 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String sql = "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN PUBLIC.AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN PUBLIC.FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"JOIN AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN PUBLIC.AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN PUBLIC.FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
@@ -202,11 +202,14 @@ public class SearchRequestHandler {
 			case TYPE_ALBUM -> {
 				String sql = "SELECT DISTINCT ON (album) album, artist, media_year, genre, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN PUBLIC.AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN PUBLIC.FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
 			}
 			case TYPE_PLAYLIST -> {
-				return "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
+				String sql = "SELECT DISTINCT ON (FILENAME) FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
+					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' AND ";
+				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage);
 			}
 			case TYPE_FOLDER -> {
 				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
@@ -257,7 +260,11 @@ public class SearchRequestHandler {
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
 			}
 			case TYPE_PLAYLIST -> {
-				return getTreeStatement(subtreeId) + "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
+					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN FILES F ON F.ID = FT.KEYS[1] JOIN tree ON F.FILENAME = tree.name " +
+					"WHERE FT.\"TABLE\" = 'FILES' AND ";
+				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage);
 			}
 			case TYPE_FOLDER -> {
 				return getTreeStatement(subtreeId) + "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from tree JOIN STORE_IDS child on tree.name = child.name, STORE_IDS parent where ";
@@ -305,7 +312,9 @@ public class SearchRequestHandler {
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage, true);
 			}
 			case TYPE_PLAYLIST -> {
-				return "select count(DISTINCT F.id) from FILES as F where ";
+				String sql = "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' AND ";
+				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage, true);
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
@@ -354,7 +363,10 @@ public class SearchRequestHandler {
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage, true);
 			}
 			case TYPE_PLAYLIST -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN FILES F ON F.ID = FT.KEYS[1] JOIN tree ON F.FILENAME = tree.name " +
+					"WHERE FT.\"TABLE\" = 'FILES' AND ";
+				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage, true);
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
@@ -454,7 +466,7 @@ public class SearchRequestHandler {
 	 */
 	private static void addOrderBy(String sortCriteria, DbIdMediaType requestType, StringBuilder sb) {
 		switch (requestType) {
-			case TYPE_AUDIO, TYPE_ALBUM -> {
+			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PLAYLIST, TYPE_PERSON -> {
 				// do nothing, since the FTL search already delivers the correct subset of data based on the startingIndex and requestedCount parameters.
 				}
 			default -> {
@@ -492,7 +504,7 @@ public class SearchRequestHandler {
 
 	private static void addLimit(DbIdMediaType requestType, SearchRequest requestMessage, StringBuilder sb) {
 		switch (requestType) {
-			case TYPE_AUDIO, TYPE_ALBUM -> {
+			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PLAYLIST -> {
 				// do nothing, since the FTL search already delivers the correct subset of data based on the startingIndex and requestedCount parameters.
 				}
 			default -> {
@@ -555,6 +567,13 @@ public class SearchRequestHandler {
 	/**
 	 * Title property depends on what Result type is being searched for.
 	 *
+	 * If we want to support requests like "*searchTerm*" , we would need to add the 'default' logic to the search term instead of escaping it.
+	 *
+	 * ATTENTION:
+	 * ===============
+	 * Uncomment the code block below for "*TERM" support. However, this would disable the lucene fuzzy and proximity search! This could be
+	 * counter intuitive for users!
+	 *
 	 * @param sb
 	 * @param property
 	 * @param op
@@ -563,17 +582,22 @@ public class SearchRequestHandler {
 	 */
 	private static void appendProperty(StringBuilder sb, String property, String op, String val, DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_AUDIO, TYPE_ALBUM -> {
+			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PLAYLIST -> {
 				if ("dc:title".equalsIgnoreCase(property)) {
 					LOGGER.trace("type / property is indexed by lucene. Ignore this property for SQL generation.");
 					sb.append("1 = 1 ");
+				}
+				/** CODE BLOCK FOR "*TERM" SUPORT. Remove the "return statement below the comment and uncomment it.
+				if (!val.startsWith("*")) {
+					// Lucene doesn't support wildcard matching for the start of a search term like "*TERM".
 					return;
 				}
+				*/
+				return;
 			}
 			default -> {
 			}
 		}
-
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
 		} else if ("contains".equals(op)) {

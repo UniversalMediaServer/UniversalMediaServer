@@ -96,7 +96,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<slf4j-api-version>2.0.17</slf4j-api-version>
-
+		<lucene-version>9.12.3</lucene-version>
 		<surefire-version>3.5.5</surefire-version>
 
 		<!--
@@ -630,15 +630,18 @@
 		<dependency>
 		    <groupId>org.apache.lucene</groupId>
 		    <artifactId>lucene-core</artifactId>
-		    <version>9.12.3</version>
-		    <scope>compile</scope>
+		    <version>${lucene-version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.lucene</groupId>
 		    <artifactId>lucene-queryparser</artifactId>
-		    <version>9.12.3</version>
-		    <scope>compile</scope>
-		</dependency>		
+		    <version>${lucene-version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-analysis-common</artifactId>
+		    <version>${lucene-version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
