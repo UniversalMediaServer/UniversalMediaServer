@@ -24,6 +24,6 @@ EXPOSE 1900/udp 5001/tcp 5353/udp 9001/tcp 9002/tcp
 
 ENV UMS_PROFILE=/profile
 
-ENV JDK_JAVA_OPTIONS="-Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true"
+ENV JDK_JAVA_OPTIONS="-Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true --add-modules jdk.incubator.vector"
 
 ENTRYPOINT [ "java", "-jar", "ums.jar" ]
