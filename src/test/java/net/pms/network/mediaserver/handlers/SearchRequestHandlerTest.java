@@ -121,7 +121,7 @@ public class SearchRequestHandlerTest {
 		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-			"(?i)SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:love~\\s+don''t~'\\s*,\\s*900\\s*,\\s*0\\s*\\)\\s+FT" +
+			"(?i)SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:love~2\\s+don''t~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT" +
 			"\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A.FILEID\\s*=\\s*FT.KEYS\\[1\\]" +
 			"\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F.ID\\s*=\\s*A.FILEID" +
 			"\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'" +
