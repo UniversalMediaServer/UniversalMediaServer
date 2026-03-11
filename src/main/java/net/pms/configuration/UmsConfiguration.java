@@ -304,6 +304,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	private static final String KEY_FLATTEN_FOLDERS = "flatten_folders";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
 	private static final String KEY_FILE_EXTENSIONS_IGNORED = "file_extensions_ignored";
@@ -595,6 +596,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 		KEY_DISABLE_TRANSCODING,
 		KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
+		KEY_FLATTEN_FOLDERS,
 		KEY_FULLY_PLAYED_ACTION,
 		KEY_HIDE_EMPTY_FOLDERS,
 		KEY_OPEN_ARCHIVES,
@@ -4260,6 +4262,14 @@ public class UmsConfiguration extends BaseConfiguration {
 		this.configuration.setProperty(UmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, value);
 	}
 
+	public boolean isFlattenFolders() {
+		return getBoolean(UmsConfiguration.KEY_FLATTEN_FOLDERS, false);
+	}
+
+	public void setFlattenFolders(final boolean value) {
+		this.configuration.setProperty(UmsConfiguration.KEY_FLATTEN_FOLDERS, value);
+	}
+
 	public boolean isHideEmptyFolders() {
 		return getBoolean(UmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, false);
 	}
@@ -5831,6 +5841,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FORCED_SUBTITLE_LANGUAGE, "");
 		jObj.addProperty(KEY_FORCED_SUBTITLE_TAGS, "forced");
 		jObj.addProperty(KEY_THUMBNAIL_GENERATION_ENABLED, true);
+		jObj.addProperty(KEY_FLATTEN_FOLDERS, false);
 		jObj.addProperty(KEY_HIDE_EMPTY_FOLDERS, false);
 		jObj.addProperty(KEY_HIDE_ENGINENAMES, true);
 		jObj.addProperty(KEY_HIDE_EXTENSIONS, true);
