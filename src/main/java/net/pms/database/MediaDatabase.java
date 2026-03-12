@@ -81,6 +81,7 @@ public class MediaDatabase extends Database {
 		} else {
 			LOGGER.debug("Starting check of database tables");
 			try (Connection connection = getConnection()) {
+				// Rebuild Index
 				Splash.setStatusMessage("UpgradingMediaDb");
 				//Tables Versions (need to be first)
 				MediaTableTablesVersions.checkTable(connection);
@@ -121,6 +122,10 @@ public class MediaDatabase extends Database {
 				MediaTableContainerFiles.checkTable(connection);
 
 				MediaTableStoreIds.checkTable(connection);
+
+				// Fix broken indexes if needed. This is faster than checking each index separately and is
+				// not a problem if there are no broken indexes.
+				executeUpdate(connection, "CALL FTL_REINDEX();");
 			}
 			tablesChecked = true;
 		}
