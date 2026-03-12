@@ -37,6 +37,94 @@ public class SearchRequestHandlerTest {
 	}
 
 	@Test
+	public void testGlobalAlbumSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"spirit\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		LOG.info(sql);
+		assertTrue(sql.matches(
+			"(?is)SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*album\\s*\\)\\s+album,\\s+artist,\\s+media_year,\\s+genre,\\s+MBID_RECORD,\\s+ALBUM\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
+	public void testGlobalAlbumSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"spirit\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
+		String countSQL = SearchRequestHandler.convertToCountSql(type, sr);
+		LOG.info(countSQL);
+
+		assertTrue(countSQL.matches(
+			"(?is)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUM\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
+	public void testTreeAlbumSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"spirit\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		LOG.info(sql);
+		assertTrue(sql.matches(
+			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"UNION\\s+ALL\\s+" +
+			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
+			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
+			"SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*album\\s*\\)\\s+album,\\s+artist,\\s+media_year,\\s+genre,\\s+ALBUM\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
+	public void testTreeAlbumSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"spirit\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
+		String sql = SearchRequestHandler.convertToCountSql(type, sr);
+		LOG.info(sql);
+
+		assertTrue(sql.matches(
+			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"UNION\\s+ALL\\s+" +
+			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
+			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
+			"SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUM\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
 	public void testGlobalArtistSearchSql() {
 		SearchRequest sr = new SearchRequest();
 		sr.setSearchCriteria("upnp:class = \"object.container.person\" and dc:title contains \"Rhye\"");
