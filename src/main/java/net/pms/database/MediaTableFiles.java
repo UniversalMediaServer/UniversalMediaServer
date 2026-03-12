@@ -43,7 +43,7 @@ import net.pms.configuration.sharedcontent.SharedContentTypeAdapter;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
-import net.pms.image.JPEGInfo;
+import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
@@ -762,7 +762,11 @@ public class MediaTableFiles extends MediaTable {
 					//not media related
 					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
 					byte[] imageBytes = rs.getBytes(COL_IMAGEINFO);
-					JPEGInfo info = (JPEGInfo) deserialize(imageBytes);
+					Object deserializedImageInfo = deserialize(imageBytes);
+					ImageInfo info = deserializedImageInfo instanceof ImageInfo imageInfo ? imageInfo : null;
+					if (deserializedImageInfo != null && info == null) {
+						LOGGER.warn("Failed to deserialize image info for file {}.", filename);
+					}
 					media.setImageInfo(info);
 					media.setImageCount(rs.getInt(COL_IMAGECOUNT));
 
