@@ -390,20 +390,16 @@ public class SearchRequestHandler {
 	 * @return
 	 */
 	private static String getLuceneTitleMatch(List<SearchToken> list) {
+		final String filterAttr = "dc:title";
+		// Just in case we need to map the request type to a different title property, we can do this here.
+		/*
 		String upnpClass = list.stream().filter(t -> "upnp:class".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.val).orElse("");
-		final String filterAttr;
 		switch (upnpClass.toLowerCase()) {
-			case "object.container.person.musicartist" -> {
-				filterAttr = "dc:title";
-			}
-			case "object.item.audioitem" -> {
-				filterAttr = "dc:title";
-			}
 			default -> {
-				LOGGER.warn("unknown upnp:class {}. Fallback to dc:title search ... ", upnpClass);
 				filterAttr = "dc:title";
 			}
 		}
+		*/
 
 		String title = list.stream().filter(t -> filterAttr.equalsIgnoreCase(t.attr)).findFirst().map(t -> t.val).orElse("");
 		String op = list.stream().filter(t -> filterAttr.equalsIgnoreCase(t.attr)).findFirst().map(t -> t.op).orElse("");
@@ -426,6 +422,12 @@ public class SearchRequestHandler {
 		}
 		title = title.replace("'", "''");
 		LOGGER.debug("lucene search term is : {}", title);
+		if (StringUtils.isBlank(title)) {
+			LOGGER.warn("no search term found for lucene search.");
+			for (SearchToken searchToken : list) {
+				LOGGER.debug("search token : {} {} {}", searchToken.attr, searchToken.op, searchToken.val);
+			}
+		}
 		return title;
 	}
 
