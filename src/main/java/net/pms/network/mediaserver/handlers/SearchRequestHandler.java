@@ -390,7 +390,7 @@ public class SearchRequestHandler {
 		final String filterAttr;
 		switch (upnpClass.toLowerCase()) {
 			case "object.container.person.musicartist" -> {
-				filterAttr = "upnp:artist";
+				filterAttr = "dc:title";
 			}
 			case "object.item.audioitem" -> {
 				filterAttr = "dc:title";
@@ -585,6 +585,8 @@ public class SearchRequestHandler {
 	 * However, this would disable the lucene fuzzy and proximity search! This could be counter intuitive for users! That's
 	 * why it's not implemented.
 	 *
+	 * All container lookups should put it's search term in "dc:title". As fallback some musicItem properties are also accepted.
+	 *
 	 * @param sb
 	 * @param property
 	 * @param op
@@ -595,19 +597,19 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO, TYPE_PLAYLIST -> {
 				if ("dc:title".equalsIgnoreCase(property)) {
-					LOGGER.trace("type / property is indexed by lucene. Ignore this property for SQL generation.");
+					LOGGER.trace("type / property {} is indexed by lucene. Ignore this property for SQL generation.", property);
 					sb.append("1 = 1 ");
 				}
 			}
 			case TYPE_PERSON -> {
-				if ("upnp:artist".equalsIgnoreCase(property)) {
-					LOGGER.trace("type / property is indexed by lucene. Ignore this property for SQL generation.");
+				if ("dc:title".equalsIgnoreCase(property) || property.toLowerCase().startsWith("upnp:artist")) {
+					LOGGER.trace("type / property {} is indexed by lucene. Ignore this property for SQL generation.", property);
 					sb.append("1 = 1 ");
 				}
 			}
 			case TYPE_ALBUM -> {
-				if ("upnp:album".equalsIgnoreCase(property)) {
-					LOGGER.trace("type / property is indexed by lucene. Ignore this property for SQL generation.");
+				if ("dc:title".equalsIgnoreCase(property) || "upnp:album".equalsIgnoreCase(property)) {
+					LOGGER.trace("type / property {} is indexed by lucene. Ignore this property for SQL generation.", property);
 					sb.append("1 = 1 ");
 				}
 			}
