@@ -37,6 +37,57 @@ public class SearchRequestHandlerTest {
 	}
 
 	@Test
+	public void testTreeMusicItemSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		LOG.info(sql);
+		assertTrue(sql.matches(
+			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"UNION\\s+ALL\\s+" +
+			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
+			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
+			"SELECT\\s+A\\.RATING,\\s+A\\.GENRE,\\s+F\\.FILENAME,\\s+F\\.MODIFIED,\\s+F\\.ID\\s+AS\\s+FID,\\s+F\\.ID\\s+AS\\s+OID,\\s+FT\\.SCORE\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"JOIN\\s+tree\\s+ON\\s+F\\.FILENAME\\s*=\\s*tree\\.name\\s+" +
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
+	public void testTreeMusicItemSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
+		String countSQL = SearchRequestHandler.convertToCountSql(type, sr);
+		LOG.info(countSQL);
+
+		assertTrue(countSQL.matches(
+			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"UNION\\s+ALL\\s+" +
+			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
+			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
+			"SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"JOIN\\s+tree\\s+ON\\s+F\\.FILENAME\\s*=\\s*tree\\.name\\s+" +
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
 	public void testGlobalMusicItemSearchCount() {
 		SearchRequest sr = new SearchRequest();
 		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
@@ -60,8 +111,13 @@ public class SearchRequestHandlerTest {
 		sr.setStartingIndex(0);
 		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
 		LOG.info(sql);
-//		assertTrue(sql.matches(
-//				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s*A.CONDUCTOR\\s+ILIKE\\s+'%bernstein%'"));
+		assertTrue(sql.matches(
+			"(?i)SELECT\\s+A\\.RATING,\\s+A\\.GENRE,\\s+F\\.FILENAME,\\s+F\\.MODIFIED,\\s+F\\.ID\\s+AS\\s+FID,\\s+FT\\.SCORE,\\s+F\\.ID\\s+AS\\s+OID\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
 	}
 
 
