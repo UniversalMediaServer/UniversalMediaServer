@@ -301,6 +301,7 @@ public class UmsContentDirectoryService {
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
+			LOGGER.error("Exception in browse action \"{}\"", ex.getMessage(), ex);
 			throw ex;
 		} catch (Exception ex) {
 			LOGGER.error("Exception in result creation \"{}\"", ex.getMessage(), ex);
@@ -346,8 +347,10 @@ public class UmsContentDirectoryService {
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
+			LOGGER.error("Exception in search action \"{}\"", ex.getMessage(), ex);
 			throw ex;
 		} catch (Exception ex) {
+			LOGGER.error("Exception in search action \"{}\"", ex.getMessage(), ex);
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, ex.toString());
 		}
 	}
@@ -399,8 +402,9 @@ public class UmsContentDirectoryService {
 				throw new ContentDirectoryException(710, "The specified ContainerID is invalid or identifies an object that is not a container.");
 			}
 		} catch (Exception e) {
-			if (e instanceof ContentDirectoryException cde) {
-				throw cde;
+			if (e instanceof ContentDirectoryException ex) {
+				LOGGER.error("Exception in createObject action \"{}\"", ex.getMessage(), ex);
+				throw ex;
 			} else {
 				LOGGER.error("createObject failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
@@ -556,8 +560,9 @@ public class UmsContentDirectoryService {
 				throw new ContentDirectoryException(710, "the ContainerID argument is invalid or identifies an object that is not a container.");
 			}
 		} catch (Exception e) {
-			if (e instanceof ContentDirectoryException cde) {
-				throw cde;
+			if (e instanceof ContentDirectoryException ex) {
+				LOGGER.error("Exception in createReference action \"{}\"", ex.getMessage(), ex);
+				throw ex;
 			} else {
 				LOGGER.error("createReference failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
@@ -601,8 +606,9 @@ public class UmsContentDirectoryService {
 				}
 			}
 		} catch (Exception e) {
-			if (e instanceof ContentDirectoryException cde) {
-				throw cde;
+			if (e instanceof ContentDirectoryException ex) {
+				LOGGER.error("Exception in updateObject action \"{}\"", ex.getMessage(), ex);
+				throw ex;
 			} else {
 				LOGGER.error("updateObject failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
@@ -645,8 +651,9 @@ public class UmsContentDirectoryService {
 				throw new ContentDirectoryException(ErrorCode.OPTIONAL_ACTION);
 			}
 		} catch (Exception e) {
-			if (e instanceof ContentDirectoryException cde) {
-				throw cde;
+			if (e instanceof ContentDirectoryException ex) {
+				LOGGER.error("Exception in destroyObject action \"{}\"", ex.getMessage(), ex);
+				throw ex;
 			} else {
 				LOGGER.error("destroyObject failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
