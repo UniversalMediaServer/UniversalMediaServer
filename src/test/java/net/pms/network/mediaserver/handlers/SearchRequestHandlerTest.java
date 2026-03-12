@@ -82,6 +82,23 @@ public class SearchRequestHandlerTest {
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s*A.CONDUCTOR\\s+ILIKE\\s+'%bernstein%'"));
 	}
 
+	/**
+	 * Test for an album search.
+	 */
+	@Test
+	public void testAlbumSearchGlobal() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.album.musicAlbum\" and dc:title contains \"spirit\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
+		LOG.info(countSQL);
+		assertTrue(countSQL.matches(
+			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUM\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
 	@Test
 	public void testAlbumArtistSearch() {
 		SearchRequest sr = new SearchRequest();
@@ -98,14 +115,15 @@ public class SearchRequestHandlerTest {
 	@Test
 	public void testArtistSearch() {
 		SearchRequest sr = new SearchRequest();
-		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist contains \"tchaikovsky\"");
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and dc:title contains \"tchaikovsky\"");
 		sr.setContainerId("0");
-		sr.setRequestedCount(900);
+		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ARTIST\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+A.ARTIST\\s+ILIKE\\s+'%tchaikovsky%'"));
+			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ARTIST\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ARTIST:tchaikovsky~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
 	}
 
 	/**
