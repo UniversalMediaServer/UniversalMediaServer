@@ -875,9 +875,11 @@ public class UmsContentDirectoryService {
 		try {
 			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchRequest.getSearchCriteria());
 			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(requestType, searchRequest));
-			LOGGER.debug("searchCriteria: {} - COUNT MATCHES : {}", searchRequest.getSearchCriteria(), totalMatches);
+			LOGGER.debug("  - count TOTAL MATCHES : {}", searchRequest.getSearchCriteria(), totalMatches);
 			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchRequest, requestType);
 			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
+			LOGGER.debug("SQL : {}", sqlFiles);
+			LOGGER.debug("  - resultset Elements count : {}", resultResources.size());
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 			LOGGER.trace("Creating DIDL result");

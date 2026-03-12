@@ -88,7 +88,6 @@ public class SearchRequestHandler {
 	}
 
 	public static DbIdMediaType getRequestType(String searchCriteria) {
-		LOGGER.debug("search criteria : {}", searchCriteria);
 		Matcher matcher = CLASS_PATTERN.matcher(searchCriteria);
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
