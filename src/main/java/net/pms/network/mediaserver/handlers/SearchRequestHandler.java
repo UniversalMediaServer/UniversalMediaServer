@@ -386,8 +386,23 @@ public class SearchRequestHandler {
 	 * @return
 	 */
 	private static String getLuceneTitleMatch(List<SearchToken> list) {
-		String title = list.stream().filter(t -> "dc:title".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.val).orElse("");
-		String op = list.stream().filter(t -> "dc:title".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.op).orElse("");
+		String upnpClass = list.stream().filter(t -> "upnp:class".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.val).orElse("");
+		final String filterAttr;
+		switch (upnpClass.toLowerCase()) {
+			case "object.container.person.musicartist" -> {
+				filterAttr = "upnp:artist";
+			}
+			case "object.item.audioitem" -> {
+				filterAttr = "dc:title";
+			}
+			default -> {
+				LOGGER.warn("unknown upnp:class {}. Fallback to dc:title search ... ", upnpClass);
+				filterAttr = "dc:title";
+			}
+		}
+
+		String title = list.stream().filter(t -> filterAttr.equalsIgnoreCase(t.attr)).findFirst().map(t -> t.val).orElse("");
+		String op = list.stream().filter(t -> filterAttr.equalsIgnoreCase(t.attr)).findFirst().map(t -> t.op).orElse("");
 		// Escape lucene special characters
 		title = LUCENE_PATTERN.matcher(title).replaceAll("\\\\$1");
 		if ("contains".equalsIgnoreCase(op)) {
@@ -553,7 +568,6 @@ public class SearchRequestHandler {
 			} else if (matcher.group("property").startsWith("upnp:") || matcher.group("property").startsWith("dc:")) {
 				appendProperty(sb, matcher.group("property"), matcher.group("op"), matcher.group("val"), requestType);
 			}
-			sb.append("");
 			lastIndex = matcher.end();
 		}
 		if (lastIndex < searchCriteria.length()) {
@@ -568,11 +582,8 @@ public class SearchRequestHandler {
 	 * Title property depends on what Result type is being searched for.
 	 *
 	 * If we want to support requests like "*searchTerm*" , we would need to add the 'default' logic to the search term instead of escaping it.
-	 *
-	 * ATTENTION:
-	 * ===============
-	 * Uncomment the code block below for "*TERM" support. However, this would disable the lucene fuzzy and proximity search! This could be
-	 * counter intuitive for users!
+	 * However, this would disable the lucene fuzzy and proximity search! This could be counter intuitive for users! That's
+	 * why it's not implemented.
 	 *
 	 * @param sb
 	 * @param property
@@ -582,30 +593,34 @@ public class SearchRequestHandler {
 	 */
 	private static void appendProperty(StringBuilder sb, String property, String op, String val, DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PLAYLIST -> {
+			case TYPE_AUDIO, TYPE_PLAYLIST -> {
 				if ("dc:title".equalsIgnoreCase(property)) {
 					LOGGER.trace("type / property is indexed by lucene. Ignore this property for SQL generation.");
 					sb.append("1 = 1 ");
 				}
-				/** CODE BLOCK FOR "*TERM" SUPORT. Remove the "return statement below the comment and uncomment it.
-				if (!val.startsWith("*")) {
-					// Lucene doesn't support wildcard matching for the start of a search term like "*TERM".
-					return;
+			}
+			case TYPE_PERSON -> {
+				if ("upnp:artist".equalsIgnoreCase(property)) {
+					LOGGER.trace("type / property is indexed by lucene. Ignore this property for SQL generation.");
+					sb.append("1 = 1 ");
 				}
-				*/
-				return;
+			}
+			case TYPE_ALBUM -> {
+				if ("upnp:album".equalsIgnoreCase(property)) {
+					LOGGER.trace("type / property is indexed by lucene. Ignore this property for SQL generation.");
+					sb.append("1 = 1 ");
+				}
 			}
 			default -> {
+				if ("=".equals(op)) {
+					sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
+				} else if ("contains".equals(op)) {
+					sb.append(String.format("%s ILIKE '%%%s%%'", getField(property, requestType), escapeH2dbSql(val)));
+				} else {
+					throw new RuntimeException("unknown or unimplemented operator : " + op);
+				}
 			}
 		}
-		if ("=".equals(op)) {
-			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
-		} else if ("contains".equals(op)) {
-			sb.append(String.format("%s ILIKE '%%%s%%'", getField(property, requestType), escapeH2dbSql(val)));
-		} else {
-			throw new RuntimeException("unknown or unimplemented operator : " + op);
-		}
-		sb.append("");
 	}
 
 	private static String escapeH2dbSql(String val) {
