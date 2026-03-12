@@ -233,14 +233,14 @@ public class SearchRequestHandler {
 				String sql = getTreeStatement(subtreeId) + "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					getTreeWhereStatement(subtreeId, true);
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					getTreeWhereStatement(subtreeId, true);
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
@@ -256,22 +256,23 @@ public class SearchRequestHandler {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (album) album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					getTreeWhereStatement(subtreeId, true);
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
 			}
 			case TYPE_PLAYLIST -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'FILES' AND ";
+					getTreeWhereStatement(subtreeId, true);
 				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage);
 			}
 			case TYPE_FOLDER -> {
-				return getTreeStatement(subtreeId) + "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from tree JOIN STORE_IDS child on tree.name = child.name, STORE_IDS parent where ";
+				return getTreeStatement(subtreeId) + "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from tree JOIN STORE_IDS child on tree.name = child.name, STORE_IDS parent" +
+					getTreeWhereStatement(subtreeId, true);
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return getTreeStatement(subtreeId) + "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
-			}
+				return getTreeStatement(subtreeId) + "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name " +
+					getTreeWhereStatement(subtreeId, true);			}
 			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
 	}
@@ -338,13 +339,13 @@ public class SearchRequestHandler {
 			case TYPE_AUDIO -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(*) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					getTreeWhereStatement(subtreeId, true);
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					getTreeWhereStatement(subtreeId, true);
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
@@ -359,20 +360,22 @@ public class SearchRequestHandler {
 			case TYPE_ALBUM -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ALBUM) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					getTreeWhereStatement(subtreeId, true);
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage, true);
 			}
 			case TYPE_PLAYLIST -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] JOIN tree ON F.FILENAME = tree.name " +
-					"WHERE FT.\"TABLE\" = 'FILES' AND ";
+					getTreeWhereStatement(subtreeId, true);
 				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage, true);
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name " +
+					getTreeWhereStatement(subtreeId, true);
 			}
 			case TYPE_FOLDER -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT child.NAME) from tree JOIN STORE_IDS child on tree.id = child.id, STORE_IDS parent where ";
+				return getTreeStatement(subtreeId) + "select count(DISTINCT child.NAME) from tree JOIN STORE_IDS child on tree.id = child.id, STORE_IDS parent " +
+					getTreeWhereStatement(subtreeId, true);
 			}
 			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
@@ -926,19 +929,25 @@ public class SearchRequestHandler {
 	}
 
 	private static String getTreeStatement(String subtreeId) {
-		String tree = String.format("WITH RECURSIVE tree(id, parent_id, name) AS (" +
-			"    SELECT id, parent_id, name" +
-			"    FROM STORE_IDS" +
-			"    WHERE id = %s" +
-			"\n" +
-			"    UNION ALL" +
-			"\n" +
-			"    SELECT t.id, t.parent_id, t.name" +
-			"    FROM STORE_IDS t" +
-			"    INNER JOIN tree ON t.parent_id = tree.id " +
-			")\n" +
-			"", subtreeId);
+		String tree = String.format("WITH RECURSIVE tree(id, name) AS (\n" +
+			"    SELECT id, name FROM STORE_IDS WHERE id = %s\n" +
+			"    UNION ALL\n" +
+			"    SELECT t.id, t.name FROM STORE_IDS t \n" +
+			"    INNER JOIN tree ON t.parent_id = tree.id\n" +
+			") ", subtreeId);
 
+		return tree;
+	}
+
+	private static String getTreeWhereStatement(String subtreeId, boolean addAnd) {
+		String tree = String.format(" WHERE EXISTS (\n" +
+			"    SELECT 1 FROM tree \n" +
+			"    WHERE F.FILENAME like tree.name || '%%%%'\n" +
+			")\n" +
+			"AND FT.\"TABLE\" = 'AUDIO_METADATA' ", subtreeId);
+		if (addAnd) {
+			tree = tree + " AND ";
+		}
 		return tree;
 	}
 }

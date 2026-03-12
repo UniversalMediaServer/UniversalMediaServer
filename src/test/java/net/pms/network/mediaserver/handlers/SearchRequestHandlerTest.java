@@ -19,6 +19,7 @@ package net.pms.network.mediaserver.handlers;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,6 +35,35 @@ public class SearchRequestHandlerTest {
 	public static final void setUp() throws ConfigurationException, InterruptedException {
 		// No need to setup anything
 	}
+
+	@Test
+	public void testGlobalMusicItemSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
+		String countSQL = SearchRequestHandler.convertToCountSql(type, sr);
+		LOG.info(countSQL);
+		assertTrue(countSQL.matches(
+			"(?i)SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
+	public void testGlobalMusicItemSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		LOG.info(sql);
+//		assertTrue(sql.matches(
+//				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s*A.CONDUCTOR\\s+ILIKE\\s+'%bernstein%'"));
+	}
+
 
 	@Test
 	public void testVideoFileSqlStatement() {
