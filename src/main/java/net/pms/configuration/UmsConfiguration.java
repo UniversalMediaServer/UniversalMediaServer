@@ -4592,7 +4592,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean isAutoUpdate() {
-		return Build.isUpdatable() && getBoolean(KEY_AUTO_UPDATE, true);
+		return Build.isUpdatable() && getBoolean(KEY_AUTO_UPDATE, true) && getExternalNetwork();
 	}
 
 	public void setAutoUpdate(boolean value) {

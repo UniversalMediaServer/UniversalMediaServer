@@ -133,7 +133,7 @@ public class JavaGui extends JFrame implements IGui {
 		SwingUtil.initializeLookAndFeel();
 
 		// wait until the look and feel has been initialized before (possibly) displaying the update notification dialog
-		if (autoUpdater != null) {
+		if (autoUpdater != null && configuration.isAutoUpdate()) {
 			autoUpdater.pollServer();
 		}
 
