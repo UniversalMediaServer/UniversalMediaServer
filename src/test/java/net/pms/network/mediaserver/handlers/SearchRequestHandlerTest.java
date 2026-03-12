@@ -37,6 +37,91 @@ public class SearchRequestHandlerTest {
 	}
 
 	@Test
+	public void testGlobalPlaylistSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		LOG.info(sql);
+		assertTrue(sql.matches(
+			"(?is)SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+FILENAME,\\s+ONLYFILENAME,\\s+MODIFIED,\\s+F\\.ID\\s+as\\s+FID,\\s+F\\.ID\\s+as\\s+oid\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ONLYFILENAME:jazz~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'FILES'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*16\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
+	public void testGlobalPlaylistSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
+		String sql = SearchRequestHandler.convertToCountSql(type, sr);
+		LOG.info(sql);
+
+		assertTrue(sql.matches(
+			"(?is)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+F\\.ID\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ONLYFILENAME:jazz~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'FILES'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*16\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
+	public void testTreePlaylistSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		LOG.info(sql);
+		assertTrue(sql.matches(
+			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"UNION\\s+ALL\\s+" +
+			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
+			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
+			"SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+FILENAME,\\s+ONLYFILENAME,\\s+MODIFIED,\\s+F\\.ID\\s+as\\s+FID,\\s+F\\.ID\\s+as\\s+oid\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ONLYFILENAME:jazz~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'FILES'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*16\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
+	public void testTreePlaylistSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
+		String sql = SearchRequestHandler.convertToCountSql(type, sr);
+		LOG.info(sql);
+
+		assertTrue(sql.matches(
+			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"UNION\\s+ALL\\s+" +
+			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
+			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
+			"SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+F\\.ID\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ONLYFILENAME:jazz~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+tree\\s+ON\\s+F\\.FILENAME\\s*=\\s*tree\\.name\\s+" +
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'FILES'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*16\\s+and\\s+1\\s*=\\s*1\\s*"
+		));
+	}
+
+	@Test
 	public void testGlobalAlbumSearchSql() {
 		SearchRequest sr = new SearchRequest();
 		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"spirit\"");
