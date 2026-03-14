@@ -324,7 +324,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					if (inputStream != null) {
 						if (filename.endsWith(".ts")) {
 							resp.setContentType(HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
-							startStopListener = new StartStopListener(req.getRemoteHost(), item);
+							startStopListener = new StartStopListener(req.getRemoteAddr(), item);
 							LOGGER.trace("Sending inputstream for " + filename);
 							sendResponse(req, resp, renderer, 200, inputStream, StoreResource.TRANS_SIZE, true, startStopListener);
 						} else if (filename.endsWith(".vtt")) {
@@ -532,7 +532,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					}
 				} else {
 					if (!isVideoThumbnailRequest && GET.equals(req.getMethod().toUpperCase())) {
-						startStopListener = new StartStopListener(req.getRemoteHost(), item);
+						startStopListener = new StartStopListener(req.getRemoteAddr(), item);
 					}
 
 					// Try to determine the content type of the file
@@ -873,7 +873,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		}
 		if (req != null) {
 			rendererName +=
-					" (" + req.getRemoteHost() +
+					" (" + req.getRemoteAddr() +
 					":" + req.getRemotePort() + ")";
 		}
 		return rendererName;

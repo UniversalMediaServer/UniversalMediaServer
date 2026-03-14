@@ -138,31 +138,7 @@ public class SpeedStats {
 		private Integer doCall() throws Exception {
 			String ip = addr.getHostAddress();
 			LOGGER.info("Checking IP: {} for {}", ip, rendererName);
-			// calling the canonical host name the first time is slow, so we call it in a separate thread
-			String hostname = addr.getCanonicalHostName();
-			synchronized (SPEED_STATS) {
-				Future<Integer> otherTask = SPEED_STATS.get(hostname);
-				if (otherTask != null) {
-					// wait a little bit
-					try {
-						// probably we are waiting for ourself to finish the work...
-						Integer value = otherTask.get(200, TimeUnit.MILLISECONDS);
-						// if the other task already calculated the speed, we get the result,
-						// unless we do it now
-						if (value != null) {
-							return value;
-						}
-					} catch (TimeoutException e) {
-						LOGGER.trace("We couldn't get the value based on the canonical name");
-					}
-				}
-			}
-
-			if (!ip.equals(hostname)) {
-				LOGGER.info("Renderer {} found on address: {} ({})", rendererName, hostname, ip);
-			} else {
-				LOGGER.info("Renderer {} found on address: {}", rendererName, ip);
-			}
+			LOGGER.info("Renderer {} found on address: {}", rendererName, ip);
 
 			int[] sizes = {512, 1476, 9100, 32000, 64000};
 			double bps = 0;
@@ -185,7 +161,6 @@ public class SpeedStats {
 				Future<Integer> result = new CompletedFuture<>(speedInMbits);
 				// update the statistics with a computed future value
 				SPEED_STATS.put(ip, result);
-				SPEED_STATS.put(hostname, result);
 			}
 			return speedInMbits;
 		}

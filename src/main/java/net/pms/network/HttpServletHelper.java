@@ -16,6 +16,7 @@
  */
 package net.pms.network;
 
+import com.google.common.net.InetAddresses;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -30,7 +31,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -74,29 +74,17 @@ public abstract class HttpServletHelper extends HttpServlet {
 	}
 
 	protected static InetAddress getInetAddress(ServletRequest req) {
-		try {
-			return InetAddress.getByName(req.getRemoteAddr());
-		} catch (UnknownHostException ex) {
-			return null;
-		}
+		return parseAddressLiteral(req.getRemoteAddr());
 	}
 
 	protected static boolean isLocalhost(ServletRequest req) {
-		try {
-			InetAddress inetAddress = InetAddress.getByName(req.getRemoteAddr());
-			return inetAddress.isLoopbackAddress();
-		} catch (UnknownHostException ex) {
-			return false;
-		}
+		InetAddress inetAddress = getInetAddress(req);
+		return inetAddress != null && inetAddress.isLoopbackAddress();
 	}
 
 	protected static boolean deny(ServletRequest req) {
-		try {
-			InetAddress inetAddress = InetAddress.getByName(req.getRemoteAddr());
-			return !NetworkDeviceFilter.isAllowed(inetAddress) || !PMS.isReady();
-		} catch (UnknownHostException ex) {
-			return true;
-		}
+		InetAddress inetAddress = getInetAddress(req);
+		return inetAddress == null || !NetworkDeviceFilter.isAllowed(inetAddress) || !PMS.isReady();
 	}
 
 	protected static boolean isHttp10(ServletRequest req) {
@@ -104,7 +92,18 @@ public abstract class HttpServletHelper extends HttpServlet {
 	}
 
 	public static void logHttpServletRequest(HttpServletRequest req, String content) {
-		logHttpServletRequest(req, content, req.getRemoteHost());
+		logHttpServletRequest(req, content, req.getRemoteAddr());
+	}
+
+	protected static InetAddress parseAddressLiteral(String address) {
+		if (StringUtils.isBlank(address)) {
+			return null;
+		}
+		try {
+			return InetAddresses.forString(address);
+		} catch (IllegalArgumentException ex) {
+			return null;
+		}
 	}
 
 	protected static void logHttpServletRequest(HttpServletRequest req, String content, String remoteHost) {

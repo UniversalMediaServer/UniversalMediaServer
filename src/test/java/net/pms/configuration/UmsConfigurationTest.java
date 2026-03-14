@@ -106,4 +106,11 @@ public class UmsConfigurationTest {
 		configuration.setLanguage((Locale) null);
 		assertEquals(configuration.getLanguageRawString(), "", "setLanguage(null)SetsBlankString");
 	}
+
+	@Test
+	public void testParseRuntimeHostName() {
+		assertEquals("neue-pro", UmsConfiguration.parseRuntimeHostName("12345@neue-pro"));
+		assertNull(UmsConfiguration.parseRuntimeHostName("12345"));
+		assertNull(UmsConfiguration.parseRuntimeHostName(""));
+	}
 }

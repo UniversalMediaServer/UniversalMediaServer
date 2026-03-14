@@ -1381,7 +1381,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					if (sid != null) {
 						item.setMediaSubtitle(sid);
 					}
-					StartStopListener startStopListener = new StartStopListener(req.getRemoteHost(), item);
+					StartStopListener startStopListener = new StartStopListener(req.getRemoteAddr(), item);
 					OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 8 * 1024);
 					copyStreamAsync(in, os, async, startStopListener);
 				} else {

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -112,11 +113,7 @@ public class NetworkDeviceFilter {
 		JsonArray devices = new JsonArray();
 		for (InetAddressSeen addrSeen : LAST_SEEN.values()) {
 			if (addrSeen.addr.isLoopbackAddress()) {
-				JsonObject device = new JsonObject();
-				device.addProperty("hostName", addrSeen.addr.getHostName());
-				device.addProperty("ipAddress", addrSeen.addr.getHostAddress());
-				device.addProperty("lastSeen", addrSeen.seen);
-				devices.add(device);
+				devices.add(createDevice(addrSeen));
 			}
 		}
 		if (!devices.isEmpty()) {
@@ -131,11 +128,7 @@ public class NetworkDeviceFilter {
 			devices = new JsonArray();
 			for (InetAddressSeen addrSeen : LAST_SEEN.values()) {
 				if (!addrSeen.addr.isLoopbackAddress() && predicate.match(addrSeen.addr)) {
-					JsonObject device = new JsonObject();
-					device.addProperty("hostName", addrSeen.addr.getHostName());
-					device.addProperty("ipAddress", addrSeen.addr.getHostAddress());
-					device.addProperty("lastSeen", addrSeen.seen);
-					devices.add(device);
+					devices.add(createDevice(addrSeen));
 				}
 			}
 			rule.add("devices", devices);
@@ -148,11 +141,7 @@ public class NetworkDeviceFilter {
 				rule.addProperty("isDefault", false);
 				rule.addProperty("isAllowed", isAllowed);
 				devices = new JsonArray();
-				JsonObject device = new JsonObject();
-				device.addProperty("hostName", addrSeen.addr.getHostName());
-				device.addProperty("ipAddress", addrSeen.addr.getHostAddress());
-				device.addProperty("lastSeen", addrSeen.seen);
-				devices.add(device);
+				devices.add(createDevice(addrSeen));
 				rule.add("devices", devices);
 				result.add(rule);
 			}
@@ -188,13 +177,41 @@ public class NetworkDeviceFilter {
 
 		if (log) {
 			if (allowedByDefault) {
-				LOGGER.info("IP Filter: Access allowed to {}", addr.getHostName());
+				LOGGER.info("IP Filter: Access allowed to {}", getDisplayName(addr));
 			} else {
-				LOGGER.info("IP Filter: Access denied to {}", addr.getHostName());
+				LOGGER.info("IP Filter: Access denied to {}", getDisplayName(addr));
 			}
 		}
 
 		return allowedByDefault;
+	}
+
+	private static JsonObject createDevice(InetAddressSeen addrSeen) {
+		JsonObject device = new JsonObject();
+		device.addProperty("hostName", getDisplayName(addrSeen.addr));
+		device.addProperty("ipAddress", addrSeen.addr.getHostAddress());
+		device.addProperty("lastSeen", addrSeen.seen);
+		return device;
+	}
+
+	static String getDisplayName(InetAddress addr) {
+		if (addr.isLoopbackAddress()) {
+			return "localhost";
+		}
+		String text = addr.toString();
+		int separator = text.indexOf('/');
+		if (separator > 0) {
+			return text.substring(0, separator);
+		}
+		return addr.getHostAddress();
+	}
+
+	private static String getNameForMatching(InetAddress addr) {
+		String displayName = getDisplayName(addr);
+		if (!displayName.equals(addr.getHostAddress())) {
+			return displayName.toLowerCase(Locale.ROOT);
+		}
+		return addr.getHostName().toLowerCase(Locale.ROOT);
 	}
 
 	private static synchronized String getNormalizedFilter() {
@@ -248,7 +265,7 @@ public class NetworkDeviceFilter {
 
 		@Override
 		public boolean match(InetAddress addr) {
-			return addr.getHostName().toLowerCase().contains(name);
+			return getNameForMatching(addr).contains(name);
 		}
 
 		@Override

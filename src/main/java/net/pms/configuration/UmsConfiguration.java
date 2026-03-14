@@ -29,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -113,6 +114,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
+	private static final String ENV_HOSTNAME = "HOSTNAME";
+	private static final String ENV_COMPUTERNAME = "COMPUTERNAME";
 	private static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
 	private static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 	private static final String PORTABLE_PATH = "portable";
@@ -4561,14 +4564,44 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public static String getHostName() {
 		if (hostName == null) { // Initialise this lazily
-			try {
-				hostName = InetAddress.getLocalHost().getHostName();
-			} catch (UnknownHostException e) {
-				LOGGER.info("Can't determine hostname");
-				hostName = "unknown host";
-			}
+			hostName = resolveHostName();
 		}
 		return hostName;
+	}
+
+	static String resolveHostName() {
+		String resolvedHostName = StringUtils.trimToNull(System.getenv(ENV_HOSTNAME));
+		if (resolvedHostName != null) {
+			return resolvedHostName;
+		}
+
+		resolvedHostName = StringUtils.trimToNull(System.getenv(ENV_COMPUTERNAME));
+		if (resolvedHostName != null) {
+			return resolvedHostName;
+		}
+
+		resolvedHostName = parseRuntimeHostName(ManagementFactory.getRuntimeMXBean().getName());
+		if (resolvedHostName != null) {
+			return resolvedHostName;
+		}
+
+		try {
+			return InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			LOGGER.info("Can't determine hostname");
+			return "unknown host";
+		}
+	}
+
+	static String parseRuntimeHostName(String runtimeName) {
+		if (StringUtils.isBlank(runtimeName)) {
+			return null;
+		}
+		int separator = runtimeName.indexOf('@');
+		if (separator < 0 || separator == runtimeName.length() - 1) {
+			return null;
+		}
+		return runtimeName.substring(separator + 1);
 	}
 
 	public String getProfileName() {
