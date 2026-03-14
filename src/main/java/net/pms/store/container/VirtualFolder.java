@@ -132,6 +132,7 @@ public class VirtualFolder extends StoreContainer {
 	private List<File> getFilesListForDirectories() {
 		List<File> out = new ArrayList<>();
 		List<String> ignoredDirectoryNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
+		boolean flatten = renderer.getUmsConfiguration().isFlattenFolders();
 		String directoryName;
 		for (File directory : getFiles()) {
 			directoryName = directory == null || directory.getName() == null ? "unnamed" : directory.getName();
@@ -146,43 +147,85 @@ public class VirtualFolder extends StoreContainer {
 				continue;
 			}
 
-			if (directory.canRead()) {
-				File[] listFiles = directory.listFiles((File file) -> {
-					// Reject any non readable
-					if (!file.canRead()) {
-						LOGGER.trace("Ignoring '{}' because it is unreadable", file);
-						return false;
-					}
-					String filename = file.getName();
-					// Accept any directory
-					if (file.isDirectory()) {
-						// Skip if ignored
-						boolean ignored = (!ignoredDirectoryNames.isEmpty() && ignoredDirectoryNames.contains(filename));
-						if (ignored) {
-							LOGGER.debug("Ignoring '{}' because it is in the ignored directories list", file);
-						}
-						return !ignored;
-					}
-
-					// We want to find only media files
-					boolean isMediaFile = SystemFilesHelper.isPotentialMediaFile(filename);
-					if (!isMediaFile) {
-						LOGGER.trace("Ignoring '{}' because it is not a media file", file);
-					}
-					return isMediaFile;
-				});
-
-				if (listFiles == null) {
-					LOGGER.warn("Can't read files from directory: {}", directory.getAbsolutePath());
-				} else {
-					out.addAll(Arrays.asList(listFiles));
-				}
+			if (flatten) {
+				collectFilesRecursively(directory, ignoredDirectoryNames, out);
 			} else {
-				LOGGER.warn("Can't read directory: {}", directory.getAbsolutePath());
+				collectFilesFromDirectory(directory, ignoredDirectoryNames, out);
 			}
 		}
 
 		return out;
+	}
+
+	private void collectFilesFromDirectory(File directory, List<String> ignoredDirectoryNames, List<File> out) {
+		if (!directory.canRead()) {
+			LOGGER.warn("Can't read directory: {}", directory.getAbsolutePath());
+			return;
+		}
+		File[] listFiles = directory.listFiles((File file) -> {
+			// Reject any non readable
+			if (!file.canRead()) {
+				LOGGER.trace("Ignoring '{}' because it is unreadable", file);
+				return false;
+			}
+			String filename = file.getName();
+			// Accept any directory
+			if (file.isDirectory()) {
+				// Skip if ignored
+				boolean ignored = (!ignoredDirectoryNames.isEmpty() && ignoredDirectoryNames.contains(filename));
+				if (ignored) {
+					LOGGER.debug("Ignoring '{}' because it is in the ignored directories list", file);
+				}
+				return !ignored;
+			}
+
+			// We want to find only media files
+			boolean isMediaFile = SystemFilesHelper.isPotentialMediaFile(filename);
+			if (!isMediaFile) {
+				LOGGER.trace("Ignoring '{}' because it is not a media file", file);
+			}
+			return isMediaFile;
+		});
+
+		if (listFiles == null) {
+			LOGGER.warn("Can't read files from directory: {}", directory.getAbsolutePath());
+		} else {
+			out.addAll(Arrays.asList(listFiles));
+		}
+	}
+
+	/**
+	 * Recursively collects only media files from a directory tree, skipping
+	 * subdirectories from the output. Used when "flatten folders" is enabled.
+	 */
+	private void collectFilesRecursively(File directory, List<String> ignoredDirectoryNames, List<File> out) {
+		if (!directory.canRead()) {
+			LOGGER.warn("Can't read directory: {}", directory.getAbsolutePath());
+			return;
+		}
+		File[] listFiles = directory.listFiles();
+		if (listFiles == null) {
+			LOGGER.warn("Can't read files from directory: {}", directory.getAbsolutePath());
+			return;
+		}
+		for (File file : listFiles) {
+			if (!file.canRead()) {
+				LOGGER.trace("Ignoring '{}' because it is unreadable", file);
+				continue;
+			}
+			if (file.isDirectory()) {
+				String filename = file.getName();
+				if (!ignoredDirectoryNames.isEmpty() && ignoredDirectoryNames.contains(filename)) {
+					LOGGER.debug("Ignoring '{}' because it is in the ignored directories list", file);
+					continue;
+				}
+				collectFilesRecursively(file, ignoredDirectoryNames, out);
+			} else if (SystemFilesHelper.isPotentialMediaFile(file.getName())) {
+				out.add(file);
+			} else {
+				LOGGER.trace("Ignoring '{}' because it is not a media file", file);
+			}
+		}
 	}
 
 	private boolean analyzeChildren() {
