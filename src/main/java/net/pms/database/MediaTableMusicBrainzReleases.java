@@ -24,7 +24,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.UUID;
 import net.pms.external.musicbrainz.api.MusicBrainzTagInfo;
-import net.pms.media.audio.metadata.MusicBrainzAlbum;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -336,7 +336,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		return result;
 	}
 
-	public static MusicBrainzAlbum getMusicBrainzAlbum(String mbid) {
+	public static AlbumMetadata getMusicBrainzAlbum(String mbid) {
 		try (
 			Connection connection = MediaDatabase.getConnectionIfAvailable();
 			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_MBID, ResultSet.TYPE_FORWARD_ONLY);
@@ -345,7 +345,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 			updateStatement.setObject(1, mbidRecord);
 			try (ResultSet rs = updateStatement.executeQuery()) {
 				if (rs.next()) {
-					return new MusicBrainzAlbum(mbid, rs.getString(COL_TITLE), rs.getString(COL_ARTIST), rs.getString(COL_MEDIA_YEAR),
+					return new AlbumMetadata(mbid, null, rs.getString(COL_TITLE), rs.getString(COL_ARTIST), rs.getString(COL_MEDIA_YEAR),
 							rs.getString(COL_GENRE));
 				} else {
 					LOGGER.debug("mbid not found in database : " + mbid);
@@ -358,7 +358,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		return null;
 	}
 
-	public static void storeMusicBrainzAlbum(MusicBrainzAlbum album) {
+	public static void storeMusicBrainzAlbum(AlbumMetadata album) {
 		try (
 			Connection connection = MediaDatabase.getConnectionIfAvailable();
 			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_MBID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
@@ -383,7 +383,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		}
 	}
 
-	private static void updateAudioMetadata(ResultSet result, MusicBrainzAlbum album) throws SQLException {
+	private static void updateAudioMetadata(ResultSet result, AlbumMetadata album) throws SQLException {
 		try {
 			UUID mbidRecord = UUID.fromString(StringUtils.trimToEmpty(album.getMbReleaseid()));
 			result.updateObject(COL_MBID, mbidRecord);
