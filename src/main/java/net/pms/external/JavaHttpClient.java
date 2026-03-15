@@ -27,6 +27,7 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
@@ -42,10 +43,20 @@ public class JavaHttpClient {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHttpClient.class);
 
+	private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+	private static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(15);
+
 	/**
-	 * This class is not meant to be instantiated.
-	 */
+   * This class is not meant to be instantiated.
+   */
 	private JavaHttpClient() {
+	}
+
+	private static HttpClient buildClient() {
+		return HttpClient.newBuilder()
+				.followRedirects(HttpClient.Redirect.ALWAYS)
+				.connectTimeout(CONNECT_TIMEOUT)
+				.build();
 	}
 
 	/**
@@ -62,11 +73,10 @@ public class JavaHttpClient {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
 					.uri(new URI(uri))
+					.timeout(RESPONSE_TIMEOUT)
 					.GET()
 					.build();
-			HttpResponse<byte[]> response = HttpClient.newBuilder()
-					.followRedirects(HttpClient.Redirect.ALWAYS)
-					.build()
+			HttpResponse<byte[]> response = buildClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
 					.join();
 			int statusCode = response.statusCode();
@@ -89,12 +99,11 @@ public class JavaHttpClient {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
 					.uri(new URI(uri))
+					.timeout(RESPONSE_TIMEOUT)
 					.GET()
 					.build();
 			FileBodyHandler responseBodyHandler = new FileBodyHandler(file, uri, callback);
-			HttpResponse<Void> response = HttpClient.newBuilder()
-					.followRedirects(HttpClient.Redirect.ALWAYS)
-					.build()
+			HttpResponse<Void> response = buildClient()
 					.sendAsync(request, responseBodyHandler)
 					.join();
 			int statusCode = response.statusCode();
@@ -117,12 +126,11 @@ public class JavaHttpClient {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
 					.uri(URI.create(uri))
+					.timeout(RESPONSE_TIMEOUT)
 					.headers("Content-Type", "text/plain;charset=UTF-8")
 					.GET()
 					.build();
-			HttpResponse<String> response = HttpClient.newBuilder()
-					.followRedirects(HttpClient.Redirect.ALWAYS)
-					.build()
+			HttpResponse<String> response = buildClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.ofString())
 					.join();
 			int statusCode = response.statusCode();
@@ -139,11 +147,10 @@ public class JavaHttpClient {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
 					.uri(URI.create(uri))
+					.timeout(RESPONSE_TIMEOUT)
 					.method("HEAD", HttpRequest.BodyPublishers.noBody())
 					.build();
-			HttpResponse<Void> response = HttpClient.newBuilder()
-					.followRedirects(HttpClient.Redirect.ALWAYS)
-					.build()
+			HttpResponse<Void> response = buildClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.discarding())
 					.join();
 			return response.headers();
@@ -168,11 +175,10 @@ public class JavaHttpClient {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
 					.uri(URI.create(uri))
+					.timeout(RESPONSE_TIMEOUT)
 					.GET()
 					.build();
-			return HttpClient.newBuilder()
-					.followRedirects(HttpClient.Redirect.ALWAYS)
-					.build()
+			return buildClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
 					.join();
 		} catch (IllegalArgumentException ex) {

@@ -19,6 +19,7 @@ package net.pms.network;
 import java.net.InetAddress;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
@@ -49,5 +50,15 @@ public class NetworkDeviceFilterTest {
 
 		assertTrue(predicate.match(address));
 		assertFalse(nonMatchingPredicate.match(address));
+	}
+
+	@Test
+	public void testIsAllowedWithIpOnlyAddressCompletesWithinTimeout() throws Exception {
+		InetAddress ipOnly = InetAddress.getByAddress(new byte[] {(byte) 192, 0, 2, 1});
+		assertTimeoutPreemptively(
+				java.time.Duration.ofMillis(5000),
+				() -> NetworkDeviceFilter.isAllowed(ipOnly),
+				"isAllowed() must not block indefinitely on reverse-DNS (issue 6047)"
+		);
 	}
 }

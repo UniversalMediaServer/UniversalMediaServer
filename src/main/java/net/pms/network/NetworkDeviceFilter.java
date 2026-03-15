@@ -48,6 +48,8 @@ public class NetworkDeviceFilter {
 	private static final Set<String> LOGGED = new HashSet<>();
 	private static final Map<String, InetAddressSeen> LAST_SEEN = new HashMap<>();
 
+	private static final long HOSTNAME_RESOLVE_TIMEOUT_MS = 2000;
+
 	private NetworkDeviceFilter() {
 		throw new IllegalStateException("Static class");
 	}
@@ -208,10 +210,11 @@ public class NetworkDeviceFilter {
 
 	private static String getNameForMatching(InetAddress addr) {
 		String displayName = getDisplayName(addr);
-		if (!displayName.equals(addr.getHostAddress())) {
+		String ip = addr.getHostAddress();
+		if (!displayName.equals(ip)) {
 			return displayName.toLowerCase(Locale.ROOT);
 		}
-		return addr.getHostName().toLowerCase(Locale.ROOT);
+		return DnsResolver.resolveReverse(addr, HOSTNAME_RESOLVE_TIMEOUT_MS, "NetworkDeviceFilter.getNameForMatching");
 	}
 
 	private static synchronized String getNormalizedFilter() {
