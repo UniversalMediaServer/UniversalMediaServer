@@ -2814,6 +2814,22 @@
 		</profile>
 
 		<!--
+			Java-only profile: use when running tests or compiling without Node/React.
+			Not activated by default (activeByDefault=false). When you pass -P java-only,
+			Maven activates only this profile, so the default Linux packaging profiles
+			(linux-x86_64, linux-arm64, etc., which have activeByDefault=true) are not
+			activated and the frontend-maven-plugin is not run. Use this if Node setup
+			fails (e.g. symlink creation on some filesystems) or for quick Java test runs.
+			Example: mvn test -P java-only -Dtest=DnsResolverTest,NetworkDeviceFilterTest
+		-->
+		<profile>
+			<id>java-only</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+		</profile>
+
+		<!--
 			This profile allows running UMS from inside Eclipse
 			(Requires a "mvn clean package" to download the binaries first)
 		-->

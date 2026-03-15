@@ -53,12 +53,13 @@ public class NetworkDeviceFilterTest {
 	}
 
 	@Test
-	public void testIsAllowedWithIpOnlyAddressCompletesWithinTimeout() throws Exception {
+	public void testHostNamePredicateWithIpOnlyAddressCompletesWithinTimeout() throws Exception {
 		InetAddress ipOnly = InetAddress.getByAddress(new byte[] {(byte) 192, 0, 2, 1});
+		NetworkDeviceFilter.HostNamePredicate predicate = new NetworkDeviceFilter.HostNamePredicate("192");
 		assertTimeoutPreemptively(
 				java.time.Duration.ofMillis(5000),
-				() -> NetworkDeviceFilter.isAllowed(ipOnly),
-				"isAllowed() must not block indefinitely on reverse-DNS (issue 6047)"
+				() -> predicate.match(ipOnly),
+				"HostNamePredicate.match() must not block indefinitely on reverse-DNS (issue 6047)"
 		);
 	}
 }

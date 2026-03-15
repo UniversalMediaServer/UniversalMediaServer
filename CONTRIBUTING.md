@@ -24,6 +24,17 @@ We will only merge Pull Requests if they don't break our automated tests, if the
 
 For more information, please see [our Development Guide](https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/Development) and [our Style Guide](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/STYLEGUIDE.md).
 
+## Running tests locally
+
+Full builds run the frontend (Node/React) via the frontend-maven-plugin. If Node setup fails (e.g. "Could not create symbolic link for corepack" on some filesystems) or you only need to run Java tests:
+
+- Use the **java-only** profile so packaging profiles (and thus the frontend plugin) are not run:
+  ```bash
+  mvn test -P java-only -Dtest=YourTest,OtherTest
+  ```
+- To run all Java tests without Node: `mvn test -P java-only`
+- For full packaging (with React), use a platform profile as in [How to build UMS](https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS), e.g. `mvn package -P linux-x86_64`.
+
 # <a name="Attachments"></a>Attachments
 
 GitHub only allows image attachments. Other attachments, such as zipped logs, can be posted in the <a href="https://www.universalmediaserver.com/forum/viewtopic.php?f=14&t=1656">GitHub attachments thread</a> in the UMS forum.
