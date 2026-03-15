@@ -27,7 +27,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -319,7 +318,7 @@ public class Renderer extends RendererDeviceConfiguration {
 				sa.isAnyLocalAddress()
 			)
 		) {
-			SpeedStats.getSpeedInMBits(sa, getRendererName());
+			SpeedStats.calculateSpeedInMBits(sa, getRendererName());
 		}
 		return true;
 	}
@@ -737,14 +736,14 @@ public class Renderer extends RendererDeviceConfiguration {
 				} else {
 					setAutomaticVideoQuality("Automatic (Wireless)");
 				}
-
 				return calculatedSpeed;
 			} catch (InterruptedException e) {
+				LOGGER.warn("Automatic maximum bitrate calculation interrupted with: {}", e.getMessage(), e);
 				Thread.currentThread().interrupt();
 				return 0;
 			} catch (ExecutionException e) {
-				LOGGER.debug("Automatic maximum bitrate calculation failed with: {}", e.getCause().getMessage());
-				LOGGER.trace("", e.getCause());
+				Throwable cause = e.getCause();
+				LOGGER.warn("Automatic maximum bitrate calculation failed with: {}", cause != null ? cause.getMessage() : e.getMessage(), e);
 			}
 		}
 		return super.getMaxVideoBitrate();
@@ -762,17 +761,15 @@ public class Renderer extends RendererDeviceConfiguration {
 		int max = super.getMaxVideoBitrate();
 		InetAddress addr = ConnectedRenderers.getRendererInetAddress(this);
 		if (addr != null) {
-			Future<Integer> speed = SpeedStats.getSpeedInMBitsStored(addr);
+			Integer speed = SpeedStats.getCachedSpeedInMBits(addr).get();
 			if (speed != null) {
 				if (max == 0) {
-					return speed.get();
+					return speed;
 				}
-
-				if (speed.get() > max && max > 0) {
+				if (speed > max && max > 0) {
 					return max;
 				}
-
-				return speed.get();
+				return speed;
 			}
 		}
 		return max;
@@ -842,7 +839,7 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public boolean verify() {
 		// FIXME: this is a very fallible, incomplete validity test for use only until
-		// we find something better. The assumption is that renderers unable determine
+		// we find something better. The assumption is that renderers unable to determine
 		// their own address (i.e. non-UPnP/web renderers that have lost their spot in the
 		// address association to a newer renderer at the same ip) are "invalid".
 		return getUpnpMode() == Renderer.UPNP_BLOCK || getAddress() != null;

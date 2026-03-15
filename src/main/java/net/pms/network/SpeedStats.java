@@ -17,16 +17,14 @@
 package net.pms.network;
 
 import java.net.InetAddress;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.platform.IPlatformUtils;
@@ -41,9 +39,9 @@ import org.slf4j.LoggerFactory;
  *
  * This can be used in an asynchronous way, as it returns Future objects.
  *
- * {@link Future<Integer>} speed = SpeedStats.getSpeedInMBits(addr);
+ * {@link CompletableFuture<Integer>} speed = SpeedStats.calculateSpeedInMBits(addr);
  *
- * @see Future
+ * @see CompletableFuture
  *
  * @author zsombor <gzsombor@gmail.com>
  *
@@ -65,54 +63,79 @@ public class SpeedStats {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpeedStats.class);
 
-	private static final Map<String, Future<Integer>> SPEED_STATS = new HashMap<>();
+	private static final long HOSTNAME_RESOLVE_TIMEOUT_MS = 3000;
 
-	/**
-	 * This class is not meant to be instantiated.
-	 */
+	private static final Map<String, Integer> SPEED_STATS = new ConcurrentHashMap<>();
+
 	private SpeedStats() {
+		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
 	}
 
 	/**
-	 * Returns the estimated networks throughput for the given IP address in
-	 * Mb/s from the cache as a {@link Future}.
-	 *
-	 * If no value is cached for {@code addr}, {@code null} is returned.
+	 * Returns the cached speed in Mb/s for the given address, or {@code null} if none.
+	 * Does not trigger measurement. May block for a short amount of time to resolve the hostname if IP statistics are not available.
 	 *
 	 * @param addr the {@link InetAddress} to lookup.
-	 * @return The {@link Future} with the estimated network throughput or
-	 * {@code null}.
+	 * @return The {@link Integer} with the estimated network throughput or
+	 * {@code null} if no value is cached.
 	 */
-	public static Future<Integer> getSpeedInMBitsStored(InetAddress addr) {
-		// only look in the store
-		// if no pings are done resort to conf values
-		synchronized (SPEED_STATS) {
-			return SPEED_STATS.get(addr.getHostAddress());
+	public static CompletableFuture<Integer> getCachedSpeedInMBits(InetAddress addr) {
+		String ip = addr.getHostAddress();
+		Integer value = SPEED_STATS.get(ip);
+		if (value != null) {
+			return CompletableFuture.completedFuture(value);
 		}
+		return CompletableFuture.supplyAsync(() -> {
+			String hostname = DnsResolver.resolveReverse(addr, HOSTNAME_RESOLVE_TIMEOUT_MS, "SpeedStats.getCachedSpeedInMBits");
+			Integer byHostname = SPEED_STATS.get(hostname);
+			// Update cache if resolution failed on speed measurement but
+			// succeeded on reverse hostname resolution.
+			if (byHostname != null && !hostname.equals(ip)) {
+				SPEED_STATS.put(ip, byHostname);
+			}
+			return byHostname;
+		}, BACKGROUND_EXECUTOR);
 	}
 
 	/**
 	 * Return the network throughput for the given IP address in MBits.
-	 *
-	 * It is calculated in the background, and cached, so only a reference is
-	 * given to the result, which can be retrieved by calling the get() method
-	 * on it.
-	 *
-	 * @param addr
-	 * @param rendererName
-	 *
-	 * @return The network throughput
+   *
+   * It is calculated in the background, and cached, so only a reference is
+   * given to the result, which can be retrieved by calling the get() method
+   * on it.
+	 * 
+	 * Calling this always starts a background measurement and returns
+	 * a {@link CompletableFuture} that completes with the speed in Mb/s.
+	 * 
+	 * When the future completes, the cache is updated (under both hostname and IP).
+   *
+   * @param addr
+   * @param rendererName
+   *
+   * @return The network throughput as a {@link CompletableFuture} that completes
 	 */
-	public static Future<Integer> getSpeedInMBits(InetAddress addr, String rendererName) {
-		synchronized (SPEED_STATS) {
-			Future<Integer> value = SPEED_STATS.get(addr.getHostAddress());
-			if (value != null) {
-				return value;
+	public static CompletableFuture<Integer> calculateSpeedInMBits(InetAddress addr, String rendererName) {
+		String ip = addr.getHostAddress();
+		CompletableFuture<Integer> future = CompletableFuture.supplyAsync(
+			() -> {
+				try {
+					return new MeasureSpeed(addr, rendererName).call();
+				} catch (Exception e) {
+					throw new CompletionException(e);
+				}
+			},
+			BACKGROUND_EXECUTOR
+		);
+		String hostname = DnsResolver.resolveReverse(addr, HOSTNAME_RESOLVE_TIMEOUT_MS, "SpeedStats.calculateSpeedInMBits");
+		future.whenComplete((speed, ex) -> {
+			if (ex == null && speed != null) {
+				SPEED_STATS.put(ip, speed);
+				if (!hostname.equals(ip)) {
+					SPEED_STATS.put(hostname, speed);
+				}
 			}
-			value = BACKGROUND_EXECUTOR.submit(new MeasureSpeed(addr, rendererName));
-			SPEED_STATS.put(addr.getHostAddress(), value);
-			return value;
-		}
+		});
+		return future;
 	}
 
 	private static class MeasureSpeed implements Callable<Integer> {
@@ -151,16 +174,15 @@ public class SpeedStats {
 					cnt++;
 				}
 			}
+			// Avoid division by zero if no ping was successful
+			if (cnt == 0) {
+				return -1;
+			}
 			double speedInMbits1 = bps / (cnt * 1000000);
 			LOGGER.info("Renderer {} has an estimated network speed of {} Mb/s", rendererName, speedInMbits1);
 			int speedInMbits = (int) speedInMbits1;
 			if (speedInMbits1 < 1.0) {
 				speedInMbits = -1;
-			}
-			synchronized (SPEED_STATS) {
-				Future<Integer> result = new CompletedFuture<>(speedInMbits);
-				// update the statistics with a computed future value
-				SPEED_STATS.put(ip, result);
 			}
 			return speedInMbits;
 		}
@@ -206,40 +228,6 @@ public class SpeedStats {
 				return ((size + 8 + (frags * 32)) * 8000 * 2) / time;
 			}
 			return time;
-		}
-	}
-
-	static class CompletedFuture<X> implements Future<X> {
-
-		X value;
-
-		public CompletedFuture(X value) {
-			this.value = value;
-		}
-
-		@Override
-		public boolean cancel(boolean mayInterruptIfRunning) {
-			return false;
-		}
-
-		@Override
-		public boolean isCancelled() {
-			return false;
-		}
-
-		@Override
-		public boolean isDone() {
-			return true;
-		}
-
-		@Override
-		public X get() throws InterruptedException, ExecutionException {
-			return value;
-		}
-
-		@Override
-		public X get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-			return value;
 		}
 	}
 

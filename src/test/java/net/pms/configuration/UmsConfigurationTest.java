@@ -109,7 +109,7 @@ public class UmsConfigurationTest {
 
 	@Test
 	public void testParseRuntimeHostName() {
-		assertEquals("neue-pro", UmsConfiguration.parseRuntimeHostName("12345@neue-pro"));
+		assertEquals("sample-hostname", UmsConfiguration.parseRuntimeHostName("12345@sample-hostname"));
 		assertNull(UmsConfiguration.parseRuntimeHostName("12345"));
 		assertNull(UmsConfiguration.parseRuntimeHostName(""));
 	}

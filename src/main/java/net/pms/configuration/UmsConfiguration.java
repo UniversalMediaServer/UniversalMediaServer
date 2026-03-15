@@ -4588,7 +4588,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		try {
 			return InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException e) {
-			LOGGER.info("Can't determine hostname");
+			LOGGER.warn("Can't determine hostname", e);
 			return "unknown host";
 		}
 	}
