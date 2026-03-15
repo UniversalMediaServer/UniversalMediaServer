@@ -86,7 +86,6 @@ public class JUPnPDeviceHelper {
 
 	private static final boolean DEBUG = true; // log upnp state vars
 
-	private static final long DNS_RESOLVE_TIMEOUT_MS = 5000;
 
 	// AVTransport
 	// Play modes
@@ -228,7 +227,7 @@ public class JUPnPDeviceHelper {
 	private static InetAddress getInetAddress(Device device) {
 		URL url = getURL(device);
 		if (url != null && url.getHost() != null) {
-			return DnsResolver.resolveByName(url.getHost(), DNS_RESOLVE_TIMEOUT_MS, "JUPnPDeviceHelper.getInetAddress");
+			return DnsResolver.resolveByName(url.getHost());
 		}
 		return null;
 	}
@@ -439,7 +438,7 @@ public class JUPnPDeviceHelper {
 		for (Device device : devices) {
 			URL url = getURL(device);
 			if (url != null && url.getHost() != null) {
-				InetAddress[] addresses = DnsResolver.resolveAllByName(url.getHost(), DNS_RESOLVE_TIMEOUT_MS, "JUPnPDeviceHelper.getDevice");
+				InetAddress[] addresses = DnsResolver.resolveAllByName(url.getHost());
 				for (InetAddress address : addresses) {
 					if (address.equals(socket)) {
 						return device;

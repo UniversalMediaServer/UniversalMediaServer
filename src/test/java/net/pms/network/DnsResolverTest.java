@@ -29,16 +29,14 @@ import org.junit.jupiter.api.Test;
  */
 class DnsResolverTest {
 
-	private static final String CALL_CONTEXT = "DnsResolverTest";
-
 	@Test
 	void resolveReverseNullReturnsEmpty() {
-		assertEquals("", DnsResolver.resolveReverse(null, 1000, CALL_CONTEXT));
+		assertEquals("", DnsResolver.resolveReverse(null));
 	}
 
 	@Test
 	void resolveReverseLoopbackReturnsLocalhost() throws Exception {
-		String result = DnsResolver.resolveReverse(InetAddress.getLoopbackAddress(), 5000, CALL_CONTEXT);
+		String result = DnsResolver.resolveReverse(InetAddress.getLoopbackAddress());
 		assertNotNull(result);
 		assertTrue(result.equals("localhost") || result.equals("127.0.0.1"),
 				"loopback reverse-DNS should be localhost or 127.0.0.1, got: " + result);
@@ -47,7 +45,7 @@ class DnsResolverTest {
 	@Test
 	void resolveReverseIpOnlyReturnsAddressOrHostname() throws Exception {
 		InetAddress ipOnly = InetAddress.getByAddress(new byte[] {(byte) 192, 0, 2, 1});
-		String result = DnsResolver.resolveReverse(ipOnly, 3000, CALL_CONTEXT);
+		String result = DnsResolver.resolveReverse(ipOnly);
 		assertNotNull(result);
 		assertTrue(result.equals("192.0.2.1") || result.length() > 0,
 				"reverse-DNS returns IP or hostname; got " + result);
@@ -55,44 +53,44 @@ class DnsResolverTest {
 
 	@Test
 	void resolveByNameNullReturnsNull() {
-		assertNull(DnsResolver.resolveByName(null, 1000, CALL_CONTEXT));
+		assertNull(DnsResolver.resolveByName(null));
 	}
 
 	@Test
 	void resolveByNameEmptyReturnsNull() {
-		assertNull(DnsResolver.resolveByName("", 1000, CALL_CONTEXT));
+		assertNull(DnsResolver.resolveByName(""));
 	}
 
 	@Test
 	void resolveByNameLocalhostReturnsAddress() {
-		InetAddress addr = DnsResolver.resolveByName("localhost", 5000, CALL_CONTEXT);
+		InetAddress addr = DnsResolver.resolveByName("localhost");
 		assertNotNull(addr);
 		assertTrue(addr.isLoopbackAddress());
 	}
 
 	@Test
 	void resolveByNameUnknownHostReturnsNull() {
-		InetAddress addr = DnsResolver.resolveByName("nonexistent.invalid.domain.6047", 2000, CALL_CONTEXT);
+		InetAddress addr = DnsResolver.resolveByName("nonexistent.invalid.domain.6047");
 		assertNull(addr);
 	}
 
 	@Test
 	void resolveAllByNameNullReturnsEmptyArray() {
-		InetAddress[] addrs = DnsResolver.resolveAllByName(null, 1000, CALL_CONTEXT);
+		InetAddress[] addrs = DnsResolver.resolveAllByName(null);
 		assertNotNull(addrs);
 		assertEquals(0, addrs.length);
 	}
 
 	@Test
 	void resolveAllByNameEmptyReturnsEmptyArray() {
-		InetAddress[] addrs = DnsResolver.resolveAllByName("", 1000, CALL_CONTEXT);
+		InetAddress[] addrs = DnsResolver.resolveAllByName("");
 		assertNotNull(addrs);
 		assertEquals(0, addrs.length);
 	}
 
 	@Test
 	void resolveAllByNameLocalhostReturnsNonEmpty() {
-		InetAddress[] addrs = DnsResolver.resolveAllByName("localhost", 5000, CALL_CONTEXT);
+		InetAddress[] addrs = DnsResolver.resolveAllByName("localhost");
 		assertNotNull(addrs);
 		assertTrue(addrs.length >= 1);
 		assertTrue(addrs[0].isLoopbackAddress());
@@ -100,7 +98,7 @@ class DnsResolverTest {
 
 	@Test
 	void resolveAllByNameUnknownHostReturnsEmptyArray() {
-		InetAddress[] addrs = DnsResolver.resolveAllByName("nonexistent.invalid.domain.6047", 2000, CALL_CONTEXT);
+		InetAddress[] addrs = DnsResolver.resolveAllByName("nonexistent.invalid.domain.6047");
 		assertNotNull(addrs);
 		assertArrayEquals(new InetAddress[0], addrs);
 	}

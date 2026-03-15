@@ -273,12 +273,50 @@ export default function GeneralSettings({
         <Accordion.Panel>
           <Stack>
             {advancedSettings && (
-              <Tooltip label={allowHtml(i18n.get('ThisControlsWhetherUmsTry'))} {...defaultTooltipSettings}>
-                <Checkbox
-                  label={i18n.get('EnableExternalNetwork')}
-                  {...form.getInputProps('external_network', { type: 'checkbox' })}
-                />
-              </Tooltip>
+              <>
+                <Tooltip label={allowHtml(i18n.get('ThisControlsWhetherUmsTry'))} {...defaultTooltipSettings}>
+                  <Checkbox
+                    label={i18n.get('EnableExternalNetwork')}
+                    {...form.getInputProps('external_network', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+                <Tooltip label={allowHtml(i18n.get('DnsResolutionTimeoutEnabledTooltip'))} {...defaultTooltipSettings}>
+                  <Checkbox
+                    label={i18n.get('DnsResolutionTimeoutEnabled')}
+                    {...form.getInputProps('dns_resolution_timeout_enabled', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+                <Tooltip label={allowHtml(i18n.get('HttpTimeoutEnabledTooltip'))} {...defaultTooltipSettings}>
+                  <Checkbox
+                    label={i18n.get('HttpTimeoutEnabled')}
+                    {...form.getInputProps('http_timeout_enabled', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+                <Tooltip label={allowHtml(i18n.get('DnsResolutionTimeoutMsTooltip'))} {...defaultTooltipSettings}>
+                  <NumberInput
+                    label={i18n.get('DnsResolutionTimeoutMs')}
+                    min={1}
+                    max={120000}
+                    {...form.getInputProps('dns_resolution_timeout_ms')}
+                  />
+                </Tooltip>
+                <Tooltip label={allowHtml(i18n.get('HttpConnectTimeoutSecondsTooltip'))} {...defaultTooltipSettings}>
+                  <NumberInput
+                    label={i18n.get('HttpConnectTimeoutSeconds')}
+                    min={1}
+                    max={300}
+                    {...form.getInputProps('http_connect_timeout_seconds')}
+                  />
+                </Tooltip>
+                <Tooltip label={allowHtml(i18n.get('HttpResponseTimeoutSecondsTooltip'))} {...defaultTooltipSettings}>
+                  <NumberInput
+                    label={i18n.get('HttpResponseTimeoutSeconds')}
+                    min={1}
+                    max={600}
+                    {...form.getInputProps('http_response_timeout_seconds')}
+                  />
+                </Tooltip>
+              </>
             )}
             <Tooltip label={allowHtml(i18n.get('UsesInformationApiAllowBrowsing'))} {...defaultTooltipSettings}>
               <Checkbox

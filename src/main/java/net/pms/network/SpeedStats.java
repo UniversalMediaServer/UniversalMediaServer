@@ -63,7 +63,6 @@ public class SpeedStats {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpeedStats.class);
 
-	private static final long HOSTNAME_RESOLVE_TIMEOUT_MS = 3000;
 
 	private static final Map<String, Integer> SPEED_STATS = new ConcurrentHashMap<>();
 
@@ -86,7 +85,7 @@ public class SpeedStats {
 			return CompletableFuture.completedFuture(value);
 		}
 		return CompletableFuture.supplyAsync(() -> {
-			String hostname = DnsResolver.resolveReverse(addr, HOSTNAME_RESOLVE_TIMEOUT_MS, "SpeedStats.getCachedSpeedInMBits");
+			String hostname = DnsResolver.resolveReverse(addr);
 			Integer byHostname = SPEED_STATS.get(hostname);
 			// Update cache if resolution failed on speed measurement but
 			// succeeded on reverse hostname resolution.
@@ -126,7 +125,7 @@ public class SpeedStats {
 			},
 			BACKGROUND_EXECUTOR
 		);
-		String hostname = DnsResolver.resolveReverse(addr, HOSTNAME_RESOLVE_TIMEOUT_MS, "SpeedStats.calculateSpeedInMBits");
+		String hostname = DnsResolver.resolveReverse(addr);
 		future.whenComplete((speed, ex) -> {
 			if (ex == null && speed != null) {
 				SPEED_STATS.put(ip, speed);

@@ -273,6 +273,11 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	private static final String KEY_DISABLE_TRANSCODING = "disable_transcoding";
+	private static final String KEY_DNS_RESOLUTION_TIMEOUT_ENABLED = "dns_resolution_timeout_enabled";
+	private static final String KEY_DNS_RESOLUTION_TIMEOUT_MS = "dns_resolution_timeout_ms";
+	private static final String KEY_HTTP_CONNECT_TIMEOUT_SECONDS = "http_connect_timeout_seconds";
+	private static final String KEY_HTTP_RESPONSE_TIMEOUT_SECONDS = "http_response_timeout_seconds";
+	private static final String KEY_HTTP_TIMEOUT_ENABLED = "http_timeout_enabled";
 	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	private static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
 	private static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
@@ -4193,6 +4198,76 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * Whether DNS and reverse-DNS resolution use timeouts to avoid hangs when the network or DNS is slow (issue 6047).
+	 * When false (default), resolution can block until the system resolver completes (slow but unchanged behavior).
+	 * When true, resolution is bounded by caller-specified timeouts; timeouts and failures are logged.
+	 */
+	public boolean isDnsResolutionTimeoutEnabled() {
+		return getBoolean(KEY_DNS_RESOLUTION_TIMEOUT_ENABLED, false);
+	}
+
+	/**
+	 * Enable or disable DNS resolution timeouts.
+	 *
+	 * @param value True to use timeouts (avoids hangs); false for legacy blocking behavior.
+	 */
+	public void setDnsResolutionTimeoutEnabled(boolean value) {
+		configuration.setProperty(KEY_DNS_RESOLUTION_TIMEOUT_ENABLED, value);
+	}
+
+	/**
+	 * DNS and reverse-DNS resolution timeout in milliseconds. Used only when {@link #isDnsResolutionTimeoutEnabled()} is true.
+	 * Default 5000.
+	 */
+	public int getDnsResolutionTimeoutMs() {
+		return getInt(KEY_DNS_RESOLUTION_TIMEOUT_MS, 5000);
+	}
+
+	public void setDnsResolutionTimeoutMs(int value) {
+		configuration.setProperty(KEY_DNS_RESOLUTION_TIMEOUT_MS, value);
+	}
+
+	/**
+	 * Whether HTTP client requests use connect and response timeouts to avoid hangs.
+	 * When false (default), no timeouts are applied (legacy behavior).
+	 * When true, connect timeout 5s and response timeout 15s are used for outgoing HTTP calls.
+	 */
+	public boolean isHttpTimeoutEnabled() {
+		return getBoolean(KEY_HTTP_TIMEOUT_ENABLED, false);
+	}
+
+	/**
+	 * Enable or disable HTTP connect/response timeouts.
+	 *
+	 * @param value True to use timeouts; false for legacy blocking behavior.
+	 */
+	public void setHttpTimeoutEnabled(boolean value) {
+		configuration.setProperty(KEY_HTTP_TIMEOUT_ENABLED, value);
+	}
+
+	/**
+	 * HTTP connect timeout in seconds. Used only when {@link #isHttpTimeoutEnabled()} is true. Default 5.
+	 */
+	public int getHttpConnectTimeoutSeconds() {
+		return getInt(KEY_HTTP_CONNECT_TIMEOUT_SECONDS, 5);
+	}
+
+	public void setHttpConnectTimeoutSeconds(int value) {
+		configuration.setProperty(KEY_HTTP_CONNECT_TIMEOUT_SECONDS, value);
+	}
+
+	/**
+	 * HTTP response timeout in seconds. Used only when {@link #isHttpTimeoutEnabled()} is true. Default 15.
+	 */
+	public int getHttpResponseTimeoutSeconds() {
+		return getInt(KEY_HTTP_RESPONSE_TIMEOUT_SECONDS, 15);
+	}
+
+	public void setHttpResponseTimeoutSeconds(int value) {
+		configuration.setProperty(KEY_HTTP_RESPONSE_TIMEOUT_SECONDS, value);
+	}
+
+	/**
 	 * Whether renderers are blocked by default.
 	 * This also determines whether the current renderers filter is an allowlist
 	 * or a denylist.
@@ -5838,6 +5913,11 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, "");
 		jObj.addProperty(KEY_GPU_ACCELERATION, false);
 		jObj.addProperty(KEY_EXTERNAL_NETWORK, true);
+		jObj.addProperty(KEY_DNS_RESOLUTION_TIMEOUT_ENABLED, false);
+		jObj.addProperty(KEY_DNS_RESOLUTION_TIMEOUT_MS, 5000);
+		jObj.addProperty(KEY_HTTP_TIMEOUT_ENABLED, false);
+		jObj.addProperty(KEY_HTTP_CONNECT_TIMEOUT_SECONDS, 5);
+		jObj.addProperty(KEY_HTTP_RESPONSE_TIMEOUT_SECONDS, 15);
 		jObj.addProperty(KEY_FFMPEG_FONTCONFIG, false);
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "none");
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, 1);

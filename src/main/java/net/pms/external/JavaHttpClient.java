@@ -29,6 +29,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
+import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -43,20 +44,56 @@ public class JavaHttpClient {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHttpClient.class);
 
-	private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
-	private static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(15);
+	private static final int DEFAULT_CONNECT_SECONDS = 5;
+	private static final int DEFAULT_RESPONSE_SECONDS = 15;
 
-	/**
-   * This class is not meant to be instantiated.
-   */
 	private JavaHttpClient() {
+		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
+	}
+
+	private static boolean isTimeoutEnabled() {
+		try {
+			return PMS.getConfiguration() != null && PMS.getConfiguration().isHttpTimeoutEnabled();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static int getConnectTimeoutSeconds() {
+		try {
+			return PMS.getConfiguration() != null ? PMS.getConfiguration().getHttpConnectTimeoutSeconds() : DEFAULT_CONNECT_SECONDS;
+		} catch (Exception e) {
+			return DEFAULT_CONNECT_SECONDS;
+		}
+	}
+
+	private static int getResponseTimeoutSeconds() {
+		try {
+			return PMS.getConfiguration() != null ? PMS.getConfiguration().getHttpResponseTimeoutSeconds() : DEFAULT_RESPONSE_SECONDS;
+		} catch (Exception e) {
+			return DEFAULT_RESPONSE_SECONDS;
+		}
 	}
 
 	private static HttpClient buildClient() {
-		return HttpClient.newBuilder()
-				.followRedirects(HttpClient.Redirect.ALWAYS)
-				.connectTimeout(CONNECT_TIMEOUT)
-				.build();
+		HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS);
+		if (isTimeoutEnabled()) {
+			int sec = Math.max(1, getConnectTimeoutSeconds());
+			builder.connectTimeout(Duration.ofSeconds(sec));
+		}
+		return builder.build();
+	}
+
+	private static HttpRequest.Builder addRequestTimeout(HttpRequest.Builder builder) {
+		if (isTimeoutEnabled()) {
+			int sec = Math.max(1, getResponseTimeoutSeconds());
+			builder.timeout(Duration.ofSeconds(sec));
+		}
+		return builder;
+	}
+
+	private static HttpRequest.Builder newHttpRequest(String uri) {
+		return addRequestTimeout(HttpRequest.newBuilder().uri(URI.create(uri)));
 	}
 
 	/**
@@ -71,9 +108,8 @@ public class JavaHttpClient {
 	 */
 	public static byte[] getBytes(String uri) throws IOException {
 		try {
-			HttpRequest request = HttpRequest.newBuilder()
-					.uri(new URI(uri))
-					.timeout(RESPONSE_TIMEOUT)
+			HttpRequest request = addRequestTimeout(HttpRequest.newBuilder()
+					.uri(new URI(uri)))
 					.GET()
 					.build();
 			HttpResponse<byte[]> response = buildClient()
@@ -97,9 +133,8 @@ public class JavaHttpClient {
 
 	public static void getFile(File file, String uri, ProgressCallback callback) throws IOException {
 		try {
-			HttpRequest request = HttpRequest.newBuilder()
-					.uri(new URI(uri))
-					.timeout(RESPONSE_TIMEOUT)
+			HttpRequest request = addRequestTimeout(HttpRequest.newBuilder()
+					.uri(new URI(uri)))
 					.GET()
 					.build();
 			FileBodyHandler responseBodyHandler = new FileBodyHandler(file, uri, callback);
@@ -124,10 +159,9 @@ public class JavaHttpClient {
 	 */
 	public static String getStringBody(String uri) throws IOException {
 		try {
-			HttpRequest request = HttpRequest.newBuilder()
+			HttpRequest request = addRequestTimeout(HttpRequest.newBuilder()
 					.uri(URI.create(uri))
-					.timeout(RESPONSE_TIMEOUT)
-					.headers("Content-Type", "text/plain;charset=UTF-8")
+					.headers("Content-Type", "text/plain;charset=UTF-8"))
 					.GET()
 					.build();
 			HttpResponse<String> response = buildClient()
@@ -145,9 +179,7 @@ public class JavaHttpClient {
 
 	public static HttpHeaders getHeaders(String uri) {
 		try {
-			HttpRequest request = HttpRequest.newBuilder()
-					.uri(URI.create(uri))
-					.timeout(RESPONSE_TIMEOUT)
+			HttpRequest request = newHttpRequest(uri)
 					.method("HEAD", HttpRequest.BodyPublishers.noBody())
 					.build();
 			HttpResponse<Void> response = buildClient()
@@ -173,9 +205,8 @@ public class JavaHttpClient {
 
 	public static HttpResponse<InputStream> getHttpResponseInputStream(String uri) throws IOException {
 		try {
-			HttpRequest request = HttpRequest.newBuilder()
-					.uri(URI.create(uri))
-					.timeout(RESPONSE_TIMEOUT)
+			HttpRequest request = addRequestTimeout(HttpRequest.newBuilder()
+					.uri(URI.create(uri)))
 					.GET()
 					.build();
 			return buildClient()
