@@ -13,6 +13,7 @@
 - Bump `@tabler/icons-react` from 3.37.1 to 3.40.0 ([#6061](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6061))
 - Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
+- Bump `axios` from 1.13.5 to 1.13.6 ([#6077](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6077))
 - Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
 - Bump `commons-logging:commons-logging` from 1.3.5 to 1.3.6 ([#6060](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6060))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
