@@ -544,6 +544,17 @@
 		}
 	},
 	{
+		"comment": "Video of a sample of a movie 2",
+		"filename": "Sample-Universal.Media.Server.2015.720p.mkv",
+		"prettified": "Universal Media Server (2015) (Sample)",
+		"metadata": {
+			"type": "movie",
+			"title": "Universal Media Server",
+			"released": { "year": 2015 },
+			"extra": ["Sample"]
+		}
+	},
+	{
 		"comment": "Video of a movie with a year in the title",
 		"filename": "2001.Universal.Media.Server.1968.720p.mkv",
 		"prettified": "2001 Universal Media Server (1968)",
