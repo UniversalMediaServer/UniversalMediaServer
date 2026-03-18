@@ -428,7 +428,7 @@ public class ConnectedRenderers {
 			}
 		}
 		for (Map.Entry<InetAddress, String> entry : values.entrySet()) {
-			SpeedStats.calculateSpeedInMBits(entry.getKey(), entry.getValue());
+			SpeedStats.getDefault().calculateSpeedInMBits(entry.getKey(), entry.getValue());
 		}
 	}
 

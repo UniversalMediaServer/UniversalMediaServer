@@ -318,7 +318,7 @@ public class Renderer extends RendererDeviceConfiguration {
 				sa.isAnyLocalAddress()
 			)
 		) {
-			SpeedStats.calculateSpeedInMBits(sa, getRendererName());
+			SpeedStats.getDefault().calculateSpeedInMBits(sa, getRendererName());
 		}
 		return true;
 	}
@@ -655,7 +655,7 @@ public class Renderer extends RendererDeviceConfiguration {
 				UMSUtils.sleep(1000);
 				// Send the GetPositionRequest only when renderer supports it
 				if (isGetPositionInfoImplemented) {
-					for (ActionArgumentValue o : JUPnPDeviceHelper.getPositionInfo(this)) {
+					for (ActionArgumentValue<?> o : JUPnPDeviceHelper.getPositionInfo(this)) {
 						data.put(o.getArgument().getName(), o.toString());
 					}
 					alert();
@@ -761,7 +761,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		int max = super.getMaxVideoBitrate();
 		InetAddress addr = ConnectedRenderers.getRendererInetAddress(this);
 		if (addr != null) {
-			Integer speed = SpeedStats.getCachedSpeedInMBits(addr).get();
+			Integer speed = SpeedStats.getDefault().getCachedSpeedInMBits(addr).get();
 			if (speed != null) {
 				if (max == 0) {
 					return speed;

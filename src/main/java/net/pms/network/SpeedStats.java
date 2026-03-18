@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  *
  * This can be used in an asynchronous way, as it returns Future objects.
  *
- * {@link CompletableFuture<Integer>} speed = SpeedStats.calculateSpeedInMBits(addr);
+ * {@link CompletableFuture<Integer>} speed = SpeedStats.getDefault().calculateSpeedInMBits(addr, "Renderer");
  *
  * @see CompletableFuture
  *
@@ -66,8 +66,34 @@ public class SpeedStats {
 
 	private static final Map<String, CompletableFuture<Integer>> SPEED_STATS = new ConcurrentHashMap<>();
 
-	private SpeedStats() {
-		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
+	@FunctionalInterface
+	public interface SpeedMeasurement {
+		int measure(InetAddress addr, String rendererName) throws Exception;
+	}
+
+	private static final class PingSpeedMeasurement implements SpeedMeasurement {
+		@Override
+		public int measure(InetAddress addr, String rendererName) throws Exception {
+			return new MeasureSpeed(addr, rendererName).call();
+		}
+	}
+
+	private static final SpeedStats DEFAULT = new SpeedStats(new PingSpeedMeasurement());
+
+	public static SpeedStats getDefault() {
+		return DEFAULT;
+	}
+
+	private final SpeedMeasurement measurement;
+
+	/**
+	 * @param measurement measurement strategy (injectable for tests)
+	 */
+	public SpeedStats(SpeedMeasurement measurement) {
+		if (measurement == null) {
+			throw new IllegalArgumentException("measurement cannot be null");
+		}
+		this.measurement = measurement;
 	}
 
 	/**
@@ -81,7 +107,7 @@ public class SpeedStats {
 	 * @return The {@link Integer} with the estimated network throughput or
 	 * {@code null} if no value is cached.
 	 */
-	public static CompletableFuture<Integer> getCachedSpeedInMBits(InetAddress addr) {
+	public CompletableFuture<Integer> getCachedSpeedInMBits(InetAddress addr) {
 		String ip = addr.getHostAddress();
 		CompletableFuture<Integer> value = SPEED_STATS.get(ip);
 		if (value != null) {
@@ -116,12 +142,12 @@ public class SpeedStats {
    *
    * @return The network throughput as a {@link CompletableFuture} that completes
 	 */
-	public static CompletableFuture<Integer> calculateSpeedInMBits(InetAddress addr, String rendererName) {
+	public CompletableFuture<Integer> calculateSpeedInMBits(InetAddress addr, String rendererName) {
 		final String ip = addr.getHostAddress();
 		final CompletableFuture<Integer> future = CompletableFuture.supplyAsync(
 			() -> {
 				try {
-					return new MeasureSpeed(addr, rendererName).call();
+					return measurement.measure(addr, rendererName);
 				} catch (Exception e) {
 					throw new CompletionException(e);
 				}
