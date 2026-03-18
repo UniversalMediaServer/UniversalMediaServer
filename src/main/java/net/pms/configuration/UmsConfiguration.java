@@ -4639,44 +4639,14 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public static String getHostName() {
 		if (hostName == null) { // Initialise this lazily
-			hostName = resolveHostName();
+			try {
+				hostName = InetAddress.getLocalHost().getHostName();
+			} catch (UnknownHostException e) {
+				LOGGER.error("Can't determine hostname", e);
+				hostName = "unknown host";
+			}
 		}
 		return hostName;
-	}
-
-	static String resolveHostName() {
-		String resolvedHostName = StringUtils.trimToNull(System.getenv(ENV_HOSTNAME));
-		if (resolvedHostName != null) {
-			return resolvedHostName;
-		}
-
-		resolvedHostName = StringUtils.trimToNull(System.getenv(ENV_COMPUTERNAME));
-		if (resolvedHostName != null) {
-			return resolvedHostName;
-		}
-
-		resolvedHostName = parseRuntimeHostName(ManagementFactory.getRuntimeMXBean().getName());
-		if (resolvedHostName != null) {
-			return resolvedHostName;
-		}
-
-		try {
-			return InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException e) {
-			LOGGER.warn("Can't determine hostname", e);
-			return "unknown host";
-		}
-	}
-
-	static String parseRuntimeHostName(String runtimeName) {
-		if (StringUtils.isBlank(runtimeName)) {
-			return null;
-		}
-		int separator = runtimeName.indexOf('@');
-		if (separator < 0 || separator == runtimeName.length() - 1) {
-			return null;
-		}
-		return runtimeName.substring(separator + 1);
 	}
 
 	public String getProfileName() {
