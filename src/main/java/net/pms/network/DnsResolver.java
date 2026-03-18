@@ -45,6 +45,15 @@ public final class DnsResolver {
 			new SimpleThreadFactory("DnsResolver", "DnsResolver pool", Thread.NORM_PRIORITY)
 	);
 
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread("DnsResolver Executor Shutdown Hook") {
+			@Override
+			public void run() {
+				RESOLVER.shutdownNow();
+			}
+		});
+	}
+
 	private DnsResolver() {
 		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
 	}
