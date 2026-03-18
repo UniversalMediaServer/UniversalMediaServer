@@ -180,13 +180,13 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String sql = "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"JOIN AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
@@ -201,7 +201,7 @@ public class SearchRequestHandler {
 			case TYPE_ALBUM -> {
 				String sql = "SELECT DISTINCT ON (album) album, artist, media_year, genre, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
 			}
 			case TYPE_PLAYLIST -> {
@@ -231,14 +231,14 @@ public class SearchRequestHandler {
 			case TYPE_AUDIO -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
 			}
@@ -254,7 +254,7 @@ public class SearchRequestHandler {
 			case TYPE_ALBUM -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (album) album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
 			}
@@ -290,12 +290,12 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String sql = "SELECT COUNT(*) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
-					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON -> {
 				String sql = "SELECT COUNT(DISTINCT A.ARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
-					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
@@ -309,7 +309,7 @@ public class SearchRequestHandler {
 			}
 			case TYPE_ALBUM -> {
 				String sql = "SELECT COUNT(DISTINCT A.ALBUM) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
-					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+					"WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage, true);
 			}
 			case TYPE_PLAYLIST -> {
@@ -338,13 +338,13 @@ public class SearchRequestHandler {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(*) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage, true);
 			}
@@ -359,7 +359,7 @@ public class SearchRequestHandler {
 			}
 			case TYPE_ALBUM -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ALBUM) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
-					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage, true);
 			}
