@@ -99,10 +99,12 @@ public final class DnsResolver {
 			}
 			return future.get();
 		} catch (InterruptedException e) {
+			future.cancel(true);
 			Thread.currentThread().interrupt();
 			LOGGER.warn("Reverse-DNS interrupted for {}", ip, e);
 			return ip;
 		} catch (TimeoutException e) {
+			future.cancel(true);
 			LOGGER.warn("Reverse-DNS timed out after {} ms for {}", timeoutMs, ip, e);
 			return ip;
 		} catch (ExecutionException e) {
@@ -130,10 +132,12 @@ public final class DnsResolver {
 			}
 			return future.get();
 		} catch (InterruptedException e) {
+			future.cancel(true);
 			Thread.currentThread().interrupt();
 			LOGGER.warn("DNS resolve interrupted for host \"{}\"", host, e);
 			return null;
 		} catch (TimeoutException e) {
+			future.cancel(true);
 			LOGGER.warn("DNS resolve timed out after {} ms for host \"{}\"", timeoutMs, host, e);
 			return null;
 		} catch (ExecutionException e) {
@@ -161,10 +165,12 @@ public final class DnsResolver {
 			}
 			return future.get();
 		} catch (InterruptedException e) {
+			future.cancel(true);
 			Thread.currentThread().interrupt();
 			LOGGER.warn("DNS resolveAll interrupted for host \"{}\"", host, e);
 			return new InetAddress[0];
 		} catch (TimeoutException e) {
+			future.cancel(true);
 			LOGGER.warn("DNS resolveAll timed out after {} ms for host \"{}\"", timeoutMs, host, e);
 			return new InetAddress[0];
 		} catch (ExecutionException e) {
