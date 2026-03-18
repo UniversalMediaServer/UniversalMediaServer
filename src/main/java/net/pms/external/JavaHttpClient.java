@@ -162,7 +162,7 @@ public class JavaHttpClient {
 			}
 			return response.body();
 		} catch (IllegalArgumentException ex) {
-			throw new IOException("Unable to get string by HTTP:" + ex.getMessage());
+			throw new IOException("Unable to get string by HTTP:" + ex.getMessage(), ex);
 		}
 	}
 
@@ -176,7 +176,7 @@ public class JavaHttpClient {
 					.join();
 			return response.headers();
 		} catch (IllegalArgumentException ex) {
-			LOGGER.error("Unable to read headers for " + uri);
+			LOGGER.error("Unable to read headers for {}", uri, ex);
 			return HttpHeaders.of(Map.of(), null);
 		}
 	}
@@ -187,7 +187,7 @@ public class JavaHttpClient {
 			response.body().close();
 			return response.headers();
 		} catch (IOException | IllegalArgumentException ex) {
-			LOGGER.error("Unable to read headers for request (InputStream) " + uri);
+			LOGGER.error("Unable to read headers for request (InputStream) {}", uri, ex);
 			return HttpHeaders.of(Map.of(), null);
 		}
 	}
@@ -201,7 +201,7 @@ public class JavaHttpClient {
 					.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
 					.join();
 		} catch (IllegalArgumentException ex) {
-			throw new IOException("Unable to GET InputStream for request " + uri + ":" + ex.getMessage());
+			throw new IOException("Unable to GET InputStream for request " + uri + ":" + ex.getMessage(), ex);
 		}
 	}
 
@@ -213,10 +213,11 @@ public class JavaHttpClient {
 		} catch (EOFException e) {
 			LOGGER.debug(
 					"Error reading thumbnail from uri \"{}\": Unexpected end of stream, probably corrupt or read error.",
-					uri
+					uri,
+					e
 			);
 		} catch (UnknownFormatException e) {
-			LOGGER.debug("Could not read thumbnail from uri \"{}\": {}", uri, e.getMessage());
+			LOGGER.debug("Could not read thumbnail from uri \"{}\": {}", uri, e.getMessage(), e);
 		} catch (IOException e) {
 			LOGGER.error("Error reading thumbnail from uri \"{}\": {}", uri, e.getMessage());
 			LOGGER.trace("", e);
