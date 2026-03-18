@@ -27,6 +27,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.CompletionException;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnail;
@@ -95,6 +96,11 @@ public class JavaHttpClient {
 		return addRequestTimeout(HttpRequest.newBuilder().uri(URI.create(uri)));
 	}
 
+	private static IOException handleCompletionException(String uri, CompletionException ex) {
+		Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+		return new IOException("HTTP request failed for " + uri + ": " + cause.getMessage(), cause);
+	}
+
 	/**
 	 * Download file from the external server and return the content of it in
 	 * the ByteArray.
@@ -106,36 +112,44 @@ public class JavaHttpClient {
 	 * @throws IOException
 	 */
 	public static byte[] getBytes(String uri) throws IOException {
-		HttpRequest request = newHttpRequest(uri)
-				.GET()
-				.build();
-		HttpResponse<byte[]> response = buildClient()
-				.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
-				.join();
-		int statusCode = response.statusCode();
-		if (statusCode != 200) {
-			String contentType = response.headers().firstValue("content-type").orElse(null);
-			Long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-			if (contentType != null && contentType.startsWith("text") && contentLength != 0) {
-				String body = new String(response.body(), StandardCharsets.UTF_8);
-				throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri + ":\n" + body);
+		try {
+			HttpRequest request = newHttpRequest(uri)
+					.GET()
+					.build();
+			HttpResponse<byte[]> response = buildClient()
+					.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
+					.join();
+			int statusCode = response.statusCode();
+			if (statusCode != 200) {
+				String contentType = response.headers().firstValue("content-type").orElse(null);
+				Long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
+				if (contentType != null && contentType.startsWith("text") && contentLength != 0) {
+					String body = new String(response.body(), StandardCharsets.UTF_8);
+					throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri + ":\n" + body);
+				}
+				throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
 			}
-			throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
+			return response.body();
+		} catch (CompletionException ex) {
+			throw handleCompletionException(uri, ex);
 		}
-		return response.body();
 	}
 
 	public static void getFile(File file, String uri, ProgressCallback callback) throws IOException {
-		HttpRequest request = newHttpRequest(uri)
-				.GET()
-				.build();
-		FileBodyHandler responseBodyHandler = new FileBodyHandler(file, uri, callback);
-		HttpResponse<Void> response = buildClient()
-				.sendAsync(request, responseBodyHandler)
-				.join();
-		int statusCode = response.statusCode();
-		if (statusCode != 200) {
-			throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
+		try {
+			HttpRequest request = newHttpRequest(uri)
+					.GET()
+					.build();
+			FileBodyHandler responseBodyHandler = new FileBodyHandler(file, uri, callback);
+			HttpResponse<Void> response = buildClient()
+					.sendAsync(request, responseBodyHandler)
+					.join();
+			int statusCode = response.statusCode();
+			if (statusCode != 200) {
+				throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
+			}
+		} catch (CompletionException ex) {
+			throw handleCompletionException(uri, ex);
 		}
 	}
 
@@ -162,6 +176,8 @@ public class JavaHttpClient {
 			return response.body();
 		} catch (IllegalArgumentException ex) {
 			throw new IOException("Unable to get string by HTTP:" + ex.getMessage(), ex);
+		} catch (CompletionException ex) {
+			throw handleCompletionException(uri, ex);
 		}
 	}
 
@@ -175,6 +191,9 @@ public class JavaHttpClient {
 					.join();
 			return response.headers();
 		} catch (IllegalArgumentException ex) {
+			LOGGER.error("Unable to read headers for {}", uri, ex);
+			return HttpHeaders.of(Map.of(), null);
+		} catch (CompletionException ex) {
 			LOGGER.error("Unable to read headers for {}", uri, ex);
 			return HttpHeaders.of(Map.of(), null);
 		}
@@ -201,6 +220,8 @@ public class JavaHttpClient {
 					.join();
 		} catch (IllegalArgumentException ex) {
 			throw new IOException("Unable to GET InputStream for request " + uri + ":" + ex.getMessage(), ex);
+		} catch (CompletionException ex) {
+			throw handleCompletionException(uri, ex);
 		}
 	}
 
