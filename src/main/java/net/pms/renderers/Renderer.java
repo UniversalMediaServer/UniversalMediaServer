@@ -762,14 +762,8 @@ public class Renderer extends RendererDeviceConfiguration {
 		InetAddress addr = ConnectedRenderers.getRendererInetAddress(this);
 		if (addr != null) {
 			Integer speed = SpeedStats.getDefault().getCachedSpeedInMBits(addr).get();
-			if (speed != null) {
-				if (max == 0) {
-					return speed;
-				}
-				if (speed > max && max > 0) {
-					return max;
-				}
-				return speed;
+			if (speed != null && speed != -1) {
+				return Math.min(speed, max);
 			}
 		}
 		return max;
