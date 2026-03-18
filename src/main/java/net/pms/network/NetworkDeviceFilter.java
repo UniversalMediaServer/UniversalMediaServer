@@ -175,11 +175,11 @@ public class NetworkDeviceFilter {
 			}
 		}
 
-		if (log) {
+		if (log && LOGGER.isInfoEnabled()) {
 			if (allowedByDefault) {
-				LOGGER.info("IP Filter: Access allowed to {}", getDisplayName(addr));
+				LOGGER.info("IP Filter: Access allowed to {}", DnsResolver.resolveReverse(addr));
 			} else {
-				LOGGER.info("IP Filter: Access denied to {}", getDisplayName(addr));
+				LOGGER.info("IP Filter: Access denied to {}", DnsResolver.resolveReverse(addr));
 			}
 		}
 
@@ -188,31 +188,10 @@ public class NetworkDeviceFilter {
 
 	private static JsonObject createDevice(InetAddressSeen addrSeen) {
 		JsonObject device = new JsonObject();
-		device.addProperty("hostName", getDisplayName(addrSeen.addr));
+		device.addProperty("hostName", DnsResolver.resolveReverse(addrSeen.addr));
 		device.addProperty("ipAddress", addrSeen.addr.getHostAddress());
 		device.addProperty("lastSeen", addrSeen.seen);
 		return device;
-	}
-
-	static String getDisplayName(InetAddress addr) {
-		if (addr.isLoopbackAddress()) {
-			return "localhost";
-		}
-		String text = addr.toString();
-		int separator = text.indexOf('/');
-		if (separator > 0) {
-			return text.substring(0, separator);
-		}
-		return addr.getHostAddress();
-	}
-
-	private static String getNameForMatching(InetAddress addr) {
-		String displayName = getDisplayName(addr);
-		String ip = addr.getHostAddress();
-		if (!displayName.equals(ip)) {
-			return displayName.toLowerCase(Locale.ROOT);
-		}
-		return DnsResolver.resolveReverse(addr);
 	}
 
 	private static synchronized String getNormalizedFilter() {
@@ -266,7 +245,8 @@ public class NetworkDeviceFilter {
 
 		@Override
 		public boolean match(InetAddress addr) {
-			return getNameForMatching(addr).contains(name);
+			final String resolved = DnsResolver.resolveReverse(addr).toLowerCase(Locale.ROOT);
+			return resolved.contains(name);
 		}
 
 		@Override

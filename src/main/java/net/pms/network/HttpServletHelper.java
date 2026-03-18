@@ -102,6 +102,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 		try {
 			return InetAddresses.forString(address);
 		} catch (IllegalArgumentException ex) {
+			LOGGER.debug("Invalid address literal: {}", address);
 			return null;
 		}
 	}

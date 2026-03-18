@@ -26,23 +26,6 @@ import org.junit.jupiter.api.Test;
 public class NetworkDeviceFilterTest {
 
 	@Test
-	public void testGetDisplayNameUsesAddressLiteralWhenHostnameIsUnknown() throws Exception {
-		InetAddress address = InetAddress.getByAddress(new byte[] {(byte) 192, 0, 2, 25});
-		assertEquals("192.0.2.25", NetworkDeviceFilter.getDisplayName(address));
-	}
-
-	@Test
-	public void testGetDisplayNameUsesEmbeddedHostnameWithoutLookup() throws Exception {
-		InetAddress address = InetAddress.getByAddress("living-room-tv", new byte[] {(byte) 192, 0, 2, 26});
-		assertEquals("living-room-tv", NetworkDeviceFilter.getDisplayName(address));
-	}
-
-	@Test
-	public void testGetDisplayNameNormalizesLoopback() {
-		assertEquals("localhost", NetworkDeviceFilter.getDisplayName(InetAddress.getLoopbackAddress()));
-	}
-
-	@Test
 	public void testHostNamePredicateMatchesEmbeddedHostname() throws Exception {
 		InetAddress address = InetAddress.getByAddress("living-room-tv", new byte[] {(byte) 192, 0, 2, 27});
 		NetworkDeviceFilter.HostNamePredicate predicate = new NetworkDeviceFilter.HostNamePredicate("room");

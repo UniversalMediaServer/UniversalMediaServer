@@ -64,7 +64,7 @@ public class SpeedStats {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpeedStats.class);
 
 
-	private static final Map<String, Integer> SPEED_STATS = new ConcurrentHashMap<>();
+	private static final Map<String, CompletableFuture<Integer>> SPEED_STATS = new ConcurrentHashMap<>();
 
 	private SpeedStats() {
 		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
@@ -72,7 +72,10 @@ public class SpeedStats {
 
 	/**
 	 * Returns the cached speed in Mb/s for the given address, or {@code null} if none.
-	 * Does not trigger measurement. May block for a short amount of time to resolve the hostname if IP statistics are not available.
+	 * Does not trigger measurement.
+	 * May block future resolution for a short amount of time
+	 * to resolve the hostname if IP statistics are not available.
+	 * May also block future resolution if calculation is in progress.
 	 *
 	 * @param addr the {@link InetAddress} to lookup.
 	 * @return The {@link Integer} with the estimated network throughput or
@@ -80,20 +83,20 @@ public class SpeedStats {
 	 */
 	public static CompletableFuture<Integer> getCachedSpeedInMBits(InetAddress addr) {
 		String ip = addr.getHostAddress();
-		Integer value = SPEED_STATS.get(ip);
+		CompletableFuture<Integer> value = SPEED_STATS.get(ip);
 		if (value != null) {
-			return CompletableFuture.completedFuture(value);
+			return value;
 		}
-		return CompletableFuture.supplyAsync(() -> {
-			String hostname = DnsResolver.resolveReverse(addr);
-			Integer byHostname = SPEED_STATS.get(hostname);
-			// Update cache if resolution failed on speed measurement but
-			// succeeded on reverse hostname resolution.
-			if (byHostname != null && !hostname.equals(ip)) {
-				SPEED_STATS.put(ip, byHostname);
-			}
-			return byHostname;
-		}, BACKGROUND_EXECUTOR);
+		return CompletableFuture.supplyAsync(
+				() -> {
+					final String hostname = DnsResolver.resolveReverse(addr);
+					return SPEED_STATS.get(hostname);
+				},
+				BACKGROUND_EXECUTOR
+		  ).thenCompose(
+				future -> 
+					future != null ? future : CompletableFuture.completedFuture(-1)
+			);
 	}
 
 	/**
@@ -114,8 +117,8 @@ public class SpeedStats {
    * @return The network throughput as a {@link CompletableFuture} that completes
 	 */
 	public static CompletableFuture<Integer> calculateSpeedInMBits(InetAddress addr, String rendererName) {
-		String ip = addr.getHostAddress();
-		CompletableFuture<Integer> future = CompletableFuture.supplyAsync(
+		final String ip = addr.getHostAddress();
+		final CompletableFuture<Integer> future = CompletableFuture.supplyAsync(
 			() -> {
 				try {
 					return new MeasureSpeed(addr, rendererName).call();
@@ -125,15 +128,17 @@ public class SpeedStats {
 			},
 			BACKGROUND_EXECUTOR
 		);
-		String hostname = DnsResolver.resolveReverse(addr);
-		future.whenComplete((speed, ex) -> {
-			if (ex == null && speed != null) {
-				SPEED_STATS.put(ip, speed);
+		SPEED_STATS.put(ip, future);
+		// Fill by hostname if available and different from IP after reverse resolution
+		CompletableFuture.runAsync(
+			() -> {
+				final String hostname = DnsResolver.resolveReverse(addr);
 				if (!hostname.equals(ip)) {
-					SPEED_STATS.put(hostname, speed);
+					SPEED_STATS.put(hostname, future);
 				}
-			}
-		});
+			},
+			BACKGROUND_EXECUTOR
+		);
 		return future;
 	}
 

@@ -107,46 +107,36 @@ public class JavaHttpClient {
 	 * @throws IOException
 	 */
 	public static byte[] getBytes(String uri) throws IOException {
-		try {
-			HttpRequest request = addRequestTimeout(HttpRequest.newBuilder()
-					.uri(new URI(uri)))
-					.GET()
-					.build();
-			HttpResponse<byte[]> response = buildClient()
-					.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
-					.join();
-			int statusCode = response.statusCode();
-			if (statusCode != 200) {
-				String contentType = response.headers().firstValue("content-type").orElse(null);
-				Long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-				if (contentType != null && contentType.startsWith("text") && contentLength != 0) {
-					String body = new String(response.body(), StandardCharsets.UTF_8);
-					throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri + ":\n" + body);
-				}
-				throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
+		HttpRequest request = newHttpRequest(uri)
+				.GET()
+				.build();
+		HttpResponse<byte[]> response = buildClient()
+				.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
+				.join();
+		int statusCode = response.statusCode();
+		if (statusCode != 200) {
+			String contentType = response.headers().firstValue("content-type").orElse(null);
+			Long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
+			if (contentType != null && contentType.startsWith("text") && contentLength != 0) {
+				String body = new String(response.body(), StandardCharsets.UTF_8);
+				throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri + ":\n" + body);
 			}
-			return response.body();
-		} catch (URISyntaxException ex) {
-			throw new IOException("Unable to download by HTTP" + ex.getMessage());
+			throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
 		}
+		return response.body();
 	}
 
 	public static void getFile(File file, String uri, ProgressCallback callback) throws IOException {
-		try {
-			HttpRequest request = addRequestTimeout(HttpRequest.newBuilder()
-					.uri(new URI(uri)))
-					.GET()
-					.build();
-			FileBodyHandler responseBodyHandler = new FileBodyHandler(file, uri, callback);
-			HttpResponse<Void> response = buildClient()
-					.sendAsync(request, responseBodyHandler)
-					.join();
-			int statusCode = response.statusCode();
-			if (statusCode != 200) {
-				throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
-			}
-		} catch (URISyntaxException ex) {
-			throw new IOException("Unable to download by HTTP" + ex.getMessage());
+		HttpRequest request = newHttpRequest(uri)
+				.GET()
+				.build();
+		FileBodyHandler responseBodyHandler = new FileBodyHandler(file, uri, callback);
+		HttpResponse<Void> response = buildClient()
+				.sendAsync(request, responseBodyHandler)
+				.join();
+		int statusCode = response.statusCode();
+		if (statusCode != 200) {
+			throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
 		}
 	}
 
@@ -159,9 +149,8 @@ public class JavaHttpClient {
 	 */
 	public static String getStringBody(String uri) throws IOException {
 		try {
-			HttpRequest request = addRequestTimeout(HttpRequest.newBuilder()
-					.uri(URI.create(uri))
-					.headers("Content-Type", "text/plain;charset=UTF-8"))
+			HttpRequest request = newHttpRequest(uri)
+					.headers("Content-Type", "text/plain;charset=UTF-8")
 					.GET()
 					.build();
 			HttpResponse<String> response = buildClient()
@@ -205,8 +194,7 @@ public class JavaHttpClient {
 
 	public static HttpResponse<InputStream> getHttpResponseInputStream(String uri) throws IOException {
 		try {
-			HttpRequest request = addRequestTimeout(HttpRequest.newBuilder()
-					.uri(URI.create(uri)))
+			HttpRequest request = newHttpRequest(uri)
 					.GET()
 					.build();
 			return buildClient()
