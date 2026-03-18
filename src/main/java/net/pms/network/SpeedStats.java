@@ -97,15 +97,16 @@ public class SpeedStats {
 	}
 
 	/**
-	 * Returns the cached speed in Mb/s for the given address, or {@code null} if none.
-	 * Does not trigger measurement.
+	 * Get the cached speed in Mb/s for the given address, or {@code -1} if no value is cached.
+	 * Does not trigger a new measurement.
+	 * <p>
 	 * May block future resolution for a short amount of time
 	 * to resolve the hostname if IP statistics are not available.
 	 * May also block future resolution if calculation is in progress.
 	 *
 	 * @param addr the {@link InetAddress} to lookup.
-	 * @return The {@link Integer} with the estimated network throughput or
-	 * {@code null} if no value is cached.
+	 * @return The {@link CompletableFuture<Integer>} with the estimated network throughput or
+	 * {@code -1} if no value is cached or there was an error measuring the speed.
 	 */
 	public CompletableFuture<Integer> getCachedSpeedInMBits(InetAddress addr) {
 		String ip = addr.getHostAddress();
