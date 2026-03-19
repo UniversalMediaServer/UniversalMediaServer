@@ -41,7 +41,7 @@
 
 		<!-- Include the youtube-dl binary -->
 		<file>
-			<source>${project.binaries}/linux/youtube-dl</source>
+			<source>${project.binaries}/linux/arm64/youtube-dl</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
