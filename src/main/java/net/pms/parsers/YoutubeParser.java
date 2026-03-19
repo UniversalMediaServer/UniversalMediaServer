@@ -7,11 +7,14 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.pms.media.MediaInfo;
+import net.pms.store.ThumbnailSource;
+import net.pms.store.ThumbnailStore;
 
 public class YoutubeParser {
 
@@ -19,21 +22,20 @@ public class YoutubeParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(YoutubeParser.class.getName());
 
 	public YoutubeParser() {
-		// TODO Auto-generated constructor stub
 	}
 
 	public static void parseUrl(MediaInfo mediaInfo, String url) {
 		JsonNode youTubeMetadata = getYouTubeMetadata(url);
 		if (youTubeMetadata != null) {
 			LOGGER.trace("YouTube metadata found for URL: {} \n{}", url, youTubeMetadata.toPrettyString());
-			parseFormats(youTubeMetadata, mediaInfo);
+			parseFormats(youTubeMetadata, mediaInfo, url);
 		} else {
 			LOGGER.trace("No YouTube metadata found for URL: {}", url);
 			return;
 		}
 	}
 
-	private static void parseFormats(JsonNode root, MediaInfo mediaInfo) {
+	private static void parseFormats(JsonNode root, MediaInfo mediaInfo, String url) {
 		JsonNode formatsNode = root.path("streamingData").path("adaptiveFormats");
 
 		if (formatsNode.isArray()) {
@@ -54,6 +56,23 @@ public class YoutubeParser {
 		JsonNode videoNode = root.path("videoDetails");
 		String title = videoNode.path("title").asText();
 		mediaInfo.setTitle(title);
+
+		int lastwidth = 0;
+		String bestThumbUrl = null;
+		JsonNode thumb = videoNode.path("thumbnail").path("thumbnails");
+		for (JsonNode thumbnail : thumb) {
+			int width = thumbnail.path("width").asInt();
+			if (width > lastwidth) {
+				lastwidth = width;
+				bestThumbUrl = thumbnail.path("url").asText();
+			}
+			if (width >= 600) {
+				break;
+			}
+		}
+		if (StringUtils.isNotBlank(bestThumbUrl)) {
+			ThumbnailStore.enqueueThumbnailUpdate(bestThumbUrl, url, ThumbnailSource.WEBSTREAM);
+		}
 	}
 
 	public static JsonNode getYouTubeMetadata(String videoUrl) {
