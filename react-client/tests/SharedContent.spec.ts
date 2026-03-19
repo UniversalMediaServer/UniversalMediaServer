@@ -29,6 +29,7 @@ test('should be able to add a YouTube channel as a video feed', async ({ page })
 test('should be able to select a YouTube video to watch', async ({ page }) => {
   await page.goto('/player')
 
+  await expect(page.getByText('Kurzgesagt – In a Nutshell').first()).toBeVisible()
   await page.getByText('Kurzgesagt – In a Nutshell').first().click()
   // will update this part of test once fix has been made
   await page.locator('.thumbnail-container').first().click()
