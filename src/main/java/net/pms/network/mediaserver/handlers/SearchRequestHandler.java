@@ -485,32 +485,31 @@ public class SearchRequestHandler {
 	 * @param sb
 	 */
 	private static void addOrderBy(String sortCriteria, DbIdMediaType requestType, StringBuilder sb) {
+		sb.append(" ORDER BY ");
 		switch (requestType) {
 			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PLAYLIST, TYPE_PERSON -> {
-				// do nothing, since the FTL search already delivers the correct subset of data based on the startingIndex and requestedCount parameters.
+				sb.append("FT.SCORE DESC ");
 				}
-			default -> {
-				sb.append(" ORDER BY ");
-				if (!StringUtils.isAllBlank(sortCriteria)) {
-					String[] sortElements = sortCriteria.split("[;, ]");
-					try {
-						for (String sort : sortElements) {
-							if (!StringUtils.isAllBlank(sort)) {
-								String field = getField(sort.substring(1), requestType);
-								if (!StringUtils.isAllBlank(field)) {
-									sb.append(field);
-									sb.append(sortOrder(sort.substring(0, 1)));
-									sb.append(", ");
-								}
-							}
+			default -> { }
+		}
+		if (!StringUtils.isAllBlank(sortCriteria)) {
+			String[] sortElements = sortCriteria.split("[;, ]");
+			try {
+				for (String sort : sortElements) {
+					if (!StringUtils.isAllBlank(sort)) {
+						String field = getField(sort.substring(1), requestType);
+						if (!StringUtils.isAllBlank(field)) {
+							sb.append(field);
+							sb.append(sortOrder(sort.substring(0, 1)));
+							sb.append(", ");
 						}
-					} catch (Exception e) {
-						LOGGER.debug("ERROR while processing 'addOrderBy'", e);
 					}
 				}
-				sb.append(String.format(" oid "));
+			} catch (Exception e) {
+				LOGGER.debug("ERROR while processing 'addOrderBy'", e);
 			}
 		}
+		sb.append(String.format(" oid "));
 	}
 
 	private static String sortOrder(String order) {
@@ -578,8 +577,12 @@ public class SearchRequestHandler {
 		if (lastIndex < searchCriteria.length()) {
 			sb.append(searchCriteria, lastIndex, searchCriteria.length());
 		}
-		if (requestType.equals(DbIdMediaType.TYPE_FOLDER)) {
-			sb.append(" AND child.parent_id = parent.id and child.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
+
+		switch (requestType) {
+			case TYPE_FOLDER -> {
+				sb.append(" AND child.parent_id = parent.id and child.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
+			}
+			default -> { }
 		}
 	}
 
