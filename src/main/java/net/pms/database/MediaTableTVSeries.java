@@ -730,6 +730,33 @@ public final class MediaTableTVSeries extends MediaTable {
 		return null;
 	}
 
+	/**
+	 * Get series metadata from TV series title, and optionally start
+	 * year, but only if API metadata is there (not just filename metadata)
+	 *
+	 * @param connection the db connection
+	 * @param title
+	 * @param startYear
+	 * @return the metadata or null
+	 */
+	public static TvSeriesMetadata getTvSeriesMetadataFromSeriesTitle(final Connection connection, final String title, final Integer startYear) {
+		if (connection == null || StringUtils.isBlank(title)) {
+			return null;
+		}
+
+		Long id = getIdBySimilarTitle(connection, title, startYear);
+		if (id != null) {
+			TvSeriesMetadata tvSeriesMetadata = getTvSeriesMetadata(connection, id);
+
+			// A TMDB ID in the database indicates API metadata, not just filename metadata
+			if (tvSeriesMetadata.getTmdbId() != null) {
+				return tvSeriesMetadata;
+			}
+		}
+
+		return null;
+	}
+
 	private static TvSeriesMetadata getTvSeriesMetadata(final Connection connection, final ResultSet resultSet) throws SQLException {
 		Long tvSeriesId = resultSet.getLong(COL_ID);
 		TvSeriesMetadata metadata = new TvSeriesMetadata();
@@ -803,6 +830,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		if (connection == null || StringUtils.isBlank(title)) {
 			return null;
 		}
+
 		Long id = getIdBySimilarTitle(connection, title, startYear);
 		if (id != null) {
 			try {
@@ -819,6 +847,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("", e);
 			}
 		}
+
 		return null;
 	}
 
