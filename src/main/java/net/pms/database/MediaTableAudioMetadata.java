@@ -46,7 +46,8 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 *
 	 * Version notes:
 	 * - 2: FILEID as BIGINT
-	 * - 3: Lucene support
+	 * - 3: Add DISCOGS_RELEASE_ID
+	 * - 4: Lucene support
 	 */
 	private static final int TABLE_VERSION = 5;
 
@@ -66,8 +67,8 @@ public class MediaTableAudioMetadata extends MediaTable {
 	private static final String COL_SONGNAME = "SONGNAME";
 	private static final String COL_MBID_RECORD = "MBID_RECORD";
 	private static final String COL_MBID_TRACK = "MBID_TRACK";
-	private static final String COL_AUDIOTRACK_ID = "AUDIOTRACK_ID";
 	private static final String COL_DISCOGS_RELEASE_ID = "DISCOGS_RELEASE_ID";
+	private static final String COL_AUDIOTRACK_ID = "AUDIOTRACK_ID";
 	//this is a user param / rating as well when it's changed by the user
 	private static final String COL_RATING = "RATING";
 
@@ -147,11 +148,11 @@ public class MediaTableAudioMetadata extends MediaTable {
 					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")");
 				}
 				case 3 -> {
-					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
-					executeUpdate(connection, "CALL FTL_REINDEX();");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DISCOGS_RELEASE_ID + BIGINT);
 				}
 				case 4 -> {
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DISCOGS_RELEASE_ID + BIGINT);
+					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
+					executeUpdate(connection, "CALL FTL_REINDEX();");
 				}
 				default -> {
 					throw new IllegalStateException(

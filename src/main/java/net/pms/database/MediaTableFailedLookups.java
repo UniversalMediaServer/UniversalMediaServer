@@ -189,8 +189,6 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 			try (ResultSet rs = selectStatement.executeQuery()) {
 				if (rs.next()) {
-					LOGGER.trace("We have failed a lookup for {} so let's see if it was recent", fullPathToFile);
-
 					OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 					OffsetDateTime lastAttempt = rs.getObject(COL_LASTATTEMPT, OffsetDateTime.class);
 					if (lastAttempt.plusWeeks(1).isAfter(now)) {
