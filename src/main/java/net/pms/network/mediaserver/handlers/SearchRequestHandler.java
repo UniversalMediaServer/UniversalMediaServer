@@ -488,7 +488,7 @@ public class SearchRequestHandler {
 		sb.append(" ORDER BY ");
 		switch (requestType) {
 			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PLAYLIST, TYPE_PERSON -> {
-				sb.append("FT.SCORE DESC ");
+				sb.append("FT.SCORE DESC, ");
 				}
 			default -> { }
 		}
