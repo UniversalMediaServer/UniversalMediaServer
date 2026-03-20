@@ -131,7 +131,9 @@ public class SearchRequestHandlerTest {
 		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?is)SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*album\\s*\\)\\s+album,\\s+artist,\\s+media_year,\\s+genre,\\s+MBID_RECORD,\\s+ALBUM\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
+			"(?is)SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+" +
+			"album,\\s+album\\s+as\\s+FILENAME,\\s+artist,\\s+media_year,\\s+genre,\\s+" +
+			"DISCOGS_RELEASE_ID,\\s+MBID_RECORD,\\s+ALBUM\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
 			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
@@ -174,11 +176,13 @@ public class SearchRequestHandlerTest {
 			"UNION\\s+ALL\\s+" +
 			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
 			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
-			"SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*album\\s*\\)\\s+album,\\s+artist,\\s+media_year,\\s+genre,\\s+ALBUM\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
+			"SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+" + // Fix: FILENAME statt album
+			"album,\\s+album\\s+as\\s+FILENAME,\\s+artist,\\s+media_year,\\s+genre,\\s+" + // Fix: Spaltenfolge
+			"DISCOGS_RELEASE_ID,\\s+MBID_RECORD,\\s+ALBUM\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" + // Fix: Fehlende Spalten
 			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
-			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+like\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
 			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
 		));
 	}
