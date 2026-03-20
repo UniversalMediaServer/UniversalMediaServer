@@ -36,7 +36,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
-import net.pms.media.audio.metadata.MusicBrainzAlbum;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
@@ -46,7 +46,7 @@ import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
-import net.pms.store.container.MusicBrainzAlbumFolder;
+import net.pms.store.container.MusicAlbumFolder;
 import net.pms.store.container.MusicBrainzPersonFolder;
 
 /**
@@ -199,7 +199,7 @@ public class SearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				String sql = "SELECT DISTINCT ON (album) album, artist, media_year, genre, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
+				String sql = "SELECT DISTINCT ON (album) album, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
@@ -252,7 +252,7 @@ public class SearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (album) album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
+				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (album) album, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
@@ -803,29 +803,36 @@ public class SearchRequestHandler {
 			if (connection != null) {
 				try (Statement statement = connection.createStatement()) {
 					try (ResultSet resultSet = statement.executeQuery(query)) {
-						Set<String> foundMbidAlbums = new HashSet<>();
+						Set<String> foundAlbums = new HashSet<>();
 						while (resultSet.next()) {
 							String filenameField = extractDisplayName(resultSet, type);
 							switch (type) {
 								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
-									if (StringUtils.isAllBlank(mbid)) {
+									Long discogs = resultSet.getObject("DISCOGS_RELEASE_ID", Long.class);
+									if (StringUtils.isBlank(mbid) && discogs == null) {
 										// Regular albums can be discovered in the media library
 										StoreResource sr = DbIdResourceLocator.getAlbumFromMediaLibrary(renderer, filenameField);
 										if (sr != null) {
 											result.add(sr);
 										}
 									} else {
-										if (!foundMbidAlbums.contains(mbid)) {
-											MusicBrainzAlbumFolder folder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(
-												renderer, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+										String identToMatch = null;
+										if (StringUtils.isNotBlank(mbid)) {
+											identToMatch = mbid;
+										} else if (discogs != null) {
+											identToMatch = discogs.toString();
+										}
+										if (!(foundAlbums.contains(identToMatch))) {
+											AlbumMetadata album = new AlbumMetadata(mbid, discogs, resultSet.getString("album"), resultSet.getString("artist"),
+												Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
+											MusicAlbumFolder folder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(
+												renderer, album.getTypeIdent());
 											if (folder == null) {
-												MusicBrainzAlbum album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
-													Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
-												folder = DbIdLibrary.addLibraryResourceMusicBrainzAlbum(renderer, album);
+												folder = DbIdLibrary.addLibraryResourceMusicAlbum(renderer, album);
 											}
 											result.add(folder);
-											foundMbidAlbums.add(mbid);
+											foundAlbums.add(identToMatch);
 										}
 									}
 								}
@@ -870,7 +877,7 @@ public class SearchRequestHandler {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.trace("getLibraryResourceFromSQL", e);
+			LOGGER.warn("getLibraryResourceFromSQL", e);
 		} finally {
 			MediaDatabase.close(connection);
 		}

@@ -170,7 +170,7 @@ public class GeneralTab {
 		autoUpdateCheckBox.addItemListener((ItemEvent e) -> configuration.setAutoUpdate((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(SwingUtil.getPreferredSizeComponent(autoUpdateCheckBox)).at(FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		ypos += 2;
-		if (!Build.isUpdatable()) {
+		if (!Build.isUpdatable() || !configuration.getExternalNetwork()) {
 			checkForUpdates.setEnabled(false);
 			autoUpdateCheckBox.setEnabled(false);
 		}
@@ -416,6 +416,8 @@ public class GeneralTab {
 			extNetBox.setContentAreaFilled(false);
 			extNetBox.addItemListener((ItemEvent e) -> {
 				boolean checked = (e.getStateChange() == ItemEvent.SELECTED);
+				checkForUpdates.setEnabled(checked);
+				autoUpdateCheckBox.setEnabled(checked);
 				configuration.setExternalNetwork(checked);
 				isUseInfoFromAPI.setEnabled(checked);
 				useInfoFromTMDB.setEnabled(checked);

@@ -490,6 +490,9 @@ public class DidlHelper extends DlnaHelper {
 				endTag(sb);
 				addXMLTagAndAttribute(sb, "musicbrainztrackid", audioMetadata.getMbidTrack());
 				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", audioMetadata.getMbidRecord());
+				if (audioMetadata.getDiscogsReleaseId() != null) {
+					addXMLTagAndAttribute(sb, "discogsreleaseid", audioMetadata.getDiscogsReleaseId());
+				}
 				addXMLTagAndAttribute(sb, "resourceid", mediaInfo.getResourceId());
 				if (audioMetadata.getDisc() > 0) {
 					addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));

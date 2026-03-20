@@ -3,13 +3,32 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@mantine/core` from 8.3.15 to 8.3.17 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075))
+- Bump `@mantine/dropzone` from 8.3.15 to 8.3.17 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075))
+- Bump `@mantine/form` from 8.3.15 to 8.3.17 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075))
+- Bump `@mantine/hooks` from 8.3.15 to 8.3.17 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075))
+- Bump `@mantine/modals` from 8.3.15 to 8.3.17 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075))
+- Bump `@mantine/notifications` from 8.3.15 to 8.3.17 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075))
+- Bump `@stylistic/eslint-plugin` from 5.8.0 to 5.10.0 ([#6063](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6063))
+- Bump `@tabler/icons-react` from 3.37.1 to 3.40.0 ([#6061](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6061))
 - Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
+- Bump `axios` from 1.13.5 to 1.13.6 ([#6077](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6077))
 - Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
+- Bump `commons-logging:commons-logging` from 1.3.5 to 1.3.6 ([#6060](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6060))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
+- Bump `dorny/paths-filter` from 3 to 4 ([#6073](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6073))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
+- Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.4.0 to 3.5.0 ([#6058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6058))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
+- Bump `react-router-dom` from 7.13.0 to 7.13.1 ([#6062](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6062))
 - Bump `rollup` from 4.50.1 to 4.59.0 ([#6043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6043))
+- Bump `tar` from 7.5.9 to 7.5.11 ([#6055](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6055), [#6067](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6067))
+- Bump `typescript-eslint` from 8.56.0 to 8.57.0 ([#6076](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6076))
 
 ## [15.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.4.0...15.5.0) (2026-02-28)
 
