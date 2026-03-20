@@ -179,12 +179,12 @@ public class SearchRequestHandler {
 	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list, SearchRequest requestMessage) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				String sql = "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+				String sql = "SELECT FT.SCORE, A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
-				String sql = "SELECT DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
+				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
@@ -199,13 +199,13 @@ public class SearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				String sql = "SELECT DISTINCT ON (FILENAME) album, album as FILENAME, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
+				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, album, album as FILENAME, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
 			}
 			case TYPE_PLAYLIST -> {
-				String sql = "SELECT DISTINCT ON (FILENAME) FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
+				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' AND ";
 				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage);
@@ -229,14 +229,14 @@ public class SearchRequestHandler {
 	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId, SearchRequest requestMessage) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				String sql = getTreeStatement(subtreeId) + "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE " +
+				String sql = getTreeStatement(subtreeId) + "SELECT FT.SCORE, A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
 				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage);
 			}
 			case TYPE_PERSON -> {
-				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
+				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
@@ -252,14 +252,14 @@ public class SearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) album, album as FILENAME, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
+				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, album, album as FILENAME, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
 				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
 			}
 			case TYPE_PLAYLIST -> {
-				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
+				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] " +
 					getTreeWhereStatement("FILES", subtreeId, true);
