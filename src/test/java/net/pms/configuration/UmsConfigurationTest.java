@@ -106,5 +106,4 @@ public class UmsConfigurationTest {
 		configuration.setLanguage((Locale) null);
 		assertEquals(configuration.getLanguageRawString(), "", "setLanguage(null)SetsBlankString");
 	}
-
 }
