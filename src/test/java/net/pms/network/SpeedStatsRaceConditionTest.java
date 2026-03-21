@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
@@ -100,5 +101,26 @@ public class SpeedStatsRaceConditionTest {
 		CompletableFuture<Integer> inFlight = speedStats.calculateSpeedInMBits(embeddedHostnameAddr, "JUnit");
 		CompletableFuture<Integer> cached = speedStats.getCachedSpeedInMBits(hostLessAddr);
 		assertSame(inFlight, cached, "After measurement starts, host-less address should map to the same in-flight future via the IP cache");
+	}
+
+	@Test
+	void calculateSpeedInMBitsReusesInFlightFutureForSameIp() throws Exception {
+		AtomicInteger measurementCalls = new AtomicInteger();
+		speedStats = new SpeedStats((addr, rendererName) -> {
+			measurementCalls.incrementAndGet();
+			Thread.sleep(200);
+			return 42;
+		});
+		InetAddress addr = InetAddress.getByAddress("ums-speedstats-dedup-host", new byte[] {127, 0, 0, 30});
+
+		CompletableFuture<Integer> first = speedStats.calculateSpeedInMBits(addr, "JUnit");
+		CompletableFuture<Integer> second = speedStats.calculateSpeedInMBits(addr, "JUnit");
+
+		assertSame(first, second, "Repeated requests for the same IP should reuse the existing in-flight measurement");
+		assertEquals(
+				Integer.valueOf(42),
+				assertTimeoutPreemptively(Duration.ofSeconds(2), () -> first.get(1, TimeUnit.SECONDS))
+		);
+		assertEquals(1, measurementCalls.get(), "Expected only one measurement for repeated requests to the same IP");
 	}
 }

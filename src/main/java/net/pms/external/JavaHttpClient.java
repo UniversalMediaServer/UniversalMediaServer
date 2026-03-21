@@ -55,6 +55,7 @@ public class JavaHttpClient {
 		try {
 			return PMS.getConfiguration() != null && PMS.getConfiguration().isHttpTimeoutEnabled();
 		} catch (Exception e) {
+			LOGGER.error("Unable to read HTTP timeout enabled setting. HTTP timeouts will be disabled.", e);
 			return false;
 		}
 	}
@@ -63,6 +64,7 @@ public class JavaHttpClient {
 		try {
 			return PMS.getConfiguration() != null ? PMS.getConfiguration().getHttpConnectTimeoutSeconds() : DEFAULT_CONNECT_SECONDS;
 		} catch (Exception e) {
+			LOGGER.error("Unable to read HTTP connect timeout setting. Using default {} seconds.", DEFAULT_CONNECT_SECONDS, e);
 			return DEFAULT_CONNECT_SECONDS;
 		}
 	}
@@ -71,6 +73,7 @@ public class JavaHttpClient {
 		try {
 			return PMS.getConfiguration() != null ? PMS.getConfiguration().getHttpResponseTimeoutSeconds() : DEFAULT_RESPONSE_SECONDS;
 		} catch (Exception e) {
+			LOGGER.error("Unable to read HTTP response timeout setting. Using default {} seconds.", DEFAULT_RESPONSE_SECONDS, e);
 			return DEFAULT_RESPONSE_SECONDS;
 		}
 	}

@@ -145,26 +145,29 @@ public class SpeedStats {
 	 */
 	public CompletableFuture<Integer> calculateSpeedInMBits(InetAddress addr, String rendererName) {
 		final String ip = addr.getHostAddress();
+		return SPEED_STATS.computeIfAbsent(ip, ignored -> createMeasurementFuture(addr, rendererName, ip));
+	}
+
+	private CompletableFuture<Integer> createMeasurementFuture(InetAddress addr, String rendererName, String ip) {
 		final CompletableFuture<Integer> future = CompletableFuture.supplyAsync(
-			() -> {
-				try {
-					return measurement.measure(addr, rendererName);
-				} catch (Exception e) {
-					throw new CompletionException(e);
-				}
-			},
-			BACKGROUND_EXECUTOR
+				() -> {
+					try {
+						return measurement.measure(addr, rendererName);
+					} catch (Exception e) {
+						throw new CompletionException(e);
+					}
+				},
+				BACKGROUND_EXECUTOR
 		);
-		SPEED_STATS.put(ip, future);
 		// Fill by hostname if available and different from IP after reverse resolution
 		CompletableFuture.runAsync(
-			() -> {
-				final String hostname = DnsResolver.resolveReverse(addr);
-				if (!hostname.equals(ip)) {
-					SPEED_STATS.put(hostname, future);
-				}
-			},
-			BACKGROUND_EXECUTOR
+				() -> {
+					final String hostname = DnsResolver.resolveReverse(addr);
+					if (!hostname.equals(ip)) {
+						SPEED_STATS.put(hostname, future);
+					}
+				},
+				BACKGROUND_EXECUTOR
 		);
 		return future;
 	}

@@ -763,7 +763,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		if (addr != null) {
 			Integer speed = SpeedStats.getDefault().getCachedSpeedInMBits(addr).get();
 			if (speed != null && speed != -1) {
-				return Math.min(speed, max);
+				return max > 0 ? Math.min(speed, max) : speed;
 			}
 		}
 		return max;

@@ -62,6 +62,7 @@ public final class DnsResolver {
 		try {
 			return PMS.getConfiguration() != null && PMS.getConfiguration().isDnsResolutionTimeoutEnabled();
 		} catch (Exception e) {
+			LOGGER.error("Unable to read DNS resolution timeout enabled setting. DNS timeouts will be disabled.", e);
 			return false;
 		}
 	}
@@ -76,6 +77,7 @@ public final class DnsResolver {
 			int ms = PMS.getConfiguration() != null ? PMS.getConfiguration().getDnsResolutionTimeoutMs() : DEFAULT_DNS_TIMEOUT_MS;
 			return Math.max(1, ms);
 		} catch (Exception e) {
+			LOGGER.error("Unable to read DNS resolution timeout setting. Using default {} ms.", DEFAULT_DNS_TIMEOUT_MS, e);
 			return Math.max(1, DEFAULT_DNS_TIMEOUT_MS);
 		}
 	}
