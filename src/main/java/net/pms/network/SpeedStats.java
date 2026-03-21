@@ -120,28 +120,28 @@ public class SpeedStats {
 					return SPEED_STATS.get(hostname);
 				},
 				BACKGROUND_EXECUTOR
-		  ).thenCompose(
-				future -> 
+		).thenCompose(
+				future ->
 					future != null ? future : CompletableFuture.completedFuture(-1)
-			);
+		);
 	}
 
 	/**
 	 * Return the network throughput for the given IP address in MBits.
-   *
-   * It is calculated in the background, and cached, so only a reference is
-   * given to the result, which can be retrieved by calling the get() method
-   * on it.
-	 * 
+	 *
+	 * It is calculated in the background, and cached, so only a reference is
+	 * given to the result, which can be retrieved by calling the get() method
+	 * on it.
+	 *
 	 * Calling this always starts a background measurement and returns
 	 * a {@link CompletableFuture} that completes with the speed in Mb/s.
-	 * 
+	 *
 	 * When the future completes, the cache is updated (under both hostname and IP).
-   *
-   * @param addr
-   * @param rendererName
-   *
-   * @return The network throughput as a {@link CompletableFuture} that completes
+	 *
+	 * @param addr
+	 * @param rendererName
+	 *
+	 * @return The network throughput as a {@link CompletableFuture} that completes
 	 */
 	public CompletableFuture<Integer> calculateSpeedInMBits(InetAddress addr, String rendererName) {
 		final String ip = addr.getHostAddress();
