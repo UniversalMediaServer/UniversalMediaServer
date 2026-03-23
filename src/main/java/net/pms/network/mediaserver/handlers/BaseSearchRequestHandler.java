@@ -398,6 +398,8 @@ public abstract class BaseSearchRequestHandler {
 						}
 					}
 				}
+			} else {
+				LOGGER.warn("No database connection available to execute getLibraryResourceFromSQL query.");
 			}
 		} catch (SQLException e) {
 			LOGGER.warn("getLibraryResourceFromSQL", e);
@@ -428,9 +430,8 @@ public abstract class BaseSearchRequestHandler {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(String.format("SQL count : %s", query));
 		}
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
+
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
 				try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
@@ -439,11 +440,12 @@ public abstract class BaseSearchRequestHandler {
 				} catch (SQLException e) {
 					LOGGER.trace("getLibraryResourceCountFromSQL", e);
 				}
+			} else {
+				LOGGER.warn("No database connection available to execute count query.");
+				return 0;
 			}
 		} catch (Exception e) {
 			LOGGER.warn("getLibraryResourceCountFromSQL", e);
-		} finally {
-			MediaDatabase.close(connection);
 		}
 		return 0;
 	}
