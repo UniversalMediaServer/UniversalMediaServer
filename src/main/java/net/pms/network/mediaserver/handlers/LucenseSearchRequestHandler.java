@@ -389,7 +389,6 @@ public class LucenseSearchRequestHandler extends BaseSearchRequestHandler {
 	}
 
 	protected String convertToFilesSql() {
-
 		StringBuilder sb = new StringBuilder();
 		String subtreeId = getRequestMessage().getContainerId();
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {

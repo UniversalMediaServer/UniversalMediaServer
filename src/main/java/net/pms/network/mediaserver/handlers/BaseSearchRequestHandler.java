@@ -280,7 +280,10 @@ public abstract class BaseSearchRequestHandler {
 	 * @return
 	 */
 	public int getSearchCountElements(SearchRequest searchRequest) {
-		return getLibraryResourceCountFromSQL();
+		int match = getLibraryResourceCountFromSQL();
+		LOGGER.debug("{}", searchRequest.getSearchCriteria());
+		LOGGER.debug("  -> count TOTAL MATCHES : {}", match);
+		return match;
 	}
 
 	/**
@@ -318,9 +321,7 @@ public abstract class BaseSearchRequestHandler {
 		// SQL statements having 'FILENAME' as a result identifier.
 		String query = convertToFilesSql();
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(String.format("SQL %s : %s", getRequestType().dbidPrefix, query));
-		}
+		LOGGER.debug("RequestType {} : {}", getRequestType().dbidPrefix, query);
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
 				try (Statement statement = connection.createStatement()) {
@@ -401,6 +402,7 @@ public abstract class BaseSearchRequestHandler {
 		} catch (SQLException e) {
 			LOGGER.warn("getLibraryResourceFromSQL", e);
 		}
+		LOGGER.debug("  -> elements found : {}", result.size());
 		return result;
 	}
 

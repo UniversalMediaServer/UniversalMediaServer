@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler.SearchToken;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 
 public class SearchRequestTokenizer {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchRequestTokenizer.class.getName());
 
 	protected static final Pattern TOKENIZER_PATTERN = Pattern.compile(
 		"(?<property>((dc)|(upnp)):[A-Za-z@\\[\\]\"=]+)\\s+" + "(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>([^\"]|\"\")*)\"",
@@ -39,7 +43,9 @@ public class SearchRequestTokenizer {
 	 * @return
 	 */
 	public boolean hasDcTitleSearch() {
-		return searchTokens.stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"));
+		boolean hasTitile = searchTokens.stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"));
+		LOGGER.trace("SearchRequestTokenizer.hasDcTitleSearch: {}", hasTitile);
+		return hasTitile;
 	}
 
 	public List<SearchToken> getSearchTokens() {

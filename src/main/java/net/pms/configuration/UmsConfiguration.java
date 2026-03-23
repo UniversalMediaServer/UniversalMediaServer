@@ -399,6 +399,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
+	private static final String KEY_SEARCH_LUCENE_USE = "search_lucene_use_engine";
 	private static final String KEY_SEARCH_LUCENE_EQUAL_FUZZ = "search_lucene_equal_fuzzy";
 	private static final String KEY_SEARCH_LUCENE_CONTAINS_FUZZ = "search_lucene_contains_fuzzy";
 	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
@@ -1009,6 +1010,14 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean getLuceneEqualFuzzySearch() {
 		return getBoolean(KEY_SEARCH_LUCENE_EQUAL_FUZZ, false);
+	}
+
+	/**
+	 * Indicates whether the Lucene search should be used for searching. If false, the old database search method will be used.
+	 * @return
+	 */
+	public boolean useLuceneSearch() {
+		return getBoolean(KEY_SEARCH_LUCENE_USE, true);
 	}
 
 	/**
@@ -5937,5 +5946,4 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_3D_SUBTITLES_DEPTH, "0");
 		return jObj;
 	}
-
 }

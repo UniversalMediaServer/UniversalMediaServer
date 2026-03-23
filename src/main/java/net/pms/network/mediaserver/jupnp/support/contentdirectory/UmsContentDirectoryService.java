@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler;
+import net.pms.network.mediaserver.handlers.DbSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.LucenseSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.SearchRequestTokenizer;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
@@ -876,15 +877,15 @@ public class UmsContentDirectoryService {
 		try {
 			BaseSearchRequestHandler searchRequestHandler = null;
 			SearchRequestTokenizer tokenizer = new SearchRequestTokenizer(searchRequest);
-			if (tokenizer.hasDcTitleSearch()) {
+			if (tokenizer.hasDcTitleSearch() && renderer.getUmsConfiguration().useLuceneSearch()) {
+				LOGGER.debug("Using LucenseSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
 				searchRequestHandler = new LucenseSearchRequestHandler(searchRequest);
 			} else {
-
+				LOGGER.debug("Using DbSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
+				searchRequestHandler = new DbSearchRequestHandler(searchRequest);
 			}
 
 			int totalMatches = searchRequestHandler.getSearchCountElements(searchRequest);
-			LOGGER.debug("{}", searchRequest.getSearchCriteria());
-			LOGGER.debug("  - count TOTAL MATCHES : {}", totalMatches);
 			List<StoreResource> resultResources = searchRequestHandler.getLibraryResourceFromSQL(renderer);
 			LOGGER.debug("  - resultset Elements count : {}", resultResources.size());
 
