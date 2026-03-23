@@ -151,8 +151,8 @@ public class MediaTableAudioMetadata extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DISCOGS_RELEASE_ID + BIGINT);
 				}
 				case 4 -> {
+					executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'AUDIO_METADATA');");
 					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
-					executeUpdate(connection, "CALL FTL_REINDEX();");
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -204,6 +204,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SONGNAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_SONGNAME + ")"
 		);
 
+		execute(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'AUDIO_METADATA');");
 		execute(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
 	}
 
