@@ -40,7 +40,7 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
@@ -62,8 +62,8 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -81,7 +81,7 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
@@ -106,8 +106,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -132,7 +132,7 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
@@ -153,8 +153,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -173,7 +173,7 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
@@ -198,8 +198,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -224,7 +224,7 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
@@ -246,8 +246,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -266,7 +266,7 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
@@ -293,8 +293,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -321,7 +321,7 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
@@ -346,8 +346,8 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -373,8 +373,8 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
@@ -389,7 +389,7 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
@@ -414,7 +414,7 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		String result = searchRequestHandler.convertToFilesSql();
 		LOG.info(result);  // \\s+
 		assertTrue(result.matches(
@@ -432,8 +432,8 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
 			"(?is)^\\s*SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.COMPOSER\\s*\\)\\s+" +
@@ -456,8 +456,8 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.CONDUCTOR\\s*\\)\\s+" +
@@ -479,8 +479,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUM\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
@@ -495,8 +495,8 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
 			"(?is)^\\s*SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUMARTIST\\s*\\)\\s+" +
@@ -517,8 +517,8 @@ public class SearchRequestHandlerTest {
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ARTIST\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ARTIST:tchaikovsky~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
@@ -535,8 +535,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:love~2\\s+don''t~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT" +
@@ -565,8 +565,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("134");
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
-		String sql = searchRequestHandler.convertToCountSql(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 	}
 
@@ -581,7 +581,7 @@ public class SearchRequestHandlerTest {
 		sr.setFilter(
 				"dc:title,av:mediaClass,dc:date,@childCount,av:chapterInfo,res,upnp:rating,upnp:rating@type,upnp:class,av:soundPhoto,res@resolution,res@av:mpfEntries,upnp:album,upnp:genre,upnp:albumArtURI,upnp:albumArtURI@dlna:profileID,dc:creator,res@size,res@duration,res@bitrate,res@protocolInfo");
 		sr.setSortCriteria("");
-		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
 		StringBuilder response = searchRequestHandler.createSearchResponse(renderer);
 		LOG.info("");
 		LOG.info("testVideoFileUpnpSearch");
