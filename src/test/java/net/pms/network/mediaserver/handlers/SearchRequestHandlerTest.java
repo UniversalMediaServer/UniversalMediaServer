@@ -19,7 +19,6 @@ package net.pms.network.mediaserver.handlers;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
-import net.pms.store.DbIdMediaType;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,10 +29,8 @@ import org.slf4j.LoggerFactory;
 public class SearchRequestHandlerTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchRequestHandlerTest.class.getName());
-
 	@BeforeAll
 	public static final void setUp() throws ConfigurationException, InterruptedException {
-		// No need to setup anything
 	}
 
 	@Test
@@ -43,25 +40,30 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?is)SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+FILENAME,\\s+ONLYFILENAME,\\s+MODIFIED,\\s+F\\.ID\\s+as\\s+FID,\\s+F\\.ID\\s+as\\s+oid\\s+" +
+			"(?is)^\\s*SELECT\\s+DISTINCT\\s+ON\\s*\\(FILENAME\\)\\s+" +
+			"FT\\.SCORE,\\s*FILENAME,\\s*ONLYFILENAME,\\s*MODIFIED,\\s*F\\.ID\\s+as\\s+FID,\\s*F\\.ID\\s+as\\s+oid\\s+" +
 			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ONLYFILENAME:jazz~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
-			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'FILES'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*16\\s+and\\s+1\\s*=\\s*1\\s*"
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'FILES'\\s+" +
+			"AND\\s+F\\.FORMAT_TYPE\\s*=\\s*16\\s*" +
+			"(?:AND\\s+1\\s*=\\s*1\\s*)*" +
+			"ORDER\\s+BY\\s+FT\\.SCORE\\s+DESC,\\s*oid\\s*$"
 		));
 	}
 
 	@Test
 	public void testGlobalPlaylistSearchCount() {
 		SearchRequest sr = new SearchRequest();
-		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
-		String sql = SearchRequestHandler.convertToCountSql(type, sr);
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -79,19 +81,21 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
-			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"(?is)^\\s*WITH\\s+RECURSIVE\\s+tree\\s*\\(id,\\s*name\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id,\\s+name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
 			"UNION\\s+ALL\\s+" +
-			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
-			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
-			"SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+FILENAME,\\s+ONLYFILENAME,\\s+MODIFIED,\\s+F\\.ID\\s+as\\s+FID,\\s+F\\.ID\\s+as\\s+oid\\s+" +
-			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ONLYFILENAME:jazz~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"SELECT\\s+t\\.id,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*" +
+			"\\)\\s*SELECT\\s+DISTINCT\\s+ON\\s*\\(FILENAME\\)\\s+" +
+			"FT\\.SCORE,.*?\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ONLYFILENAME:jazz~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
-			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
-			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'FILES'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*16\\s+and\\s+1\\s*=\\s*1\\s*"
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s*" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'FILES'\\s*" +
+			".*?" +
+			"ORDER\\s+BY\\s+FT\\.SCORE\\s+DESC,\\s*oid\\s*$"
 		));
 	}
 
@@ -102,8 +106,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
-		String sql = SearchRequestHandler.convertToCountSql(type, sr);
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -128,16 +132,17 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?is)SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+" +
-			"album,\\s+album\\s+as\\s+FILENAME,\\s+artist,\\s+media_year,\\s+genre,\\s+" +
-			"DISCOGS_RELEASE_ID,\\s+MBID_RECORD,\\s+ALBUM\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
-			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
-			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
-			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
-			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+			"(?is)^\\s*SELECT\\s+DISTINCT\\s+ON\\s*\\(FILENAME\\)\\s+" +
+				"FT\\.SCORE,.*?\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+				"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+				"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+				"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s*" +
+				"(?:AND\\s+1\\s*=\\s*1\\s*)*.*?" +
+				"ORDER\\s+BY\\s+FT\\.SCORE\\s+DESC,\\s*oid\\s*$"
 		));
 	}
 
@@ -148,11 +153,11 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
-		String countSQL = SearchRequestHandler.convertToCountSql(type, sr);
-		LOG.info(countSQL);
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
 
-		assertTrue(countSQL.matches(
+		assertTrue(sql.matches(
 			"(?is)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUM\\s*\\)\\s+" +
 			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
@@ -168,22 +173,21 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
-			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
-			"UNION\\s+ALL\\s+" +
-			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
-			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
-			"SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+" + // Fix: FILENAME statt album
-			"album,\\s+album\\s+as\\s+FILENAME,\\s+artist,\\s+media_year,\\s+genre,\\s+" + // Fix: Spaltenfolge
-			"DISCOGS_RELEASE_ID,\\s+MBID_RECORD,\\s+ALBUM\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" + // Fix: Fehlende Spalten
-			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
-			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
-			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
-			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+like\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
-			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+			"(?is)^\\s*WITH\\s+RECURSIVE\\s+tree\\s*\\(id,\\s*name\\)\\s+AS\\s*\\(\\s*" +
+				"SELECT\\s+id,\\s+name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+				"UNION\\s+ALL\\s+" +
+				"SELECT\\s+t\\.id,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*" +
+				"\\)\\s*SELECT\\s+DISTINCT\\s+ON\\s*\\(FILENAME\\)\\s+" +
+				"FT\\.SCORE,.*?\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+				"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+				"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+				"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s*" +
+				"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'.*?" +
+				"ORDER\\s+BY\\s+FT\\.SCORE\\s+DESC,\\s*oid\\s*$"
 		));
 	}
 
@@ -194,8 +198,8 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
-		String sql = SearchRequestHandler.convertToCountSql(type, sr);
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
 		LOG.info(sql);
 
 		assertTrue(sql.matches(
@@ -220,14 +224,18 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?i)SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+A\\.ARTIST\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
+			"(?is)^\\s*SELECT\\s+DISTINCT\\s+ON\\s*\\(FILENAME\\)\\s+" +
+			"FT\\.SCORE,\\s*A\\.ARTIST\\s+as\\s+FILENAME,\\s*A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
 			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ARTIST:Rhye~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
-			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s*" +
+			"(?:AND\\s+1\\s*=\\s*1\\s*)*" +
+			"ORDER\\s+BY\\s+FT\\.SCORE\\s+DESC,\\s*oid\\s*$"
 		));
 	}
 
@@ -238,11 +246,11 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
-		String countSQL = SearchRequestHandler.convertToCountSql(type, sr);
-		LOG.info(countSQL);
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
 
-		assertTrue(countSQL.matches(
+		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ARTIST\\s*\\)\\s+" +
 			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ARTIST:Rhye~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
@@ -258,20 +266,23 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
-			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"(?is)^\\s*WITH\\s+RECURSIVE\\s+tree\\s*\\(id,\\s*name\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id,\\s+name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
 			"UNION\\s+ALL\\s+" +
-			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
-			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
-			"SELECT\\s+DISTINCT\\s+ON\\s*\\(\\s*FILENAME\\s*\\)\\s+A\\.ARTIST\\s+as\\s+FILENAME,\\s+A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
+			"SELECT\\s+t\\.id,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*" +
+			"\\)\\s*SELECT\\s+DISTINCT\\s+ON\\s*\\(FILENAME\\)\\s+" +
+			"FT\\.SCORE,\\s*A\\.ARTIST\\s+as\\s+FILENAME,\\s*A\\.AUDIOTRACK_ID\\s+as\\s+oid\\s+" +
 			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ARTIST:Rhye~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
-			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
-			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s*" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s*" +
+			"(?:AND\\s+1\\s*=\\s*1\\s*)*" +
+			"ORDER\\s+BY\\s+FT\\.SCORE\\s+DESC,\\s*oid\\s*$"
 		));
 	}
 
@@ -282,11 +293,11 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
-		String countSQL = SearchRequestHandler.convertToCountSql(type, sr);
-		LOG.info(countSQL);
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
 
-		assertTrue(countSQL.matches(
+		assertTrue(sql.matches(
 			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
 			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
 			"UNION\\s+ALL\\s+" +
@@ -309,20 +320,21 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
-			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
+			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(id,\\s*name\\)\\s+AS\\s*\\(\\s*" +
+			"SELECT\\s+id,\\s+name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
 			"UNION\\s+ALL\\s+" +
-			"SELECT\\s+t\\.id\\s*,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+" +
-			"INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*\\)\\s+" +
-			"SELECT\\s+A\\.RATING,\\s+A\\.GENRE,\\s+F\\.FILENAME,\\s+F\\.MODIFIED,\\s+F\\.ID\\s+AS\\s+FID,\\s+F\\.ID\\s+AS\\s+OID,\\s+FT\\.SCORE\\s+" +
-			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"SELECT\\s+t\\.id,\\s+t\\.name\\s+FROM\\s+STORE_IDS\\s+t\\s+INNER\\s+JOIN\\s+tree\\s+ON\\s+t\\.parent_id\\s*=\\s*tree\\.id\\s*" +
+			"\\)\\s*SELECT\\s+FT\\.SCORE,.*?FT\\.SCORE\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
-			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s+" +
-			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+			"WHERE\\s+EXISTS\\s*\\(\\s*SELECT\\s+1\\s+FROM\\s+tree\\s+WHERE\\s+F\\.FILENAME\\s+LIKE\\s+tree\\.name\\s*\\|\\|\\s*'%'.*?\\)\\s*" +
+			"AND\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'.*?" +
+			"ORDER\\s+BY\\s+FT\\.SCORE\\s+DESC,\\s*oid\\s*"
 		));
 	}
 
@@ -333,11 +345,12 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("140");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
-		String countSQL = SearchRequestHandler.convertToCountSql(type, sr);
-		LOG.info(countSQL);
 
-		assertTrue(countSQL.matches(
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
+
+		assertTrue(sql.matches(
 			"(?is)WITH\\s+RECURSIVE\\s+tree\\s*\\(\\s*id\\s*,\\s*name\\s*\\)\\s+AS\\s*\\(\\s*" +
 			"SELECT\\s+id\\s*,\\s*name\\s+FROM\\s+STORE_IDS\\s+WHERE\\s+id\\s*=\\s*140\\s+" +
 			"UNION\\s+ALL\\s+" +
@@ -359,10 +372,11 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		DbIdMediaType type = SearchRequestHandler.getRequestType(sr.getSearchCriteria());
-		String countSQL = SearchRequestHandler.convertToCountSql(type, sr);
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
+
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
+		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
 		));
 	}
@@ -374,14 +388,20 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(sr.getSearchCriteria()));
+
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?i)SELECT\\s+A\\.RATING,\\s+A\\.GENRE,\\s+F\\.FILENAME,\\s+F\\.MODIFIED,\\s+F\\.ID\\s+AS\\s+FID,\\s+FT\\.SCORE,\\s+F\\.ID\\s+AS\\s+OID\\s+" +
+			"(?is)^\\s*SELECT\\s+" +
+			"FT\\.SCORE,\\s*A\\.RATING,\\s*A\\.GENRE,\\s*F\\.FILENAME,\\s*F\\.MODIFIED,\\s*F\\.ID\\s+AS\\s+FID,\\s*FT\\.SCORE,\\s*F\\.ID\\s+AS\\s+OID\\s+" +
 			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:Darc~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
-			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+" +
+			"AND\\s+F\\.FORMAT_TYPE\\s*=\\s*1\\s*" +
+			"(?:AND\\s+1\\s*=\\s*1\\s*)*" +
+			"ORDER\\s+BY\\s+FT\\.SCORE\\s+DESC,\\s*oid\\s*$"
 		));
 	}
 
@@ -393,7 +413,9 @@ public class SearchRequestHandlerTest {
 		sr.setSearchCriteria(s);
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String result = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(s));
+
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String result = searchRequestHandler.convertToFilesSql();
 		LOG.info(result);  // \\s+
 		assertTrue(result.matches(
 				"select\\s+FILENAME\\s*,\\s*MODIFIED\\s*,\\s*F\\.ID\\s+as\\s+FID\\s*,\\s*F\\.ID\\s+as\\s+oid\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s*\\(\\s*F\\.FORMAT_TYPE\\s*=\\s*4\\s*\\)\\s*ORDER\\s+BY\\s+oid\\s+LIMIT\\s+999\\s+OFFSET\\s+0\\s*"));
@@ -404,18 +426,24 @@ public class SearchRequestHandlerTest {
 	 */
 	@Test
 	public void testLinnAppComposerSearch() {
-		SearchRequest requestMessage = new SearchRequest();
-		requestMessage.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Composer\"] contains \"tchaikovsky\"");
-		requestMessage.setContainerId("0");
-		requestMessage.setRequestedCount(900);
-		requestMessage.setStartingIndex(0);
-		String countSQL = SearchRequestHandler.convertToCountSql(
-				SearchRequestHandler.getRequestType(requestMessage.getSearchCriteria()),
-				requestMessage);
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.COMPOSER\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+ \\s*A.COMPOSER\\s+ILIKE\\s+'%tchaikovsky%'"));
-	}
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Composer\"] contains \"tchaikovsky\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
+		assertTrue(sql.matches(
+			"(?is)^\\s*SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.COMPOSER\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'COMPOSER:'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s*" +
+			"(?:AND\\s+1\\s*=\\s*1\\s*)*" +
+			"AND\\s+A\\.COMPOSER\\s+ILIKE\\s+'%tchaikovsky%'\\s*$"
+		));	}
 
 	/**
 	 * Tests SearchCriteria issued by LINN app (iOS) for Composer
@@ -427,10 +455,18 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
-		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s*A.CONDUCTOR\\s+ILIKE\\s+'%bernstein%'"));
+
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
+		assertTrue(sql.matches(
+			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.CONDUCTOR\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'CONDUCTOR:.*'\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+" +
+			"AND\\s+A\\.CONDUCTOR\\s+ILIKE\\s+'%bernstein%'"
+		));
 	}
 
 	/**
@@ -443,9 +479,10 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
+		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUM\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUM:spirit~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
 		));
 	}
@@ -457,10 +494,19 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
-		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ALBUMARTIST\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+A.ALBUMARTIST\\s+ILIKE\\s+'%tchaikovsky%'"));
+
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
+		assertTrue(sql.matches(
+			"(?is)^\\s*SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUMARTIST\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUMARTIST:'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
+			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s*" +
+			"(?:AND\\s+1\\s*=\\s*1\\s*)*" +
+			"AND\\s+A\\.ALBUMARTIST\\s+ILIKE\\s+'%tchaikovsky%'\\s*$"
+		));
 	}
 
 	@Test
@@ -470,9 +516,11 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
+
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
+		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ARTIST\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ARTIST:tchaikovsky~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+and\\s+1\\s*=\\s*1\\s*"
 		));
 	}
@@ -487,9 +535,10 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
-		String countSQL = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(sr.getSearchCriteria()), sr);
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
+		LOG.info(sql);
+		assertTrue(sql.matches(
 			"(?i)SELECT\\s+COUNT\\s*\\(\\s*\\*\\s*\\)\\s+FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'SONGNAME:love~2\\s+don''t~2'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT" +
 			"\\s+JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A.FILEID\\s*=\\s*FT.KEYS\\[1\\]" +
 			"\\s+JOIN\\s+FILES\\s+F\\s+ON\\s+F.ID\\s*=\\s*A.FILEID" +
@@ -516,15 +565,13 @@ public class SearchRequestHandlerTest {
 		sr.setContainerId("134");
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
-		String countSql = SearchRequestHandler.convertToCountSql(SearchRequestHandler.getRequestType(searchCriteria), sr);
-		LOG.info(countSql);
-		String sql = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(searchCriteria));
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql(sr);
 		LOG.info(sql);
 	}
 
 	@Test
 	public void testVideoFileUpnpSearch() {
-		SearchRequestHandler srh = new SearchRequestHandler();
 		SearchRequest sr = new SearchRequest();
 		Renderer renderer = RendererConfigurations.getDefaultRenderer();
 		sr.setRequestedCount(0);
@@ -534,7 +581,8 @@ public class SearchRequestHandlerTest {
 		sr.setFilter(
 				"dc:title,av:mediaClass,dc:date,@childCount,av:chapterInfo,res,upnp:rating,upnp:rating@type,upnp:class,av:soundPhoto,res@resolution,res@av:mpfEntries,upnp:album,upnp:genre,upnp:albumArtURI,upnp:albumArtURI@dlna:profileID,dc:creator,res@size,res@duration,res@bitrate,res@protocolInfo");
 		sr.setSortCriteria("");
-		StringBuilder response = srh.createSearchResponse(sr, renderer);
+		SearchRequestHandler searchRequestHandler = new SearchRequestHandler(sr);
+		StringBuilder response = searchRequestHandler.createSearchResponse(renderer);
 		LOG.info("");
 		LOG.info("testVideoFileUpnpSearch");
 		LOG.info("===================================================================");

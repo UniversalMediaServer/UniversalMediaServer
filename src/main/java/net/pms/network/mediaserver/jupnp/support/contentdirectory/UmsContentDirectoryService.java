@@ -40,7 +40,6 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
 import net.pms.renderers.Renderer;
-import net.pms.store.DbIdMediaType;
 import net.pms.store.MediaScanner;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
@@ -873,13 +872,12 @@ public class UmsContentDirectoryService {
 		}
 
 		try {
-			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchRequest.getSearchCriteria());
-			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(requestType, searchRequest));
+			SearchRequestHandler searchRequestHandler = new SearchRequestHandler(searchRequest);
+
+			int totalMatches = searchRequestHandler.getSearchCountElements(searchRequest);
 			LOGGER.debug("{}", searchRequest.getSearchCriteria());
 			LOGGER.debug("  - count TOTAL MATCHES : {}", totalMatches);
-			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchRequest, requestType);
-			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
-			LOGGER.debug("SQL : {}", sqlFiles);
+			List<StoreResource> resultResources = searchRequestHandler.getLibraryResourceFromSQL(renderer);
 			LOGGER.debug("  - resultset Elements count : {}", resultResources.size());
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();

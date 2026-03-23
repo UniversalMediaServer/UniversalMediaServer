@@ -76,6 +76,10 @@ public class SearchRequestHandler {
 
 	public record SearchToken(String attr, String op, String val) { }
 
+	private SearchRequest requestMessage = null;
+	private DbIdMediaType requestType = null;
+	private List<SearchToken> tokens = null;
+
 	private static UmsConfiguration umsConfiguration;
 
 	static {
@@ -87,7 +91,13 @@ public class SearchRequestHandler {
 		}
 	}
 
-	public static DbIdMediaType getRequestType(String searchCriteria) {
+	public SearchRequestHandler(SearchRequest requestMessage) {
+		this.requestMessage = requestMessage;
+		requestType = getRequestType(requestMessage.getSearchCriteria());
+		tokens = getSearchTokens(requestMessage.getSearchCriteria());
+	}
+
+	private DbIdMediaType getRequestType(String searchCriteria) {
 		Matcher matcher = CLASS_PATTERN.matcher(searchCriteria);
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
@@ -115,7 +125,7 @@ public class SearchRequestHandler {
 		throw new RuntimeException("Unknown type : " + (searchCriteria != null ? searchCriteria : "NULL"));
 	}
 
-	private static DbIdMediaType resolveRolePerson(String searchCriteria) {
+	private DbIdMediaType resolveRolePerson(String searchCriteria) {
 		Matcher matcher = ARTIST_ROLE.matcher(searchCriteria);
 		if (matcher.find()) {
 			String roleValue = matcher.group("val");
@@ -137,15 +147,18 @@ public class SearchRequestHandler {
 		}
 	}
 
-	public StringBuilder createSearchResponse(SearchRequest requestMessage, Renderer renderer) {
+	/**
+	 * Not used at this time. UmsContentDirectoryService creates the response object.
+	 * @param renderer
+	 * @return
+	 */
+	protected StringBuilder createSearchResponse(Renderer renderer) {
 		int numberReturned = 0;
 		StringBuilder dlnaItems = new StringBuilder();
-		DbIdMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
 
-		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestType, requestMessage));
+		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage));
 
-		String sqlFiles = convertToFilesSql(requestMessage, requestType);
-		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
+		for (StoreResource resource : getLibraryResourceFromSQL(renderer)) {
 			numberReturned++;
 			dlnaItems.append(DidlHelper.getDidlString(resource));
 		}
@@ -155,8 +168,8 @@ public class SearchRequestHandler {
 		return createResponse(response.toString());
 	}
 
-	private static String getFormattedLuceneString(String column, String sql, List<SearchToken> list, SearchRequest requestMessage, boolean ignoreCountLimit) {
-		String title = getLuceneTitleMatch(list);
+	private String getFormattedLuceneString(String column, String sql, boolean ignoreCountLimit) {
+		String title = getLuceneTitleMatch(tokens);
 		int count = requestMessage.getRequestedCount() != null ? requestMessage.getRequestedCount() : 0;
 		int startIndex = requestMessage.getStartingIndex() != null ? requestMessage.getStartingIndex() : 0;
 		if (ignoreCountLimit) {
@@ -166,8 +179,8 @@ public class SearchRequestHandler {
 		}
 	}
 
-	private static String getFormattedLuceneString(String column, String sql, List<SearchToken> list, SearchRequest requestMessage) {
-		return getFormattedLuceneString(column, sql, list, requestMessage, false);
+	private String getFormattedLuceneString(String column, String sql) {
+		return getFormattedLuceneString(column, sql, false);
 	}
 
 	/**
@@ -176,48 +189,48 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list, SearchRequest requestMessage) {
+	private String addSqlSelectByType() {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String sql = "SELECT FT.SCORE, A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage);
+				return getFormattedLuceneString("SONGNAME", sql);
 			}
 			case TYPE_PERSON -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
+				return getFormattedLuceneString("ARTIST", sql);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.CONDUCTOR as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("CONDUCTOR", sql, list, requestMessage);
+				return getFormattedLuceneString("CONDUCTOR", sql);
 			}
 			case TYPE_PERSON_COMPOSER -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("COMPOSER", sql, list, requestMessage);
+				return getFormattedLuceneString("COMPOSER", sql);
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("ALBUMARTIST", sql, list, requestMessage);
+				return getFormattedLuceneString("ALBUMARTIST", sql);
 			}
 			case TYPE_ALBUM -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, album, album as FILENAME, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
+				return getFormattedLuceneString("ALBUM", sql);
 			}
 			case TYPE_PLAYLIST -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' AND ";
-				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage);
+				return getFormattedLuceneString("ONLYFILENAME", sql);
 			}
 			case TYPE_FOLDER -> {
 				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
@@ -235,56 +248,56 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId, SearchRequest requestMessage) {
+	private String addSqlSelectByType(String subtreeId) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT FT.SCORE, A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage);
+				return getFormattedLuceneString("SONGNAME", sql);
 			}
 			case TYPE_PERSON -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
+				return getFormattedLuceneString("ARTIST", sql);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.CONDUCTOR as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("CONDUCTOR", sql, list, requestMessage);
+				return getFormattedLuceneString("CONDUCTOR", sql);
 			}
 			case TYPE_PERSON_COMPOSER -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("COMPOSER", sql, list, requestMessage);
+				return getFormattedLuceneString("COMPOSER", sql);
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("ALBUMARTIST", sql, list, requestMessage);
+				return getFormattedLuceneString("ALBUMARTIST", sql);
 			}
 			case TYPE_ALBUM -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, album, album as FILENAME, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("ALBUM", sql, list, requestMessage);
+				return getFormattedLuceneString("ALBUM", sql);
 			}
 			case TYPE_PLAYLIST -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] " +
 					getTreeWhereStatement("FILES", subtreeId, true);
-				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage);
+				return getFormattedLuceneString("ONLYFILENAME", sql);
 			}
 			case TYPE_FOLDER -> {
 				return getTreeStatement(subtreeId) + "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, " +
@@ -307,42 +320,42 @@ public class SearchRequestHandler {
 	 * @param list
 	 * @return
 	 */
-	private static String addSqlSelectCountByType(DbIdMediaType requestType, List<SearchToken> list, SearchRequest requestMessage) {
+	private String addSqlSelectCountByType() {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String sql = "SELECT COUNT(*) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage, true);
+				return getFormattedLuceneString("SONGNAME", sql, true);
 			}
 			case TYPE_PERSON -> {
 				String sql = "SELECT COUNT(DISTINCT A.ARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("ARTIST", sql, list, requestMessage, true);
+				return getFormattedLuceneString("ARTIST", sql, true);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
 				String sql = "SELECT COUNT(DISTINCT A.CONDUCTOR) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("CONDUCTOR", sql, list, requestMessage, true);
+				return getFormattedLuceneString("CONDUCTOR", sql, true);
 			}
 			case TYPE_PERSON_COMPOSER -> {
 				String sql = "SELECT COUNT(DISTINCT A.COMPOSER) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("COMPOSER", sql, list, requestMessage, true);
+				return getFormattedLuceneString("COMPOSER", sql, true);
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
 				String sql = "SELECT COUNT(DISTINCT A.ALBUMARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("ALBUMARTIST", sql, list, requestMessage, true);
+				return getFormattedLuceneString("ALBUMARTIST", sql, true);
 			}
 			case TYPE_ALBUM -> {
 				String sql = "SELECT COUNT(DISTINCT A.ALBUM) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
 					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
-				return getFormattedLuceneString("ALBUM", sql, list, requestMessage, true);
+				return getFormattedLuceneString("ALBUM", sql, true);
 			}
 			case TYPE_PLAYLIST -> {
 				String sql = "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' AND ";
-				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage, true);
+				return getFormattedLuceneString("ONLYFILENAME", sql, true);
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
@@ -361,49 +374,49 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @return
 	 */
-	private static String addSqlSelectCountByType(DbIdMediaType requestType, List<SearchToken> list, String subtreeId, SearchRequest requestMessage) {
+	private String addSqlSelectCountByType(String subtreeId) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(*) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("SONGNAME", sql, list, requestMessage, true);
+				return getFormattedLuceneString("SONGNAME", sql, true);
 			}
 			case TYPE_PERSON -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("ARTIST", sql, list, requestMessage, true);
+				return getFormattedLuceneString("ARTIST", sql, true);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.CONDUCTOR) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("CONDUCTOR", sql, list, requestMessage, true);
+				return getFormattedLuceneString("CONDUCTOR", sql, true);
 			}
 			case TYPE_PERSON_COMPOSER -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.COMPOSER) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("COMPOSER", sql, list, requestMessage, true);
+				return getFormattedLuceneString("COMPOSER", sql, true);
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ALBUMARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("ALBUMARTIST", sql, list, requestMessage, true);
+				return getFormattedLuceneString("ALBUMARTIST", sql, true);
 			}
 			case TYPE_ALBUM -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ALBUM) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
-				return getFormattedLuceneString("ALBUM", sql, list, requestMessage, true);
+				return getFormattedLuceneString("ALBUM", sql, true);
 			}
 			case TYPE_PLAYLIST -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] JOIN tree ON F.FILENAME = tree.name " +
 					getTreeWhereStatement("FILES", subtreeId, true);
-				return getFormattedLuceneString("ONLYFILENAME", sql, list, requestMessage, true);
+				return getFormattedLuceneString("ONLYFILENAME", sql, true);
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree " +
@@ -424,7 +437,7 @@ public class SearchRequestHandler {
 	 * @param list
 	 * @return
 	 */
-	private static String getLuceneTitleMatch(List<SearchToken> list) {
+	private String getLuceneTitleMatch(List<SearchToken> list) {
 		final String filterAttr = "dc:title";
 		// Just in case we need to map the request type to a different title property, we can do this here.
 		/*
@@ -475,7 +488,7 @@ public class SearchRequestHandler {
 	 * @param searchType
 	 * @return
 	 */
-	private static String prepareLuceneSearch(String title, String searchType) {
+	private String prepareLuceneSearch(String title, String searchType) {
 		if (title.startsWith("\"") && title.endsWith("\"")) {
 			LOGGER.debug("search request is for an Proximity Search ...");
 			if ("*".equals(searchType)) {
@@ -496,14 +509,14 @@ public class SearchRequestHandler {
 		return fuzzyQuery.toString();
 	}
 
-	public static String convertToFilesSql(SearchRequest requestMessage, DbIdMediaType requestType) {
+	protected String convertToFilesSql() {
+
 		StringBuilder sb = new StringBuilder();
 		String subtreeId = requestMessage.getContainerId();
-		List<SearchToken> tokens = getSearchTokens(requestMessage.getSearchCriteria());
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
-			sb.append(addSqlSelectByType(requestType, tokens, requestMessage));
+			sb.append(addSqlSelectByType());
 		} else {
-			sb.append(addSqlSelectByType(requestType, tokens, subtreeId, requestMessage));
+			sb.append(addSqlSelectByType(subtreeId));
 		}
 		addSqlWherePart(requestMessage.getSearchCriteria(), requestType, sb);
 		addOrderBy(requestMessage.getSortCriteria(), requestType, sb);
@@ -520,7 +533,7 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 * @param sb
 	 */
-	private static void addOrderBy(String sortCriteria, DbIdMediaType requestType, StringBuilder sb) {
+	private void addOrderBy(String sortCriteria, DbIdMediaType requestType, StringBuilder sb) {
 		sb.append(" ORDER BY ");
 		switch (requestType) {
 			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PLAYLIST, TYPE_PERSON -> {
@@ -548,7 +561,7 @@ public class SearchRequestHandler {
 		sb.append(String.format(" oid "));
 	}
 
-	private static String sortOrder(String order) {
+	private String sortOrder(String order) {
 		if ("+".equals(order)) {
 			return " ASC ";
 		} else if ("-".equals(order)) {
@@ -557,7 +570,7 @@ public class SearchRequestHandler {
 		return "";
 	}
 
-	private static void addLimit(DbIdMediaType requestType, SearchRequest requestMessage, StringBuilder sb) {
+	private void addLimit(DbIdMediaType requestType, SearchRequest requestMessage, StringBuilder sb) {
 		switch (requestType) {
 			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PLAYLIST -> {
 				// do nothing, since the FTL search already delivers the correct subset of data based on the startingIndex and requestedCount parameters.
@@ -572,20 +585,20 @@ public class SearchRequestHandler {
 		}
 	}
 
-	public static String convertToCountSql(DbIdMediaType requestType, SearchRequest requestMessage) {
+	protected String convertToCountSql(SearchRequest requestMessage) {
 		StringBuilder sb = new StringBuilder();
 		String subtreeId = requestMessage.getContainerId();
 		String upnpSearch = requestMessage.getSearchCriteria();
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
-			sb.append(addSqlSelectCountByType(requestType, getSearchTokens(upnpSearch), requestMessage));
+			sb.append(addSqlSelectCountByType());
 		} else {
-			sb.append(addSqlSelectCountByType(requestType, getSearchTokens(upnpSearch), subtreeId, requestMessage));
+			sb.append(addSqlSelectCountByType(subtreeId));
 		}
 		addSqlWherePart(upnpSearch, requestType, sb);
 		return sb.toString();
 	}
 
-	private static List<SearchToken> getSearchTokens(String searchCriteria) {
+	private List<SearchToken> getSearchTokens(String searchCriteria) {
 		List<SearchToken> result = new ArrayList<>();
 		Matcher matcher = TOKENIZER_PATTERN.matcher(searchCriteria);
 		while (matcher.find()) {
@@ -594,11 +607,11 @@ public class SearchRequestHandler {
 		return result;
 	}
 
-	private static String makeClean(String val) {
+	private String makeClean(String val) {
 		return val.replace("\"\"", "\"");
 	}
 
-	private static void addSqlWherePart(String searchCriteria, DbIdMediaType requestType, StringBuilder sb) {
+	private void addSqlWherePart(String searchCriteria, DbIdMediaType requestType, StringBuilder sb) {
 		int lastIndex = 0;
 		Matcher matcher = TOKENIZER_PATTERN.matcher(searchCriteria);
 		while (matcher.find()) {
@@ -637,7 +650,7 @@ public class SearchRequestHandler {
 	 * @param val
 	 * @param requestType
 	 */
-	private static void appendProperty(StringBuilder sb, String property, String op, String val, DbIdMediaType requestType) {
+	private void appendProperty(StringBuilder sb, String property, String op, String val, DbIdMediaType requestType) {
 		switch (requestType) {
 			case TYPE_AUDIO, TYPE_PLAYLIST -> {
 				if ("dc:title".equalsIgnoreCase(property)) {
@@ -669,7 +682,7 @@ public class SearchRequestHandler {
 		}
 	}
 
-	private static String escapeH2dbSql(String val) {
+	private String escapeH2dbSql(String val) {
 		val = val.replaceAll("'", "''");
 
 		// Unicode #2018 is send by iOS (since iOS11) if "Smart Punctuation" is
@@ -678,7 +691,7 @@ public class SearchRequestHandler {
 		return val;
 	}
 
-	private static String getField(String prop, DbIdMediaType requestType) {
+	private String getField(String prop, DbIdMediaType requestType) {
 		String property = prop.toLowerCase();
 		if ("dc:title".equalsIgnoreCase(property)) {
 			// handle title by return type.
@@ -713,7 +726,7 @@ public class SearchRequestHandler {
 		throw new RuntimeException("unknown or unimplemented property: >" + property + "<");
 	}
 
-	private static String getTitlePropertyMapping(DbIdMediaType requestType) {
+	private String getTitlePropertyMapping(DbIdMediaType requestType) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
 				return " A.SONGNAME ";
@@ -746,7 +759,7 @@ public class SearchRequestHandler {
 		throw new RuntimeException("Unknown type : " + requestType);
 	}
 
-	private static void acquireDatabaseType(StringBuilder sb, String op, String val, DbIdMediaType requestType) {
+	private void acquireDatabaseType(StringBuilder sb, String op, String val, DbIdMediaType requestType) {
 		switch (requestType) {
 			case TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST, TYPE_FOLDER -> {
 				sb.append(" 1=1 ");
@@ -771,7 +784,7 @@ public class SearchRequestHandler {
 	 * @param val
 	 * @return
 	 */
-	private static int getFileType(DbIdMediaType mediaFolderType) {
+	private int getFileType(DbIdMediaType mediaFolderType) {
 		// album and persons titles are stored within the RealFile and have
 		// therefore no unique id.
 		switch (mediaFolderType) {
@@ -797,7 +810,18 @@ public class SearchRequestHandler {
 		throw new RuntimeException("unknown or unimplemented mediafolder type : >" + mediaFolderType + "<");
 	}
 
-	public static int getLibraryResourceCountFromSQL(String query) {
+	/**
+	 * Delivers the total count of elements matching the search criteria. This is needed to deliver the correct totalMatches value in the SearchResult.
+	 *
+	 * @param searchRequest
+	 * @return
+	 */
+	public int getSearchCountElements(SearchRequest searchRequest) {
+		String sql = convertToCountSql(searchRequest);
+		return getLibraryResourceCountFromSQL(sql);
+	}
+
+	protected int getLibraryResourceCountFromSQL(String query) {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(String.format("SQL count : %s", query));
 		}
@@ -822,19 +846,21 @@ public class SearchRequestHandler {
 	}
 
 	/**
-	 * Converts SQL statements having 'FILENAME' as a result identifier. Makes a logical DB search and converts
-	 * result set to items and container.
+	 *  Makes a logical DB search and converts result set to items or container.
 	 *
 	 * @param query
 	 * @return
 	 *
 	 * List of discovered CDS items and containers from the database.
 	 */
-	public static List<StoreResource> getLibraryResourceFromSQL(Renderer renderer, String query, DbIdMediaType type) {
+	public List<StoreResource> getLibraryResourceFromSQL(Renderer renderer) {
 		ArrayList<StoreResource> result = new ArrayList<>();
 
+		// SQL statements having 'FILENAME' as a result identifier.
+		String query = convertToFilesSql();
+
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(String.format("SQL %s : %s", type.dbidPrefix, query));
+			LOGGER.trace(String.format("SQL %s : %s", requestType.dbidPrefix, query));
 		}
 		Connection connection = null;
 		try {
@@ -844,8 +870,8 @@ public class SearchRequestHandler {
 					try (ResultSet resultSet = statement.executeQuery(query)) {
 						Set<String> foundAlbums = new HashSet<>();
 						while (resultSet.next()) {
-							String filenameField = extractDisplayName(resultSet, type);
-							switch (type) {
+							String filenameField = extractDisplayName(resultSet);
+							switch (requestType) {
 								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
 									Long discogs = resultSet.getObject("DISCOGS_RELEASE_ID", Long.class);
@@ -876,7 +902,7 @@ public class SearchRequestHandler {
 									}
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
-									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(type, filenameField);
+									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(requestType, filenameField);
 									MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
 									if (personFolder == null) {
 										personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, ti);
@@ -923,8 +949,8 @@ public class SearchRequestHandler {
 		return result;
 	}
 
-	private static String extractDisplayName(ResultSet resultSet, DbIdMediaType type) throws SQLException {
-		switch (type) {
+	private String extractDisplayName(ResultSet resultSet) throws SQLException {
+		switch (requestType) {
 			case TYPE_VIDEO, TYPE_PLAYLIST, TYPE_IMAGE, TYPE_AUDIO -> {
 				return FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
 			}
@@ -945,7 +971,7 @@ public class SearchRequestHandler {
 	 * @param payload Soap body as a XML String
 	 * @return Soap message as a XML string
 	 */
-	private static StringBuilder createResponse(String payload) {
+	private StringBuilder createResponse(String payload) {
 		StringBuilder response = new StringBuilder();
 		response.append(HTTPXMLHelper.XML_HEADER).append(CRLF);
 		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER).append(CRLF);
@@ -954,7 +980,7 @@ public class SearchRequestHandler {
 		return response;
 	}
 
-	private static StringBuilder buildEnvelope(int foundNumberReturned, int totalMatches, long updateID, StringBuilder dlnaItems) {
+	private StringBuilder buildEnvelope(int foundNumberReturned, int totalMatches, long updateID, StringBuilder dlnaItems) {
 		StringBuilder response = new StringBuilder();
 		response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
 		response.append(CRLF);
@@ -976,7 +1002,7 @@ public class SearchRequestHandler {
 		return response;
 	}
 
-	private static String getTreeStatement(String subtreeId) {
+	private String getTreeStatement(String subtreeId) {
 		String tree = String.format("WITH RECURSIVE tree(id, name) AS (\n" +
 			"    SELECT id, name FROM STORE_IDS WHERE id = %s\n" +
 			"    UNION ALL\n" +
@@ -994,7 +1020,7 @@ public class SearchRequestHandler {
 	 * @param addAnd
 	 * @return
 	 */
-	private static String getTreeWhereStatement(String tableName, String subtreeId, boolean addAnd) {
+	private String getTreeWhereStatement(String tableName, String subtreeId, boolean addAnd) {
 		String tree = String.format(" WHERE EXISTS (\n" +
 			"    SELECT 1 FROM tree \n" +
 			"    WHERE F.FILENAME like tree.name || '%%%%'\n" +
