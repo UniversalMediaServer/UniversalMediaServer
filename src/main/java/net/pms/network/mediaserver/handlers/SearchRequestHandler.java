@@ -190,13 +190,22 @@ public class SearchRequestHandler {
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
-				return "select DISTINCT ON (FILENAME) A.CONDUCTOR as FILENAME, A.A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.CONDUCTOR as FILENAME, A.AUDIOTRACK_ID as oid " +
+					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString("CONDUCTOR", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_COMPOSER -> {
-				return "select DISTINCT ON (FILENAME) A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid " +
+					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString("COMPOSER", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
+					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString("ALBUMARTIST", sql, list, requestMessage);
 			}
 			case TYPE_ALBUM -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, album, album as FILENAME, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
@@ -243,13 +252,25 @@ public class SearchRequestHandler {
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
-				return "select DISTINCT ON (FILENAME) A.CONDUCTOR as FILENAME, A.A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.CONDUCTOR as FILENAME, A.AUDIOTRACK_ID as oid " +
+					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
+				return getFormattedLuceneString("CONDUCTOR", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_COMPOSER -> {
-				return "select DISTINCT ON (FILENAME) A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid " +
+					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
+				return getFormattedLuceneString("COMPOSER", sql, list, requestMessage);
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid " +
+					"FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
+				return getFormattedLuceneString("ALBUMARTIST", sql, list, requestMessage);
 			}
 			case TYPE_ALBUM -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT DISTINCT ON (FILENAME) FT.SCORE, album, album as FILENAME, artist, media_year, genre, DISCOGS_RELEASE_ID, MBID_RECORD, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid " +
@@ -299,13 +320,19 @@ public class SearchRequestHandler {
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
-				return "select count (DISTINCT A.CONDUCTOR) from AUDIO_METADATA as A where ";
+				String sql = "SELECT COUNT(DISTINCT A.CONDUCTOR) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
+					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString("CONDUCTOR", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON_COMPOSER -> {
-				return "select count (DISTINCT A.COMPOSER) from AUDIO_METADATA as A where ";
+				String sql = "SELECT COUNT(DISTINCT A.COMPOSER) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
+					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString("COMPOSER", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return "select count (DISTINCT A.ALBUMARTIST) from AUDIO_METADATA as A where ";
+				String sql = "SELECT COUNT(DISTINCT A.ALBUMARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
+					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' AND ";
+				return getFormattedLuceneString("ALBUMARTIST", sql, list, requestMessage, true);
 			}
 			case TYPE_ALBUM -> {
 				String sql = "SELECT COUNT(DISTINCT A.ALBUM) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] " +
@@ -349,13 +376,22 @@ public class SearchRequestHandler {
 				return getFormattedLuceneString("ARTIST", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
-				return "select count (DISTINCT A.CONDUCTOR) from AUDIO_METADATA as A where ";
+				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.CONDUCTOR) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
+				return getFormattedLuceneString("CONDUCTOR", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON_COMPOSER -> {
-				return "select count (DISTINCT A.COMPOSER) from AUDIO_METADATA as A where ";
+				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.COMPOSER) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
+				return getFormattedLuceneString("COMPOSER", sql, list, requestMessage, true);
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return "select count (DISTINCT A.ALBUMARTIST) from AUDIO_METADATA as A where ";
+				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ALBUMARTIST) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
+					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
+					getTreeWhereStatement("AUDIO_METADATA", subtreeId, true);
+				return getFormattedLuceneString("ALBUMARTIST", sql, list, requestMessage, true);
 			}
 			case TYPE_ALBUM -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT A.ALBUM) FROM FTL_SEARCH_DATA('%s:%s', %d, %d) FT " +
