@@ -30,7 +30,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.dlna.DidlHelper;
-import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
@@ -40,7 +39,6 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
 import net.pms.renderers.Renderer;
-import net.pms.store.DbIdMediaType;
 import net.pms.store.MediaScanner;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
@@ -76,6 +74,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import net.pms.renderers.devices.ControlPoint;
+import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler;
+import net.pms.network.mediaserver.handlers.DbSearchRequestHandler;
+import net.pms.network.mediaserver.handlers.LucenseSearchRequestHandler;
+import net.pms.network.mediaserver.handlers.SearchRequestTokenizer;
 
 @UpnpService(
 		serviceId =
@@ -828,13 +830,23 @@ public class UmsContentDirectoryService {
 		Renderer renderer = ControlPoint.getRenderer();
 
 		try {
-			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchRequest.getSearchCriteria());
-			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(requestType, searchRequest));
-			LOGGER.debug("{}", searchRequest.getSearchCriteria());
-			LOGGER.debug("  - count TOTAL MATCHES : {}", totalMatches);
-			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchRequest, requestType);
-			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
-			LOGGER.debug("SQL : {}", sqlFiles);
+			BaseSearchRequestHandler searchRequestHandler = null;
+			SearchRequestTokenizer tokenizer = new SearchRequestTokenizer(searchRequest);
+
+			if (!tokenizer.hasDcTitleSearch()) {
+				LOGGER.debug("Search criteria '{}' does not contain a title search. Cannot use lucene, since we're not searching for anything ...");
+			}
+
+			if (tokenizer.hasDcTitleSearch() && renderer.getUmsConfiguration().useLuceneSearch()) {
+				LOGGER.debug("Using LucenseSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
+				searchRequestHandler = new LucenseSearchRequestHandler(searchRequest);
+			} else {
+				LOGGER.debug("Using DbSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
+				searchRequestHandler = new DbSearchRequestHandler(searchRequest);
+			}
+
+			int totalMatches = searchRequestHandler.getSearchCountElements(searchRequest);
+			List<StoreResource> resultResources = searchRequestHandler.getLibraryResourceFromSQL(renderer);
 			LOGGER.debug("  - resultset Elements count : {}", resultResources.size());
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
