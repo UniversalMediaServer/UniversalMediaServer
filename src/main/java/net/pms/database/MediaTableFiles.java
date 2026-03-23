@@ -516,6 +516,7 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_ONLY_FILENAME + VARCHAR_2048 + " AS REGEXP_REPLACE(FILENAME, '.*/', '');");
 						executeUpdate(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'net.pms.database.lucene.UmsFullTextLucene.init';");
 						executeUpdate(connection, "CALL FTL_INIT();");
+						executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'FILES');");
 						executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'FILES', 'ONLYFILENAME');");
 					}
 					default -> {
