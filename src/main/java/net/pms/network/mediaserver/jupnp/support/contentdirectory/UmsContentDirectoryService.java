@@ -877,6 +877,11 @@ public class UmsContentDirectoryService {
 		try {
 			BaseSearchRequestHandler searchRequestHandler = null;
 			SearchRequestTokenizer tokenizer = new SearchRequestTokenizer(searchRequest);
+
+			if (!tokenizer.hasDcTitleSearch()) {
+				LOGGER.debug("Search criteria '{}' does not contain a title search. Cannot use lucene, since we're not searching for anything ...");
+			}
+
 			if (tokenizer.hasDcTitleSearch() && renderer.getUmsConfiguration().useLuceneSearch()) {
 				LOGGER.debug("Using LucenseSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
 				searchRequestHandler = new LucenseSearchRequestHandler(searchRequest);
