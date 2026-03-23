@@ -55,7 +55,7 @@
     "eslint-plugin-react-hooks": "7",
     "eslint-plugin-react-refresh": "0.5.2",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.57.0",
+    "typescript-eslint": "8.57.1",
     "vite": "7.3.1"
   }
 }
