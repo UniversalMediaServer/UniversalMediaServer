@@ -340,11 +340,13 @@ public class LucenseSearchRequestHandler extends BaseSearchRequestHandler {
 	 */
 	private String getLuceneTitleMatch(List<SearchToken> list) {
 		final String filterAttr = switch (getRequestType()) {
-			case TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
+			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 				if (getTokens().stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"))) {
 					yield "dc:title";
 				} else if (getTokens().stream().anyMatch(t -> t.attr().toLowerCase().startsWith("upnp:artist"))) {
 					yield "upnp:artist";
+				} else if (getTokens().stream().anyMatch(t -> t.attr().toLowerCase().startsWith("dc:creator"))) {
+					yield "dc:creator";
 				} else {
 					throw new RuntimeException("missing search token for type " + getRequestType());
 				}
@@ -548,7 +550,7 @@ public class LucenseSearchRequestHandler extends BaseSearchRequestHandler {
 				}
 			}
 			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
-				if ("dc:title".equalsIgnoreCase(property) || property.toLowerCase().startsWith("upnp:artist")) {
+				if ("dc:title".equalsIgnoreCase(property) || property.toLowerCase().startsWith("upnp:artist") || property.toLowerCase().startsWith("dc:creator")) {
 					LOGGER.trace("type / property {} is indexed by lucene. Ignore this property for SQL generation.", property);
 					sb.append("1 = 1 ");
 				}
