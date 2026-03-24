@@ -375,7 +375,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_DEVICES_FILTER = "network_devices_filter";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
-	private static final String KEY_NEXTCP_API_KEY = "nextcp_api_key";
 	private static final String KEY_NEXTCP_AUDIO_LIKES_IN_ROOT_FOLDER = "audio_likes_visible_root";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
@@ -503,8 +502,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		//since 11.6
 		new AbstractMap.SimpleEntry<>("fmpeg_sox", KEY_FFMPEG_SOX),
 		new AbstractMap.SimpleEntry<>("ALIVE_delay", KEY_UPNP_ALIVE_DELAY),
-		//since 14
-		new AbstractMap.SimpleEntry<>("api_key", KEY_NEXTCP_API_KEY),
 		//since 14.7
 		new AbstractMap.SimpleEntry<>("use_imdb_info", KEY_USE_API_INFO)
 	);
@@ -1689,14 +1686,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public int getAudioBitrate() {
 		return getInt(KEY_AUDIO_BITRATE, 448);
-	}
-
-	public boolean useNextcpApi() {
-		return  !"".equals(getNextcpApiKey());
-	}
-
-	public String getNextcpApiKey() {
-		return getString(KEY_NEXTCP_API_KEY, "");
 	}
 
 	public final String getJwtSecret() {

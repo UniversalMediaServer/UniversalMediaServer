@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaTableMusicBrainzReleases;
 import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.renderers.Renderer;
@@ -36,7 +35,6 @@ import net.pms.store.container.VirtualFolderDbId;
 public class DbIdLibrary {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdLibrary.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final Renderer renderer;
 	private VirtualFolderDbId audioLikesFolder;
@@ -82,10 +80,8 @@ public class DbIdLibrary {
 	}
 
 	protected final void reset(List<StoreResource> backupChildren) {
-		if (CONFIGURATION.useNextcpApi()) {
-			setAudioLikesFolder(backupChildren);
-			setPersonFolder();
-		}
+		setAudioLikesFolder(backupChildren);
+		setPersonFolder();
 	}
 
 	private void addChildToMediaLibraryAudioFolder(VirtualFolderDbId dbIdFolder) {
