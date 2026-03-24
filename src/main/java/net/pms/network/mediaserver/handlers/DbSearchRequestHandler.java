@@ -370,4 +370,9 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 
 		return tree;
 	}
+
+	@Override
+	public boolean canHandle() {
+		return true;
+	}
 }

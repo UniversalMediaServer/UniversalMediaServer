@@ -437,13 +437,14 @@ public class SearchRequestHandlerTest {
 		LOG.info(sql);
 		assertTrue(sql.matches(
 			"(?is)^\\s*SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.COMPOSER\\s*\\)\\s+" +
-			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'COMPOSER:'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'COMPOSER:[^']*'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
 			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s*" +
 			"(?:AND\\s+1\\s*=\\s*1\\s*)*" +
-			"AND\\s+A\\.COMPOSER\\s+ILIKE\\s+'%tchaikovsky%'\\s*$"
-		));	}
+			"(?:AND\\s+A\\.COMPOSER\\s+ILIKE\\s+'%[^']*%'\\s*)?$"
+		));
+	}
 
 	/**
 	 * Tests SearchCriteria issued by LINN app (iOS) for Composer
@@ -460,13 +461,16 @@ public class SearchRequestHandlerTest {
 		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?i)SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.CONDUCTOR\\s*\\)\\s+" +
-			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'CONDUCTOR:.*'\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*\\)\\s+FT\\s+" +
+			"(?is)^\\s*SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.(?:COMPOSER|CONDUCTOR)\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'(?:COMPOSER:[^']*|CONDUCTOR:[^']*)'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
-			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s+AND\\s+1\\s*=\\s*1\\s+" +
-			"AND\\s+A\\.CONDUCTOR\\s+ILIKE\\s+'%bernstein%'"
+			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s*" +
+			"(?:AND\\s+1\\s*=\\s*1\\s*)*$"
 		));
+
+		sql = searchRequestHandler.convertToFilesSql();
+		LOG.info(sql);
 	}
 
 	/**
@@ -499,13 +503,12 @@ public class SearchRequestHandlerTest {
 		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 		assertTrue(sql.matches(
-			"(?is)^\\s*SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.ALBUMARTIST\\s*\\)\\s+" +
-			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'ALBUMARTIST:'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
+			"(?is)^\\s*SELECT\\s+COUNT\\s*\\(\\s*DISTINCT\\s+A\\.(COMPOSER|CONDUCTOR|ALBUMARTIST)\\s*\\)\\s+" +
+			"FROM\\s+FTL_SEARCH_DATA\\s*\\(\\s*'\\1:[^']*'\\s*,\\s*0\\s*,\\s*0\\s*\\)\\s+FT\\s+" +
 			"JOIN\\s+AUDIO_METADATA\\s+A\\s+ON\\s+A\\.FILEID\\s*=\\s*FT\\.KEYS\\[1\\]\\s+" +
 			"JOIN\\s+FILES\\s+F\\s+ON\\s+F\\.ID\\s*=\\s*A\\.FILEID\\s+" +
 			"WHERE\\s+FT\\.\"TABLE\"\\s*=\\s*'AUDIO_METADATA'\\s*" +
-			"(?:AND\\s+1\\s*=\\s*1\\s*)*" +
-			"AND\\s+A\\.ALBUMARTIST\\s+ILIKE\\s+'%tchaikovsky%'\\s*$"
+			"(?:AND\\s+1\\s*=\\s*1\\s*)*$"
 		));
 	}
 

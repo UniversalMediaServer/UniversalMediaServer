@@ -46,6 +46,28 @@ public class LucenseSearchRequestHandler extends BaseSearchRequestHandler {
 		super(requestMessage);
 	}
 
+	/**
+	 * Check, if we have lucene index for the requested type.
+	 * @return
+	 */
+	public boolean canHandle() {
+		switch (getRequestType()) {
+			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PLAYLIST, TYPE_FOLDER, TYPE_VIDEO, TYPE_IMAGE -> {
+				boolean hasTitile = getTokens().stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"));
+				LOGGER.trace("SearchRequestTokenizer.hasDcTitleSearch: {}", hasTitile);
+				return hasTitile;
+			}
+			case TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
+				boolean hasTitile = getTokens().stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"));
+				boolean hasRole = getTokens().stream().anyMatch(t -> t.attr().equalsIgnoreCase("upnp:artist"));
+				LOGGER.trace("SearchRequestTokenizer.hasDcTitleSearch: {}, hasRoleSearch: {}", hasTitile, hasRole);
+				return hasTitile || hasRole;
+			}
+			default -> {
+				return false;
+			}
+		}
+	}
 
 	private String getFormattedLuceneString(String column, String sql, boolean ignoreCountLimit) {
 		String title = getLuceneTitleMatch(getTokens());
@@ -317,18 +339,20 @@ public class LucenseSearchRequestHandler extends BaseSearchRequestHandler {
 	 * @return
 	 */
 	private String getLuceneTitleMatch(List<SearchToken> list) {
-		final String filterAttr = "dc:title";
-		// Just in case we need to map the request type to a different title property, we can do this here.
-		/*
-		String upnpClass = list.stream().filter(t -> "upnp:class".equalsIgnoreCase(t.attr)).findFirst().map(t -> t.val).orElse("");
-		switch (upnpClass.toLowerCase()) {
-			default -> {
-				filterAttr = "dc:title";
+		final String filterAttr = switch (getRequestType()) {
+			case TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
+				if (getTokens().stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"))) {
+					yield "dc:title";
+				} else if (getTokens().stream().anyMatch(t -> t.attr().toLowerCase().startsWith("upnp:artist"))) {
+					yield "upnp:artist";
+				} else {
+					throw new RuntimeException("missing search token for type " + getRequestType());
+				}
 			}
-		}
-		*/
+			default -> "dc:title";
+		};
 
-		String title = list.stream().filter(t -> filterAttr.equalsIgnoreCase(t.attr())).findFirst().map(t -> t.val()).orElse("");
+		String title = list.stream().filter(t -> t.attr().toLowerCase().startsWith(filterAttr)).findFirst().map(t -> t.val()).orElse("");
 		String op = list.stream().filter(t -> filterAttr.equalsIgnoreCase(t.attr())).findFirst().map(t -> t.op()).orElse("");
 		// Escape lucene special characters
 		title = LUCENE_PATTERN.matcher(title).replaceAll("\\\\$1");
@@ -523,7 +547,7 @@ public class LucenseSearchRequestHandler extends BaseSearchRequestHandler {
 					sb.append("1 = 1 ");
 				}
 			}
-			case TYPE_PERSON -> {
+			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 				if ("dc:title".equalsIgnoreCase(property) || property.toLowerCase().startsWith("upnp:artist")) {
 					LOGGER.trace("type / property {} is indexed by lucene. Ignore this property for SQL generation.", property);
 					sb.append("1 = 1 ");

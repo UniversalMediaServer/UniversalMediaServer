@@ -54,7 +54,6 @@ import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.DbSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.LucenseSearchRequestHandler;
-import net.pms.network.mediaserver.handlers.SearchRequestTokenizer;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
@@ -876,17 +875,12 @@ public class UmsContentDirectoryService {
 
 		try {
 			BaseSearchRequestHandler searchRequestHandler = null;
-			SearchRequestTokenizer tokenizer = new SearchRequestTokenizer(searchRequest);
-
-			if (!tokenizer.hasDcTitleSearch()) {
-				LOGGER.debug("Search criteria '{}' does not contain a title search. Cannot use lucene, since we're not searching for anything ...");
+			if (renderer.getUmsConfiguration().useLuceneSearch()) {
+				searchRequestHandler = new LucenseSearchRequestHandler(searchRequest);
 			}
 
-			if (tokenizer.hasDcTitleSearch() && renderer.getUmsConfiguration().useLuceneSearch()) {
-				LOGGER.debug("Using LucenseSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
-				searchRequestHandler = new LucenseSearchRequestHandler(searchRequest);
-			} else {
-				LOGGER.debug("Using DbSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
+			if (!searchRequestHandler.canHandle()) {
+				LOGGER.debug("Search criteria cannot be processed by {}. Fallback to DbSearchRequestHandler.", searchRequestHandler.getClass().getSimpleName());
 				searchRequestHandler = new DbSearchRequestHandler(searchRequest);
 			}
 
