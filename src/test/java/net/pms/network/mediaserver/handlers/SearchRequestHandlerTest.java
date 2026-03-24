@@ -16,15 +16,15 @@
  */
 package net.pms.network.mediaserver.handlers;
 
-import net.pms.configuration.RendererConfigurations;
-import net.pms.network.mediaserver.handlers.message.SearchRequest;
-import net.pms.renderers.Renderer;
-import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.apache.commons.configuration.ConfigurationException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.renderers.Renderer;
 
 public class SearchRequestHandlerTest {
 
@@ -591,5 +591,4 @@ public class SearchRequestHandlerTest {
 		LOG.info("===================================================================");
 		LOG.info("\r\n" + response.toString());
 	}
-
 }
