@@ -1,9 +1,11 @@
 package net.pms.network.mediaserver.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.sql.Connection;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -41,7 +43,7 @@ public class SearchRequestDatabaseTest {
 		new String[] {"Random Access Memories", "Daft Punk", "Daft Punk", "Get Lucky", "Electronic", "2013", "8", "1", "Thomas Bangalter", null},
 		new String[] {"Discovery", "Daft Punk", "Daft Punk", "Harder Better Faster Stronger", "Electronic", "2001", "4", "1", "Thomas Bangalter", null},
 		new String[] {"Nevermind", "Nirvana", "Nirvana", "Smells Like Teen Spirit", "Grunge", "1991", "1", "1", "Kurt Cobain", null},
-		new String[] {"OK Computer", "Radiohead", "Radiohead", "Paranoid Android", "Alternative", "1997", "2", "1", "Thom Yorke", null},
+		new String[] {"OK Computer", "Radiohead", "Radiohead", "Paranoid don't Android", "Alternative", "1997", "2", "1", "Thom Yorke", null},
 		new String[] {"In Rainbows", "Radiohead", "Radiohead", "Nude", "Alternative", "2007", "3", "1", "Thom Yorke", null},
 		new String[] {"Requiem", "W. A. Mozart", "Various Artists", "Lacrimosa", "Classical", "1791", "8", "1", "W. A. Mozart", "Herbert von Karajan"},
 		new String[] {"Symphony No. 5", "Ludwig van Beethoven", "Various Artists", "I. Allegro con brio", "Classical", "1808", "1", "1", "Ludwig van Beethoven", "Carlos Kleiber"},
@@ -50,6 +52,105 @@ public class SearchRequestDatabaseTest {
 		new String[] {"Master of Puppets", "Metallica", "Metallica", "Battery", "Metal", "1986", "1", "1", "James Hetfield", null}
 	);
 
+	@BeforeAll
+	public void setupTestDatabase() throws Exception {
+		System.setProperty("surefire.real.class.path", "/tmp");
+//		TestHelper.setLoggingOff();
+		PMS.get();
+		PMS.setConfiguration(new UmsConfiguration(false));
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
+		database.checkTables(true);
+		try (Connection connection = database.getConnection()) {
+			for (int i = 0; i < AUDIO_METADATA_PRESETS.size(); i++) {
+				MediaInfo media = createMediaInfoFromPreset(i);
+				MediaTableFiles.insertOrUpdateData(connection, media.getAudioMetadata().getSongname() + ".flac", System.currentTimeMillis(), Format.AUDIO, media);
+			}
+		}
+		RendererConfigurations.loadRendererConfigurations();
+	}
+
+	@Test
+	public void testAlbumArtistSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"AlbumArtist\"] contains \"Various\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		StoreResource foundResource = resources.get(0);
+		assertEquals("Various Artists", foundResource.getName());
+	}
+
+	@Test
+	public void testGlobalLinnAppSpecialCharSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.item.audioItem\" and dc:title contains \"don't\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+		// We can not create the Store Resources, since the files do not exist.
+	}
+
+	@Test
+	public void testGlobalAlbumSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"discovery\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		StoreResource foundResource = resources.get(0);
+		assertEquals("Discovery", foundResource.getName());
+	}
+
+	@Test
+	public void testGlobalArtistSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and dc:title contains \"punk\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(results, resources.size());
+
+		List<String> names = resources.stream().map(StoreResource::getName).collect(Collectors.toList());
+		assertTrue(names.contains("Pink Floyd"), "Expected 'Pink Floyd' in results.");
+		assertTrue(names.contains("Daft Punk"), "Expected 'Daft Punk' in results.");
+		assertTrue(names.contains("Guns N' Roses"), "Expected 'Guns N' Roses' in results.");
+	}
+
+	@Test
+	public void testGlobalComposerSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Composer\"] contains \"Beethoven\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+
+		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		StoreResource foundResource = resources.get(0);
+		assertEquals("Ludwig van Beethoven", foundResource.getName());
+	}
 
 	@Test
 	public void testGlobalConductorSearch() {
@@ -66,7 +167,6 @@ public class SearchRequestDatabaseTest {
 		assertEquals(1, resources.size());
 		StoreResource foundResource = resources.get(0);
 		assertEquals("Herbert von Karajan", foundResource.getName());
-
 	}
 
 	@Test
@@ -85,6 +185,7 @@ public class SearchRequestDatabaseTest {
 		assertEquals("Rumours", foundResource.getName());
 	}
 
+	@Test
 	public void testGlobalFuzzyAlbumSearch() {
 		SearchRequest sr = new SearchRequest();
 		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"pupets\"");
@@ -98,24 +199,6 @@ public class SearchRequestDatabaseTest {
 		assertEquals(1, resources.size());
 		StoreResource foundResource = resources.get(0);
 		assertEquals("Master of Puppets", foundResource.getName());
-	}
-
-	@BeforeAll
-	public void setupTestDatabase() throws Exception {
-		System.setProperty("surefire.real.class.path", "/tmp");
-//		TestHelper.setLoggingOff();
-		PMS.get();
-		PMS.setConfiguration(new UmsConfiguration(false));
-		MediaDatabase.init();
-		MediaDatabase database = MediaDatabase.get();
-		database.checkTables(true);
-		try (Connection connection = database.getConnection()) {
-			for (int i = 0; i < AUDIO_METADATA_PRESETS.size(); i++) {
-				MediaInfo media = createMediaInfoFromPreset(i); // pick one by index
-				MediaTableFiles.insertOrUpdateData(connection, media.getAudioMetadata().getSongname() + ".flac", System.currentTimeMillis(), Format.AUDIO, media);
-			}
-		}
-		RendererConfigurations.loadRendererConfigurations();
 	}
 
 	public MediaInfo createMediaInfo() {
