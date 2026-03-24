@@ -29,28 +29,6 @@ import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import net.pms.dlna.DidlHelper;
-import net.pms.network.mediaserver.handlers.message.SearchRequest;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
-import net.pms.renderers.Renderer;
-import net.pms.store.MediaScanner;
-import net.pms.store.MediaStatusStore;
-import net.pms.store.MediaStoreIds;
-import net.pms.store.PlaylistManager;
-import net.pms.store.StoreContainer;
-import net.pms.store.StoreItem;
-import net.pms.store.StoreResource;
-import net.pms.store.container.MediaLibrary;
-import net.pms.store.container.PlaylistFolder;
-import net.pms.store.utils.StoreResourceSorter;
-import net.pms.util.StringUtil;
-import net.pms.util.UMSUtils;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;
@@ -73,11 +51,32 @@ import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
-import net.pms.renderers.devices.ControlPoint;
+import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.DbSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.LucenseSearchRequestHandler;
-import net.pms.network.mediaserver.handlers.SearchRequestTokenizer;
+import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.ControlPoint;
+import net.pms.store.MediaScanner;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.PlaylistManager;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.store.utils.StoreResourceSorter;
+import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 
 @UpnpService(
 		serviceId =
@@ -171,7 +170,7 @@ public class UmsContentDirectoryService {
 	public final static String EMPTY_FILE_CONTENT = "<UPLOAD RESOURCE>";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsContentDirectoryService.class);
-	private static final List<String> CAPS_SEARCH = List.of();
+	private static final List<String> CAPS_SEARCH = List.of("dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final List<String> CAPS_SORT = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final String CRLF = "\r\n";
 
@@ -831,17 +830,14 @@ public class UmsContentDirectoryService {
 
 		try {
 			BaseSearchRequestHandler searchRequestHandler = null;
-			SearchRequestTokenizer tokenizer = new SearchRequestTokenizer(searchRequest);
-
-			if (!tokenizer.hasDcTitleSearch()) {
-				LOGGER.debug("Search criteria '{}' does not contain a title search. Cannot use lucene, since we're not searching for anything ...");
-			}
-
-			if (tokenizer.hasDcTitleSearch() && renderer.getUmsConfiguration().useLuceneSearch()) {
-				LOGGER.debug("Using LucenseSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
+			if (renderer.getUmsConfiguration().useLuceneSearch()) {
 				searchRequestHandler = new LucenseSearchRequestHandler(searchRequest);
 			} else {
-				LOGGER.debug("Using DbSearchRequestHandler for search criteria : {}", searchRequest.getSearchCriteria());
+				searchRequestHandler = new DbSearchRequestHandler(searchRequest);
+			}
+
+			if (!searchRequestHandler.canHandle()) {
+				LOGGER.debug("Search criteria cannot be processed by {}. Fallback to DbSearchRequestHandler.", searchRequestHandler.getClass().getSimpleName());
 				searchRequestHandler = new DbSearchRequestHandler(searchRequest);
 			}
 

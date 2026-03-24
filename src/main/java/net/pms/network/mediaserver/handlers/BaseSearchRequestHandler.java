@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,9 +36,6 @@ public abstract class BaseSearchRequestHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LucenseSearchRequestHandler.class);
 
 	protected static final String CRLF = "\r\n";
-	protected static final Pattern CLASS_PATTERN = Pattern.compile("upnp:class\\s(\\bderivedfrom\\b|=)\\s+\"(?<val>.*?)\"",
-		Pattern.CASE_INSENSITIVE);
-	protected static final Pattern ARTIST_ROLE = Pattern.compile("upnp:class.*role\\s*=\\s*\"(?<val>.*?)\".*", Pattern.CASE_INSENSITIVE);
 
 	public record SearchToken(String attr, String op, String val) {
 	}
@@ -48,66 +43,18 @@ public abstract class BaseSearchRequestHandler {
 	private SearchRequest requestMessage = null;
 	private DbIdMediaType requestType = null;
 	private List<SearchToken> tokens = null;
+	private MediaTypeHandler mediaTypeHandler = null;
 
 	private static UmsConfiguration umsConfiguration;
 
 	public BaseSearchRequestHandler(SearchRequest requestMessage) {
 		this.requestMessage = requestMessage;
-		requestType = calcRequestType(requestMessage.getSearchCriteria());
 		SearchRequestTokenizer tokenizer = new SearchRequestTokenizer(requestMessage);
 		tokens = tokenizer.getSearchTokens();
+		mediaTypeHandler = new MediaTypeHandler(requestMessage.getSearchCriteria());
+		requestType = mediaTypeHandler.getRequestType();
 	}
 
-
-	private DbIdMediaType calcRequestType(String searchCriteria) {
-		Matcher matcher = CLASS_PATTERN.matcher(searchCriteria);
-		if (matcher.find()) {
-			String propertyValue = matcher.group("val");
-			LOGGER.trace("upnp:class is {}", propertyValue);
-			if (propertyValue != null) {
-				propertyValue = propertyValue.toLowerCase();
-				// More specific types must be checked first
-				if (propertyValue.startsWith("object.item.audioitem")) {
-					return DbIdMediaType.TYPE_AUDIO;
-				} else if (propertyValue.startsWith("object.item.videoitem")) {
-					return DbIdMediaType.TYPE_VIDEO;
-				} else if (propertyValue.startsWith("object.item.imageitem")) {
-					return DbIdMediaType.TYPE_IMAGE;
-				} else if (propertyValue.startsWith("object.container.person")) {
-					return resolveRolePerson(searchCriteria);
-				} else if (propertyValue.startsWith("object.container.album")) {
-					return DbIdMediaType.TYPE_ALBUM;
-				} else if (propertyValue.startsWith("object.container.playlistcontainer")) {
-					return DbIdMediaType.TYPE_PLAYLIST;
-				} else if (propertyValue.startsWith("object.container")) {
-					return DbIdMediaType.TYPE_FOLDER;
-				}
-			}
-		}
-		throw new RuntimeException("Unknown type : " + (searchCriteria != null ? searchCriteria : "NULL"));
-	}
-
-	protected DbIdMediaType resolveRolePerson(String searchCriteria) {
-		Matcher matcher = ARTIST_ROLE.matcher(searchCriteria);
-		if (matcher.find()) {
-			String roleValue = matcher.group("val");
-			if ("composer".equalsIgnoreCase(roleValue)) {
-				LOGGER.debug("looking up artist composer");
-				return DbIdMediaType.TYPE_PERSON_COMPOSER;
-			} else if ("conductor".equalsIgnoreCase(roleValue)) {
-				LOGGER.debug("looking up artist conductor");
-				return DbIdMediaType.TYPE_PERSON_CONDUCTOR;
-			} else if ("AlbumArtist".equalsIgnoreCase(roleValue)) {
-				LOGGER.debug("looking up artist AlbumArtist");
-				return DbIdMediaType.TYPE_PERSON_ALBUMARTIST;
-			}
-			LOGGER.warn("unknown artist role {}. Fallback to artist search ... ", roleValue);
-			return DbIdMediaType.TYPE_PERSON;
-		} else {
-			LOGGER.trace("artist without role. Regular artist search.");
-			return DbIdMediaType.TYPE_PERSON;
-		}
-	}
 
 	protected String escapeH2dbSql(String val) {
 		val = val.replaceAll("'", "''");
@@ -454,6 +401,8 @@ public abstract class BaseSearchRequestHandler {
 	protected abstract String convertToFilesSql();
 
 	protected abstract String convertToCountSql();
+
+	public abstract boolean canHandle();
 
 	static {
 		try {
