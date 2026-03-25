@@ -71,14 +71,28 @@ public class SearchRequestDatabaseTest {
 	}
 
 	@Test
-	public void testAlbumArtistSearch() {
+	public void testGlobalLinnTitleSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.item.audioItem\" and ( dc:title contains \"blue\" or upnp:album contains \"blue\" or upnp:artist contains \"blue\" or upnp:genre contains \"blue\" )");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(results, 2);
+		// We can not create the Store Resources, since the files do not exist.
+	}
+
+	@Test
+	public void testGlobalAlbumArtistSearch() {
 		SearchRequest sr = new SearchRequest();
 		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"AlbumArtist\"] contains \"Various\"");
 		sr.setContainerId("0");
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
 
-		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(1, results);
 		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
@@ -94,7 +108,7 @@ public class SearchRequestDatabaseTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
-		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(1, results);
 		// We can not create the Store Resources, since the files do not exist.
@@ -107,7 +121,7 @@ public class SearchRequestDatabaseTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(1, results);
 		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
@@ -124,7 +138,7 @@ public class SearchRequestDatabaseTest {
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 
-		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
 		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
 		assertEquals(results, resources.size());
@@ -143,7 +157,7 @@ public class SearchRequestDatabaseTest {
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
 
-		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(1, results);
 		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
@@ -160,7 +174,7 @@ public class SearchRequestDatabaseTest {
 		sr.setRequestedCount(900);
 		sr.setStartingIndex(0);
 
-		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(1, results);
 		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
@@ -176,7 +190,7 @@ public class SearchRequestDatabaseTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(1, results);
 		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
@@ -192,7 +206,7 @@ public class SearchRequestDatabaseTest {
 		sr.setContainerId("0");
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		LucenseSearchRequestHandler searchRequestHandler = new LucenseSearchRequestHandler(sr);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(1, results);
 		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());

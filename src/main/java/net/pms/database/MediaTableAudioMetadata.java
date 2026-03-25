@@ -152,7 +152,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 				}
 				case 4 -> {
 					executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'AUDIO_METADATA');");
-					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
+					executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR, GENRE');");
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -205,7 +205,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 		);
 
 		execute(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'AUDIO_METADATA');");
-		execute(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR');");
+		execute(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'AUDIO_METADATA', 'SONGNAME, ALBUM, ARTIST, ALBUMARTIST, COMPOSER, CONDUCTOR, GENRE');");
 	}
 
 	/**
