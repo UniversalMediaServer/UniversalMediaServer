@@ -54,7 +54,7 @@ import org.xml.sax.SAXException;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.DbSearchRequestHandler;
-import net.pms.network.mediaserver.handlers.LucenseSearchRequestHandler;
+import net.pms.network.mediaserver.handlers.LuceneSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
@@ -831,7 +831,7 @@ public class UmsContentDirectoryService {
 		try {
 			BaseSearchRequestHandler searchRequestHandler = null;
 			if (renderer.getUmsConfiguration().useLuceneSearch()) {
-				searchRequestHandler = new LucenseSearchRequestHandler(searchRequest);
+				searchRequestHandler = new LuceneSearchRequestHandler(searchRequest);
 			} else {
 				searchRequestHandler = new DbSearchRequestHandler(searchRequest);
 			}

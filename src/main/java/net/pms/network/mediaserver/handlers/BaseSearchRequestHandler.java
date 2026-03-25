@@ -33,7 +33,7 @@ import net.pms.store.container.MusicBrainzPersonFolder;
 
 public abstract class BaseSearchRequestHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LucenseSearchRequestHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LuceneSearchRequestHandler.class);
 
 	protected static final String CRLF = "\r\n";
 
