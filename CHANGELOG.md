@@ -25,6 +25,7 @@
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.6 to 12.1.7 ([#6057](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6057))
+- Bump `picomatch` from 4.0.2 to 4.0.4 ([#6091](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6091))
 - Bump `react-router-dom` from 7.13.0 to 7.13.1 ([#6062](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6062))
 - Bump `rollup` from 4.50.1 to 4.59.0 ([#6043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6043))
 - Bump `tar` from 7.5.9 to 7.5.11 ([#6055](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6055), [#6067](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6067))
