@@ -10,7 +10,7 @@
 - Bump `@mantine/modals` from 8.3.15 to 8.3.18 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075), [#6083](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6083))
 - Bump `@mantine/notifications` from 8.3.15 to 8.3.18 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075), [#6083](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6083))
 - Bump `@stylistic/eslint-plugin` from 5.8.0 to 5.10.0 ([#6063](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6063))
-- Bump `@tabler/icons-react` from 3.37.1 to 3.40.0 ([#6061](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6061))
+- Bump `@tabler/icons-react` from 3.37.1 to 3.41.1 ([#6061](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6061), [#6094](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6094))
 - Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
 - Bump `axios` from 1.13.5 to 1.13.6 ([#6077](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6077))
