@@ -382,7 +382,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_DEVICES_FILTER = "network_devices_filter";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
-	private static final String KEY_NEXTCP_API_KEY = "nextcp_api_key";
 	private static final String KEY_NEXTCP_AUDIO_LIKES_IN_ROOT_FOLDER = "audio_likes_visible_root";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
@@ -406,6 +405,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
+	private static final String KEY_SEARCH_LUCENE_USE = "search_lucene_use_engine";
+	private static final String KEY_SEARCH_LUCENE_EQUAL_FUZZ = "search_lucene_equal_fuzzy";
+	private static final String KEY_SEARCH_LUCENE_CONTAINS_FUZZ = "search_lucene_contains_fuzzy";
 	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
 	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
@@ -507,8 +509,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		//since 11.6
 		new AbstractMap.SimpleEntry<>("fmpeg_sox", KEY_FFMPEG_SOX),
 		new AbstractMap.SimpleEntry<>("ALIVE_delay", KEY_UPNP_ALIVE_DELAY),
-		//since 14
-		new AbstractMap.SimpleEntry<>("api_key", KEY_NEXTCP_API_KEY),
 		//since 14.7
 		new AbstractMap.SimpleEntry<>("use_imdb_info", KEY_USE_API_INFO)
 	);
@@ -1004,6 +1004,32 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public int getMencoderMaxThreads() {
 		return Math.min(getInt(KEY_MENCODER_MAX_THREADS, getNumberOfCpuCores()), MENCODER_MAX_THREADS);
+	}
+
+	/**
+	 * Indicates whether the Lucene search should use fuzzy search for equal matches. This can be used to find matches with typos or similar
+	 * but not exact matches.
+	 *
+	 * @return true : Use fuzzy search for equal matches, false : use exact search for equal matches.
+	 */
+	public boolean getLuceneEqualFuzzySearch() {
+		return getBoolean(KEY_SEARCH_LUCENE_EQUAL_FUZZ, false);
+	}
+
+	/**
+	 * Indicates whether the Lucene search should be used for searching. If false, the old database search method will be used.
+	 * @return
+	 */
+	public boolean useLuceneSearch() {
+		return getBoolean(KEY_SEARCH_LUCENE_USE, true);
+	}
+
+	/**
+	 *
+	 * @return true : Use fuzzy search for contains matches, false : use exact search for contains matches.
+	 */
+	public boolean getLuceneContainsFuzzySearch() {
+		return getBoolean(KEY_SEARCH_LUCENE_CONTAINS_FUZZ, true);
 	}
 
 	/**
@@ -1667,14 +1693,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public int getAudioBitrate() {
 		return getInt(KEY_AUDIO_BITRATE, 448);
-	}
-
-	public boolean useNextcpApi() {
-		return  !"".equals(getNextcpApiKey());
-	}
-
-	public String getNextcpApiKey() {
-		return getString(KEY_NEXTCP_API_KEY, "");
 	}
 
 	public final String getJwtSecret() {
@@ -5999,5 +6017,4 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_3D_SUBTITLES_DEPTH, "0");
 		return jObj;
 	}
-
 }

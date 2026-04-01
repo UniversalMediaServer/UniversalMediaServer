@@ -18,8 +18,12 @@ package net.pms.database;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -97,8 +101,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 42: ID as IDENTITY
 	 * - 43: clear ffmpeg data parsed
 	 * - 44: added DATEADDED and RUID
+	 * - 45: added lucene column and index
 	 */
-	private static final int TABLE_VERSION = 45;
+	private static final int TABLE_VERSION = 46;
 
 	/**
 	 * COLUMNS NAMES
@@ -123,6 +128,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String COL_ASPECTRATIODVD = "ASPECTRATIODVD";
 	private static final String COL_IMAGEINFO = "IMAGEINFO";
 	private static final String COL_IMAGECOUNT = "IMAGECOUNT";
+	private static final String COL_ONLY_FILENAME = "ONLYFILENAME";
 
 	/**
 	 * COLUMNS with table name
@@ -154,7 +160,6 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	private static final String SQL_GET_ROW_COUNT = SELECT + "COUNT(*)" + FROM + TABLE_NAME;
 	private static final String SQL_GET_FILENAME_MODIFIED_ID = SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_MODIFIED + COMMA + TABLE_COL_ID + FROM + TABLE_NAME;
-	private static final String SQL_GET_ALL_BY_FILENAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ALL_FILENAME_MODIFIED = SELECT_ALL + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_MODIFIED + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_FILENAME_BY_ID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_FILENAME_LIKE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
@@ -504,6 +509,16 @@ public class MediaTableFiles extends MediaTable {
 					case 44 -> {
 						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + ")");
 					}
+					case 45 -> {
+						// ImageInfo can be recreated with new logic.
+						executeUpdate(connection, "UPDATE FILES SET IMAGEINFO = NULL;");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN  + COL_IMAGEINFO + VARBINARY);
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_ONLY_FILENAME + VARCHAR_2048 + " AS REGEXP_REPLACE(FILENAME, '.*/', '');");
+						executeUpdate(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'net.pms.database.lucene.UmsFullTextLucene.init';");
+						executeUpdate(connection, "CALL FTL_INIT();");
+						executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'FILES');");
+						executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'FILES', 'ONLYFILENAME');");
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -572,7 +587,8 @@ public class MediaTableFiles extends MediaTable {
 				//all columns here are not file (container) related but media related
 				COL_ASPECTRATIODVD          + VARCHAR_SIZE_MAX                               + COMMA +
 				COL_IMAGECOUNT              + INTEGER                                        + COMMA +
-				COL_IMAGEINFO               + OTHER                                          +
+				COL_ONLY_FILENAME + VARCHAR_2048 + " AS REGEXP_REPLACE(FILENAME, '.*/', '')" + COMMA +
+				COL_IMAGEINFO               + VARBINARY                                      +
 			")"
 		);
 
@@ -590,6 +606,11 @@ public class MediaTableFiles extends MediaTable {
 
 		LOGGER.trace("Creating index on " + COL_FILENAME);
 		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + ")");
+
+		LOGGER.trace("Creating view for indexing computed column ONLYFILENAME");
+		executeUpdate(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'net.pms.database.lucene.UmsFullTextLucene.init';");
+		execute(connection, "CALL FTL_INIT();");
+		execute(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'FILES', 'ONLYFILENAME');");
 	}
 
 	/**
@@ -741,7 +762,13 @@ public class MediaTableFiles extends MediaTable {
 					media.setThumbnailSource(rs.getString(COL_THUMB_SRC));
 					//not media related
 					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
-					media.setImageInfo((ImageInfo) rs.getObject(COL_IMAGEINFO));
+					byte[] imageBytes = rs.getBytes(COL_IMAGEINFO);
+					Object deserializedImageInfo = deserialize(imageBytes);
+					ImageInfo info = deserializedImageInfo instanceof ImageInfo imageInfo ? imageInfo : null;
+					if (deserializedImageInfo != null && info == null) {
+						LOGGER.warn("Failed to deserialize image info for file {}.", filename);
+					}
+					media.setImageInfo(info);
 					media.setImageCount(rs.getInt(COL_IMAGECOUNT));
 
 					media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, fileId));
@@ -770,6 +797,19 @@ public class MediaTableFiles extends MediaTable {
 			}
 		}
 		return media;
+	}
+
+	// Hilfsmethode zum Deserialisieren
+	private static Object deserialize(byte[] bytes) {
+		if (bytes == null) {
+			return null;
+		}
+		try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+			ObjectInputStream ois = new ObjectInputStream(bais)) {
+			return ois.readObject();
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	/**
@@ -834,78 +874,118 @@ public class MediaTableFiles extends MediaTable {
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
 	public static Long insertOrUpdateData(final Connection connection, String name, long modified, int type, MediaInfo media) throws SQLException {
-		Long fileId = null;
-		try {
-			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ALL_BY_FILENAME,
-				ResultSet.TYPE_FORWARD_ONLY,
-				ResultSet.CONCUR_UPDATABLE
-			)) {
-				ps.setString(1, name);
-				try (ResultSet result = ps.executeQuery()) {
-					boolean isCreatingNewRecord = !result.next();
-					if (isCreatingNewRecord) {
-						result.moveToInsertRow();
-						result.updateString(COL_FILENAME, name);
-					} else {
-						fileId = result.getLong(COL_ID);
-					}
-					result.updateTimestamp(COL_MODIFIED, new Timestamp(modified));
-					result.updateInt(COL_FORMAT_TYPE, type);
-					if (media != null) {
-						updateString(result, COL_RESOURCE_UID, media.getResourceId(), 64);
-						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
-						updateLong(result, COL_THUMBID, media.getThumbnailId());
-						if (media.getThumbnailSource() != null) {
-							updateString(result, COL_THUMB_SRC, media.getThumbnailSource().toString(), 32);
-						}
-						result.updateLong(COL_MEDIA_SIZE, media.getSize());
-						updateString(result, COL_CONTAINER, media.getContainer(), SIZE_CONTAINER);
-						updateString(result, COL_MIMETYPE, media.getMimeType(), 32);
-						updateString(result, COL_TITLECONTAINER, media.getTitle(), SIZE_MAX);
-						updateDouble(result, COL_DURATION, media.getDurationInSeconds());
-						updateInteger(result, COL_BITRATE, media.getBitRate());
-						updateDouble(result, COL_FRAMERATE, media.getFrameRate());
-						//not media related
-						result.updateInt(COL_IMAGECOUNT, media.getImageCount());
-						updateString(result, COL_ASPECTRATIODVD, media.getAspectRatioDvdIso(), SIZE_MAX);
-						updateObject(result, COL_IMAGEINFO, media.getImageInfo());
-					}
-					if (isCreatingNewRecord) {
-						result.insertRow();
-						fileId = getFileId(connection, name);
-					} else {
-						result.updateRow();
-					}
+		Long fileId = getFileId(connection, name);
+		boolean isUpdating = (fileId != null);
+		String sql = isUpdating ?
+			"UPDATE FILES SET MODIFIED=?, FORMAT_TYPE=?, RUID=?, PARSER=?, THUMBID=?, THUMB_SRC=?, MEDIA_SIZE=?, CONTAINER=?, MIMETYPE=?, TITLECONTAINER=?, DURATION=?, BITRATE=?, FRAMERATE=?, IMAGECOUNT=?, ASPECTRATIODVD=?, IMAGEINFO=? WHERE ID=?" :
+			"INSERT INTO FILES (FILENAME, MODIFIED, FORMAT_TYPE, RUID, PARSER, THUMBID, THUMB_SRC, MEDIA_SIZE, CONTAINER, MIMETYPE, TITLECONTAINER, DURATION, BITRATE, FRAMERATE, IMAGECOUNT, ASPECTRATIODVD, IMAGEINFO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+		try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+			int i = 1;
+			if (!isUpdating) {
+				ps.setString(i++, name);
+			}
+
+			ps.setTimestamp(i++, new Timestamp(modified));
+			ps.setInt(i++, type);
+
+			if (media != null) {
+				ps.setString(i++, truncate(media.getResourceId(), 64));
+				ps.setString(i++, truncate(media.getMediaParser(), SIZE_MAX));
+				setLongOrNull(ps, i++, media.getThumbnailId());
+				ps.setString(i++, media.getThumbnailSource() != null ? truncate(media.getThumbnailSource().toString(), 32) : null);
+				setLongOrNull(ps, i++, media.getSize());
+				ps.setString(i++, truncate(media.getContainer(), SIZE_CONTAINER));
+				ps.setString(i++, truncate(media.getMimeType(), 32));
+				ps.setString(i++, truncate(media.getTitle(), SIZE_MAX));
+				setDoubleOrNull(ps, i++, media.getDurationInSeconds());
+				setIntegerOrNull(ps, i++, media.getBitRate());
+				setDoubleOrNull(ps, i++, media.getFrameRate());
+				setIntegerOrNull(ps, i++, media.getImageCount());
+				ps.setString(i++, truncate(media.getAspectRatioDvdIso(), SIZE_MAX));
+				ps.setBytes(i++, serialize(media.getImageInfo()));
+			} else {
+				for (; i <= (isUpdating ? 16 : 17); i++) {
+					ps.setNull(i, Types.NULL);
 				}
 			}
 
-			if (media != null && fileId != null) {
-				media.setFileId(fileId);
-				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, false);
-				MediaTableVideotracks.insertOrUpdateVideoTracks(connection, fileId, media);
-				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
-				MediaTableAudioMetadata.insertOrUpdateAudioMetadata(connection, fileId, media);
-				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
-				MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
+			if (isUpdating) {
+				ps.setLong(i, fileId); // WHERE ID=?
 			}
-		} catch (SQLException se) {
-			if (se.getErrorCode() == 23505) {
-				throw new SQLException(String.format(
-					"Duplicate key while adding \"%s\" to the cache: %s",
-					name,
-					se.getMessage()
-				), se);
+			ps.executeUpdate();
+
+			if (!isUpdating) {
+				try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						fileId = generatedKeys.getLong(1);
+					}
+				}
 			}
-			throw se;
-		} finally {
-			if (fileId != null) {
-				//let store know that we change media metadata
-				MediaStoreIds.incrementUpdateIdForFilename(connection, name);
-			}
+		} catch (Exception e) {
+			LOGGER.error("Error while inserting/updating media info for {}: {}", name, e.getMessage(), e);
+		}
+
+		if (media != null && fileId != null) {
+			media.setFileId(fileId);
+			MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, false);
+			MediaTableVideotracks.insertOrUpdateVideoTracks(connection, fileId, media);
+			MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
+			MediaTableAudioMetadata.insertOrUpdateAudioMetadata(connection, fileId, media);
+			MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
+			MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
+		}
+		if (fileId != null) {
+			//let store know that we change media metadata
+			MediaStoreIds.incrementUpdateIdForFilename(connection, name);
 		}
 		return fileId;
 	}
 
+	private static byte[] serialize(Object obj) {
+		if (obj == null) {
+			return null;
+		}
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			oos.writeObject(obj);
+			return baos.toByteArray();
+		} catch (IOException e) {
+			LOGGER.error("Error while serializing object.", e);
+			return null;
+		}
+	}
+
+	private static void setDoubleOrNull(PreparedStatement ps, int idx, Double val) throws SQLException {
+		if (val == null) {
+			ps.setNull(idx, java.sql.Types.DOUBLE);
+		} else {
+			ps.setDouble(idx, val);
+		}
+	}
+
+	private static void setLongOrNull(PreparedStatement ps, int idx, Long val) throws SQLException {
+		if (val == null) {
+			ps.setNull(idx, Types.BIGINT);
+		} else {
+			ps.setLong(idx, val);
+		}
+	}
+
+	private static void setIntegerOrNull(PreparedStatement ps, int idx, Integer val) throws SQLException {
+		if (val == null) {
+			ps.setNull(idx, Types.INTEGER);
+		} else {
+			ps.setInt(idx, val);
+		}
+	}
+
+	private static String truncate(String s, int max) {
+		if (s == null) {
+			return null;
+		}
+		return s.length() > max ? s.substring(0, max) : s;
+	}
 	/**
 	 * Removes a single media file from the database.
 	 *

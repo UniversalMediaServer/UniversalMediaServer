@@ -96,7 +96,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<slf4j-api-version>2.0.17</slf4j-api-version>
-
+		<lucene-version>9.12.3</lucene-version>
 		<surefire-version>3.5.5</surefire-version>
 
 		<!--
@@ -623,6 +623,24 @@
 			<groupId>dev.dirs</groupId>
 			<artifactId>directories</artifactId>
 			<version>26</version>
+		</dependency>
+		
+		<!-- Lucene search support -->
+		<!-- Attention: Lucene 10+ requires JDK 21+ (i.e. 10.4.0) -->
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-core</artifactId>
+		    <version>${lucene-version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-queryparser</artifactId>
+		    <version>${lucene-version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-analysis-common</artifactId>
+		    <version>${lucene-version}</version>
 		</dependency>
 	</dependencies>
 	<build>
