@@ -72,10 +72,18 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 		}
 	}
 
+	private int getCount() {
+		return getRequestMessage().getRequestedCount() != null ? getRequestMessage().getRequestedCount() : 0;
+	}
+
+	private int getStartIndex() {
+		return getRequestMessage().getStartingIndex() != null ? getRequestMessage().getStartingIndex() : 0;
+	}
+
 	private String getFormattedLuceneString(String luceneQuery, String sql, boolean ignoreCountLimit) {
 		try {
-			int count = getRequestMessage().getRequestedCount() != null ? getRequestMessage().getRequestedCount() : 0;
-			int startIndex = getRequestMessage().getStartingIndex() != null ? getRequestMessage().getStartingIndex() : 0;
+			int count = getCount();
+			int startIndex = getStartIndex();
 			if (ignoreCountLimit) {
 				return String.format(sql, luceneQuery, 0, 0);
 			} else {
@@ -122,7 +130,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 				map.put("dc:title", "ALBUM");
 			}
 			case TYPE_PLAYLIST, TYPE_FOLDER, TYPE_VIDEO, TYPE_IMAGE -> {
-				map.put("dc:title", "FILENAME");
+				map.put("dc:title", "ONLYFILENAME");
 			}
 			default -> throw new RuntimeException(
 				"not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
@@ -176,8 +184,8 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 			}
 			case TYPE_PLAYLIST -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
-					"FROM FTL_SEARCH_DATA('%s', %d, %d) FT " + "JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' AND ";
-				return getFormattedLuceneString("ONLYFILENAME", sql);
+					"FROM FTL_SEARCH_DATA('%s', %d, %d) FT " + "JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' ";
+				return getFormattedLuceneString(luceneQuery, sql);
 			}
 			case TYPE_FOLDER -> {
 				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
@@ -310,8 +318,8 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 			}
 			case TYPE_PLAYLIST -> {
 				String sql = "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s', %d, %d) FT " +
-					"JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' AND ";
-				return getFormattedLuceneString("ONLYFILENAME", sql, true);
+					"JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' ";
+				return getFormattedLuceneString(luceneQuery, sql, true);
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
@@ -400,7 +408,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 		} else {
 			sb.append(addSqlSelectByType(subtreeId));
 		}
-		addSqlWherePart(getRequestMessage().getSearchCriteria(), getRequestType(), sb);
+		addSqlWherePart(sb);
 		addOrderBy(getRequestMessage().getSortCriteria(), getRequestType(), sb);
 		addLimit(getRequestType(), getRequestMessage(), sb);
 		LOGGER.debug(sb.toString());
@@ -455,40 +463,31 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 	}
 
 	private void addLimit(DbIdMediaType requestType, SearchRequest requestMessage, StringBuilder sb) {
-		switch (requestType) {
-			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PLAYLIST -> {
-				// do nothing, since the FTL search already delivers the correct
-				// subset of data based on the startingIndex and requestedCount
-				// parameters.
-			}
-			default -> {
-				long limit = getRequestMessage().getRequestedCount();
-				if (limit == 0) {
-					limit = 999;
-				}
-				sb.append(String.format(" LIMIT %d OFFSET %d ", limit, getRequestMessage().getStartingIndex()));
-			}
+		long limit = getCount();
+		if (limit == 0) {
+			limit = 999;
 		}
+		sb.append(String.format(" LIMIT %d OFFSET %d ", limit, getStartIndex()));
 	}
 
 	protected String convertToCountSql() {
 		StringBuilder sb = new StringBuilder();
 		String subtreeId = getRequestMessage().getContainerId();
-		String upnpSearch = getRequestMessage().getSearchCriteria();
 		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
 			sb.append(addSqlSelectCountByType());
 		} else {
 			sb.append(addSqlSelectCountByType(subtreeId));
 		}
-		addSqlWherePart(upnpSearch, getRequestType(), sb);
+		addSqlWherePart(sb);
 		return sb.toString();
 	}
 
-	private void addSqlWherePart(String searchCriteria, DbIdMediaType requestType, StringBuilder sb) {
+	private void addSqlWherePart(StringBuilder sb) {
 
-		switch (requestType) {
-			case TYPE_FOLDER, TYPE_IMAGE, TYPE_VIDEO, TYPE_PLAYLIST -> {
-				sb.append(" AND child.parent_id = parent.id and child.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
+		switch (getRequestType()) {
+			case TYPE_IMAGE, TYPE_VIDEO, TYPE_PLAYLIST -> {
+				sb.append(String.format(" AND F.FORMAT_TYPE = %d ", getFileType()));
+//				sb.append(" AND child.parent_id = parent.id and child.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
 			}
 			default -> {
 			}

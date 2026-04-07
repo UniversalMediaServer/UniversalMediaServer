@@ -139,10 +139,10 @@ public abstract class BaseSearchRequestHandler {
 	 * @param val
 	 * @return
 	 */
-	protected int getFileType(DbIdMediaType mediaFolderType) {
+	protected int getFileType() {
 		// album and persons titles are stored within the RealFile and have
 		// therefore no unique id.
-		switch (mediaFolderType) {
+		switch (getRequestType()) {
 			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 				return Format.AUDIO;
 			}
@@ -162,7 +162,7 @@ public abstract class BaseSearchRequestHandler {
 				// nothing to do
 			}
 		}
-		throw new RuntimeException("unknown or unimplemented mediafolder type : >" + mediaFolderType + "<");
+		throw new RuntimeException("unknown or unimplemented mediafolder type : >" + getRequestType() + "<");
 	}
 
 	/**
