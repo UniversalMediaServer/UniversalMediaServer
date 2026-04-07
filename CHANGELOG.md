@@ -32,6 +32,7 @@
 - Bump `rollup` from 4.50.1 to 4.59.0 ([#6043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6043))
 - Bump `tar` from 7.5.9 to 7.5.11 ([#6055](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6055), [#6067](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6067))
 - Bump `typescript-eslint` from 8.56.0 to 8.57.1 ([#6076](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6076), [#6086](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6086))
+- Bump `vite` from 7.3.1 to 7.3.2 ([#6105](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6105))
 
 ## [15.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.4.0...15.5.0) (2026-02-28)
 
