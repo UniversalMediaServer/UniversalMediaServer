@@ -82,13 +82,9 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 
 	private String getFormattedLuceneString(String luceneQuery, String sql, boolean ignoreCountLimit) {
 		try {
-			int count = getCount();
-			int startIndex = getStartIndex();
-			if (ignoreCountLimit) {
-				return String.format(sql, luceneQuery, 0, 0);
-			} else {
-				return String.format(sql, luceneQuery, count, startIndex);
-			}
+			// Don't use Lucene limit & offset feature, because in case we filter the result set additionally in the WHERE part
+			// like FILETYPE = 16 for playlist, we can get wrong results.
+			return String.format(sql, luceneQuery, 0, 0);
 		} catch (Exception e) {
 			throw new RuntimeException("Error formatting lucene query into sql", e);
 		}
