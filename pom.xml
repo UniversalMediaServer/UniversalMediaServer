@@ -78,7 +78,7 @@
 
 		<exec-maven-plugin-version>3.6.3</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
-		<git-commit-id-plugin-version>9.0.2</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>9.1.0</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.8.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
 		<maven-resources-plugin-version>3.5.0</maven-resources-plugin-version>
@@ -465,7 +465,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.10.0</version>
+			<version>6.11.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -554,7 +554,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10.websocket</groupId>
 			<artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
-			<version>12.1.7</version>
+			<version>12.1.8</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -569,7 +569,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.1.7</version>
+			<version>12.1.8</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -580,7 +580,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.1.7</version>
+			<version>12.1.8</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -591,7 +591,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.1.7</version>
+			<version>12.1.8</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>

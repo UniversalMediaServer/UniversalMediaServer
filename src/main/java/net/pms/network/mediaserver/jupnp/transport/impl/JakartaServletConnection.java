@@ -16,9 +16,9 @@
  */
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
+import com.google.common.net.InetAddresses;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import org.jupnp.model.message.Connection;
 
 /**
@@ -47,18 +47,18 @@ public class JakartaServletConnection implements Connection {
 	@Override
 	public InetAddress getRemoteAddress() {
 		try {
-			return InetAddress.getByName(getRequest().getRemoteAddr());
-		} catch (UnknownHostException e) {
-			throw new RuntimeException(e);
+			return InetAddresses.forString(getRequest().getRemoteAddr());
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException("Failed to parse request remote address", e);
 		}
 	}
 
 	@Override
 	public InetAddress getLocalAddress() {
 		try {
-			return InetAddress.getByName(getRequest().getLocalAddr());
-		} catch (UnknownHostException e) {
-			throw new RuntimeException(e);
+			return InetAddresses.forString(getRequest().getLocalAddr());
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException("Failed to parse request local address", e);
 		}
 	}
 
