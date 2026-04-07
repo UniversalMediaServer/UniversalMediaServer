@@ -320,7 +320,7 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 			}
 			case TYPE_AUDIO, TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
-					sb.append(String.format(" F.FORMAT_TYPE = %d ", getFileType(requestType)));
+					sb.append(String.format(" F.FORMAT_TYPE = %d ", getFileType()));
 				}
 				return;
 			}
