@@ -52,7 +52,7 @@ public class SearchRequestDatabaseTest {
 	// 0=album, 1=artist, 2=albumArtist, 3=songname, 4=genre, 5=year, 6=track, 7=disc, 8=composer, 9=conductor, 10=folder
 	private static final List<String[]> AUDIO_METADATA_PRESETS = List.of(
 		// Bucket 1
-		new String[] {"The Wall", "Pink Floyd", "Pink Floyd", "In the Flesh?", "Rock", "1979", "1", "1", "Roger Waters", null, "/music/1970/In the Flesh?"},
+		new String[] {"The Wall", "Pink Floyd", "Pink Floyd", "In the Flesh", "Rock", "1979", "1", "1", "Roger Waters", null, "/music/1970/In the Flesh"},
 		new String[] {"The Dark Side of the Moon", "Pink Floyd", "Pink Floyd", "Time", "Rock", "1973", "4", "1", "Roger Waters", null, "/music/1970/Time"},
 		new String[] {"Rumours", "Fleetwood Mac", "Fleetwood Mac", "Dreams", "Rock", "1977", "2", "1", "Stevie Nicks", null, "/music/1970/Dreams"},
 		new String[] {"Led Zeppelin IV", "Led Zeppelin", "Led Zeppelin", "Black Dog", "Rock", "1971", "1", "1", "Jimmy Page", null, "/music/1970/Black Dog"},
@@ -73,7 +73,7 @@ public class SearchRequestDatabaseTest {
 		new String[] {"In Rainbows", "Radiohead", "Radiohead", "Nude", "Alternative", "2007", "3", "1", "Thom Yorke", null, "/music/2000/Nude"},
 		new String[] {"Requiem", "W. A. Mozart", "Various Artists", "Lacrimosa", "Classical", "1791", "8", "1", "W. A. Mozart", "Herbert von Karajan", "/music/1790/Lacrimosa"},
 		new String[] {"Symphony No. 5", "Ludwig van Beethoven", "Various Artists", "I. Allegro con brio", "Classical", "1808", "1", "1", "Ludwig van Beethoven", "Carlos Kleiber", "/music/1800/I. Allegro con brio"},
-		new String[] {"The Four Seasons", "Antonio Vivaldi", "Various Artists", "Spring: Allegro", "Classical", "1725", "1", "1", "Antonio Vivaldi", "Claudio Abbado", "/music/1720/Spring: Allegro"},
+		new String[] {"The Four Seasons", "Antonio Vivaldi", "Various Artists", "Spring Allegro", "Classical", "1725", "1", "1", "Antonio Vivaldi", "Claudio Abbado", "/music/1720/Spring Allegro"},
 		new String[] {"Appetite for Destruction", "Guns N' Roses", "Guns N' Roses", "Welcome to the Jungle", "Hard Rock", "1987", "1", "1", "Slash", null, "/music/1980/Welcome to the Jungle"},
 		new String[] {"Master of Puppets", "Metallica", "Metallica", "Battery", "Metal", "1986", "1", "1", "James Hetfield", null, "/music/1980/Battery"}
 	);

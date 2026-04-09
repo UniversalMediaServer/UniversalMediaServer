@@ -512,7 +512,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 	private String getTreeWhereStatement(String tableName, String subtreeId, boolean addAnd) {
 		String tree = String.format(" WHERE EXISTS (\n" +
 			"    SELECT 1 FROM tree \n" +
-			"    WHERE F.FILENAME like tree.name || '%%%%'\n" +
+			"    WHERE F.FILENAME like tree.name || '%%%%' ESCAPE ''\n" +
 			")\n" +
 			"AND FT.\"TABLE\" = '%s' ", tableName);
 		if (addAnd) {
