@@ -73,7 +73,7 @@ public class SearchRequestDatabaseTest {
 		new String[] {"In Rainbows", "Radiohead", "Radiohead", "Nude", "Alternative", "2007", "3", "1", "Thom Yorke", null, "/music/2000/Nude"},
 		new String[] {"Requiem", "W. A. Mozart", "Various Artists", "Lacrimosa", "Classical", "1791", "8", "1", "W. A. Mozart", "Herbert von Karajan", "/music/1790/Lacrimosa"},
 		new String[] {"Symphony No. 5", "Ludwig van Beethoven", "Various Artists", "I. Allegro con brio", "Classical", "1808", "1", "1", "Ludwig van Beethoven", "Carlos Kleiber", "/music/1800/I. Allegro con brio"},
-		new String[] {"The Four Seasons", "Antonio Vivaldi", "Various Artists", "Spring: Allegro", "Classical", "1725", "1", "1", "Antonio Vivaldi", "Claudio Abbado", "/music/1720/Spring: Allegro"},
+		new String[] {"The Four Seasons", "Antonio Vivaldi", "Various Artists", "Spring Allegro", "Classical", "1725", "1", "1", "Antonio Vivaldi", "Claudio Abbado", "/music/1720/Spring Allegro"},
 		new String[] {"Appetite for Destruction", "Guns N' Roses", "Guns N' Roses", "Welcome to the Jungle", "Hard Rock", "1987", "1", "1", "Slash", null, "/music/1980/Welcome to the Jungle"},
 		new String[] {"Master of Puppets", "Metallica", "Metallica", "Battery", "Metal", "1986", "1", "1", "James Hetfield", null, "/music/1980/Battery"}
 	);
