@@ -52,7 +52,7 @@ public class SearchRequestDatabaseTest {
 	// 0=album, 1=artist, 2=albumArtist, 3=songname, 4=genre, 5=year, 6=track, 7=disc, 8=composer, 9=conductor, 10=folder
 	private static final List<String[]> AUDIO_METADATA_PRESETS = List.of(
 		// Bucket 1
-		new String[] {"The Wall", "Pink Floyd", "Pink Floyd", "In the Flesh?", "Rock", "1979", "1", "1", "Roger Waters", null, "/music/1970/In the Flesh?"},
+		new String[] {"The Wall", "Pink Floyd", "Pink Floyd", "In the Flesh", "Rock", "1979", "1", "1", "Roger Waters", null, "/music/1970/In the Flesh"},
 		new String[] {"The Dark Side of the Moon", "Pink Floyd", "Pink Floyd", "Time", "Rock", "1973", "4", "1", "Roger Waters", null, "/music/1970/Time"},
 		new String[] {"Rumours", "Fleetwood Mac", "Fleetwood Mac", "Dreams", "Rock", "1977", "2", "1", "Stevie Nicks", null, "/music/1970/Dreams"},
 		new String[] {"Led Zeppelin IV", "Led Zeppelin", "Led Zeppelin", "Black Dog", "Rock", "1971", "1", "1", "Jimmy Page", null, "/music/1970/Black Dog"},
