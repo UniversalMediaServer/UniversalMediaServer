@@ -939,7 +939,7 @@ public class FileUtil {
 
 		formattedName = basicPrettify(filename);
 
-		if (formattedName.toLowerCase(Locale.ENGLISH).endsWith("sample")) {
+		if (formattedName.toLowerCase(Locale.ENGLISH).endsWith("sample") || formattedName.toLowerCase(Locale.ENGLISH).startsWith("sample-")) {
 			isSample = true;
 		}
 
@@ -1422,6 +1422,10 @@ public class FileUtil {
 				extraInformation = edition + " ";
 			}
 			extraInformation += "(Sample)";
+
+			if (formattedName.toLowerCase(Locale.ENGLISH).startsWith("sample-")) {
+				movieOrShowName = movieOrShowName.substring(7);
+			}
 		} else {
 			extraInformation = edition;
 		}
