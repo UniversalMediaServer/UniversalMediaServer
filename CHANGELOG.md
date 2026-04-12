@@ -14,7 +14,7 @@
 - Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
 - Bump `@xmldom/xmldom` from 0.8.10 to 0.8.12 ([#6098](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6098))
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
-- Bump `axios` from 1.13.5 to 1.13.6 ([#6077](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6077))
+- Bump `axios` from 1.13.5 to 1.15.0 ([#6077](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6077), [#6111](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6111))
 - Bump `brace-expansion` from 1.1.12 to 1.1.13 ([#6092](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6092))
 - Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
 - Bump `com.github.oshi:oshi-core` from 6.10.0 to 6.11.0 ([#6104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6104))
