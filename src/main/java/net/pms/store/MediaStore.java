@@ -317,23 +317,29 @@ public class MediaStore extends StoreContainer {
 	 */
 	private void collectAllMediaFiles(File directory, List<String> ignoredFolderNames, List<File> out) {
 		if (!directory.canRead()) {
+			LOGGER.warn("Can't read directory: {}", directory.getAbsolutePath());
 			return;
 		}
 		File[] files = directory.listFiles();
 		if (files == null) {
+			LOGGER.debug("I/O error listing files in directory: {}", directory.getAbsolutePath());
 			return;
 		}
 		for (File file : files) {
 			if (!file.canRead() || file.isHidden()) {
+				LOGGER.trace("Ignoring '{}' because it is unreadable or hidden", file);
 				continue;
 			}
 			if (file.isDirectory()) {
 				if (!ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
+					LOGGER.debug("Ignoring '{}' because it is in the ignored directories list", file);
 					continue;
 				}
 				collectAllMediaFiles(file, ignoredFolderNames, out);
 			} else if (SystemFilesHelper.isPotentialMediaFile(file.getName())) {
 				out.add(file);
+			} else {
+				LOGGER.trace("Ignoring '{}' because it is not a media file", file);
 			}
 		}
 	}
