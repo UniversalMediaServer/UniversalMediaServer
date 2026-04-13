@@ -16,6 +16,7 @@
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
 - Bump `axios` from 1.13.5 to 1.15.0 ([#6077](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6077), [#6111](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6111))
 - Bump `brace-expansion` from 1.1.12 to 1.1.14 ([#6092](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6092), [#6110](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6110))
+- Bump `com.drewnoakes:metadata-extractor` from 2.19.0 to 2.20.0 ([#6114](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6114))
 - Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
 - Bump `com.github.oshi:oshi-core` from 6.10.0 to 6.11.0 ([#6104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6104))
 - Bump `commons-logging:commons-logging` from 1.3.5 to 1.3.6 ([#6060](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6060))
