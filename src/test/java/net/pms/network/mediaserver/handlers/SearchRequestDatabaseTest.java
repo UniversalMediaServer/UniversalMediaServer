@@ -49,6 +49,7 @@ public class SearchRequestDatabaseTest {
 	private StoreContainer dir1 = null;
 	private StoreContainer dir2 = null;
 	private StoreContainer dir3 = null;
+	private StoreContainer searchDir = null;
 
 	// Order:
 	// 0=album, 1=artist, 2=albumArtist, 3=songname, 4=genre, 5=year, 6=track, 7=disc, 8=composer, 9=conductor, 10=folder
@@ -103,9 +104,12 @@ public class SearchRequestDatabaseTest {
 		Path subDir1 = testMusicFolder.resolve("1");
 		Path subDir2 = testMusicFolder.resolve("2");
 		Path subDir3 = testMusicFolder.resolve("3");
+		Path subSearchDir = subDir1.resolve("search_for_me");
+
 		Files.createDirectories(subDir1);
 		Files.createDirectories(subDir2);
 		Files.createDirectories(subDir3);
+		Files.createDirectories(subSearchDir);
 
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration(false));
@@ -174,6 +178,12 @@ public class SearchRequestDatabaseTest {
 		dir1.discoverChildren();
 		dir2.discoverChildren();
 		dir3.discoverChildren();
+
+		searchDir = (StoreContainer) dir1.getChildren().stream()
+			.filter(child -> "search_for_me".equals(child.getName()))
+			.findFirst()
+			.orElse(null);
+		searchDir.discoverChildren();
 	}
 
 	@Test
@@ -570,6 +580,51 @@ public class SearchRequestDatabaseTest {
 		searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(0, results);
+	}
+
+	@Test
+	public void testGlobalFolderSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"search_for_me\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		StoreResource foundResource = resources.get(0);
+		assertEquals("search_for_me", foundResource.getName());
+	}
+
+	@Test
+	public void testTreeFolderSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"search_for_me\"");
+		sr.setContainerId(dir1.getId());
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		StoreResource foundResource = resources.get(0);
+		assertEquals("search_for_me", foundResource.getName());
+
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"search_for_me\"");
+		sr.setContainerId(dir2.getId());
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(0, results);
+
+		resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(0, resources.size());
 	}
 
 	public MediaInfo createMediaInfo() {

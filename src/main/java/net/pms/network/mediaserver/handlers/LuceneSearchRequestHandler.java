@@ -185,7 +185,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 				return getFormattedLuceneString(luceneQuery, sql);
 			}
 			case TYPE_FOLDER -> {
-				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
+				return "select DISTINCT ON (tree.name) tree.name, tree.ID as FID, tree.ID as oid, parent.ID as parent_id from STORE_IDS tree JOIN STORE_IDS parent ON tree.parent_id = parent.id where ";
 			}
 			default -> throw new RuntimeException(
 				"not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
@@ -256,8 +256,8 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 				return getFormattedLuceneString(luceneQuery, sql);
 			}
 			case TYPE_FOLDER -> {
-				return getTreeStatement(subtreeId) + "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, " +
-					"parent.ID as parent_id from STORE_IDS parent" + getTreeWhereStatement("FILES", subtreeId, true);
+				return getTreeStatement(subtreeId) + "select DISTINCT ON (tree.NAME) tree.NAME, tree.ID as FID, tree.ID as oid, " +
+					"parent.ID as parent_id from tree JOIN STORE_IDS parent ON tree.parent_id = parent.id where ";
 			}
 			default -> throw new RuntimeException(
 				"not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
@@ -312,7 +312,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 				return getFormattedLuceneString(luceneQuery, sql, true);
 			}
 			case TYPE_FOLDER -> {
-				return "select count(DISTINCT child.NAME) from STORE_IDS child, STORE_IDS parent where ";
+				return "select count(DISTINCT tree.name) from STORE_IDS tree JOIN STORE_IDS parent ON tree.parent_id = parent.id where ";
 			}
 			default -> throw new RuntimeException(
 				"not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
@@ -373,9 +373,8 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 				return getFormattedLuceneString(luceneQuery, sql, false);
 			}
 			case TYPE_FOLDER -> {
-				return getTreeStatement(subtreeId) +
-					"select count(DISTINCT child.NAME) from tree JOIN STORE_IDS child on tree.id = child.id, STORE_IDS parent " +
-					getTreeWhereStatement("FILES", subtreeId, true);
+				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT tree.name) from tree JOIN STORE_IDS parent ON tree.parent_id = parent.id where ";
+				return sql;
 			}
 			default -> throw new RuntimeException(
 				"not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
@@ -466,11 +465,20 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 	}
 
 	private void addSqlWherePart(StringBuilder sb) {
-
 		switch (getRequestType()) {
 			case TYPE_IMAGE, TYPE_VIDEO, TYPE_PLAYLIST -> {
 				sb.append(String.format(" AND F.FORMAT_TYPE = %d ", getFileType()));
-//				sb.append(" AND child.parent_id = parent.id and child.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
+			}
+			case TYPE_FOLDER -> {
+				SearchRequestTokenizer tokenizer = new SearchRequestTokenizer(getRequestMessage());
+				String title = tokenizer.getDcTitleValue();
+				// We could also add a lucene index in the table STORE_IDS, but I think this is sufficient for now, since we expect rather few folders searches
+				if (title != null) {
+					sb.append(String.format(" tree.name ilike '%%%%%s%%%%' and tree.object_type = 'RealFolder' and parent.object_type = 'RealFolder'",
+						title));
+				} else {
+					sb.append(" tree.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
+				}
 			}
 			default -> {
 			}
@@ -479,9 +487,9 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 
 
 	private String getTreeStatement(String subtreeId) {
-		String tree = String.format("WITH RECURSIVE tree(id, name) AS (\n" +
-			"    SELECT id, name FROM STORE_IDS WHERE id = %s\n" +
-			"    UNION ALL\n" + "    SELECT t.id, t.name FROM STORE_IDS t \n" +
+		String tree = String.format("WITH RECURSIVE tree(id, name, parent_id, object_type) AS (\n" +
+			"    SELECT id, name, parent_id, object_type FROM STORE_IDS WHERE id = %s\n" +
+			"    UNION ALL\n" + "    SELECT t.id, t.name, t.parent_id, t.object_type FROM STORE_IDS t \n" +
 			"    INNER JOIN tree ON t.parent_id = tree.id\n" + ") ",
 			subtreeId);
 
@@ -499,7 +507,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 	private String getTreeWhereStatement(String tableName, String subtreeId, boolean addAnd) {
 		String tree = String.format(" WHERE EXISTS (\n" +
 			"    SELECT 1 FROM tree \n" +
-			"    WHERE F.FILENAME like tree.name || '%%%%' ESCAPE ''\n" +
+			"    WHERE FILENAME like tree.name || '%%%%' ESCAPE ''\n" +
 			")\n" +
 			"AND FT.\"TABLE\" = '%s' ", tableName);
 		if (addAnd) {
