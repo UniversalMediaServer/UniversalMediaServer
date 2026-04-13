@@ -49,27 +49,12 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 	}
 
 	/**
-	 * Check, if we have lucene index for the requested type.
+	 * We can handle all types with this implementation now ... If not do a check and return false here, so that the request is processed by another handler.
 	 *
 	 * @return
 	 */
 	public boolean canHandle() {
-		switch (getRequestType()) {
-			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PLAYLIST, TYPE_FOLDER, TYPE_VIDEO, TYPE_IMAGE -> {
-				boolean hasTitile = getTokens().stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"));
-				LOGGER.trace("SearchRequestTokenizer.hasDcTitleSearch: {}", hasTitile);
-				return hasTitile;
-			}
-			case TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
-				boolean hasTitile = getTokens().stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"));
-				boolean hasRole = getTokens().stream().anyMatch(t -> t.attr().equalsIgnoreCase("upnp:artist"));
-				LOGGER.trace("SearchRequestTokenizer.hasDcTitleSearch: {}, hasRoleSearch: {}", hasTitile, hasRole);
-				return hasTitile || hasRole;
-			}
-			default -> {
-				return false;
-			}
-		}
+		return true;
 	}
 
 	private int getCount() {
