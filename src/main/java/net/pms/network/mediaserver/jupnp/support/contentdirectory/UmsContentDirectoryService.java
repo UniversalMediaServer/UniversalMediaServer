@@ -169,7 +169,7 @@ public class UmsContentDirectoryService {
 	public final static String EMPTY_FILE_CONTENT = "<UPLOAD RESOURCE>";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsContentDirectoryService.class);
-	private static final List<String> CAPS_SEARCH = List.of("dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
+	private static final List<String> CAPS_SEARCH = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final List<String> CAPS_SORT = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final String CRLF = "\r\n";
 
