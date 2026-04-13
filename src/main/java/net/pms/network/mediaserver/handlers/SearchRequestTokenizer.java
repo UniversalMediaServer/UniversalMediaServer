@@ -43,9 +43,17 @@ public class SearchRequestTokenizer {
 	 * @return
 	 */
 	public boolean hasDcTitleSearch() {
-		boolean hasTitile = searchTokens.stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"));
-		LOGGER.trace("SearchRequestTokenizer.hasDcTitleSearch: {}", hasTitile);
-		return hasTitile;
+		boolean hasTitle = searchTokens.stream().anyMatch(t -> t.attr().equalsIgnoreCase("dc:title"));
+		LOGGER.trace("SearchRequestTokenizer.hasDcTitleSearch: {}", hasTitle);
+		return hasTitle;
+	}
+
+	public String getDcTitleValue() {
+		return searchTokens.stream()
+			.filter(t -> t.attr().equalsIgnoreCase("dc:title"))
+			.map(SearchToken::val)
+			.findFirst()
+			.orElse(null);
 	}
 
 	public List<SearchToken> getSearchTokens() {
