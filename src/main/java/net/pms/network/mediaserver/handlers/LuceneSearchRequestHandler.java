@@ -99,6 +99,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 		// We ignore upnp:class nodes, since they are handled by "WHERE" clause, not by lucene index.
 		map.put("upnp:class", null);
 		map.put("upnp:artist", "ARTIST");
+		map.put("dc:creator", "ARTIST");
 		map.put("upnp:artist[@role=\"AlbumArtist\"]", "ALBUMARTIST");
 		map.put("upnp:artist[@role=\"Composer\"]", "COMPOSER");
 		map.put("upnp:artist[@role=\"Conductor\"]", "CONDUCTOR");
