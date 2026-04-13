@@ -61,6 +61,7 @@ public abstract class DatabaseHelper {
 	protected static final String LOG_ERROR_WHILE_VAR_IN_FOR = "Database \"{}\" error while {} \"{}\" in \"{}\" for \"{}\": {}";
 
 	// Generic constant for the maximum string size: 255 chars
+	protected static final int SIZE_2048 = 1024;
 	protected static final int SIZE_1024 = 1024;
 	protected static final int SIZE_MAX = 255;
 	protected static final int SIZE_LANG = 3;
@@ -184,6 +185,7 @@ public abstract class DatabaseHelper {
 	 * Length, if any, should be specified in characters.
 	 * Mapped to java.lang.String.
 	 */
+	protected static final String VARBINARY = " VARBINARY";
 	protected static final String VARCHAR = " VARCHAR";
 	protected static final String VARCHAR_SIZE_MAX = VARCHAR + "(" + SIZE_MAX + ")";
 	protected static final String VARCHAR_SIZE_LANG = VARCHAR + "(" + SIZE_LANG + ")";
@@ -197,6 +199,7 @@ public abstract class DatabaseHelper {
 	protected static final String VARCHAR_255 = VARCHAR_SIZE_MAX;
 	protected static final String VARCHAR_1000 = VARCHAR + "(1000)";
 	protected static final String VARCHAR_1024 = VARCHAR + "(" + SIZE_1024 + ")";
+	protected static final String VARCHAR_2048 = VARCHAR + "(" + SIZE_2048 + ")";
 	protected static final String VARCHAR_20000 = VARCHAR + "(20000)";
 
 	protected static final String VARCHAR_IGNORECASE = " VARCHAR_IGNORECASE";
@@ -634,6 +637,9 @@ public abstract class DatabaseHelper {
 			try (Statement stmt = conn.createStatement()) {
 				LOGGER.trace("Execute Update with SQL \"{}\"", sql);
 				stmt.executeUpdate(sql);
+			} catch (Exception e) {
+				LOGGER.error("error during executing update with SQL \"" + sql + "\":" + e.getMessage(), e);
+				throw e;
 			}
 		}
 	}

@@ -122,6 +122,10 @@ public class MediaDatabase extends Database {
 				MediaTableContainerFiles.checkTable(connection);
 
 				MediaTableStoreIds.checkTable(connection);
+
+				// Fix broken indexes if needed. This is faster than checking each index separately and is
+				// not a problem if there are no broken indexes.
+				executeUpdate(connection, "CALL FTL_REINDEX();");
 			}
 			tablesChecked = true;
 		}
@@ -144,6 +148,13 @@ public class MediaDatabase extends Database {
 		dropAllTablesExceptFilesStatus(connection);
 		dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
+		try {
+			executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'FILES');");
+			executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'AUDIO_METADATA');");
+		} catch (SQLException e) {
+			LOGGER.warn("Error dropping index on files table: " + e.getMessage());
+			LOGGER.trace("", e);
+		}
 	}
 
 	public static synchronized void dropAllTablesExceptFilesStatus(Connection connection) {

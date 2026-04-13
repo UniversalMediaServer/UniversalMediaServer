@@ -28,30 +28,6 @@ import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import net.pms.dlna.DidlHelper;
-import net.pms.network.mediaserver.handlers.SearchRequestHandler;
-import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
-import net.pms.renderers.Renderer;
-import net.pms.store.DbIdMediaType;
-import net.pms.store.MediaScanner;
-import net.pms.store.MediaStatusStore;
-import net.pms.store.MediaStoreIds;
-import net.pms.store.PlaylistManager;
-import net.pms.store.StoreContainer;
-import net.pms.store.StoreItem;
-import net.pms.store.StoreResource;
-import net.pms.store.container.MediaLibrary;
-import net.pms.store.container.PlaylistFolder;
-import net.pms.store.utils.StoreResourceSorter;
-import net.pms.util.StringUtil;
-import net.pms.util.UMSUtils;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;
@@ -74,6 +50,32 @@ import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+import net.pms.dlna.DidlHelper;
+import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler;
+import net.pms.network.mediaserver.handlers.DbSearchRequestHandler;
+import net.pms.network.mediaserver.handlers.LuceneSearchRequestHandler;
+import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
+import net.pms.renderers.Renderer;
+import net.pms.store.MediaScanner;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.PlaylistManager;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.store.utils.StoreResourceSorter;
+import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 
 @UpnpService(
 		serviceId =
@@ -167,7 +169,7 @@ public class UmsContentDirectoryService {
 	public final static String EMPTY_FILE_CONTENT = "<UPLOAD RESOURCE>";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsContentDirectoryService.class);
-	private static final List<String> CAPS_SEARCH = List.of();
+	private static final List<String> CAPS_SEARCH = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final List<String> CAPS_SORT = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final String CRLF = "\r\n";
 
@@ -299,6 +301,7 @@ public class UmsContentDirectoryService {
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
+			LOGGER.error("Exception in browse action \"{}\"", ex.getMessage(), ex);
 			throw ex;
 		} catch (Exception ex) {
 			LOGGER.error("Exception in result creation \"{}\"", ex.getMessage(), ex);
@@ -330,27 +333,24 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 
-		SortCriterion[] sortCriteria;
-		try {
-			sortCriteria = SortCriterion.valueOf(orderBy);
-		} catch (Exception ex) {
-			LOGGER.debug("Trying to sort on a search action with '{}' !", orderBy);
-			throw new ContentDirectoryException(ContentDirectoryErrorCode.UNSUPPORTED_SORT_CRITERIA, ex.toString());
-		}
+		SearchRequest searchRequest = new SearchRequest();
+		searchRequest.setSearchCriteria(searchCriteria);
+		searchRequest.setContainerId(containerId);
+		searchRequest.setFilter(filter);
+		searchRequest.setStartingIndex(Math.toIntExact(startingIndex.getValue()));
+		searchRequest.setRequestedCount(Math.toIntExact(requestedCount.getValue()));
+		searchRequest.setSortCriteria(orderBy);
 
 		try {
 			return search(
-					containerId,
-					searchCriteria,
-					filter,
-					startingIndex.getValue(),
-					requestedCount.getValue(),
-					sortCriteria,
+					searchRequest,
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
+			LOGGER.error("Exception in search action \"{}\"", ex.getMessage(), ex);
 			throw ex;
 		} catch (Exception ex) {
+			LOGGER.error("Exception in search action \"{}\"", ex.getMessage(), ex);
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, ex.toString());
 		}
 	}
@@ -415,8 +415,9 @@ public class UmsContentDirectoryService {
 				throw new ContentDirectoryException(710, "The specified ContainerID is invalid or identifies an object that is not a container.");
 			}
 		} catch (Exception e) {
-			if (e instanceof ContentDirectoryException cde) {
-				throw cde;
+			if (e instanceof ContentDirectoryException ex) {
+				LOGGER.error("Exception in createObject action \"{}\"", ex.getMessage(), ex);
+				throw ex;
 			} else {
 				LOGGER.error("createObject failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
@@ -563,8 +564,9 @@ public class UmsContentDirectoryService {
 				throw new ContentDirectoryException(710, "the ContainerID argument is invalid or identifies an object that is not a container.");
 			}
 		} catch (Exception e) {
-			if (e instanceof ContentDirectoryException cde) {
-				throw cde;
+			if (e instanceof ContentDirectoryException ex) {
+				LOGGER.error("Exception in createReference action \"{}\"", ex.getMessage(), ex);
+				throw ex;
 			} else {
 				LOGGER.error("createReference failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
@@ -621,8 +623,9 @@ public class UmsContentDirectoryService {
 				}
 			}
 		} catch (Exception e) {
-			if (e instanceof ContentDirectoryException cde) {
-				throw cde;
+			if (e instanceof ContentDirectoryException ex) {
+				LOGGER.error("Exception in updateObject action \"{}\"", ex.getMessage(), ex);
+				throw ex;
 			} else {
 				LOGGER.error("updateObject failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
@@ -678,8 +681,9 @@ public class UmsContentDirectoryService {
 				throw new ContentDirectoryException(ErrorCode.OPTIONAL_ACTION);
 			}
 		} catch (Exception e) {
-			if (e instanceof ContentDirectoryException cde) {
-				throw cde;
+			if (e instanceof ContentDirectoryException ex) {
+				LOGGER.error("Exception in destroyObject action \"{}\"", ex.getMessage(), ex);
+				throw ex;
 			} else {
 				LOGGER.error("destroyObject failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
@@ -851,12 +855,7 @@ public class UmsContentDirectoryService {
 	}
 
 	private SearchResult search(
-			String containerId,
-			String searchCriteria,
-			String filter,
-			long startingIndex,
-			long requestedCount,
-			SortCriterion[] orderBy,
+			SearchRequest searchRequest,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
@@ -875,16 +874,27 @@ public class UmsContentDirectoryService {
 		}
 
 		try {
-			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
-			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType, containerId));
-			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType, containerId);
-			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
+			BaseSearchRequestHandler searchRequestHandler = null;
+			if (renderer.getUmsConfiguration().useLuceneSearch()) {
+				searchRequestHandler = new LuceneSearchRequestHandler(searchRequest);
+			} else {
+				searchRequestHandler = new DbSearchRequestHandler(searchRequest);
+			}
+
+			if (!searchRequestHandler.canHandle()) {
+				LOGGER.debug("Search criteria cannot be processed by {}. Fallback to DbSearchRequestHandler.", searchRequestHandler.getClass().getSimpleName());
+				searchRequestHandler = new DbSearchRequestHandler(searchRequest);
+			}
+
+			int totalMatches = searchRequestHandler.getSearchCountElements(searchRequest);
+			List<StoreResource> resultResources = searchRequestHandler.getLibraryResourceFromSQL(renderer);
+			LOGGER.debug("  - resultset Elements count : {}", resultResources.size());
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 			LOGGER.trace("Creating DIDL result");
 			String result;
 			if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
-				result = getJUPnPDidlResults(resultResources, filter);
+				result = getJUPnPDidlResults(resultResources, searchRequest.getFilter());
 			} else {
 				result = DidlHelper.getDidlResults(resultResources);
 			}
@@ -895,14 +905,16 @@ public class UmsContentDirectoryService {
 			LOGGER.trace("Returning search result");
 			return new SearchResult(result, resultResources.size(), totalMatches, containerUpdateID);
 		} catch (Exception e) {
-			LOGGER.trace("error transforming searchCriteria to SQL. Fallback to content browsing ...", e);
+			LOGGER.warn("error transforming searchCriteria to SQL. Fallback to content browsing ...", e);
+			SortCriterion[] criteria = new SortCriterion[] {
+				};
 			return searchToBrowse(
-					containerId,
-					searchCriteria,
-					filter,
-					startingIndex,
-					requestedCount,
-					orderBy,
+					searchRequest.getContainerId(),
+					searchRequest.getSearchCriteria(),
+					searchRequest.getFilter(),
+					searchRequest.getStartingIndex(),
+					searchRequest.getRequestedCount(),
+					criteria,
 					renderer
 			);
 		}
