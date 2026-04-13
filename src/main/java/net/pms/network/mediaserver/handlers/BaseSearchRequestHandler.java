@@ -323,6 +323,15 @@ public abstract class BaseSearchRequestHandler {
 										}
 									}
 								}
+								case TYPE_VIDEO, TYPE_IMAGE -> {
+									String realFileName = resultSet.getString("FILENAME");
+									if (realFileName != null) {
+										StoreResource res = DbIdResourceLocator.getLibraryResourceVideoImage(renderer, realFileName);
+										if (res != null) {
+											result.add(res);
+										}
+									}
+								}
 								case TYPE_FOLDER -> {
 									if (filenameField != null) {
 										StoreResource res = DbIdResourceLocator.getLibraryResourceFolder(renderer, filenameField);

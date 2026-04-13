@@ -178,16 +178,13 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' ";
 				return getFormattedLuceneString(luceneQuery, sql);
 			}
-			case TYPE_PLAYLIST -> {
+			case TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				String sql = "SELECT DISTINCT ON (FILENAME) FT.SCORE, FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s', %d, %d) FT " + "JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' ";
 				return getFormattedLuceneString(luceneQuery, sql);
 			}
 			case TYPE_FOLDER -> {
 				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
-			}
-			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			}
 			default -> throw new RuntimeException(
 				"not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
@@ -250,7 +247,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, false);
 				return getFormattedLuceneString(luceneQuery, sql);
 			}
-			case TYPE_PLAYLIST -> {
+			case TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				String sql = getTreeStatement(subtreeId) +
 					"SELECT DISTINCT ON (FILENAME) FT.SCORE, FILENAME, ONLYFILENAME, MODIFIED, F.ID as FID, F.ID as oid " +
 					"FROM FTL_SEARCH_DATA('%s', %d, %d) FT " + "JOIN FILES F ON F.ID = FT.KEYS[1] " +
@@ -260,10 +257,6 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 			case TYPE_FOLDER -> {
 				return getTreeStatement(subtreeId) + "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, " +
 					"parent.ID as parent_id from STORE_IDS parent" + getTreeWhereStatement("FILES", subtreeId, true);
-			}
-			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return getTreeStatement(subtreeId) + "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM files " +
-					getTreeWhereStatement("FILES", subtreeId, true);
 			}
 			default -> throw new RuntimeException(
 				"not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
@@ -312,13 +305,10 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 					"JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA' ";
 				return getFormattedLuceneString(luceneQuery, sql, true);
 			}
-			case TYPE_PLAYLIST -> {
+			case TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				String sql = "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] WHERE FT.\"TABLE\" = 'FILES' ";
 				return getFormattedLuceneString(luceneQuery, sql, true);
-			}
-			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return "select count(DISTINCT F.id) from FILES as F where ";
 			}
 			case TYPE_FOLDER -> {
 				return "select count(DISTINCT child.NAME) from STORE_IDS child, STORE_IDS parent where ";
@@ -375,15 +365,11 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, false);
 				return getFormattedLuceneString(luceneQuery, sql, true);
 			}
-			case TYPE_PLAYLIST -> {
+			case TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s', %d, %d) FT " +
 					"JOIN FILES F ON F.ID = FT.KEYS[1] JOIN tree ON F.FILENAME = tree.name " +
 					getTreeWhereStatement("FILES", subtreeId, false);
 				return getFormattedLuceneString(luceneQuery, sql, false);
-			}
-			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree " +
-					getTreeWhereStatement("FILES", subtreeId, true);
 			}
 			case TYPE_FOLDER -> {
 				return getTreeStatement(subtreeId) +

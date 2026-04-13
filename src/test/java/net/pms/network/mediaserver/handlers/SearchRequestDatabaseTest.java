@@ -25,12 +25,14 @@ import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableStoreIds;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaScanner;
+import net.pms.store.MediaStoreId;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 
@@ -129,6 +131,9 @@ public class SearchRequestDatabaseTest {
 				MediaTableFiles.insertOrUpdateData(connection, filePath.toAbsolutePath().toString(), System.currentTimeMillis(), Format.AUDIO, media);
 			}
 		}
+		RendererConfigurations.loadRendererConfigurations();
+		renderer = RendererConfigurations.getDefaultRenderer();
+
 		Path playlist = subDir1.resolve("Jazz.m3u8");
 		Files.createFile(playlist);
 		Files.writeString(playlist, "#EXTM3U\n\nTime.flac");
@@ -138,8 +143,6 @@ public class SearchRequestDatabaseTest {
 		SharedContentConfiguration.updateSharedContent(new SharedContentArray(), true);
 		SharedContentConfiguration.addFolderShared(testMusicFolder.toFile());
 		MediaScanner.backgroundScanFileOrFolder(testMusicFolder.toAbsolutePath().toString());
-		RendererConfigurations.loadRendererConfigurations();
-		renderer = RendererConfigurations.getDefaultRenderer();
 
 		root = (StoreContainer) renderer.getMediaStore().getResource("0");
 		musicDir = (StoreContainer) root.getChildren().stream()
@@ -159,10 +162,19 @@ public class SearchRequestDatabaseTest {
 			.filter(child -> "3".equals(child.getName()))
 			.findFirst()
 			.orElse(null);
+
+		Path video = subDir1.resolve("Spider-Man.mkv");
+		Files.createFile(video);
+		Files.writeString(video, "SPIDERMAN_MOVIE");
+		MediaTableFiles.insertOrUpdateData(database.getConnection(), video.toAbsolutePath().toString(), System.currentTimeMillis(), Format.VIDEO, null);
+		StoreResource sr = renderer.getMediaStore().createResourceFromFile(video.toFile());
+		dir1.addChild(sr);
+		MediaStoreId id = MediaTableStoreIds.getResourceMediaStoreId(database.getConnection(), sr);
+
 		dir1.discoverChildren();
 		dir2.discoverChildren();
 		dir3.discoverChildren();
-		}
+	}
 
 	@Test
 	public void testGlobalLinnTitleSearch() {
@@ -525,6 +537,39 @@ public class SearchRequestDatabaseTest {
 		assertEquals(1, resources.size());
 		StoreResource foundResource = resources.get(0);
 		assertEquals("Jazz.m3u8", foundResource.getName());
+	}
+
+
+	@Test
+	public void testGlobalVideoSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.videoItem\" and dc:title contains \"Spider\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+	}
+
+	@Test
+	public void testTreeVideoSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.videoItem\" and dc:title contains \"Spider\"");
+		sr.setContainerId(dir1.getId());
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+
+		sr.setSearchCriteria("upnp:class = \"object.item.videoItem\" and dc:title contains \"Spider\"");
+		sr.setContainerId(dir2.getId());
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(0, results);
 	}
 
 	public MediaInfo createMediaInfo() {
