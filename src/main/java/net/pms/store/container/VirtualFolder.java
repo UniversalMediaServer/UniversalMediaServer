@@ -188,7 +188,7 @@ public class VirtualFolder extends StoreContainer {
 		});
 
 		if (listFiles == null) {
-			LOGGER.warn("Can't read files from directory: {}", directory.getAbsolutePath());
+			LOGGER.debug("I/O error listing files in directory: {}", directory.getAbsolutePath());
 		} else {
 			out.addAll(Arrays.asList(listFiles));
 		}
@@ -205,7 +205,7 @@ public class VirtualFolder extends StoreContainer {
 		}
 		File[] listFiles = directory.listFiles();
 		if (listFiles == null) {
-			LOGGER.warn("Can't read files from directory: {}", directory.getAbsolutePath());
+			LOGGER.debug("I/O error listing files in directory: {}", directory.getAbsolutePath());
 			return;
 		}
 		for (File file : listFiles) {
