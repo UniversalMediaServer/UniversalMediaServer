@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### General
+
+- Added Discogs integration for audio metadata and UPnP
+- Added new options for DNS resolution handling (thanks, @henry701 Henrique Campos!)
+- Improved detection of sample videos
+- Improved stability of speed test (thanks, @henry701 Henrique Campos!)
+- Fixed support for servers with no Internet access (#6047) (thanks, @henry701 Henrique Campos!)
+- Fixed wrong Linux yt-dlp binary being packaged (#6011) (thanks, @Pro-pra!)
+- Fixed API lookups happening for TV series when episode lookup fails, even if the series metadata is already in the local database (#6080)
+- Fixed JDK being used in Docker image instead of JRE (#6089) (thanks, @mvanhorn Matt Van Horn!)
+- Fixed editing a video feed on the web settings erases the URL (#6046) (thanks, @serinekjo kjo!)
+
 ### Dependencies
 - Bump `@mantine/core` from 8.3.15 to 8.3.18 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075), [#6083](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6083))
 - Bump `@mantine/dropzone` from 8.3.15 to 8.3.18 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075), [#6083](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6083))
@@ -38,6 +50,7 @@
 - Bump `tar` from 7.5.9 to 7.5.11 ([#6055](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6055), [#6067](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6067))
 - Bump `typescript-eslint` from 8.56.0 to 8.57.1 ([#6076](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6076), [#6086](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6086))
 - Bump `vite` from 7.3.1 to 7.3.2 ([#6105](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6105))
+- Bump `yt-dlp` from 2026.02.04 to 2026.03.17
 
 ## [15.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.4.0...15.5.0) (2026-02-28)
 
