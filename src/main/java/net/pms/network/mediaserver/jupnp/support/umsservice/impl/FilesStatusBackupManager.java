@@ -20,22 +20,30 @@ import net.pms.database.MediaDatabase;
 public class FilesStatusBackupManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FilesStatusBackupManager.class.getName());
-	private static ObjectMapper om = new ObjectMapper();
-	private static MediaDatabase mdb = new MediaDatabase();
+
+	private ObjectMapper om = new ObjectMapper();
+
+	private static MediaDatabase mdb = MediaDatabase.get();
 
 	private final static String STATUS_READ = "SELECT * FROM FILES_STATUS";
 	private final static String STATUS_READ_EXISTING = "SELECT ID FROM FILES_STATUS where FILENAME = ? and USERID = ?";
 	private final static String STATUS_MERGE = "MERGE INTO FILES_STATUS (BOOKMARK, FILENAME, ISFULLYPLAYED, LASTPLAYBACKPOSITION, PLAYCOUNT, USERID, ID) VALUES (?,?,?,?,?,?,?)";
 	private final static String STATUS_INSERT = "INSERT INTO FILES_STATUS (BOOKMARK, FILENAME, ISFULLYPLAYED, LASTPLAYBACKPOSITION, PLAYCOUNT, USERID) VALUES (?,?,?,?,?,?)";
 
-	public FilesStatusBackupManager() {
+	private static FilesStatusBackupManager instance = new FilesStatusBackupManager();
+
+	private FilesStatusBackupManager() {
 		om.enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
 		om.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		om.enable(JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES.mappedFeature());
 	}
 
-	public static void backup() {
+	public static FilesStatusBackupManager getInstance() {
+		return instance;
+	}
+
+	public void backup() {
 		List<FilesStatusDto> backList = new ArrayList<>();
 		int items = 0;
 		try (Connection c = mdb.getConnection(); PreparedStatement selectStatement = c.prepareStatement(STATUS_READ)) {
@@ -65,7 +73,7 @@ public class FilesStatusBackupManager {
 		LOGGER.info("save {} items into backup file {} ", items, getBackupFilename());
 	}
 
-	private static Integer findExisting(String filename, Integer userid) {
+	private Integer findExisting(String filename, Integer userid) {
 		try (Connection c = mdb.getConnection(); PreparedStatement selectStatement = c.prepareStatement(STATUS_READ_EXISTING)) {
 			selectStatement.setString(1, filename);
 			selectStatement.setInt(2, userid);
@@ -81,11 +89,10 @@ public class FilesStatusBackupManager {
 		return null;
 	}
 
-	public static void restore() {
+	public void restore() {
 		int updated = 0;
-		try {
+		try (Connection c = mdb.getConnection()) {
 			List<FilesStatusDto> dtoList = om.readValue(new File(getBackupFilename()), new TypeReference<List<FilesStatusDto>>() { });
-			Connection c = MediaDatabase.getConnectionIfAvailable();
 			for (FilesStatusDto dto : dtoList) {
 				Integer id = findExisting(dto.filename, dto.userid);
 				if (id != null) {
@@ -125,7 +132,7 @@ public class FilesStatusBackupManager {
 		LOGGER.info("imported {} files status lines", updated);
 	}
 
-	private static String getBackupFilename() {
+	private String getBackupFilename() {
 		String dir = FilenameUtils.concat(UmsConfiguration.getProfileDirectory(), "database_backup");
 		File mydir = new File(dir);
 		if (!mydir.exists()) {
