@@ -20,23 +20,18 @@ import net.pms.database.MediaDatabase;
 public class RatingBackupManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RatingBackupManager.class.getName());
-
 	private final static String RATINGS_READ = "SELECT FILES.RUID, AUDIO_METADATA.RATING FROM FILES LEFT JOIN AUDIO_METADATA ON FILES.ID = AUDIO_METADATA.FILEID WHERE RATING is not null and RUID is not null";
 	private final static String RATINGS_WRITE = "UPDATE AUDIO_METADATA a SET a.RATING = ? WHERE a.FILEID in (SELECT ID from FILES WHERE RUID = ?)";
 
-	private static RatingBackupManager instance = new RatingBackupManager();
+	public RatingBackupManager() {
 
-	private RatingBackupManager() {
 	}
 
-	public static RatingBackupManager getInstance() {
-		return instance;
-	}
-
-	public void backupRatings() {
+	public static void backupRatings() {
 		Properties p = new Properties();
+		Connection c = MediaDatabase.getConnectionIfAvailable();
 		int items = 0;
-		try (Connection c = MediaDatabase.getConnectionIfAvailable(); PreparedStatement selectStatement = c.prepareStatement(RATINGS_READ)) {
+		try (PreparedStatement selectStatement = c.prepareStatement(RATINGS_READ)) {
 			try (ResultSet rs = selectStatement.executeQuery()) {
 				while (rs.next()) {
 					p.put(rs.getString("ruid"), rs.getString("rating"));
@@ -56,7 +51,7 @@ public class RatingBackupManager {
 		LOGGER.info("save {} items into backup file {} ", items, getBackupFilename());
 	}
 
-	public void restoreRating() {
+	public static void restoreRating() {
 		String backupFilename = getBackupFilename();
 		File f = new File(backupFilename);
 		if (!f.exists()) {
@@ -69,8 +64,10 @@ public class RatingBackupManager {
 			int updated = 0;
 			int skipped = 0;
 
+			Connection c = MediaDatabase.getConnectionIfAvailable();
+
 			for (Object oruid : p.keySet()) {
-				try (Connection c = MediaDatabase.getConnectionIfAvailable(); PreparedStatement updateStatement = c.prepareStatement(RATINGS_WRITE)) {
+				try (PreparedStatement updateStatement = c.prepareStatement(RATINGS_WRITE)) {
 					String ruid = (String) oruid;
 					String rating = (String) p.get(oruid);
 					updateStatement.setInt(1, Integer.parseInt(rating));
@@ -94,7 +91,7 @@ public class RatingBackupManager {
 		}
 	}
 
-	private String getBackupFilename() {
+	private static String getBackupFilename() {
 		String dir = FilenameUtils.concat(UmsConfiguration.getProfileDirectory(), "database_backup");
 		File mydir = new File(dir);
 		if (!mydir.exists()) {

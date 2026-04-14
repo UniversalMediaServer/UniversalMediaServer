@@ -1487,7 +1487,7 @@ public class ImagesUtil {
 		try {
 			return getConstantIntArrayValue(bitDepthArray);
 		} catch (InvalidStateException e) {
-			// Allow the last value to be different in it's the alpha
+			// Allow the last value to be different if it's the alpha
 			if (bitDepthArray.length > 1) {
 				int[] tmpArray = new int[bitDepthArray.length - 1];
 				System.arraycopy(bitDepthArray, 0, tmpArray, 0, bitDepthArray.length - 1);
@@ -1517,7 +1517,7 @@ public class ImagesUtil {
 		try {
 			return getConstantByteArrayValue(bitDepthArray);
 		} catch (InvalidStateException e) {
-			// Allow the last value to be different in it's the alpha
+			// Allow the last value to be different if it's the alpha
 			if (bitDepthArray.length > 1) {
 				byte[] tmpArray = new byte[bitDepthArray.length - 1];
 				System.arraycopy(bitDepthArray, 0, tmpArray, 0, bitDepthArray.length - 1);

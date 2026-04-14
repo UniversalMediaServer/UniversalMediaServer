@@ -156,7 +156,6 @@ public class TranscodingSettings {
 			LOGGER.warn("Invalid resource (null): no engine found");
 			return null;
 		}
-		LOGGER.trace("Getting engine for resource \"{}\"", item.getName());
 		boolean isImage = item.getMediaInfo() != null && item.getMediaInfo().isImage();
 		List<EncodingFormat> encodingFormats = item.getDefaultRenderer().getTranscodingFormats();
 		List<Engine> engines = EngineFactory.getEngines();

@@ -25,9 +25,11 @@ public enum DbIdMediaType {
 
 	//@formatter:off
 	TYPE_AUDIO("FID$", "object.item.audioItem"),
+	TYPE_AUDIOADDICT("AUDIOADDICT$", "object.container.storageFolder"),
 	TYPE_FOLDER("FOLDER$", "object.container.storageFolder"),
 	TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"),
 	TYPE_MUSICBRAINZ_RECORDID("MUSICBRAINZALBUM$", "object.container.album.musicAlbum"),
+	TYPE_DISCOGS_RELEASEID("DISCOGSRELEASE$", "object.container.album.musicAlbum"),
 	TYPE_MYMUSIC_ALBUM("MYMUSIC$", "object.container.storageFolder"),
 	TYPE_PERSON("PERSON$", "object.container.person.musicArtist"),
 	TYPE_PERSON_COMPOSER("PERSON_COMPOSER$", "object.container.person.musicArtist"),

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibraryFolder;
-import net.pms.store.container.MusicBrainzAlbumFolder;
+import net.pms.store.container.MusicAlbumFolder;
 import net.pms.store.container.MusicBrainzPersonFolder;
 import net.pms.store.container.VirtualFolderDbId;
 import org.apache.commons.lang3.StringUtils;
@@ -104,15 +104,15 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
-	public static MusicBrainzAlbumFolder getLibraryResourceMusicBrainzFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
-		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicBrainzAlbumFolder.class);
+	public static MusicAlbumFolder getLibraryResourceMusicBrainzFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicAlbumFolder.class);
 		for (Long id : ids) {
 			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
 			if (resource != null) {
-				return (MusicBrainzAlbumFolder) resource;
+				return (MusicAlbumFolder) resource;
 			}
 		}
-		LOGGER.debug("MusicBrainz album '{}' not found in database.", typeIdent.toString());
+		LOGGER.debug("MusicAlbumFolder '{}' not found in MediaStore database.", typeIdent.toString());
 		return null;
 	}
 
@@ -151,6 +151,9 @@ public class DbIdResourceLocator {
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		LOGGER.debug("getLibraryResourceByDbTypeIdent : {}", typeIdent.toString());
 		switch (typeIdent.type) {
+			case TYPE_AUDIOADDICT -> {
+				return renderer.getMediaStore().getMediaLibrary().getAudioAddictPlatformFolder();
+			}
 			case TYPE_MUSICBRAINZ_RECORDID -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
 					return null;

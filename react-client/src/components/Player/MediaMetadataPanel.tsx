@@ -132,12 +132,13 @@ export default function MediaMetadataPanel({ i18n, player, media, metadata, chil
     if (mediaString) {
       return (
         <Group mt="sm" style={{ color: 'var(--mantine-color-bright)' }}>
-          <Text fw={700}>
-            {i18n.get(title)}
-            :
-            {' '}
+          <Text>
+            <span style={{ fontWeight: 'var(--mantine-h1-font-weight)' }}>
+              {i18n.get(title)}
+              :
+            </span>
+            {' ' + mediaString}
           </Text>
-          <Text>{mediaString}</Text>
         </Group>
       )
     }
@@ -240,7 +241,9 @@ export default function MediaMetadataPanel({ i18n, player, media, metadata, chil
             :
             {' '}
           </Text>
-          <Tooltip label={rating}><Rating value={rating / 2} fractions={4} readOnly /></Tooltip>
+          <Tooltip label={rating}>
+            <Rating value={rating} fractions={4} count={10} readOnly />
+          </Tooltip>
         </Group>
       )
     }

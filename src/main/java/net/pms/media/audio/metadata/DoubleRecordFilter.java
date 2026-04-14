@@ -23,15 +23,15 @@ import java.util.Set;
 
 public class DoubleRecordFilter {
 
-	private final Map<MusicBrainzAlbum, HashSet<String>> mbidGenres = new HashMap<>();
-	private final Set<MusicBrainzAlbum> albumObjects = new HashSet<>();
+	private final Map<AlbumMetadata, HashSet<String>> mbidGenres = new HashMap<>();
+	private final Set<AlbumMetadata> albumObjects = new HashSet<>();
 
-	public void addAlbum(MusicBrainzAlbum album) {
+	public void addAlbum(AlbumMetadata album) {
 		extractGenres(album);
 		albumObjects.add(album);
 	}
 
-	private void extractGenres(MusicBrainzAlbum album) {
+	private void extractGenres(AlbumMetadata album) {
 		HashSet<String> genres = getGenres(album);
 		if (album.getGenre() != null) {
 			String[] splitGenre = album.getGenre().split("/");
@@ -42,7 +42,7 @@ public class DoubleRecordFilter {
 		}
 	}
 
-	private void updatGenre(HashSet<String> genres, MusicBrainzAlbum album) {
+	private void updatGenre(HashSet<String> genres, AlbumMetadata album) {
 		StringBuilder sb = new StringBuilder();
 		int i = 0;
 		for (String genre : genres) {
@@ -55,14 +55,14 @@ public class DoubleRecordFilter {
 		album.setGenre(sb.toString());
 	}
 
-	private HashSet<String> getGenres(MusicBrainzAlbum album) {
+	private HashSet<String> getGenres(AlbumMetadata album) {
 		if (mbidGenres.get(album) == null) {
 			mbidGenres.put(album, new HashSet<>());
 		}
 		return mbidGenres.get(album);
 	}
 
-	public Set<MusicBrainzAlbum> getUniqueAlbumSet() {
+	public Set<AlbumMetadata> getUniqueAlbumSet() {
 		return albumObjects;
 	}
 }

@@ -39,6 +39,7 @@ import net.pms.network.webguiserver.WebSocketDispatcher;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.FileWatcher;
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,7 +232,6 @@ public class SharedContentConfiguration {
 	 * That is:
 	 * On macOS:
 	 *    - /user/Movies
-	 *    - TODO: exclude /user/Movies/CacheClip
 	 *    - /user/Music
 	 *    - /user/Pictures
 	 *  On Windows:
@@ -342,4 +342,12 @@ public class SharedContentConfiguration {
 		}
 	}
 
+	public static synchronized boolean isFolderShared(String folderPath) {
+		for (File folder : getSharedFolders()) {
+			if (Strings.CI.equals(folderPath, folder.getAbsolutePath())) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

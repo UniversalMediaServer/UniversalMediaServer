@@ -216,7 +216,7 @@ public abstract class Format implements Cloneable {
 
 	/**
 	 * Returns whether or not this format matches the supplied filename.
-	 * Returns false if the filename is a URI, otherwise matches
+	 * Returns false if the filename is an URI, otherwise matches
 	 * against the file extensions returned by {@link #getSupportedExtensions()}.
 	 *
 	 * @param filename the filename to match

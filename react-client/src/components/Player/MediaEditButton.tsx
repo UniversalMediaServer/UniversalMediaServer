@@ -14,71 +14,20 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Button, Menu } from '@mantine/core'
-import { IconEdit, IconRecordMail, IconRecordMailOff } from '@tabler/icons-react'
-import axios, { AxiosError } from 'axios'
+import { ActionIcon } from '@mantine/core'
+import { IconPencilSearch } from '@tabler/icons-react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { PlayerInterface } from '../../services/player-service'
-import { playerApiUrl } from '../../utils'
-import VideoMetadataEditButton from './VideoMetadataEditButton'
-import { showError } from '../../utils/notifications'
 
-export default function MediaEditButton({ i18n, player, fullyplayed, videoMetadataEditable, refreshPage, setLoading, setShowVideoMetadataEdit }: { i18n: I18nInterface, player: PlayerInterface, fullyplayed?: boolean, videoMetadataEditable?: boolean, refreshPage: () => void, setLoading: (loading: boolean) => void, setShowVideoMetadataEdit: (loading: boolean) => void }) {
-  const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
-    setLoading(true)
-    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: player.uuid, id, fullyPlayed }, { headers: { Player: player.uuid } })
-      .then(function () {
-        refreshPage()
-      })
-      .catch(function (error: AxiosError) {
-        if (!error.response && error.request) {
-          i18n.showServerUnreachable()
-        }
-        else {
-          showError({
-            id: 'player-fully-played',
-            title: i18n.get('Error'),
-            message: 'Your request was not handled by the server.',
-          })
-        }
-      })
-      .then(function () {
-        setLoading(false)
-      })
-  }
-
+export default function MediaEditButton({ i18n, setShowVideoMetadataEdit }: { i18n: I18nInterface, setShowVideoMetadataEdit: (loading: boolean) => void }) {
   return (
-    <Menu shadow="md" width={200}>
-      <Menu.Target>
-        <Button variant="default" size="compact-md"><IconEdit size={14} /></Button>
-      </Menu.Target>
-      <Menu.Dropdown>
-        {fullyplayed === false
-          && (
-            <Menu.Item
-              color="blue"
-              leftSection={<IconRecordMail />}
-              onClick={() => setFullyPlayed(player.reqId, true)}
-            >
-              {i18n.get('MarkContentsFullyPlayed')}
-            </Menu.Item>
-          )}
-        {fullyplayed === true
-          && (
-            <Menu.Item
-              color="green"
-              leftSection={<IconRecordMailOff />}
-              onClick={() => setFullyPlayed(player.reqId, false)}
-            >
-              {i18n.get('MarkContentsUnplayed')}
-            </Menu.Item>
-          )}
-        {videoMetadataEditable
-          && (
-            <VideoMetadataEditButton i18n={i18n} setShowVideoMetadataEdit={setShowVideoMetadataEdit} />
-          )}
-      </Menu.Dropdown>
-    </Menu>
+    <ActionIcon
+      className="media-edit-button"
+      variant="default"
+      aria-label={i18n.get('Edit')}
+      onClick={() => setShowVideoMetadataEdit(true)}
+    >
+      <IconPencilSearch size="14" />
+    </ActionIcon>
   )
 }

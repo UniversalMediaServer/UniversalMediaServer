@@ -134,6 +134,15 @@ public class SubtitleColor extends FormattableColor {
 
 	/**
 	 * @return A formatted hexadecimal {@link String} with the current value
+	 *         from this {@link SubtitleColor} instance suitable as a ASS v4+
+	 *         styles parameter.
+	 */
+	public String getASSv4PlusStylesHexValueForFFmpeg() {
+		return getHexValue("H", "AABBGGRR", null, true, true);
+	}
+
+	/**
+	 * @return A formatted hexadecimal {@link String} with the current value
 	 *         from this {@link SubtitleColor} instance suitable as a SSA/ASS
 	 *         parameter.
 	 */

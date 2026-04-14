@@ -134,7 +134,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 
 			if (!renderer.isAllowed()) {
 				if (LOGGER.isTraceEnabled()) {
-					logHttpServletRequest(req, "", getRendererName(req, renderer));
+					logHttpServletRequest(req, "", getRendererNameForLogging(req, renderer));
 					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
 				}
 				//Unauthorized
@@ -147,7 +147,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			}
 
 			if (LOGGER.isTraceEnabled()) {
-				logHttpServletRequest(req, null, getRendererName(req, renderer));
+				logHttpServletRequest(req, null, getRendererNameForLogging(req, renderer));
 			}
 
 			String method = req.getMethod().toUpperCase();
@@ -181,9 +181,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			}
 		} catch (IOException e) {
 			String message = e.getMessage();
-			if (message != null) {
+			if (message != null && LOGGER.isTraceEnabled()) {
 				if (message.equals("Connection reset by peer")) {
-					LOGGER.trace("Http request from {}: {}", getRendererName(req, renderer), message);
+					LOGGER.trace("Http request from {}: {}", getRendererNameForLogging(req, renderer), message);
 				}
 			} else {
 				LOGGER.error("Http request error:", e);
@@ -199,7 +199,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			resp.setContentLength(0);
 			resp.setStatus(204);
 			if (LOGGER.isTraceEnabled()) {
-				logHttpServletResponse(req, resp, null, false, getRendererName(req, renderer));
+				logHttpServletResponse(req, resp, null, false, getRendererNameForLogging(req, renderer));
 			}
 			return;
 		}
@@ -217,7 +217,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			}
 		}
 		if (LOGGER.isTraceEnabled()) {
-			logHttpServletResponse(req, resp, message, false, getRendererName(req, renderer));
+			logHttpServletResponse(req, resp, message, false, getRendererNameForLogging(req, renderer));
 		}
 	}
 
@@ -234,7 +234,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			resp.setContentLength(0);
 			resp.setStatus(204);
 			if (LOGGER.isTraceEnabled()) {
-				logHttpServletResponse(req, resp, null, false, getRendererName(req, renderer));
+				logHttpServletResponse(req, resp, null, false, getRendererNameForLogging(req, renderer));
 			}
 			async.complete();
 			return;
@@ -264,7 +264,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		// Send the response headers to the client.
 		resp.setStatus(code);
 		if (LOGGER.isTraceEnabled()) {
-			logHttpServletResponse(req, resp, null, true, getRendererName(req, renderer));
+			logHttpServletResponse(req, resp, null, true, getRendererNameForLogging(req, renderer));
 		}
 		// send only if no HEAD method is being used.
 		if (writeStream && !HEAD.equalsIgnoreCase(req.getMethod())) {
@@ -324,7 +324,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					if (inputStream != null) {
 						if (filename.endsWith(".ts")) {
 							resp.setContentType(HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
-							startStopListener = new StartStopListener(req.getRemoteHost(), item);
+							startStopListener = new StartStopListener(req.getRemoteAddr(), item);
 							LOGGER.trace("Sending inputstream for " + filename);
 							sendResponse(req, resp, renderer, 200, inputStream, StoreResource.TRANS_SIZE, true, startStopListener);
 						} else if (filename.endsWith(".vtt")) {
@@ -532,7 +532,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					}
 				} else {
 					if (!isVideoThumbnailRequest && GET.equals(req.getMethod().toUpperCase())) {
-						startStopListener = new StartStopListener(req.getRemoteHost(), item);
+						startStopListener = new StartStopListener(req.getRemoteAddr(), item);
 					}
 
 					// Try to determine the content type of the file
@@ -854,7 +854,10 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		return SDF.format(new Date(10000000000L + System.currentTimeMillis()));
 	}
 
-	private static String getRendererName(HttpServletRequest req, Renderer renderer) {
+	/**
+	 * Builds the renderer name for logging purposes only.
+	 */
+	private static String getRendererNameForLogging(HttpServletRequest req, Renderer renderer) {
 		String rendererName;
 		if (renderer != null) {
 			if (StringUtils.isNotBlank(renderer.getRendererName())) {
@@ -873,7 +876,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		}
 		if (req != null) {
 			rendererName +=
-					" (" + req.getRemoteHost() +
+					" (" + req.getRemoteAddr() +
 					":" + req.getRemotePort() + ")";
 		}
 		return rendererName;

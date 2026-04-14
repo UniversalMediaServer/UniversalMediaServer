@@ -167,7 +167,7 @@ public class PMS {
 	 */
 	private static Boolean headless = null;
 	/**
-	 * The instanciated {@link AutoUpdater}.
+	 * The instantiated {@link AutoUpdater}.
 	 */
 	private static AutoUpdater autoUpdater;
 
@@ -786,7 +786,7 @@ public class PMS {
 	}
 
 	/**
-	 * @return The instanciated {@link DbgPacker}.
+	 * @return The instantiated {@link DbgPacker}.
 	 */
 	public DbgPacker debugPacker() {
 		return dbgPacker;

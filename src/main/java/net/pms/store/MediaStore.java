@@ -69,6 +69,7 @@ import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.IOList;
 import net.pms.util.FileUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -458,8 +459,8 @@ public class MediaStore extends StoreContainer {
 			}
 			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					// this is direct acceded resource.
-					// as we don't know what was it's parent, let find one or fail.
+					// this is a directly accessed resource.
+					// as we don't know what its parent was, let's find one or fail.
 					DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
 					return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
 				} catch (Exception e) {
@@ -588,6 +589,9 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
+		if (file == null) {
+			return new ArrayList<>();
+		}
 		List<StoreResource> systemFileResources = new ArrayList<>();
 		synchronized (weakResources) {
 			for (WeakReference<StoreResource> resource : weakResources.values()) {
@@ -726,6 +730,20 @@ public class MediaStore extends StoreContainer {
 		}
 	}
 
+	/**
+	 * File can have different structure after an update. Therefore, read file metadata again.
+	 * @param file
+	 */
+	public void fileUpdated(File file) {
+		for (StoreResource storeResource : findSystemFileResources(file)) {
+			if (storeResource instanceof RealFile rf) {
+				rf.setMediaInfo(null);
+				rf.resolve();
+			}
+		}
+	}
+
+
 	private StoreResource findResourceFromFile(List<StoreResource> resources, File file) {
 		if (file == null || file.isHidden() || !file.canRead() || !(file.isFile() || file.isDirectory())) {
 			return null;
@@ -780,6 +798,11 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public StoreResource createResourceFromFile(File file, boolean allowHidden) {
+		String fileExt = FilenameUtils.getExtension(file.getName());
+		if (renderer.getUmsConfiguration().getIgnoredFileExtensions().contains(fileExt.toLowerCase())) {
+			return null;
+		}
+
 		if (file == null) {
 			LOGGER.trace("createResourceFromFile return null as file is null.");
 			return null;
@@ -884,6 +907,7 @@ public class MediaStore extends StoreContainer {
 
 		String album = null;
 		String mbReleaseId = null;
+		Long discogsReleaseId = null;
 		int numberOfAudioFiles = 0;
 		int numberOfOtherFiles = 0;
 
@@ -894,28 +918,40 @@ public class MediaStore extends StoreContainer {
 					LOGGER.warn("Audio resource has no AudioMetadata : {}", res.getDisplayName());
 					continue;
 				}
+				audioExists = true;
 				MediaAudioMetadata metadata = res.getMediaInfo().getAudioMetadata();
 				numberOfAudioFiles++;
 				if (album == null) {
-					audioExists = true;
+					// First audio file, set the album and ids to match
 					album = metadata.getAlbum() != null ? metadata.getAlbum() : "";
 					mbReleaseId = metadata.getMbidRecord();
-					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
+					discogsReleaseId = metadata.getDiscogsReleaseId();
+					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId) && discogsReleaseId == null) {
+						LOGGER.trace("First audio file has no album, mbReleaseId and discogsReleaseId, skipping audio track sorting");
 						return false;
+					} else {
+						LOGGER.trace("First audio file has album: {}, mbReleaseId: {}, discogsReleaseId: {}", album, mbReleaseId, discogsReleaseId);
 					}
 				} else {
-					if (mbReleaseId != null && !StringUtils.isAllBlank(mbReleaseId)) {
-						// First check musicbrainz ReleaseID
-						if (!mbReleaseId.equals(metadata.getMbidRecord())) {
-							return false;
-						}
-					} else if (!album.equals(metadata.getAlbum())) {
+					if (mbReleaseId != null && !mbReleaseId.equals(metadata.getMbidRecord())) {
+						LOGGER.trace("Audio file {} has different mbReleaseId {}, skipping audio track sorting", res.getDisplayName(), metadata.getMbidRecord());
+						return false;
+					}
+					if (discogsReleaseId != null && !discogsReleaseId.equals(metadata.getDiscogsReleaseId())) {
+						LOGGER.trace("Audio file {} has different discogsReleaseId {}, skipping audio track sorting", res.getDisplayName(), metadata.getDiscogsReleaseId());
+						return false;
+					}
+					if (!StringUtils.isAllBlank(album) && !album.equals(metadata.getAlbum())) {
+						LOGGER.trace("Audio file {} has different album {}, skipping audio track sorting", res.getDisplayName(), metadata.getAlbum());
 						return false;
 					}
 				}
 			} else {
 				numberOfOtherFiles++;
 			}
+		}
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("shouldDoAudioTrackSorting : audioExists={}, numberOfAudioFiles={}, numberOfOtherFiles={} -> {}", audioExists, numberOfAudioFiles, numberOfOtherFiles, audioExists && (numberOfAudioFiles > numberOfOtherFiles));
 		}
 		return audioExists && (numberOfAudioFiles > numberOfOtherFiles);
 	}
@@ -957,5 +993,4 @@ public class MediaStore extends StoreContainer {
 			Thread.sleep(100);
 		}
 	}
-
 }

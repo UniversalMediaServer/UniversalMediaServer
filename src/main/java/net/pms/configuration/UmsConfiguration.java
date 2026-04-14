@@ -113,6 +113,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
+	private static final String ENV_HOSTNAME = "HOSTNAME";
+	private static final String ENV_COMPUTERNAME = "COMPUTERNAME";
 	private static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
 	private static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 	private static final String PORTABLE_PATH = "portable";
@@ -226,6 +228,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
+	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
+	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
@@ -267,6 +272,11 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	private static final String KEY_DISABLE_TRANSCODING = "disable_transcoding";
+	private static final String KEY_DNS_RESOLUTION_TIMEOUT_ENABLED = "dns_resolution_timeout_enabled";
+	private static final String KEY_DNS_RESOLUTION_TIMEOUT_MS = "dns_resolution_timeout_ms";
+	private static final String KEY_HTTP_CONNECT_TIMEOUT_SECONDS = "http_connect_timeout_seconds";
+	private static final String KEY_HTTP_RESPONSE_TIMEOUT_SECONDS = "http_response_timeout_seconds";
+	private static final String KEY_HTTP_TIMEOUT_ENABLED = "http_timeout_enabled";
 	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	private static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
 	private static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
@@ -303,6 +313,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
+	private static final String KEY_FILE_EXTENSIONS_IGNORED = "file_extensions_ignored";
 	private static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	private static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
@@ -1003,8 +1014,41 @@ public class UmsConfiguration extends BaseConfiguration {
 		return programPaths instanceof ConfigurableProgramPaths;
 	}
 
+	public String getAudioAddictUser() {
+		return getString(KEY_AUDIO_ADDICT_USER, null);
+	}
+
+	public void setAudioAddictUser(String userName) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_USER, userName);
+	}
+
+	public String getAudioAddictPassword() {
+		return getString(KEY_AUDIO_ADDICT_PASS, null);
+	}
+
+	public void setAudioAddictPassword(String password) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_PASS, password);
+	}
+
+	public boolean isAudioAddictEuropeanServer() {
+		return getBoolean(KEY_AUDIO_ADDICT_EUROPE, true);
+	}
+
+	public void setAudioAddictEuropeanServer(boolean europeServer) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_EUROPE, europeServer);
+	}
+
 	public boolean isAudioUpdateTag() {
 		return getBoolean(KEY_AUDIO_UPDATE_RATING_TAG, false);
+	}
+
+	public boolean setAudioUpdateTag(boolean newAudioUpdateTag) {
+		if (newAudioUpdateTag == isAudioUpdateTag()) {
+			return false;
+		} else {
+			configuration.setProperty(KEY_AUDIO_UPDATE_RATING_TAG, newAudioUpdateTag);
+			return true;
+		}
 	}
 
 	/**
@@ -3715,6 +3759,33 @@ public class UmsConfiguration extends BaseConfiguration {
 		}
 	}
 
+	List<String> ignoredFileExtensions = new ArrayList<>();
+
+	/**
+	 * Whether file_extensions_ignored has been read.
+	 */
+	private boolean ignoredFileExtensionsRead = false;
+
+	public List<String> getIgnoredFileExtensions() {
+		if (!ignoredFileExtensionsRead) {
+			ignoredFileExtensionsRead = true;
+
+			String ignoredFileExtensionsString = configuration.getString(KEY_FILE_EXTENSIONS_IGNORED, "");
+
+			if (ignoredFileExtensionsString == null || ignoredFileExtensionsString.length() == 0) {
+				return ignoredFileExtensions;
+			}
+
+			String[] fileExtensionsArray = ignoredFileExtensionsString.trim().split("\\s*,\\s*");
+
+			for (String fileExtension : fileExtensionsArray) {
+				ignoredFileExtensions.add(fileExtension.toLowerCase());
+			}
+		}
+
+		return ignoredFileExtensions;
+	}
+
 	private ArrayList<String> ignoredFolderNames;
 
 	/**
@@ -4126,6 +4197,76 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * Whether DNS and reverse-DNS resolution use timeouts to avoid hangs when the network or DNS is slow (issue 6047).
+	 * When false (default), resolution can block until the system resolver completes (slow but unchanged behavior).
+	 * When true, resolution is bounded by caller-specified timeouts; timeouts and failures are logged.
+	 */
+	public boolean isDnsResolutionTimeoutEnabled() {
+		return getBoolean(KEY_DNS_RESOLUTION_TIMEOUT_ENABLED, false);
+	}
+
+	/**
+	 * Enable or disable DNS resolution timeouts.
+	 *
+	 * @param value True to use timeouts (avoids hangs); false for legacy blocking behavior.
+	 */
+	public void setDnsResolutionTimeoutEnabled(boolean value) {
+		configuration.setProperty(KEY_DNS_RESOLUTION_TIMEOUT_ENABLED, value);
+	}
+
+	/**
+	 * DNS and reverse-DNS resolution timeout in milliseconds. Used only when {@link #isDnsResolutionTimeoutEnabled()} is true.
+	 * Default 5000.
+	 */
+	public int getDnsResolutionTimeoutMs() {
+		return getInt(KEY_DNS_RESOLUTION_TIMEOUT_MS, 5000);
+	}
+
+	public void setDnsResolutionTimeoutMs(int value) {
+		configuration.setProperty(KEY_DNS_RESOLUTION_TIMEOUT_MS, value);
+	}
+
+	/**
+	 * Whether HTTP client requests use connect and response timeouts to avoid hangs.
+	 * When false (default), no timeouts are applied (legacy behavior).
+	 * When true, connect timeout 5s and response timeout 15s are used for outgoing HTTP calls.
+	 */
+	public boolean isHttpTimeoutEnabled() {
+		return getBoolean(KEY_HTTP_TIMEOUT_ENABLED, false);
+	}
+
+	/**
+	 * Enable or disable HTTP connect/response timeouts.
+	 *
+	 * @param value True to use timeouts; false for legacy blocking behavior.
+	 */
+	public void setHttpTimeoutEnabled(boolean value) {
+		configuration.setProperty(KEY_HTTP_TIMEOUT_ENABLED, value);
+	}
+
+	/**
+	 * HTTP connect timeout in seconds. Used only when {@link #isHttpTimeoutEnabled()} is true. Default 5.
+	 */
+	public int getHttpConnectTimeoutSeconds() {
+		return getInt(KEY_HTTP_CONNECT_TIMEOUT_SECONDS, 5);
+	}
+
+	public void setHttpConnectTimeoutSeconds(int value) {
+		configuration.setProperty(KEY_HTTP_CONNECT_TIMEOUT_SECONDS, value);
+	}
+
+	/**
+	 * HTTP response timeout in seconds. Used only when {@link #isHttpTimeoutEnabled()} is true. Default 15.
+	 */
+	public int getHttpResponseTimeoutSeconds() {
+		return getInt(KEY_HTTP_RESPONSE_TIMEOUT_SECONDS, 15);
+	}
+
+	public void setHttpResponseTimeoutSeconds(int value) {
+		configuration.setProperty(KEY_HTTP_RESPONSE_TIMEOUT_SECONDS, value);
+	}
+
+	/**
 	 * Whether renderers are blocked by default.
 	 * This also determines whether the current renderers filter is an allowlist
 	 * or a denylist.
@@ -4500,7 +4641,7 @@ public class UmsConfiguration extends BaseConfiguration {
 			try {
 				hostName = InetAddress.getLocalHost().getHostName();
 			} catch (UnknownHostException e) {
-				LOGGER.info("Can't determine hostname");
+				LOGGER.error("Can't determine hostname", e);
 				hostName = "unknown host";
 			}
 		}
@@ -4528,7 +4669,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean isAutoUpdate() {
-		return Build.isUpdatable() && getBoolean(KEY_AUTO_UPDATE, true);
+		return Build.isUpdatable() && getBoolean(KEY_AUTO_UPDATE, true) && getExternalNetwork();
 	}
 
 	public void setAutoUpdate(boolean value) {
@@ -4787,6 +4928,15 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public boolean displayAudioLikesInRootFolder() {
 		return getBoolean(KEY_NEXTCP_AUDIO_LIKES_IN_ROOT_FOLDER, false);
+	}
+
+	public boolean setDisplayAudioLikesInRootFolder(boolean newDisplayAudioLikesInRootFolder) {
+		if (newDisplayAudioLikesInRootFolder == displayAudioLikesInRootFolder()) {
+			return false;
+		} else {
+			configuration.setProperty(KEY_NEXTCP_AUDIO_LIKES_IN_ROOT_FOLDER, newDisplayAudioLikesInRootFolder);
+			return true;
+		}
 	}
 
 	public boolean getLoggingBuffered() {
@@ -5352,11 +5502,29 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_UPNP_CDS_WRITE, false);
 	}
 
+	public boolean setUpnpCdsWrite(boolean newUpnpCdsWrite) {
+		if (newUpnpCdsWrite == isUpnpCdsWrite()) {
+			return false;
+		} else {
+			configuration.setProperty(KEY_UPNP_CDS_WRITE, newUpnpCdsWrite);
+			return true;
+		}
+	}
+
 	/**
 	 * This allow anonymous remote devices to add/replace files and folders.
 	 */
 	public boolean isAnonymousDevicesWrite() {
 		return getBoolean(KEY_ANONYMOUS_DEVICES_WRITE, false);
+	}
+
+	public boolean setAnonymousDevicesWrite(boolean newAnonymousDevicesWrite) {
+		if (newAnonymousDevicesWrite == isAnonymousDevicesWrite()) {
+			return false;
+		} else {
+			configuration.setProperty(KEY_ANONYMOUS_DEVICES_WRITE, newAnonymousDevicesWrite);
+			return true;
+		}
 	}
 
 	public String getRootLogLevel() {
@@ -5714,6 +5882,11 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, "");
 		jObj.addProperty(KEY_GPU_ACCELERATION, false);
 		jObj.addProperty(KEY_EXTERNAL_NETWORK, true);
+		jObj.addProperty(KEY_DNS_RESOLUTION_TIMEOUT_ENABLED, false);
+		jObj.addProperty(KEY_DNS_RESOLUTION_TIMEOUT_MS, 5000);
+		jObj.addProperty(KEY_HTTP_TIMEOUT_ENABLED, false);
+		jObj.addProperty(KEY_HTTP_CONNECT_TIMEOUT_SECONDS, 5);
+		jObj.addProperty(KEY_HTTP_RESPONSE_TIMEOUT_SECONDS, 15);
 		jObj.addProperty(KEY_FFMPEG_FONTCONFIG, false);
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "none");
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, 1);

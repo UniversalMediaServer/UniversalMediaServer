@@ -112,7 +112,7 @@ public class FileUtilTest {
 				}
 				String expectedOutput = o.get("prettified").getAsString();
 				String fileNamePrettified = FileUtil.getFileNamePrettified(original, absolutePath);
-				assertEquals(fileNamePrettified, expectedOutput, o.get("comment").getAsString());
+				assertEquals(expectedOutput, fileNamePrettified, o.get("comment").getAsString());
 			}
 		} catch (JsonIOException | JsonSyntaxException | FileNotFoundException ex) {
 			throw (new AssertionError(ex));
@@ -322,7 +322,7 @@ public class FileUtilTest {
 					}
 					if (isNotBlank(range)) {
 						try {
-							assertEquals(tvEpisodeNumber, range.substring(1));
+							assertEquals(range.substring(1), tvEpisodeNumber);
 						} catch (AssertionError err) {
 							if (todo) {
 								logger.warn("testGetFileNameMetadata/episodes would fail for TODO test " + original);
@@ -374,6 +374,12 @@ public class FileUtilTest {
 				logger.debug("Doing sport " + original);
 				if (movieOrShowName != null) {
 					throw (new AssertionError("Sport videos should not match: " + metadata));
+				}
+			} else if ("scene".equals(metadata.get("type").getAsString())) {
+				// We do not do anything with scenes of videos at the moment, so here we make sure it does NOT match
+				logger.debug("Doing a scene from a video " + original);
+				if (movieOrShowName != null) {
+					throw (new AssertionError("Scenes from videos should not match: " + metadata));
 				}
 			} else {
 				logger.error("Unknown content type in " + original);

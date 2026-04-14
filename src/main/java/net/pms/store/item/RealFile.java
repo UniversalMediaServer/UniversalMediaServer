@@ -343,11 +343,12 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	 * @param inputFile
 	 */
 	protected void checkCoverThumb() {
-		if (getMediaInfo() != null && getMediaInfo().isAudio() && getMediaInfo().hasAudioMetadata()) {
-			String mbReleaseId = getMediaInfo().getAudioMetadata().getMbidRecord();
-			if (!StringUtils.isAllBlank(mbReleaseId)) {
+		if (getMediaInfo() != null && getMediaInfo().isAudio() && getMediaInfo().hasAudioMetadata() &&
+			getMediaInfo().getAudioMetadata() != null) {
+			String albumId = getMediaInfo().getAudioMetadata().getAlbumId();
+			if (StringUtils.isNotBlank(albumId)) {
 				try {
-					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {
+					if (!MediaTableCoverArtArchive.hasCover(albumId)) {
 						AudioFile af;
 						if ("mp2".equalsIgnoreCase(FileUtil.getExtension(getFile()))) {
 							af = AudioFileIO.readAs(getFile(), "mp3");
@@ -358,7 +359,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 						LOGGER.trace("no artwork in MediaTableCoverArtArchive table");
 						if (t.getFirstArtwork() != null) {
 							byte[] artBytes = t.getFirstArtwork().getBinaryData();
-							MediaTableCoverArtArchive.writeMBID(mbReleaseId, new ByteArrayInputStream(artBytes));
+							MediaTableCoverArtArchive.writeMBID(albumId, new ByteArrayInputStream(artBytes));
 							LOGGER.trace("added cover to MediaTableCoverArtArchive");
 						} else {
 							LOGGER.trace("no artwork in TAG");

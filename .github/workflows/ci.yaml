@@ -22,14 +22,14 @@ jobs:
       webfiles: ${{ steps.filter.outputs.webfiles }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
           fetch-depth: 2
       - name: Get previous commit SHA
         id: prev_commit
         run: echo "PREV_COMMIT_SHA=$(git rev-parse HEAD~1)" >> $GITHUB_ENV
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           base: ${{ env.PREV_COMMIT_SHA }}
@@ -59,14 +59,14 @@ jobs:
     name: macOS web browser tests
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
       - name: Enable corepack
@@ -84,11 +84,11 @@ jobs:
       - name: Run Playwright tests
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: my-artifact
-          path: react-client/screenshot.png
+          path: react-client/**.png
 
   macos-intel:
     needs: changes
@@ -101,9 +101,9 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS Intel Java tests
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -112,7 +112,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -133,9 +133,9 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS ARM Java tests
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -144,7 +144,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -167,7 +167,7 @@ jobs:
     name: Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -176,7 +176,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -199,7 +199,7 @@ jobs:
     name: Linux 22.04
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -208,7 +208,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -220,8 +220,8 @@ jobs:
           sudo apt-get -y install libmms0
           wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.04/libmediainfo0v5_25.04-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libmediainfo0v5_25.04-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_25.10-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-noble:
@@ -237,7 +237,7 @@ jobs:
     name: Linux 24.04
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -246,7 +246,7 @@ jobs:
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             react-client/.yarn
@@ -256,8 +256,8 @@ jobs:
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.04/libmediainfo0v5_25.04-1_amd64.Ubuntu_24.04.deb
-          sudo dpkg -i libmediainfo0v5_25.04-1_amd64.Ubuntu_24.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
+          sudo dpkg -i libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
           mvn verify -P testing -DdisableXmlReport=true
         
   lint:
@@ -273,7 +273,7 @@ jobs:
     name: Lint server files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -293,13 +293,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: dangoslen/dependabot-changelog-helper@v4
         with:
           activationLabels: 'dependencies'
           sort: 'alpha'
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Update Changelog"

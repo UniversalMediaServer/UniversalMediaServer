@@ -1,18 +1,18 @@
 # Universal Media Server
 ![Universal Media Server CI](https://github.com/UniversalMediaServer/UniversalMediaServer/workflows/CI/badge.svg) [![Crowdin](https://badges.crowdin.net/universalmediaserver/localized.svg)](https://crowdin.com/project/universalmediaserver)
 
-[<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA, UPnP and HTTP/S Media Server.
+[<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] 
+Universal Media Server is a DLNA, UPnP and HTTP/S Media Server.
 It is capable of sharing video, audio and images between most modern devices.
 It was originally based on PS3 Media Server by shagrath, in order to ensure greater stability and file-compatibility.
 
 Universal Media Server supports all major operating systems, with versions for Windows, Linux and macOS.
 The program streams or transcodes many different media formats with little or no configuration.
-It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], tsMuxeR, AviSynth, VLC and more, which combine to offer support for a wide range of media formats.
+It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], tsMuxeR, AviSynth, VLC, and more, which combine to offer support for a wide range of media formats.
 
 ## Current Project Members
 
 * [ik666][32]
-* [js-kyle][31]
 * [mik_s][7]
 * [SubJunk][3]
 * [SurfaceS][33]
@@ -44,6 +44,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], t
 * ExSport
 * happy.neko
 * [infidel][6]
+* [js-kyle][31]
 * [Nadahar][15]
 * Raptor399
 * Redlum
@@ -75,12 +76,34 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], t
 * [squadjot][21]
 * [Tianuchka][20]
 
-##### Special Thanks: 
+##### Special Thanks:
 
 * boblinds and snoots for the network test cases :)
 * sarraken, bleuecinephile, bd.azerty, fabounnet for the support and feedback
 * ...And you!
 
+---
+
+## 🧩 Contributing
+
+We welcome contributions from everyone!  
+If you'd like to get started:
+
+1. Fork the repository and clone your fork locally.  
+2. Create a feature branch for your change (`git checkout -b feature-name`).  
+3. Make your changes and test them.  
+4. Push to your fork and open a Pull Request on GitHub.
+
+See our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup and coding guidelines.
+
+---
+
+## 📜 License
+
+Universal Media Server is released under the **GNU General Public License (GPL)**.  
+For more information, see the [LICENSE](LICENSE) file included in this repository.
+
+---
 
   [1]: https://www.universalmediaserver.com
   [2]: https://www.universalmediaserver.com/comparison/

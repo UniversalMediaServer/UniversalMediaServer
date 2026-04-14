@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Button, Group, Modal, ScrollArea } from '@mantine/core'
+import { Button, Group, Modal, ScrollArea, Tooltip } from '@mantine/core'
 import { IconDeviceSpeaker, IconFileInfo, IconMovie } from '@tabler/icons-react'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
@@ -116,15 +116,17 @@ export default function MediaInfoModal({
           {i18n.get('Close')}
         </Button>
       </Modal>
-      <Button
-        variant="default"
-        size="compact-md"
-        onClick={() => {
-          setOpened(true)
-        }}
-      >
-        <IconFileInfo size={14} />
-      </Button>
+      <Tooltip withinPortal label={i18n.get('MediaInfo')}>
+        <Button
+          variant="default"
+          size="compact-md"
+          onClick={() => {
+            setOpened(true)
+          }}
+        >
+          <IconFileInfo size={14} />
+        </Button>
+      </Tooltip>
     </>
   )
 }

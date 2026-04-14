@@ -1,8 +1,10 @@
-FROM alpine
+FROM ubuntu:22.04
 
 LABEL org.opencontainers.image.title="Universal Media Server"
 
-RUN apk add --no-cache coreutils ffmpeg mediainfo openjdk17-jre iputils mplayer ttf-dejavu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get install coreutils ffmpeg mediainfo openjdk-17-jre-headless iputils-ping mplayer fonts-dejavu -y
 
 WORKDIR /profile
 
