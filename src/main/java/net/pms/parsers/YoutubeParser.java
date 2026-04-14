@@ -27,7 +27,9 @@ public class YoutubeParser {
 	public static void parseUrl(MediaInfo mediaInfo, String url) {
 		JsonNode youTubeMetadata = getYouTubeMetadata(url);
 		if (youTubeMetadata != null) {
-			LOGGER.trace("YouTube metadata found for URL: {} \n{}", url, youTubeMetadata.toPrettyString());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("YouTube metadata found for URL: {} \n{}", url, youTubeMetadata.toPrettyString());
+			}
 			parseFormats(youTubeMetadata, mediaInfo, url);
 		} else {
 			LOGGER.trace("No YouTube metadata found for URL: {}", url);
