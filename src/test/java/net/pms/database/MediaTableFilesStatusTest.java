@@ -20,6 +20,7 @@ import java.sql.Connection;
 import net.pms.PMS;
 import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.FilesStatusBackupManager;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,4 +94,41 @@ public class MediaTableFilesStatusTest {
 			assertFalse(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", 0));
 		}
 	}
+
+	@Test
+	public void testBackupOfIsFullyPlayed() throws Exception {
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
+		try (Connection connection = database.getConnection()) {
+			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenPlayed", 0, true);
+			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", 0, false);
+			assertNull(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatDoesntExist", 0));
+			assertTrue(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed", 0));
+			assertNull(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed", 1));
+			assertFalse(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", 0));
+		}
+
+		// backup states
+		FilesStatusBackupManager.getInstance().backup();
+
+		// drop all tables and recreate them, which will cause the isFullyPlayed data to be lost
+		try (Connection connection = database.getConnection()) {
+			MediaDatabase.dropAllTables(connection);
+		}
+		MediaDatabase.get().checkTables(true);
+
+		// restore states from backup, which should restore the isFullyPlayed data
+		FilesStatusBackupManager.getInstance().restore();
+
+		// check fullyPlayedStatuses
+		try (Connection connection = database.getConnection()) {
+			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenPlayed", 0, true);
+			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", 0, false);
+			assertNull(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatDoesntExist", 0));
+			assertTrue(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed", 0));
+			assertNull(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed", 1));
+			assertFalse(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", 0));
+		}
+	}
+
 }
