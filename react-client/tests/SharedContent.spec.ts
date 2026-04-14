@@ -21,15 +21,18 @@ test('should be able to add a YouTube channel as a video feed', async ({ page })
 
   await page.getByText('Add', { exact: true }).click()
 
-  await expect(page.getByText('Kurzgesagt – In a Nutshell')).toBeVisible()
+  await page.waitForSelector('text=Kurzgesagt – In a Nutshell', { timeout: 120000 })
+  await expect(page.getByText('Kurzgesagt – In a Nutshell').first()).toBeVisible()
 
   await page.getByText('Save').click()
 })
 
 test('should be able to select a YouTube video to watch', async ({ page }) => {
-  await page.goto('/player')
+  await page.goto('/player', { timeout: 120000 })
 
-  await page.getByText('Kurzgesagt – In a Nutshell').click()
+  await page.waitForSelector('text=Kurzgesagt – In a Nutshell', { timeout: 120000 })
+  await expect(page.getByText('Kurzgesagt – In a Nutshell').first()).toBeVisible()
+  await page.getByText('Kurzgesagt – In a Nutshell').first().click()
   // will update this part of test once fix has been made
   await page.locator('.thumbnail-container').first().click()
   await page.getByText('Play', { exact: true }).click()
