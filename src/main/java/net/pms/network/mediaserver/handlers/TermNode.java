@@ -30,7 +30,11 @@ class TermNode extends Node {
 	 */
 	@Override
 	public String toLucene() {
-		value = LUCENE_PATTERN.matcher(value).replaceAll("\\\\$1");
+		if (value.startsWith("\"") && value.endsWith("\"")) {
+			value = "\"" + LUCENE_PATTERN.matcher(value.substring(1, value.length() - 1)).replaceAll("\\\\$1") + "\"";
+		} else {
+			value = LUCENE_PATTERN.matcher(value).replaceAll("\\\\$1");
+		}
 		value = value.replace("'", "''");
 		switch (operator.toLowerCase()) {
 			case "contains":
