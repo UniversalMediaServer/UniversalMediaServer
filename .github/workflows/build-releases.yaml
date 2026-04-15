@@ -1,12 +1,14 @@
 name: Build releases
 
-on:
-  push:
-    tags:
-      - '*'
+# this chunk is for testing, should be reverted before merge
+on: [push, pull_request]
+# on:
+#   push:
+#     tags:
+#       - '*'
 
 jobs:
-  deploy:
+  appimage:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -36,3 +38,58 @@ jobs:
         with:
           name: AppImage
           path: 'dist'
+  macos-arm:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: 17
+      - name: Build package
+        run: mvn -P macos-arm package
+      - name: Write tag to Gon configs
+        uses: richardrigutins/replace-in-files@v3.0.0
+        with:
+          files: './dependencies/gon-config-*.json'
+          search-text: 'VERSION_TAG'
+          replacement-text: $GITHUB_REF_NAME
+      - name: Write username to Gon configs
+        uses: richardrigutins/replace-in-files@v3.0.0
+        with:
+          files: './dependencies/gon-config-*.json'
+          search-text: 'APPLE_USERNAME'
+          replacement-text: ${{secrets.APPLE_USERNAME}}
+      - name: Write password to Gon configs
+        uses: richardrigutins/replace-in-files@v3.0.0
+        with:
+          files: './dependencies/gon-config-*.json'
+          search-text: 'APPLE_PASSWORD'
+          replacement-text: ${{secrets.APPLE_PASSWORD}}
+      - name: Write provider to Gon configs
+        uses: richardrigutins/replace-in-files@v3.0.0
+        with:
+          files: './dependencies/gon-config-*.json'
+          search-text: 'APPLE_PROVIDER'
+          replacement-text: ${{secrets.APPLE_PROVIDER}}
+      - name: Write application identity to Gon configs
+        uses: richardrigutins/replace-in-files@v3.0.0
+        with:
+          files: './dependencies/gon-config-*.json'
+          search-text: 'APPLICATION_IDENTITY'
+          replacement-text: ${{secrets.APPLICATION_IDENTITY}}
+      - name: Run pre-build signing step
+        run: ./dependencies/gon ./gon-config-prebuild.json
+      - name: Run post-build signing step
+        run: ./dependencies/gon ./gon-config-build-arm.json
+      - name: Build AppImage
+        run: |
+          mkdir dist
+          mv ./.github/workflows/dependencies/UMS-macOS-$GITHUB_REF_NAME-arm.dmg dist/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: AppImage
+          path: 'dist'
+

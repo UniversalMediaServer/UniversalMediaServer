@@ -1,0 +1,20 @@
+{
+    "source" : [
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app"
+    ],
+    "bundle_id" : "com.universalmediaserver.ums",
+    "apple_id": {
+        "username" : "APPLE_USERNAME",
+        "password":  "APPLE_PASSWORD",
+        "provider": "APPLE_PROVIDER"
+    },
+    "sign" :{
+        "entitlements_file": "./entitlements.xml",
+        "application_identity" : "APPLICATION_IDENTITY",
+        "deep": true
+    },
+    "dmg" :{
+        "output_path": "UMS-macOS-VERSION_TAG-arm.dmg",
+        "volume_name": "Universal Media Server"
+    }
+}
