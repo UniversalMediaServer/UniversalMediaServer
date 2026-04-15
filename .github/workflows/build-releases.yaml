@@ -16,7 +16,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: ${{ vars.JAVA_VERSION }}
       - name: Install MediaInfo
         run: |
           sudo apt-get -y install libmms0
@@ -46,13 +46,19 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: ${{ vars.JAVA_VERSION }}
           java-package: jre
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: ${{ vars.JAVA_VERSION }}
+      - name: Write specific Java version to Maven pom config
+        uses: richardrigutins/replace-in-files@v3.0.0
+        with:
+          files: '../../pom.xml'
+          search-text: 'JAVA_VERSION'
+          replacement-text: ${{vars.JAVA_VERSION}}
       - name: Build package
         run: mvn -P macos-arm-ci package -DskipTests=true
       - name: Write tag to Gon configs
