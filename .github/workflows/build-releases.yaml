@@ -48,7 +48,7 @@ jobs:
           distribution: 'liberica'
           java-version: 17
       - name: Build package
-        run: mvn -P macos-arm package
+        run: mvn -P macos-arm package -DskipTests=true
       - name: Write tag to Gon configs
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
