@@ -47,6 +47,12 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: 17
+      - name: Set up JRE
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          java-package: jre
       - name: Build package
         run: mvn -P macos-arm package -DskipTests=true -Dci=true
       - name: Write tag to Gon configs
