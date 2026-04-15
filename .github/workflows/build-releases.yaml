@@ -53,12 +53,13 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: ${{ vars.JAVA_VERSION }}
+      - run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
           files: '../../pom.xml'
-          search-text: 'JAVA_VERSION'
-          replacement-text: ${{vars.JAVA_VERSION}}
+          search-text: 'JAVA_PATH_VERSION'
+          replacement-text: ${{vars.JAVA_PATH_VERSION}}
       - name: Build package
         run: mvn -P macos-arm-ci package -DskipTests=true
       - name: Write tag to Gon configs
