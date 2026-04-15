@@ -37,6 +37,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `flatted` from 3.3.3 to 3.4.2 ([#6088](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6088))
+- Bump `follow-redirects` from 1.15.11 to 1.16.0 ([#6118](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6118))
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 9.0.2 to 9.1.0 ([#6095](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6095))
 - Bump `lodash` from 4.17.23 to 4.18.1 ([#6106](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6106))
 - Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.4.0 to 3.5.0 ([#6058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6058))
