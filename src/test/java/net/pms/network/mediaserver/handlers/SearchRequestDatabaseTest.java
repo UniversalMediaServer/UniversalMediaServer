@@ -36,6 +36,17 @@ import net.pms.store.MediaStoreId;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 
+/**
+ * How Lucene searched work:
+ * 
+ * A Lucene Proximity Search is a search method that allows you to find terms located within a specific distance of each other in
+ * the text. It is more flexible than an exact phrase search, as it allows for additional words between the search terms or even a 
+ * different word order.
+ * 
+ * A proximity search is initiated by putting " around the words you want to search for. 
+ * Those " have to be escaped as "" in the UPnP search criteria. So instead of searching for dc:title contains "Dark moon" the search 
+ * criteria for a proximity search would be dc:title contains """Dark Moon""".
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SearchRequestDatabaseTest {
 
@@ -223,6 +234,26 @@ public class SearchRequestDatabaseTest {
 		searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		results = searchRequestHandler.getSearchCountElements(sr);
 		assertEquals(results, 0);
+	}
+
+	/**
+	 * This test checks a Lucene proximity search.
+	 */
+	@Test
+	public void testGlobalProximitySearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("( upnp:class derivedfrom \"object.container.album\" and dc:title contains \"\"\"Dark moon\"\"\")");
+		sr.setContainerId("0");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		int results = searchRequestHandler.getSearchCountElements(sr);
+		assertEquals(1, results);
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		StoreResource foundResource = resources.get(0);
+		assertEquals("The Dark Side of the Moon", foundResource.getName());
 	}
 
 	@Test

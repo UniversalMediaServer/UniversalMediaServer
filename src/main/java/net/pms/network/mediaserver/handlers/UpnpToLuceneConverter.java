@@ -18,8 +18,8 @@ public class UpnpToLuceneConverter {
 
 	public UpnpToLuceneConverter(String input, Map<String, String> mapping) {
 		this.fieldMap = mapping;
-		// Tokenizer: "strings", OPS (!=, <=, etc.), parentheses, and words
-		String regex = "\"[^\"]*\"|[!=<>]{1,2}|\\(|\\)|[a-zA-Z0-9_:@\\.\\-\\[\\]\\\"\\=]+|\\S+";
+		// Tokenizer: quoted strings with UPnP escaped quotes (""), OPS (!=, <=, etc.), parentheses, and words
+		String regex = "\"(?:[^\"]|\"\")*\"|[!=<>]{1,2}|\\(|\\)|[a-zA-Z0-9_:@\\.\\-\\[\\]\\\"\\=]+|\\S+";
 
 		Matcher m = Pattern.compile(regex).matcher(input);
 		while (m.find()) {
@@ -87,7 +87,11 @@ public class UpnpToLuceneConverter {
 		if (pos + 2 < tokens.size()) {
 			String rawField = tokens.get(pos++);
 			String op = tokens.get(pos++);
-			String val = tokens.get(pos++).replace("\"", "");
+			String rawVal = tokens.get(pos++);
+			String val = rawVal;
+			if (rawVal.length() >= 2 && rawVal.startsWith("\"") && rawVal.endsWith("\"")) {
+				val = rawVal.substring(1, rawVal.length() - 1).replace("\"\"", "\"");
+			}
 
 			// Mapping-Logik
 			if (fieldMap.containsKey(rawField)) {

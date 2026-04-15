@@ -25,15 +25,47 @@ import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.store.DbIdMediaType;
 
 /**
- * <pre>
- * This class generates a SearchRequestResponse message. It parses the supplied SearchCriteria string and converts it to H2DB sql grammar.
+ * This implementation of SearchRequestHandler uses the FTL search capabilities of the underlying H2 database to execute the search.
  *
- * Attention: This is rather a quick (hack) implementation for a general search use-case. Not all properties, op's and val's are being
- * processed or interpreted by the tokenizer.
+ * The search criteria is parsed into an AST and then converted into a Lucene query string, which is then passed to the FTL_SEARCH_DATA
+ * function in the SQL query.
  *
- * Lookout: A more robust but here now not implemented solution could use an EBNF parser like COCO/R or COCO/S using the grammar supplied
- * by the document <b>ContentDirectory:1 Service Template Version 1.01 Section 2.5.5.1</b>.
- * </pre>
+ * Lucene searched is implemented as follows:
+ *
+ * For a <code>contains</code> search like <code>dc:title contains "dark moon"</code> and configuration key
+ *
+ * <code>search_lucene_contains_fuzzy</code> is set to :
+ *   - <code>TRUE  :</code> A fuzzy search is being done by converting it to dark~2 moon~2 (default OR syntax by default)
+ *   - <code>FALSE :</code> A wildcard search is being done by converting it to dark* moon* (default OR syntax by default)
+ *
+ * For a <code>contains</code> search like <code>dc:title contains """dark moon"""</code> and configuration key
+ * <code>search_lucene_contains_fuzzy</code> is set to :
+ *   - <code>TRUE  :</code> A proximity search is being done by converting it to "dark moon"~2
+ *   - <code>FALSE :</code> A wildcard search is being done by converting it to "dark moon"*
+ *
+ * For a <code>=</code> search like <code>dc:title = "dark moon"</code> and configuration key
+ *   - <code>TRUE  :</code> A fuzzy search is being done by converting it to dark~2 moon~2 (default OR syntax by default)
+ *   - <code>FALSE :</code> A exact search is being done by converting it to dark moon (default OR syntax by default)
+ *
+ * Proximity Search
+ * ===================================================
+ *
+ * A Lucene Proximity Search is a search method that allows you to find terms located within a specific distance of each other in
+ * the text. It is more flexible than an exact phrase search, as it allows for additional words between the search terms or even a
+ * different word order.
+ *
+ * A proximity search is initiated by putting " around the words you want to search for.
+ * Those " have to be escaped as "" in the UPnP search criteria. So instead of searching for dc:title contains "Dark moon" the search
+ * criteria for a proximity search would be dc:title contains """Dark Moon""".
+ *
+ *
+ * Fuzzy Search
+ * ===================================================
+ *
+ * A Lucene Fuzzy Search is a search method that allows you to find terms that are similar to the search terms, even if they are not an
+ * exact match. It is useful for finding results that may have spelling variations or typos.
+ *
+ * The above logic is implemented in the TermNode class.
  */
 public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 
