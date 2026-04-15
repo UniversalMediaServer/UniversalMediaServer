@@ -40,11 +40,11 @@ import net.pms.store.StoreResource;
  * How Lucene searched work:
  * 
  * A Lucene Proximity Search is a search method that allows you to find terms located within a specific distance of each other in
- * the text. It is more flexible than an exact phrase search, as it allows for additional words between the search terms or even a 
+ * the text. It is more flexible than an exact phrase search, as it allows for additional words between the search terms or even a
  * different word order.
  * 
- * A proximity search is initiated by putting " around the words you want to search for. 
- * Those " have to be escaped as "" in the UPnP search criteria. So instead of searching for dc:title contains "Dark moon" the search 
+ * A proximity search is initiated by putting " around the words you want to search for.
+ * Those " have to be escaped as "" in the UPnP search criteria. So instead of searching for dc:title contains "Dark moon" the search
  * criteria for a proximity search would be dc:title contains """Dark Moon""".
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
