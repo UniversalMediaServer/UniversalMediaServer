@@ -54,7 +54,7 @@ jobs:
           java-version: 17
           java-package: jre
       - name: Build package
-        run: mvn -P macos-arm package -DskipTests=true -Dci=true
+        run: mvn -P macos-arm-ci package -DskipTests=true
       - name: Write tag to Gon configs
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
