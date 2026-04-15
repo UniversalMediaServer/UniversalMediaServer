@@ -1,14 +1,14 @@
 {
     "source" : [
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/dcraw",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/ffmpeg",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/flac",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/mencoder",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/mplayer",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/tsMuxeR",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/youtube-dl",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/MacOS/UMS",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Java/ums-VERSION_TAG-jar-with-dependencies.jar"
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/dcraw",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/ffmpeg",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/flac",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/mencoder",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/mplayer",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/tsMuxeR",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/youtube-dl",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/MacOS/UMS",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Java/ums-VERSION_TAG-jar-with-dependencies.jar"
     ],
     "bundle_id" : "com.universalmediaserver.ums",
     "apple_id": {
