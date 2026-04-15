@@ -8,7 +8,6 @@
         "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/tsMuxeR",
         "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/youtube-dl",
         "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/MacOS/UMS",
-        "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/liberica-jre-17.jre/Contents/MacOS/libjli.dylib",
         "../../../target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Java/ums-VERSION_TAG-jar-with-dependencies.jar"
     ],
     "bundle_id" : "com.universalmediaserver.ums",
