@@ -16,7 +16,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: ${{ vars.JAVA_VERSION }}
+          java-version: 17
       - name: Install MediaInfo
         run: |
           sudo apt-get -y install libmms0
@@ -46,20 +46,22 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: ${{ vars.JAVA_VERSION }}
+          java-version: 17
           java-package: jre
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: ${{ vars.JAVA_VERSION }}
-      - run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls
+          java-version: 17
+      - name: Save JRE version in path format
+        id: paths
+        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath='$(ls)'" >> "$GITHUB_OUTPUT"
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
-          files: '../../pom.xml'
+          files: '**/pom.xml'
           search-text: 'JAVA_PATH_VERSION'
-          replacement-text: ${{vars.JAVA_PATH_VERSION}}
+          replacement-text: ${{ steps.paths.outputs.jrePath }}
       - name: Build package
         run: mvn -P macos-arm-ci package -DskipTests=true
       - name: Write tag to Gon configs
