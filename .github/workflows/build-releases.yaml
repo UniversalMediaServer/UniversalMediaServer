@@ -97,9 +97,9 @@ jobs:
           search-text: 'APPLICATION_IDENTITY'
           replacement-text: ${{secrets.APPLICATION_IDENTITY}}
       - name: Run pre-build signing step
-        run: ./.github/workflows/dependencies/gon ./gon-config-prebuild.json
+        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
       - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./gon-config-build-arm.json
+        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json
       - name: Build AppImage
         run: |
           mkdir dist
