@@ -55,7 +55,7 @@ jobs:
           java-version: 17
       - name: Save JRE version in path format
         id: paths
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath='$(ls)'" >> "$GITHUB_OUTPUT"
+        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
