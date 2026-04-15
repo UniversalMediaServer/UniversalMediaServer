@@ -96,6 +96,11 @@ jobs:
           files: './.github/workflows/dependencies/gon-config-*.json'
           search-text: 'APPLICATION_IDENTITY'
           replacement-text: ${{secrets.APPLICATION_IDENTITY}}
+      - name: Import codesign cert
+        uses: apple-actions/import-codesign-certs@v3
+        with: 
+          p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
+          p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
       - name: Run pre-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
       - name: Run post-build signing step
