@@ -42,17 +42,17 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
       - name: Set up JRE
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
           java-version: 17
           java-package: jre
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: 17
       - name: Build package
         run: mvn -P macos-arm-ci package -DskipTests=true
       - name: Write tag to Gon configs
