@@ -375,4 +375,9 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 	public boolean canHandle() {
 		return true;
 	}
+
+	@Override
+	protected void handleException(Exception e) {
+		// Do nothing
+	}
 }

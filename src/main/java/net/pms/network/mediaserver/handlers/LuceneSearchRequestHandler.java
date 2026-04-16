@@ -21,6 +21,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.database.MediaDatabase;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.store.DbIdMediaType;
 
@@ -531,5 +532,10 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 			tree = tree + " AND ";
 		}
 		return tree;
+	}
+
+	@Override
+	protected void handleException(Exception e) {
+		MediaDatabase.recreateFtlIndex();
 	}
 }

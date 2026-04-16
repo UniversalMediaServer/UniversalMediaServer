@@ -314,6 +314,15 @@ public class MediaDatabase extends Database {
 		return 0;
 	}
 
+	public static void recreateFtlIndex() {
+		try (Connection connection = getConnectionIfAvailable()) {
+			executeUpdate(connection, "CALL FTL_REINDEX();");
+		} catch (SQLException e) {
+			LOGGER.warn("Error reindexing full text search index: " + e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
 	public static void analyzeDb() {
 		if (instance != null && instance.isEmbedded()) {
 			Connection connection = null;
