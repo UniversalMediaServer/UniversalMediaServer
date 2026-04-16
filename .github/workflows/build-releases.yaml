@@ -54,7 +54,9 @@ jobs:
           distribution: 'liberica'
           java-version: 17
       - name: Extract tag
-        run: echo "TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
+        # Uncomment below before merging
+        # run: echo "TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
+        run: echo "TAG=15.5.0-SNAPSHOT" >> $GITHUB_ENV
       - name: Save JRE version in path format
         id: paths
         run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
