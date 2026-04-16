@@ -352,13 +352,20 @@ public abstract class BaseSearchRequestHandler {
 								}
 							}
 						}
+					} catch (SQLException e) {
+						LOGGER.warn("Error while executing getLibraryResourceFromSQL query.", e);
+						handleException(e);
 					}
+				} catch (SQLException e) {
+					LOGGER.warn("Error while creating statement for getLibraryResourceFromSQL query.", e);
+					handleException(e);
 				}
 			} else {
 				LOGGER.warn("No database connection available to execute getLibraryResourceFromSQL query.");
 			}
 		} catch (SQLException e) {
 			LOGGER.warn("getLibraryResourceFromSQL", e);
+			handleException(e);
 		}
 		LOGGER.debug("  -> elements found : {}", result.size());
 		return result;
@@ -380,28 +387,22 @@ public abstract class BaseSearchRequestHandler {
 		}
 	}
 
-	protected int getLibraryResourceCountFromSQL() {
+	public int getLibraryResourceCountFromSQL() {
 		String query = convertToCountSql();
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(String.format("SQL count : %s", query));
 		}
 
-		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			if (connection != null) {
-				try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						return resultSet.getInt(1);
-					}
-				} catch (SQLException e) {
-					LOGGER.trace("getLibraryResourceCountFromSQL", e);
-				}
-			} else {
-				LOGGER.warn("No database connection available to execute count query.");
-				return 0;
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable();
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query)) {
+			if (resultSet.next()) {
+				return resultSet.getInt(1);
 			}
 		} catch (Exception e) {
 			LOGGER.warn("getLibraryResourceCountFromSQL", e);
+			handleException(e);
 		}
 		return 0;
 	}
@@ -410,6 +411,8 @@ public abstract class BaseSearchRequestHandler {
 	protected abstract String convertToFilesSql();
 
 	protected abstract String convertToCountSql();
+
+	protected abstract void handleException(Exception e);
 
 	public abstract boolean canHandle();
 
