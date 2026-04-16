@@ -8,36 +8,36 @@ on: [push, pull_request]
 #       - '*'
 
 jobs:
-  appimage:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-      - name: Install MediaInfo
-        run: |
-          sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
-          sudo dpkg -i libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
-      - name: Build x86_64 release
-        run: mvn package -P linux-x86_64 -DskipTests
-      - name: Install AppImage dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
-        with:
-          packages: desktop-file-utils
-      - name: Build AppImage
-        run: |
-          bash ./.github/workflows/build-appimage.sh
-          mkdir dist
-          mv ./target/*AppImage* dist/
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: AppImage
-          path: 'dist'
+  # appimage:
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - name: Set up JDK
+  #       uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'liberica'
+  #         java-version: 17
+  #     - name: Install MediaInfo
+  #       run: |
+  #         sudo apt-get -y install libmms0
+  #         wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
+  #         sudo dpkg -i libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
+  #     - name: Build x86_64 release
+  #       run: mvn package -P linux-x86_64 -DskipTests
+  #     - name: Install AppImage dependencies
+  #       uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+  #       with:
+  #         packages: desktop-file-utils
+  #     - name: Build AppImage
+  #       run: |
+  #         bash ./.github/workflows/build-appimage.sh
+  #         mkdir dist
+  #         mv ./target/*AppImage* dist/
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v7
+  #       with:
+  #         name: AppImage
+  #         path: 'dist'
   macos-arm:
     runs-on: macos-15
     steps:
