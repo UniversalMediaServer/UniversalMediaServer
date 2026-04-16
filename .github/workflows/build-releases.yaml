@@ -73,7 +73,7 @@ jobs:
         with:
           files: './.github/workflows/dependencies/gon-config-*.json'
           search-text: 'VERSION_TAG'
-          replacement-text: $GITHUB_REF_NAME
+          replacement-text: ${{ env.TAG }}
       - name: Write username to Gon configs
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
