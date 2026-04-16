@@ -53,6 +53,8 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: 17
+      - name: Extract tag
+        run: echo "TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
       - name: Save JRE version in path format
         id: paths
         run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
@@ -71,7 +73,7 @@ jobs:
         with:
           files: './.github/workflows/dependencies/gon-config-*.json'
           search-text: 'VERSION_TAG'
-          replacement-text: ${{ GITHUB_REF_NAME }}
+          replacement-text: $GITHUB_REF_NAME
       - name: Write username to Gon configs
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
@@ -108,7 +110,7 @@ jobs:
       - name: Build AppImage
         run: |
           mkdir dist
-          mv ./.github/workflows/dependencies/UMS-macOS-${{ GITHUB_REF_NAME }}-arm.dmg dist/
+          mv ./.github/workflows/dependencies/UMS-macOS-${{ env.TAG }}-arm.dmg dist/
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
