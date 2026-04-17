@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: AppImage
-          path: **/*.dmg
+          path: '**/*.dmg'
   macos-intel:
     runs-on: macos-26-intel
     steps:
@@ -165,6 +165,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: AppImage
-          path: **/*.dmg
+          path: '**/*.dmg'
 
 
