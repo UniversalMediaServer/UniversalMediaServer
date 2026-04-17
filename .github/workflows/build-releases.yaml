@@ -93,10 +93,6 @@ jobs:
         run: cd ./target/ums-15.5.0-SNAPSHOT-distribution/ && ls
       - name: Run post-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json
-      - name: Move file to dist folder
-        run: |
-          mkdir dist
-          mv ./.github/workflows/dependencies/UMS-macOS-${{ env.TAG }}-arm.dmg dist/
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
@@ -125,7 +121,7 @@ jobs:
         id: paths
         run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
       - name: Logging
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/arm64 && ls
+        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/x64 && ls
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
@@ -157,10 +153,6 @@ jobs:
         run: cd ./target/ums-15.5.0-SNAPSHOT-distribution/ && ls
       - name: Run post-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json
-      - name: Move file to dist folder
-        run: |
-          mkdir dist
-          mv ./.github/workflows/dependencies/UMS-macOS-${{ env.TAG }}-x86_64.dmg dist/
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
