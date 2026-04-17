@@ -110,7 +110,7 @@ jobs:
       - name: Logging
         run: cd ./target/ums-15.5.0-SNAPSHOT-distribution/ && ls
       - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json -log-level=trace || true
+        run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-build-arm.json || true
       # - name: Move file to dist folder
       #   run: |
       #     mkdir dist
