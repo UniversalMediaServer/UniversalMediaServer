@@ -88,7 +88,7 @@ jobs:
         if: failure()
         with:
           name: my-artifact
-          path: test-results/**/*.png
+          path: **/test-results/**/*.png
 
   macos-intel:
     needs: changes
