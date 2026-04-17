@@ -76,30 +76,12 @@ jobs:
           files: './.github/workflows/dependencies/gon-config-*.json'
           search-text: 'VERSION_TAG'
           replacement-text: ${{ env.TAG }}
-      - name: Write username to Gon configs
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: './.github/workflows/dependencies/gon-config-*.json'
-          search-text: 'APPLE_USERNAME'
-          replacement-text: ${{secrets.APPLE_USERNAME}}
       - name: Write password to Gon configs
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
           files: './.github/workflows/dependencies/gon-config-*.json'
           search-text: 'APPLE_PASSWORD'
           replacement-text: ${{secrets.APPLE_PASSWORD}}
-      - name: Write provider to Gon configs
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: './.github/workflows/dependencies/gon-config-*.json'
-          search-text: 'APPLE_PROVIDER'
-          replacement-text: ${{secrets.APPLE_PROVIDER}}
-      - name: Write application identity to Gon configs
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: './.github/workflows/dependencies/gon-config-*.json'
-          search-text: 'APPLICATION_IDENTITY'
-          replacement-text: ${{secrets.APPLICATION_IDENTITY}}
       - name: Import codesign cert
         uses: apple-actions/import-codesign-certs@v3
         with: 

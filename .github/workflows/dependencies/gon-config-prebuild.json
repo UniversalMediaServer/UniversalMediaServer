@@ -12,13 +12,13 @@
     ],
     "bundle_id" : "com.universalmediaserver.ums",
     "apple_id": {
-        "username" : "APPLE_USERNAME",
+        "username" : "klaus@klaustownsend.com",
         "password":  "APPLE_PASSWORD",
-        "provider": "APPLE_PROVIDER"
+        "provider": "9V2H7S647T"
     },
     "sign": {
         "entitlements_file": "./entitlements.xml",
-        "application_identity" : "APPLICATION_IDENTITY",
+        "application_identity" : "Developer ID Application: Klaus Townsend (9V2H7S647T)",
         "deep": true
     }
 }
