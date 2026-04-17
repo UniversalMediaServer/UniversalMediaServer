@@ -54,8 +54,9 @@ export default function SharedContentSettings({
     const isFolder = !isNew && sharedContent.type === 'Folder'
     const isITunes = !isNew && sharedContent.type === 'ITunes'
     const isVirtualFolder = !isNew && sharedContent.type === 'VirtualFolder'
-    const isFeed = !isNew && (sharedContent.type.startsWith('Feed') || sharedContent.type.startsWith('Stream'))
+    const isFeed = !isNew && (sharedContent.type.endsWith('Feed') || sharedContent.type.endsWith('Stream'))
     const type = isNew ? 'Folder' : sharedContent.type
+
     const groups = isNew || !sharedContent.groups ? [] : sharedContent.groups.map(String)
     const name = isNew || isFolder || isITunes ? '' : (sharedContent as NamedSharedContent).name
     const parent = isNew || isFolder || isITunes ? '' : (sharedContent as NamedSharedContent).parent
