@@ -777,6 +777,7 @@ public class UmsContentDirectoryService {
 					} else {
 						LOGGER.debug("Trying to browse direct children on a null object for objectID '{}' !", objectID);
 					}
+					LOGGER.warn("Undefined or unknown objectID '{}' !", objectID);
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
 			}
