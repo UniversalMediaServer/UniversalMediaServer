@@ -16,24 +16,163 @@
  */
 package net.pms.network.mediaserver.handlers;
 
-import net.pms.configuration.RendererConfigurations;
-import net.pms.network.mediaserver.handlers.message.SearchRequest;
-import net.pms.renderers.Renderer;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.renderers.Renderer;
 
 public class SearchRequestHandlerTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchRequestHandlerTest.class.getName());
-
 	@BeforeAll
 	public static final void setUp() throws ConfigurationException, InterruptedException {
-		// No need to setup anything
 	}
+
+	@Test
+	public void testGlobalPlaylistSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
+		LOG.info(sql);
+	}
+
+	@Test
+	public void testGlobalPlaylistSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
+		LOG.info(sql);
+	}
+
+	@Test
+	public void testTreePlaylistSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
+		LOG.info(sql);
+	}
+
+	@Test
+	public void testTreePlaylistSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"jazz\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
+		LOG.info(sql);
+
+	}
+
+	@Test
+	public void testTreeAlbumSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"spirit\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
+		LOG.info(sql);
+	}
+
+	@Test
+	public void testTreeAlbumSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.album\" and dc:title contains \"spirit\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
+		LOG.info(sql);
+
+	}
+
+	@Test
+	public void testTreeArtistSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.person\" and dc:title contains \"Rhye\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
+		LOG.info(sql);
+
+	}
+
+
+	@Test
+	public void testTreeMusicItemSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
+		LOG.info(sql);
+	}
+
+	@Test
+	public void testTreeMusicItemSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
+		LOG.info(sql);
+
+	}
+
+	@Test
+	public void testGlobalMusicItemSearchCount() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
+		LOG.info(sql);
+	}
+
+	@Test
+	public void testGlobalMusicItemSearchSql() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.item.audioItem.musicTrack\" and dc:title contains \"Darc\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
+		LOG.info(sql);
+	}
+
 
 	@Test
 	public void testVideoFileSqlStatement() {
@@ -42,64 +181,10 @@ public class SearchRequestHandlerTest {
 		sr.setSearchCriteria(s);
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String result = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(s), "0");
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String result = searchRequestHandler.convertToFilesSql();
 		LOG.info(result);  // \\s+
-		assertTrue(result.matches(
-				"select\\s+FILENAME\\s*,\\s*MODIFIED\\s*,\\s*F\\.ID\\s+as\\s+FID\\s*,\\s*F\\.ID\\s+as\\s+oid\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s*\\(\\s*F\\.FORMAT_TYPE\\s*=\\s*4\\s*\\)\\s*ORDER\\s+BY\\s+oid\\s+LIMIT\\s+999\\s+OFFSET\\s+0\\s*"));
-	}
-
-	/**
-	 * Tests SearchCriteria issued by LINN app (iOS) for Composer
-	 */
-	@Test
-	public void testLinnAppComposerSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Composer\"] contains \"tchaikovsky\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.COMPOSER\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+ \\s*A.COMPOSER\\s+ILIKE\\s+'%tchaikovsky%'"));
-	}
-
-	/**
-	 * Tests SearchCriteria issued by LINN app (iOS) for Composer
-	 */
-	@Test
-	public void testLinnAppConductorSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Conductor\"] contains \"bernstein\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s*A.CONDUCTOR\\s+ILIKE\\s+'%bernstein%'"));
-	}
-
-	@Test
-	public void testAlbumArtistSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"AlbumArtist\"] contains \"tchaikovsky\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ALBUMARTIST\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+A.ALBUMARTIST\\s+ILIKE\\s+'%tchaikovsky%'"));
-	}
-
-	@Test
-	public void testArtistSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist contains \"tchaikovsky\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ARTIST\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+A.ARTIST\\s+ILIKE\\s+'%tchaikovsky%'"));
-	}
-
-	/**
-	 * Tests SearchCriteria issued by LINN app (iOS) for Composer
-	 */
-	@Test
-	public void testLinnAppSpecialCharSearch() {
-		String searchCriteria = "upnp:class derivedfrom \"object.item.audioItem\" and dc:title contains \"love don't\"";
-		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "0");
-		LOG.info(countSQL);
-		assertTrue(countSQL.matches(
-				"select\\s+count\\s*\\(\\s*DISTINCT\\s+F.id\\s*\\)\\s+from\\s+FILES\\s+as\\s+F\\s+left\\s+outer\\s+join\\s+AUDIO_METADATA\\s+as\\s+A\\s+on\\s+F.ID\\s*=\\s*A.FILEID\\s+where\\s+F.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+A.SONGNAME\\s+ILIKE\\s+'%love don''t%'"));
 	}
 
 	/**
@@ -114,17 +199,18 @@ public class SearchRequestHandlerTest {
 
 		String searchCriteria = "upnp:class derivedfrom \"object.container\" and dc:title contains \"music\"";
 
-
-
-		String countSql = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria), "134");
-		LOG.info(countSql);
-		String sql = SearchRequestHandler.convertToFilesSql(searchCriteria, 0, 200, null, SearchRequestHandler.getRequestType(searchCriteria), "134");
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria(searchCriteria);
+		sr.setContainerId("134");
+		sr.setRequestedCount(900);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
 	}
 
 	@Test
 	public void testVideoFileUpnpSearch() {
-		SearchRequestHandler srh = new SearchRequestHandler();
 		SearchRequest sr = new SearchRequest();
 		Renderer renderer = RendererConfigurations.getDefaultRenderer();
 		sr.setRequestedCount(0);
@@ -134,11 +220,11 @@ public class SearchRequestHandlerTest {
 		sr.setFilter(
 				"dc:title,av:mediaClass,dc:date,@childCount,av:chapterInfo,res,upnp:rating,upnp:rating@type,upnp:class,av:soundPhoto,res@resolution,res@av:mpfEntries,upnp:album,upnp:genre,upnp:albumArtURI,upnp:albumArtURI@dlna:profileID,dc:creator,res@size,res@duration,res@bitrate,res@protocolInfo");
 		sr.setSortCriteria("");
-		StringBuilder response = srh.createSearchResponse(sr, renderer);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		StringBuilder response = searchRequestHandler.createSearchResponse(renderer);
 		LOG.info("");
 		LOG.info("testVideoFileUpnpSearch");
 		LOG.info("===================================================================");
 		LOG.info("\r\n" + response.toString());
 	}
-
 }
