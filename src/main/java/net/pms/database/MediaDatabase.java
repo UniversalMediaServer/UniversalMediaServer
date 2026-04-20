@@ -152,8 +152,7 @@ public class MediaDatabase extends Database {
 			executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'FILES');");
 			executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'AUDIO_METADATA');");
 		} catch (SQLException e) {
-			LOGGER.warn("Error dropping index on files table: " + e.getMessage());
-			LOGGER.trace("", e);
+			LOGGER.warn("Error dropping index on files table: " + e.getMessage(), e);
 		}
 	}
 
