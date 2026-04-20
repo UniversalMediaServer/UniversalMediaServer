@@ -31,6 +31,7 @@
 - Bump `com.drewnoakes:metadata-extractor` from 2.19.0 to 2.20.0 ([#6114](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6114))
 - Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
 - Bump `com.github.oshi:oshi-core` from 6.10.0 to 6.11.1 ([#6104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6104), [#6116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6116))
+- Bump `com.google.guava:guava` from 33.5.0-jre to 33.6.0-jre ([#6123](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6123))
 - Bump `commons-logging:commons-logging` from 1.3.5 to 1.3.6 ([#6060](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6060))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
 - Bump `dorny/paths-filter` from 3 to 4 ([#6073](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6073))
