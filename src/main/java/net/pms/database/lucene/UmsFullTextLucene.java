@@ -274,18 +274,19 @@ public class UmsFullTextLucene extends FullText {
 	}
 
 	private static void createOrDropTrigger(Connection conn, String schema, String table, boolean create) throws SQLException {
-		Statement stat = conn.createStatement();
-		String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
-		stat.execute("DROP TRIGGER IF EXISTS " + trigger);
-		if (create) {
-			StringBuilder builder = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
-			// the trigger is also called on rollback because transaction
-			// rollback will not undo the changes in the Lucene index
-			builder.append(trigger).append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ");
-			StringUtils.quoteIdentifier(builder, schema).append('.');
-			StringUtils.quoteIdentifier(builder, table).append(" FOR EACH ROW CALL \"")
-				.append(UmsFullTextLucene.FullTextTrigger.class.getName()).append('\"');
-			stat.execute(builder.toString());
+		try (Statement stat = conn.createStatement()) {
+			String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
+
+			stat.execute("DROP TRIGGER IF EXISTS " + trigger);
+
+			if (create) {
+				StringBuilder builder = new StringBuilder("CREATE FORCE TRIGGER ");
+				builder.append(trigger).append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ");
+				StringUtils.quoteIdentifier(builder, schema).append('.');
+				StringUtils.quoteIdentifier(builder, table).append(" FOR EACH ROW QUEUE 1024 CALL \"")
+					.append(UmsFullTextLucene.FullTextTrigger.class.getName()).append('\"');
+				stat.execute(builder.toString());
+			}
 		}
 	}
 
@@ -358,15 +359,19 @@ public class UmsFullTextLucene extends FullText {
 	private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
 		UmsFullTextLucene.FullTextTrigger existing = new UmsFullTextLucene.FullTextTrigger();
 		existing.init(conn, schema, null, table, false, Trigger.INSERT);
+
 		String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table);
-		ResultSet rs = conn.createStatement().executeQuery(sql);
-		int columnCount = rs.getMetaData().getColumnCount();
-		while (rs.next()) {
-			Object[] row = new Object[columnCount];
-			for (int i = 0; i < columnCount; i++) {
-				row[i] = rs.getObject(i + 1);
+		try (Statement stat = conn.createStatement(); ResultSet rs = stat.executeQuery(sql)) {
+
+			int columnCount = rs.getMetaData().getColumnCount();
+
+			while (rs.next()) {
+				Object[] row = new Object[columnCount];
+				for (int i = 0; i < columnCount; i++) {
+					row[i] = rs.getObject(i + 1);
+				}
+				existing.insert(row, false);
 			}
-			existing.insert(row, false);
 		}
 		existing.commitIndex();
 	}
