@@ -15,7 +15,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
@@ -50,9 +49,8 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * COPIED from h2 version 2.2.240
- * - Moved all references from FullTextLucene to UmsFullTextLucene
- * - Added UmsAnalyzer for indexing
+ * COPIED from h2 version 2.2.240 - Moved all references from FullTextLucene to
+ * UmsFullTextLucene - Added UmsAnalyzer for indexing
  */
 public class UmsFullTextLucene extends FullText {
 
@@ -142,11 +140,14 @@ public class UmsFullTextLucene extends FullText {
 	 */
 	public static void createIndex(Connection conn, String schema, String table, String columnList) throws SQLException {
 		init(conn);
-		PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA + ".INDEXES(SCHEMA, `TABLE`, COLUMNS) VALUES(?, ?, ?)");
-		prep.setString(1, schema);
-		prep.setString(2, table);
-		prep.setString(3, columnList);
-		prep.execute();
+		// ✅ MERGE statt INSERT verhindert Duplicate Key Fehler
+		try (PreparedStatement prep = conn
+			.prepareStatement("MERGE INTO " + SCHEMA + ".INDEXES(SCHEMA, `TABLE`, COLUMNS) " + "KEY(SCHEMA, `TABLE`) VALUES(?, ?, ?)")) {
+			prep.setString(1, schema);
+			prep.setString(2, table);
+			prep.setString(3, columnList);
+			prep.execute();
+		}
 		createTrigger(conn, schema, table);
 		indexExistingRows(conn, schema, table);
 	}
@@ -162,11 +163,12 @@ public class UmsFullTextLucene extends FullText {
 	 */
 	public static void dropIndex(Connection conn, String schema, String table) throws SQLException {
 		init(conn);
-
-		PreparedStatement prep = conn.prepareStatement("DELETE FROM " + SCHEMA + ".INDEXES WHERE SCHEMA=? AND `TABLE`=?");
-		prep.setString(1, schema);
-		prep.setString(2, table);
-		int rowCount = prep.executeUpdate();
+		int rowCount;
+		try (PreparedStatement prep = conn.prepareStatement("DELETE FROM " + SCHEMA + ".INDEXES WHERE SCHEMA=? AND `TABLE`=?")) {
+			prep.setString(1, schema);
+			prep.setString(2, table);
+			rowCount = prep.executeUpdate();
+		}
 		if (rowCount != 0) {
 			reindex(conn);
 		}
@@ -183,13 +185,13 @@ public class UmsFullTextLucene extends FullText {
 		init(conn);
 		removeAllTriggers(conn, TRIGGER_PREFIX);
 		removeIndexFiles(conn);
-		Statement stat = conn.createStatement();
-		ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES");
-		while (rs.next()) {
-			String schema = rs.getString("SCHEMA");
-			String table = rs.getString("TABLE");
-			createTrigger(conn, schema, table);
-			indexExistingRows(conn, schema, table);
+		try (Statement stat = conn.createStatement(); ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES")) {
+			while (rs.next()) {
+				String schema = rs.getString("SCHEMA");
+				String table = rs.getString("TABLE");
+				createTrigger(conn, schema, table);
+				indexExistingRows(conn, schema, table);
+			}
 		}
 	}
 
@@ -332,20 +334,18 @@ public class UmsFullTextLucene extends FullText {
 	 * @throws SQLException on failure
 	 */
 	protected static String getIndexPath(Connection conn) throws SQLException {
-		Statement stat = conn.createStatement();
-		ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");
-		rs.next();
-		String path = rs.getString(1);
-		if (path == null) {
-			return IN_MEMORY_PREFIX + conn.getCatalog();
+		try (Statement stat = conn.createStatement(); ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()")) {
+			rs.next();
+			String path = rs.getString(1);
+			if (path == null) {
+				return IN_MEMORY_PREFIX + conn.getCatalog();
+			}
+			int index = path.lastIndexOf(':');
+			if (index > 1) {
+				path = path.substring(index + 1);
+			}
+			return path;
 		}
-		int index = path.lastIndexOf(':');
-		// position 1 means a windows drive letter is used, ignore that
-		if (index > 1) {
-			path = path.substring(index + 1);
-		}
-		rs.close();
-		return path;
 	}
 
 	/**
@@ -514,43 +514,60 @@ public class UmsFullTextLucene extends FullText {
 			this.table = tableName;
 			this.indexPath = getIndexPath(conn);
 			this.indexAccess = getIndexAccess(conn);
+
 			ArrayList<String> keyList = Utils.newSmallArrayList();
 			DatabaseMetaData meta = conn.getMetaData();
-			ResultSet rs = meta.getColumns(null, StringUtils.escapeMetaDataPattern(schemaName),
-				StringUtils.escapeMetaDataPattern(tableName), null);
 			ArrayList<String> columnList = Utils.newSmallArrayList();
-			while (rs.next()) {
-				columnList.add(rs.getString("COLUMN_NAME"));
-			}
-			columnTypes = new int[columnList.size()];
-			columns = columnList.toArray(new String[0]);
-			rs = meta.getColumns(null, StringUtils.escapeMetaDataPattern(schemaName), StringUtils.escapeMetaDataPattern(tableName), null);
-			for (int i = 0; rs.next(); i++) {
-				columnTypes[i] = rs.getInt("DATA_TYPE");
-			}
-			if (keyList.isEmpty()) {
-				rs = meta.getPrimaryKeys(null, StringUtils.escapeMetaDataPattern(schemaName), tableName);
+
+			try (ResultSet rs = meta.getColumns(null, StringUtils.escapeMetaDataPattern(schemaName),
+				StringUtils.escapeMetaDataPattern(tableName), null)) {
 				while (rs.next()) {
-					keyList.add(rs.getString("COLUMN_NAME"));
+					columnList.add(rs.getString("COLUMN_NAME"));
 				}
 			}
+
+			columnTypes = new int[columnList.size()];
+			columns = columnList.toArray(new String[0]);
+
+			try (ResultSet rs = meta.getColumns(null, StringUtils.escapeMetaDataPattern(schemaName),
+				StringUtils.escapeMetaDataPattern(tableName), null)) {
+				for (int i = 0; rs.next(); i++) {
+					columnTypes[i] = rs.getInt("DATA_TYPE");
+				}
+			}
+
+			if (keyList.isEmpty()) {
+				try (ResultSet rs = meta.getPrimaryKeys(null, StringUtils.escapeMetaDataPattern(schemaName), tableName)) {
+					while (rs.next()) {
+						keyList.add(rs.getString("COLUMN_NAME"));
+					}
+				}
+			}
+
 			if (keyList.isEmpty()) {
 				throw throwException("No primary key for table " + tableName);
 			}
+
 			ArrayList<String> indexList = Utils.newSmallArrayList();
-			PreparedStatement prep = conn.prepareStatement("SELECT COLUMNS FROM " + SCHEMA + ".INDEXES WHERE SCHEMA=? AND `TABLE`=?");
-			prep.setString(1, schemaName);
-			prep.setString(2, tableName);
-			rs = prep.executeQuery();
-			if (rs.next()) {
-				String cols = rs.getString(1);
-				if (cols != null) {
-					Collections.addAll(indexList, StringUtils.arraySplit(cols, ',', true));
+
+			try (
+				PreparedStatement prep = conn.prepareStatement("SELECT COLUMNS FROM " + SCHEMA + ".INDEXES WHERE SCHEMA=? AND `TABLE`=?")) {
+				prep.setString(1, schemaName);
+				prep.setString(2, tableName);
+				try (ResultSet rs = prep.executeQuery()) {
+					if (rs.next()) {
+						String cols = rs.getString(1);
+						if (cols != null) {
+							Collections.addAll(indexList, StringUtils.arraySplit(cols, ',', true));
+						}
+					}
 				}
 			}
+
 			if (indexList.isEmpty()) {
 				indexList.addAll(columnList);
 			}
+
 			keys = new int[keyList.size()];
 			setColumns(keys, keyList, columnList);
 			indexColumns = new int[indexList.size()];
@@ -610,30 +627,43 @@ public class UmsFullTextLucene extends FullText {
 		 * @throws SQLException on failure
 		 */
 		void insert(Object[] row, boolean commitIndex) throws SQLException {
+			if (row == null) {
+				return;
+			}
 			String query = getQuery(row);
+			if (query == null || query.isEmpty()) {
+				return;
+			}
+
 			Document doc = new Document();
 			doc.add(new Field(LUCENE_FIELD_QUERY, query, docIdFieldType));
+
 			long time = System.currentTimeMillis();
 			doc.add(new Field(LUCENE_FIELD_MODIFIED, DateTools.timeToString(time, DateTools.Resolution.SECOND), TextField.TYPE_STORED));
+
 			StringBuilder builder = new StringBuilder();
 			for (int i = 0, length = indexColumns.length; i < length; i++) {
 				int index = indexColumns[i];
 				String columnName = columns[index];
-				String data = asString(row[index], columnTypes[index]);
-				// column names that start with _
-				// must be escaped to avoid conflicts
-				// with internal field names (_DATA, _QUERY, _modified)
-				if (columnName.startsWith(LUCENE_FIELD_COLUMN_PREFIX)) {
+
+				String data = row[index] != null ? asString(row[index], columnTypes[index]) : "";
+
+				if (columnName.startsWith(LUCENE_FIELD_COLUMN_PREFIX) &&
+					!columnName.startsWith(LUCENE_FIELD_COLUMN_PREFIX + LUCENE_FIELD_COLUMN_PREFIX)) {
 					columnName = LUCENE_FIELD_COLUMN_PREFIX + columnName;
 				}
+
 				doc.add(new Field(columnName, data, TextField.TYPE_NOT_STORED));
+
 				if (i > 0) {
 					builder.append(' ');
 				}
 				builder.append(data);
 			}
+
 			FieldType dataFieldType = STORE_DOCUMENT_TEXT_IN_INDEX ? TextField.TYPE_STORED : TextField.TYPE_NOT_STORED;
 			doc.add(new Field(LUCENE_FIELD_DATA, builder.toString(), dataFieldType));
+
 			try {
 				indexAccess.writer.addDocument(doc);
 				if (commitIndex) {
@@ -652,7 +682,13 @@ public class UmsFullTextLucene extends FullText {
 		 * @throws SQLException on failure
 		 */
 		private void delete(Object[] row, boolean commitIndex) throws SQLException {
+			if (row == null) {
+				return;
+			}
 			String query = getQuery(row);
+			if (query == null || query.isEmpty()) {
+				return;
+			}
 			try {
 				Term term = new Term(LUCENE_FIELD_QUERY, query);
 				indexAccess.writer.deleteDocuments(term);
@@ -742,8 +778,9 @@ public class UmsFullTextLucene extends FullText {
 		 */
 		public synchronized void commit() throws IOException {
 			writer.commit();
-			returnSearcher(searcher);
+			IndexReader oldReader = searcher.getIndexReader();
 			searcher = new IndexSearcher(DirectoryReader.open(writer));
+			oldReader.close();
 		}
 
 		/**
@@ -752,7 +789,10 @@ public class UmsFullTextLucene extends FullText {
 		 * @throws IOException on failure
 		 */
 		public synchronized void close() throws IOException {
-			searcher = null;
+			if (searcher != null) {
+				searcher.getIndexReader().close();
+				searcher = null;
+			}
 			writer.close();
 		}
 	}
