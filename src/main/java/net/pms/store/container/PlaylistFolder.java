@@ -31,6 +31,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.database.MediaTableContainerFiles;
 import net.pms.database.MediaTableFiles;
@@ -42,6 +47,7 @@ import net.pms.renderers.Renderer;
 import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
+import net.pms.store.SystemFilesHelper;
 import net.pms.store.item.FeedItem;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
@@ -49,11 +55,6 @@ import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.input.BOMInputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class PlaylistFolder extends StoreContainer {
 
@@ -63,6 +64,7 @@ public final class PlaylistFolder extends StoreContainer {
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
 
 	private final String uri;
+	private File uriAsFile;
 	private final boolean isweb;
 	private final int defaultContent;
 	private boolean utf8 = false;
@@ -70,6 +72,7 @@ public final class PlaylistFolder extends StoreContainer {
 	public PlaylistFolder(Renderer renderer, String name, String uri, int type) {
 		super(renderer, name, null);
 		this.uri = uri;
+		this.uriAsFile = new File(uri);
 		isweb = FileUtil.isUrl(uri);
 		super.setLastModified(isweb ? 0 : new File(uri).lastModified());
 		defaultContent = (type != 0 && type != Format.UNKNOWN) ? type : Format.VIDEO;
@@ -161,30 +164,27 @@ public final class PlaylistFolder extends StoreContainer {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		File thumbnailImage;
 		if (!isweb) {
-			thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".png");
-			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
-				thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".jpg");
-			}
-			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
-				thumbnailImage = new File(FilenameUtils.getFullPath(uri) + "folder.png");
-			}
-			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
-				thumbnailImage = new File(FilenameUtils.getFullPath(uri) + "folder.jpg");
-			}
-			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
-				return super.getThumbnailInputStream();
-			}
+			File diskThumbnail = SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile(), FilenameUtils.removeExtension(uriAsFile.getName()));
 			DLNAThumbnailInputStream result = null;
 			try {
-				LOGGER.debug("PlaylistFolder albumart path : " + thumbnailImage.getAbsolutePath());
-				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumbnailImage));
+				if (diskThumbnail != null) {
+					result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(diskThumbnail));
+				}
 			} catch (IOException e) {
-				LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(),
-						e.getMessage());
-				LOGGER.trace("", e);
+				LOGGER.trace("getThumbnailInputStream", e);
 			}
+
+			// Just use folder image as Thumbnail is available
+			if (result == null) {
+				diskThumbnail = SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile());
+				try {
+					result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(diskThumbnail));
+				} catch (IOException e) {
+					LOGGER.trace("getThumbnailInputStream", e);
+				}
+			}
+
 			return result != null ? result : super.getThumbnailInputStream();
 		}
 		return null;
