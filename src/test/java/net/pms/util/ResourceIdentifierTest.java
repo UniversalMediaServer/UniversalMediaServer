@@ -17,7 +17,9 @@
 package net.pms.util;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
@@ -53,5 +55,48 @@ public class ResourceIdentifierTest {
 		testResourceIdentifier("text", "something", "97a313603bc96153");
 		//test with null
 		testResourceIdentifier("null", null, null);
+	}
+
+	@Test
+	public void test2GBFileIdentifierPerformance() throws Exception {
+		File tempFile = File.createTempFile("ums-1gb-", ".bin");
+		tempFile.deleteOnExit();
+		long targetSize = Integer.MAX_VALUE;
+
+		try (RandomAccessFile raf = new RandomAccessFile(tempFile, "rw")) {
+			raf.setLength(targetSize);
+		}
+
+		for (int i = 0; i < 5; i++) {
+			long startNs = System.nanoTime();
+			String ruid = ResourceIdentifier.getResourceIdentifier(tempFile.getAbsolutePath());
+			long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+			System.out.println("ResourceIdentifier 2GiB hash: " + ruid + " in " + elapsedMs + " ms");
+
+			assertNotNull(ruid);
+			assertFalse(ruid.isEmpty());
+		}
+
+	}
+
+	@Test
+	public void test4GBFileIdentifierPerformance() throws Exception {
+		File tempFile = File.createTempFile("ums-4gb-", ".bin");
+		tempFile.deleteOnExit();
+		long targetSize = 4L * 1024 * 1024 * 1024; // 4 GiB
+
+		try (RandomAccessFile raf = new RandomAccessFile(tempFile, "rw")) {
+			raf.setLength(targetSize);
+		}
+
+		for (int i = 0; i < 5; i++) {
+			long startNs = System.nanoTime();
+			String ruid = ResourceIdentifier.getResourceIdentifier(tempFile.getAbsolutePath());
+			long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+			System.out.println("ResourceIdentifier 4GiB hash: " + ruid + " in " + elapsedMs + " ms");
+
+			assertNotNull(ruid);
+			assertFalse(ruid.isEmpty());
+		}
 	}
 }
