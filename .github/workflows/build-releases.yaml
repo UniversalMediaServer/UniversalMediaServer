@@ -173,7 +173,7 @@ jobs:
       - name: Build package
         run: mvn -P macos-pre1015-ci package -DskipTests=true
       - name: Package package
-        run: hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-${{ steps.paths.outputs.jrePath }}-pre10.15.dmg
+        run: hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-${{ env.TAG }}-pre10.15.dmg
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
