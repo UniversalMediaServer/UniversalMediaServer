@@ -2,10 +2,13 @@
 
 ## [Unreleased]
 
+## [15.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.5.0...15.6.0) (2026-04-24)
+
 ### General
 
 - Added Discogs integration for audio metadata and UPnP
 - Added new options for DNS resolution handling (thanks, @henry701 Henrique Campos!)
+- Added a loading indicator to the Shared Content area on the web settings (#6037)
 - Improved detection of sample videos
 - Improved stability of speed test (thanks, @henry701 Henrique Campos!)
 - Fixed support for servers with no Internet access (#6047) (thanks, @henry701 Henrique Campos!)
@@ -13,6 +16,13 @@
 - Fixed API lookups happening for TV series when episode lookup fails, even if the series metadata is already in the local database (#6080)
 - Fixed JDK being used in Docker image instead of JRE (#6089) (thanks, @mvanhorn Matt Van Horn!)
 - Fixed editing a video feed on the web settings erases the URL (#6046) (thanks, @serinekjo kjo!)
+- Fixed docs for FFmpeg GPU support (thanks, @Harshit-dell Harshit Kumar Sahu!)
+
+### Translation updates via Crowdin
+- Dutch (97%) (thanks, Lefteye!)
+- English (United Kingdom) (80%) (thanks, Andi Chandler!)
+- Italian (63%) (thanks, parduz!)
+- Portuguese (Brazilian) (67%) (thanks, Henrique Campos!)
 
 ### Dependencies
 - Bump `@mantine/core` from 8.3.15 to 8.3.18 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075), [#6083](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6083))
@@ -37,6 +47,7 @@
 - Bump `dorny/paths-filter` from 3 to 4 ([#6073](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6073))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
+- Bump `FFmpeg` from 8.0.1 to 8.1
 - Bump `flatted` from 3.3.3 to 3.4.2 ([#6088](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6088))
 - Bump `follow-redirects` from 1.15.11 to 1.16.0 ([#6118](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6118))
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 9.0.2 to 9.1.0 ([#6095](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6095))
