@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `postcss` from 8.5.6 to 8.5.10 ([#6131](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6131))
+
 ## [15.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.5.0...15.6.0) (2026-04-24)
 
 ### General
