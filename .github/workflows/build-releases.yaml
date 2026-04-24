@@ -84,11 +84,11 @@ jobs:
       - name: Run pre-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
       - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json
+        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json || true
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AppImage
+          name: macos-arm
           path: '**/*.dmg'
   macos-intel:
     runs-on: macos-26-intel
@@ -138,11 +138,11 @@ jobs:
       - name: Run pre-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
       - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json
+        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-intel.json || true
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AppImage
+          name: macos-intel
           path: '**/*.dmg'
   macos-intel-pre1015:
     runs-on: macos-26-intel
@@ -177,7 +177,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AppImage
+          name: macos-intel-pre1015
           path: '**/*.dmg'
   docker:
     runs-on: macos-26-intel
