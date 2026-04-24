@@ -82,6 +82,7 @@ public final class PlaylistFolder extends StoreContainer {
 	public PlaylistFolder(Renderer renderer, File f) {
 		super(renderer, f.getName(), null);
 		uri = f.getAbsolutePath();
+		this.uriAsFile = f;
 		isweb = false;
 		super.setLastModified(f.lastModified());
 		defaultContent = Format.VIDEO;
