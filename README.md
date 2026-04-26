@@ -20,8 +20,6 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [Crowdin][29], [MEncoder][26], t
 
 ## Sponsors
 
-* [Architecture of Sales][35]
-
 [Become a sponsor][36]
 
 ## Links
@@ -137,6 +135,5 @@ For more information, see the [LICENSE](LICENSE) file included in this repositor
   [32]: https://github.com/ik666
   [33]: https://github.com/SurfaceS
   [34]: https://github.com/threedguru
-  [35]: https://architectureofsales.com
   [36]: https://www.patreon.com/universalmediaserver
   [37]: https://stats.uptimerobot.com/k0YIB5IOhL
