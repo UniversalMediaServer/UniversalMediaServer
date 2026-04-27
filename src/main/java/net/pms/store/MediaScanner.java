@@ -285,25 +285,33 @@ public class MediaScanner implements SharedContentListener {
 			} else {
 				LOGGER.debug("Scanning folder \"{}\"", file.getAbsolutePath());
 			}
-			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-			if (systemFileResources.isEmpty()) {
-				//not yet discovered or root path outside shared folders ?
-				String parent = file.getParentFile().getAbsolutePath();
-				if (isInSharedFolders(parent)) {
+
+			File parentFile = file.getParentFile();
+			if (parentFile != null) {
+				String parent = parentFile.getAbsolutePath();
+				if (isInSharedFolders(parent) && !parent.equals(filename)) {
 					internalScanFileOrFolder(parent);
-					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-				}
-			}
-			if (!systemFileResources.isEmpty()) {
-				//if it is still empty, it mean the tree is no more accessible
-				for (StoreResource storeResource : systemFileResources) {
-					if (storeResource instanceof StoreContainer storeContainer) {
-						storeContainer.discoverChildren();
-						storeContainer.setDiscovered(true);
+					List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
+					if (systemFileResources.isEmpty()) {
+						if (isInSharedFolders(parent)) {
+							internalScanFileOrFolder(parent);
+							systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
+						}
 					}
+					if (!systemFileResources.isEmpty()) {
+						//if it is still empty, it mean the tree is no more accessible
+						for (StoreResource storeResource : systemFileResources) {
+							if (storeResource instanceof StoreContainer storeContainer) {
+								storeContainer.discoverChildren();
+								storeContainer.setDiscovered(true);
+							}
+						}
+					} else {
+						LOGGER.warn("Given folder was not found in store : " + file.getAbsolutePath());
+					}
+				} else {
+					LOGGER.debug("Not in shared folders or parent is current file : " + filename);
 				}
-			} else {
-				LOGGER.warn("Given folder was not found in store : " + file.getAbsolutePath());
 			}
 		} else {
 			LOGGER.warn("Given file or folder doesn't share same base path as this server : " + filename);
