@@ -282,21 +282,6 @@ public class MediaScanner implements SharedContentListener {
 			} else {
 				LOGGER.debug("Scanning folder \"{}\"", file.getAbsolutePath());
 			}
-<<<<<<< HEAD
-			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-			if (systemFileResources.isEmpty()) {
-				if (isInSharedFolders(filename)) {
-					internalScanFileOrFolder(filename);
-					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-				}
-			}
-			if (!systemFileResources.isEmpty()) {
-				//if it is still empty, it mean the tree is no more accessible
-				for (StoreResource storeResource : systemFileResources) {
-					if (storeResource instanceof StoreContainer storeContainer) {
-						storeContainer.discoverChildren();
-						storeContainer.setDiscovered(true);
-=======
 
 			File parentFile = file.getParentFile();
 			if (parentFile != null) {
@@ -309,7 +294,6 @@ public class MediaScanner implements SharedContentListener {
 							internalScanFileOrFolder(parent);
 							systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 						}
->>>>>>> bugfix/recursive_scan
 					}
 					if (!systemFileResources.isEmpty()) {
 						//if it is still empty, it mean the tree is no more accessible
