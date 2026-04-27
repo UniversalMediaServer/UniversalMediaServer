@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `commons-io:commons-io` from 2.21.0 to 2.22.0 ([#6134](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6134))
+
 ## [15.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.5.0...15.6.0) (2026-04-24)
 
 ### General
