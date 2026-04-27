@@ -56,8 +56,6 @@ jobs:
       - name: Save JRE version in path format
         id: paths
         run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
-      - name: Logging
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/arm64 && ls
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
@@ -85,14 +83,12 @@ jobs:
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
       - name: Run pre-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
-      - name: Logging
-        run: cd ./target/ums-15.5.0-SNAPSHOT-distribution/ && ls
       - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json
+        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json || true
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AppImage
+          name: macos-arm
           path: '**/*.dmg'
   macos-intel:
     runs-on: macos-26-intel
@@ -114,8 +110,6 @@ jobs:
       - name: Save JRE version in path format
         id: paths
         run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
-      - name: Logging
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/x64 && ls
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
@@ -143,14 +137,12 @@ jobs:
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
       - name: Run pre-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
-      - name: Logging
-        run: cd ./target/ums-15.5.0-SNAPSHOT-distribution/ && ls
       - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json
+        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-intel.json || true
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AppImage
+          name: macos-intel
           path: '**/*.dmg'
   macos-intel-pre1015:
     runs-on: macos-26-intel
@@ -172,8 +164,6 @@ jobs:
       - name: Save JRE version in path format
         id: paths
         run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
-      - name: Logging
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/x64 && ls
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
@@ -183,14 +173,14 @@ jobs:
       - name: Build package
         run: mvn -P macos-pre1015-ci package -DskipTests=true
       - name: Package package
-        run: hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-${{ steps.paths.outputs.jrePath }}-pre10.15.dmg
+        run: hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-${{ env.TAG }}-pre10.15.dmg
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AppImage
+          name: macos-intel-pre1015
           path: '**/*.dmg'
-  docker:
-    runs-on: ubuntu-latest
+  docker-ubuntu:
+    runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v6
       - name: Set up JRE
@@ -204,14 +194,50 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: 17
-        name: Login to Docker Hub
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Login to Docker Hub
         uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Download binaries and build app
-        run: mvn -P docker prepare-package -DskipTests=true
+      - name: Build app
+        run: mvn -P macos-pre1015-ci package -DskipTests=true
+      - name: Download binaries
+        run: mvn -P docker-ubuntu prepare-package -DskipTests=true
       - name: Build images
-        run: mvn -P docker package -DskipTests=true
+        run: mvn -P docker-ubuntu package -DskipTests=true
       - name: Publish images
-        run: mvn -P docker install -DskipTests=true
+        run: mvn -P docker-ubuntu install -DskipTests=true
+  docker-alpine:
+    runs-on: macos-26-intel
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JRE
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          java-package: jre
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: 17
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v5
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build app
+        run: mvn -P macos-pre1015-ci package -DskipTests=true
+      - name: Download binaries
+        run: mvn -P docker-alpine prepare-package -DskipTests=true
+      - name: Build images
+        run: mvn -P docker-alpine package -DskipTests=true
+      - name: Publish images
+        run: mvn -P docker-alpine install -DskipTests=true
