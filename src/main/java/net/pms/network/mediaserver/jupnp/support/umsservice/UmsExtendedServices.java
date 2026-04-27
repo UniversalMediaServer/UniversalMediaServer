@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
+import jakarta.annotation.Nullable;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;
@@ -13,11 +14,13 @@ import org.jupnp.binding.annotations.UpnpServiceType;
 import org.jupnp.binding.annotations.UpnpStateVariable;
 import org.jupnp.binding.annotations.UpnpStateVariables;
 import org.jupnp.model.types.ErrorCode;
+import org.jupnp.model.types.UnsignedIntegerFourBytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
 
@@ -27,8 +30,14 @@ import net.pms.store.StoreResource;
 	version = 1))
 @UpnpStateVariables({
 	@UpnpStateVariable(name = "A_ARG_TYPE_ObjectID", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_MusicBraizReleaseID", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean")
+	@UpnpStateVariable(name = "A_ARG_TYPE_MusicBrainzId", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_DiscogsId", sendEvents = false, datatype = "ui4"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_MusicBrainzReleaseID", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_DiscogsReleaseID", sendEvents = false, datatype = "ui4"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictUser", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string")
 	})
 public class UmsExtendedServices {
 
@@ -51,6 +60,8 @@ public class UmsExtendedServices {
 	@UpnpStateVariable(name = "AnonymousDevicesWrite", defaultValue = "false", sendEvents = true)
 	public boolean anonymousDevicesWrite = false;
 
+	@UpnpStateVariable(name = "PreferEuropeanServer", defaultValue = "false", sendEvents = true)
+	public boolean preferEuropeanServer = false;
 
 	public UmsExtendedServices() {
 		readConfig();
@@ -80,6 +91,17 @@ public class UmsExtendedServices {
 			LOG.debug("anonymousDevicesWrite has changed to {} ", PMS.getConfiguration().isAnonymousDevicesWrite());
 			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
 		}
+		if (this.preferEuropeanServer != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
+			LOG.debug("prefer european srevers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
+			this.anonymousDevicesWrite = PMS.getConfiguration().isAudioAddictEuropeanServer();
+		}
+	}
+
+	@UpnpAction
+	public void setPreferEuropeanServer(@UpnpInputArgument(name = "PreferEuropeanServer") boolean preferEuropeanServer) {
+		LOG.debug("updating preferEuropeanServer to {}. Value changed from : {}", preferEuropeanServer, this.preferEuropeanServer);
+		PMS.getConfiguration().setAudioAddictEuropeanServer(preferEuropeanServer);
+		this.preferEuropeanServer = preferEuropeanServer;
 	}
 
 	@UpnpAction
@@ -110,6 +132,26 @@ public class UmsExtendedServices {
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
 	}
 
+	/**
+	 * Set the AudioAddict username in the UMS configuration.
+	 * @param audioAddictUser
+	 */
+	@UpnpAction
+	public void setAudioAddictUser(@UpnpInputArgument(name = "AudioAddictUser") String audioAddictUser) {
+		PMS.getConfiguration().setAudioAddictUser(audioAddictUser);
+		LOG.debug("updated AudioAddict user");
+	}
+
+	/**
+	 * Set the AudioAddict password in the UMS configuration. Note that the password is stored in plain text in the configuration file.
+	 * @param audioAddictPass
+	 */
+	@UpnpAction
+	public void setAudioAddictPass(@UpnpInputArgument(name = "AudioAddictPass") String audioAddictPass) {
+		PMS.getConfiguration().setAudioAddictPassword(audioAddictPass);
+		LOG.debug("updated AudioAddict password");
+	}
+
 	@UpnpAction
 	public void rescanMediaStore() throws UmsExtendedServicesException {
 		if (!MediaScanner.isMediaScanRunning()) {
@@ -129,6 +171,9 @@ public class UmsExtendedServices {
 		MediaScanner.backgroundScanFileOrFolder(sr.getFileName());
 	}
 
+	/*
+	 * Backup audio likes to a file.
+	 */
 	@UpnpAction
 	public void backupAudioLikes() throws UmsExtendedServicesException {
 		LOG.debug("backing up audio likes table ... ");
@@ -140,6 +185,9 @@ public class UmsExtendedServices {
 		}
 	}
 
+	/**
+	 * Restore audio likes from a backup file created by the backupAudioLikes action.
+	 */
 	@UpnpAction
 	public void restoreAudioLikes() throws UmsExtendedServicesException {
 		LOG.debug("restoring audio likes table ... ");
@@ -154,21 +202,105 @@ public class UmsExtendedServices {
 		}
 	}
 
+	/**
+	 * Check if an album is liked using MusicBrainz and/or Discogs IDs.
+	 *
+	 * @return true if the album is liked via either MusicBrainz or Discogs
+	 */
 	@UpnpAction(out = @UpnpOutputArgument(name = "AlbumLikedValue"))
-	public boolean isAlbumLiked(@UpnpInputArgument(name = "MusicBraizReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("check album liked for musicbrainz release id of {} ", musicBrainzReleaseId);
-		return likeMusic.isAlbumLiked(musicBrainzReleaseId);
+	public boolean isAlbumLiked(
+			@Nullable @UpnpInputArgument(name = "MusicBrainzId") String musicBrainzId,
+			@Nullable @UpnpInputArgument(name = "DiscogsId") UnsignedIntegerFourBytes discogsId) throws UmsExtendedServicesException {
+
+		Long discogsIdLong = discogsId != null ? discogsId.getValue().longValue() : null;
+		AlbumId albumId = new AlbumId(musicBrainzId, discogsIdLong);
+		LOG.debug("check album liked for albumId: musicBrainzId={}, discogsId={}", albumId.musicBrainzId, albumId.discogsId);
+
+		boolean likedViaMusicBrainz = false;
+		boolean likedViaDiscogs = false;
+
+		if (albumId.musicBrainzId != null && !albumId.musicBrainzId.isBlank()) {
+			likedViaMusicBrainz = likeMusic.isAlbumLikedMB(albumId.musicBrainzId.trim());
+		}
+
+		if (albumId.discogsId != null) {
+			likedViaDiscogs = likeMusic.isAlbumLikedDiscogs(albumId.discogsId);
+		}
+
+		return likedViaMusicBrainz || likedViaDiscogs;
 	}
 
+	/**
+	 * Like an album using MusicBrainz and/or Discogs IDs. If both IDs are provided, both will be liked.
+	 */
 	@UpnpAction
-	public void likeAlbum(@UpnpInputArgument(name = "MusicBraizReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("like album with musicbrainz release id {} ", musicBrainzReleaseId);
-		likeMusic.likeAlbum(musicBrainzReleaseId);
+	public void likeAlbum(
+			@Nullable @UpnpInputArgument(name = "MusicBrainzId") String musicBrainzId,
+			@Nullable @UpnpInputArgument(name = "DiscogsId") UnsignedIntegerFourBytes discogsId) throws UmsExtendedServicesException {
+
+		Long discogsIdLong = discogsId != null ? discogsId.getValue().longValue() : null;
+		AlbumId albumId = new AlbumId(musicBrainzId, discogsIdLong);
+		LOG.debug("like album for albumId: musicBrainzId={}, discogsId={}", albumId.musicBrainzId, albumId.discogsId);
+
+		if (albumId.musicBrainzId != null && !albumId.musicBrainzId.isBlank()) {
+			likeMusic.likeAlbumMB(albumId.musicBrainzId.trim());
+			LOG.debug("liked album via MusicBrainz: {}", albumId.musicBrainzId);
+		}
+
+		if (albumId.discogsId != null) {
+			likeMusic.likeAlbumDiscogs(albumId.discogsId);
+			LOG.debug("liked album via Discogs: {}", albumId.discogsId);
+		}
 	}
 
+	/**
+	 * Dislike an album using MusicBrainz and/or Discogs IDs.
+	 */
 	@UpnpAction
-	public void dislikeAlbum(@UpnpInputArgument(name = "MusicBraizReleaseID") String musicBrainzReleaseId) throws UmsExtendedServicesException {
-		LOG.debug("dislike album with musicbrainz release id {} ", musicBrainzReleaseId);
-		likeMusic.dislikeAlbum(musicBrainzReleaseId);
+	public void dislikeAlbum(
+			@Nullable @UpnpInputArgument(name = "MusicBrainzId") String musicBrainzId,
+			@Nullable @UpnpInputArgument(name = "DiscogsId") UnsignedIntegerFourBytes discogsId) throws UmsExtendedServicesException {
+
+		Long discogsIdLong = discogsId != null ? discogsId.getValue().longValue() : null;
+		AlbumId albumId = new AlbumId(musicBrainzId, discogsIdLong);
+		LOG.debug("dislike album for albumId: musicBrainzId={}, discogsId={}", albumId.musicBrainzId, albumId.discogsId);
+
+		if (albumId.musicBrainzId != null && !albumId.musicBrainzId.isBlank()) {
+			likeMusic.dislikeAlbumMB(albumId.musicBrainzId.trim());
+			LOG.debug("disliked album via MusicBrainz: {}", albumId.musicBrainzId);
+		}
+
+		if (albumId.discogsId != null) {
+			likeMusic.dislikeAlbumDiscogs(albumId.discogsId);
+			LOG.debug("disliked album via Discogs: {}", albumId.discogsId);
+		}
+	}
+
+	/**
+	 * Backup audio ratings to a file.
+	 */
+	@UpnpAction
+	public void backupRatings() throws UmsExtendedServicesException {
+		LOG.debug("backing up audio ratings ... ");
+		try {
+			RatingBackupManager.backupRatings();
+		} catch (Exception e) {
+			LOG.error("failed backup audio ratings", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
+		}
+	}
+
+	/**
+	 * Restores audio ratings from a backup file created by the backupRatings action.
+	 */
+	@UpnpAction
+	public void restoreRatings() throws UmsExtendedServicesException {
+		LOG.debug("restoring audio ratings ... ");
+		try {
+			RatingBackupManager.restoreRating();
+		} catch (Exception e) {
+			LOG.error("failed restore audio ratings", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
+		}
 	}
 }
