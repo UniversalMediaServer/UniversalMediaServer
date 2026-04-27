@@ -282,6 +282,7 @@ public class MediaScanner implements SharedContentListener {
 			} else {
 				LOGGER.debug("Scanning folder \"{}\"", file.getAbsolutePath());
 			}
+<<<<<<< HEAD
 			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 			if (systemFileResources.isEmpty()) {
 				if (isInSharedFolders(filename)) {
@@ -295,10 +296,35 @@ public class MediaScanner implements SharedContentListener {
 					if (storeResource instanceof StoreContainer storeContainer) {
 						storeContainer.discoverChildren();
 						storeContainer.setDiscovered(true);
+=======
+
+			File parentFile = file.getParentFile();
+			if (parentFile != null) {
+				String parent = parentFile.getAbsolutePath();
+				if (isInSharedFolders(parent) && !parent.equals(filename)) {
+					internalScanFileOrFolder(parent);
+					List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
+					if (systemFileResources.isEmpty()) {
+						if (isInSharedFolders(parent)) {
+							internalScanFileOrFolder(parent);
+							systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
+						}
+>>>>>>> bugfix/recursive_scan
 					}
+					if (!systemFileResources.isEmpty()) {
+						//if it is still empty, it mean the tree is no more accessible
+						for (StoreResource storeResource : systemFileResources) {
+							if (storeResource instanceof StoreContainer storeContainer) {
+								storeContainer.discoverChildren();
+								storeContainer.setDiscovered(true);
+							}
+						}
+					} else {
+						LOGGER.warn("Given folder was not found in store : " + file.getAbsolutePath());
+					}
+				} else {
+					LOGGER.debug("Not in shared folders or parent is current file : " + filename);
 				}
-			} else {
-				LOGGER.warn("Given folder was not found in store : " + file.getAbsolutePath());
 			}
 		} else {
 			LOGGER.warn("Given file or folder doesn't share same base path as this server : " + filename);
