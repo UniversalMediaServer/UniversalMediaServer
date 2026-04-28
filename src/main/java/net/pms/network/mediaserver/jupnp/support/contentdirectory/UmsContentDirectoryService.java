@@ -342,6 +342,7 @@ public class UmsContentDirectoryService {
 		searchRequest.setRequestedCount(Math.toIntExact(requestedCount.getValue()));
 		searchRequest.setSortCriteria(orderBy);
 
+		LOGGER.debug("search action : {}", searchRequest);
 		try {
 			return search(
 					searchRequest,
