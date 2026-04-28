@@ -80,7 +80,7 @@ public abstract class JakartaServletUpnpStream extends UpnpStream {
 					HttpServletHelper.logHttpServletResponse(getRequest(), getResponse(), null, false);
 				}
 			}
-		} catch (IOException e) {
+		} catch (IOException | RuntimeException e) {
 			LOGGER.error("Exception occurred during UPnP stream processing", e);
 			if (!getResponse().isCommitted()) {
 				LOGGER.trace("Response hasn't been committed, returning INTERNAL SERVER ERROR to client");
