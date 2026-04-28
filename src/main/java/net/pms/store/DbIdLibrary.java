@@ -17,7 +17,6 @@
 package net.pms.store;
 
 import java.util.List;
-import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,19 +190,17 @@ public class DbIdLibrary {
 			MusicAlbumFolder mbFolder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(renderer, typeIdent);
 			if (mbFolder == null) {
 				LOGGER.debug("music album not in database : {} ", typeIdent.toString());
-				String uuid = album.getMbReleaseid();
 
-				try {
-					UUID.fromString(uuid);
-				} catch (IllegalArgumentException e) {
-					LOGGER.warn("invalid MusicBrainz release ID: '{}'", uuid);
-					return null;
+				if (DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.equals(typeIdent.type)) {
+					// check if album is in database, if not store it
+					AlbumMetadata persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(album.getMbReleaseid());
+					if (persistentAlbum == null) {
+						MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+					}
+				} else if (DbIdMediaType.TYPE_DISCOGS_RELEASEID.equals(typeIdent.type)) {
+					// TODO store discogs release in database
 				}
 
-				AlbumMetadata persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(uuid);
-				if (persistentAlbum == null) {
-					MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
-				}
 				mbFolder = new MusicAlbumFolder(renderer, album);
 
 				// Lookup person's album folder as parent
