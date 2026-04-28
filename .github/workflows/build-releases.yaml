@@ -62,6 +62,8 @@ jobs:
           files: '**/pom.xml'
           search-text: 'JAVA_PATH_VERSION'
           replacement-text: ${{ steps.paths.outputs.jrePath }}
+      - name: Logging
+        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/arm64 && ls
       - name: Build package
         run: mvn -P macos-arm-ci package -DskipTests=true
       - name: Write tag to Gon configs
