@@ -33,5 +33,4 @@ public class SearchRequest extends BrowseSearchRequest {
 			getStartingIndex() + ", getRequestedCount()=" + getRequestedCount() + ", getSearchCriteria()=" + getSearchCriteria() +
 			", getSortCriteria()=" + getSortCriteria() + ", getFilter()=" + getFilter() + ", getBrowseFlag()=" + getBrowseFlag() + "]";
 	}
-	
 }
