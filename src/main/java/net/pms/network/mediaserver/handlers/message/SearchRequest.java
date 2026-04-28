@@ -27,4 +27,11 @@ import jakarta.xml.bind.annotation.XmlType;
 @XmlType(name = "Search")
 public class SearchRequest extends BrowseSearchRequest {
 
+	@Override
+	public String toString() {
+		return "SearchRequest [getObjectId()=" + getObjectId() + ", getContainerId()=" + getContainerId() + ", getStartingIndex()=" +
+			getStartingIndex() + ", getRequestedCount()=" + getRequestedCount() + ", getSearchCriteria()=" + getSearchCriteria() +
+			", getSortCriteria()=" + getSortCriteria() + ", getFilter()=" + getFilter() + ", getBrowseFlag()=" + getBrowseFlag() + "]";
+	}
+	
 }
