@@ -301,8 +301,12 @@ public abstract class BaseSearchRequestHandler {
 											if (folder == null) {
 												folder = DbIdLibrary.addLibraryResourceMusicAlbum(renderer, album);
 											}
-											result.add(folder);
-											foundAlbums.add(identToMatch);
+											if (folder != null) {
+												result.add(folder);
+												foundAlbums.add(identToMatch);
+											} else {
+												LOGGER.warn("Could not create MusicAlbumFolder for album '{}'", album.getAlbum());
+											}
 										}
 									}
 								}

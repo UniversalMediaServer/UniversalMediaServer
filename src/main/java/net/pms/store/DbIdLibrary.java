@@ -17,6 +17,7 @@
 package net.pms.store;
 
 import java.util.List;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,7 +191,16 @@ public class DbIdLibrary {
 			MusicAlbumFolder mbFolder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(renderer, typeIdent);
 			if (mbFolder == null) {
 				LOGGER.debug("music album not in database : {} ", typeIdent.toString());
-				AlbumMetadata persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(album.getMbReleaseid());
+				String uuid = album.getMbReleaseid();
+
+				try {
+					UUID.fromString(uuid);
+				} catch (IllegalArgumentException e) {
+					LOGGER.warn("invalid MusicBrainz release ID: '{}'", uuid);
+					return null;
+				}
+
+				AlbumMetadata persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(uuid);
 				if (persistentAlbum == null) {
 					MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
 				}
