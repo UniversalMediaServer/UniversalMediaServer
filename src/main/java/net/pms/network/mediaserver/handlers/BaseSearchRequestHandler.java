@@ -394,9 +394,7 @@ public abstract class BaseSearchRequestHandler {
 	public int getLibraryResourceCountFromSQL() {
 		String query = convertToCountSql();
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(String.format("SQL count : %s", query));
-		}
+		LOGGER.debug("SQL count : {}", query);
 
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable();
 			Statement statement = connection.createStatement();
