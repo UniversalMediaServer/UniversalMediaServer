@@ -40,6 +40,8 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
+      - name: Logging 3
+        run: echo "$JAVA_HOME_17_arm64"
       - name: Set up JRE
         uses: actions/setup-java@v5
         with:
@@ -69,10 +71,8 @@ jobs:
           path: '/Users/runner/hostedtoolcache/Java_Liberica_jre/'
       - name: Logging
         run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/arm64 && ls
-      - name: Logging 2
-        run: ${echo $JAVA_HOME_17_arm64}
-      - name: Logging 3
-        run: echo "$JAVA_HOME_17_arm64"
+      # - name: Logging 2
+      #   run: ${echo $JAVA_HOME_17_arm64}
       # - name: Build package
       #   run: mvn -P macos-arm-ci package -DskipTests=true
       # - name: Write tag to Gon configs
