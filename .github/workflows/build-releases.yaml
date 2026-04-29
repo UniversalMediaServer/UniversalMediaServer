@@ -84,7 +84,7 @@ jobs:
       - name: Read permissions
         run: cd "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/arm64/Contents/Home/lib/server/" && ls -l
       - name: Set permissions on JRE files so that signing succeeds (wtf?)
-        run: chmod -R +w "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/arm64/Contents/Home/lib/server/classes.jsa"
+        run: chmod -R +w "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/arm64/Contents/Home/lib/server/"
       - name: Read permissions after
         run: cd "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/arm64/Contents/Home/lib/server/" && ls -l
       - name: Run pre-build signing step
