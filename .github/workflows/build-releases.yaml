@@ -34,7 +34,7 @@ jobs:
   #     - name: Upload artifact
   #       uses: actions/upload-artifact@v7
   #       with:
-  #         name: AppImage
+  #         name: ci-builds
   #         path: 'dist'
   macos-arm:
     runs-on: macos-26
@@ -88,7 +88,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: macos-arm
+          name: ci-builds
           path: '**/*.dmg'
   # macos-intel:
   #   runs-on: macos-26-intel
@@ -142,7 +142,7 @@ jobs:
   #     - name: Upload artifact
   #       uses: actions/upload-artifact@v7
   #       with:
-  #         name: macos-intel
+  #         name: ci-builds
   #         path: '**/*.dmg'
   # macos-intel-pre1015:
   #   runs-on: macos-26-intel
@@ -177,7 +177,7 @@ jobs:
   #     - name: Upload artifact
   #       uses: actions/upload-artifact@v7
   #       with:
-  #         name: macos-intel-pre1015
+  #         name: ci-builds
   #         path: '**/*.dmg'
   # docker-ubuntu:
   #   runs-on: macos-26-intel
