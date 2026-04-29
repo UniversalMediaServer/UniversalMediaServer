@@ -2916,7 +2916,7 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<runtime dir="/Users/runner/hostedtoolcache/Java_Liberica_jre/JAVA_PATH_VERSION/arm64"/>
+											<runtime dir="JAVA_PATH_CI"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
