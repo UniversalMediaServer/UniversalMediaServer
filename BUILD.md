@@ -1,2 +1,2 @@
-These instructions have moved to our Wiki to make collaboration easier.
-Please see https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS
+These instructions have moved to our Knowledge Base
+Please see https://support.universalmediaserver.com/development/build-instructions
