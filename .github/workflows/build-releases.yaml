@@ -41,6 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Set jrePath to default Java 17
+        id: paths
         run: echo "jrePath=$JAVA_HOME_17_arm64" >> "$GITHUB_OUTPUT"
       # - name: Set up JRE
       #   uses: actions/setup-java@v5
