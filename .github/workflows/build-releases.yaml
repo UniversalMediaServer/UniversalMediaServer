@@ -2,8 +2,6 @@ name: Build releases
 
 on:
   push:
-    tags:
-      - '*'
 
 jobs:
   # appimage:
@@ -55,7 +53,7 @@ jobs:
       #     distribution: 'liberica'
       #     java-version: 17
       - name: Extract tag
-        run: echo "TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
+        run: echo "TAG=15.6.0" >> $GITHUB_ENV
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
