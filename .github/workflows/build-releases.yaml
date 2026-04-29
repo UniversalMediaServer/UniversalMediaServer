@@ -81,6 +81,8 @@ jobs:
         with: 
           p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
+      - name: Set permissions on JRE files so that signing succeeds (wtf?)
+        run: chmod -R +X ./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns
       - name: Run pre-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild-arm.json
       - name: Run post-build signing step
