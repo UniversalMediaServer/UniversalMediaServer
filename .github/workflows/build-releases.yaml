@@ -62,36 +62,41 @@ jobs:
           files: '**/pom.xml'
           search-text: 'JAVA_PATH_VERSION'
           replacement-text: ${{ steps.paths.outputs.jrePath }}
-      - name: Logging
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/arm64 && ls
-      - name: Build package
-        run: mvn -P macos-arm-ci package -DskipTests=true
-      - name: Write tag to Gon configs
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: './.github/workflows/dependencies/gon-config-*.json'
-          search-text: 'VERSION_TAG'
-          replacement-text: ${{ env.TAG }}
-      - name: Write password to Gon configs
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: './.github/workflows/dependencies/gon-config-*.json'
-          search-text: 'APPLE_PASSWORD'
-          replacement-text: ${{secrets.APPLE_PASSWORD}}
-      - name: Import codesign cert
-        uses: apple-actions/import-codesign-certs@v7
-        with: 
-          p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
-          p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
-      - name: Run pre-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
-      - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json || true
-      - name: Upload artifact
+      - name: Upload temp artifact
         uses: actions/upload-artifact@v7
         with:
           name: macos-arm
-          path: '**/*.dmg'
+          path: '/Users/runner/hostedtoolcache/Java_Liberica_jre/'
+      - name: Logging
+        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/${{ steps.paths.outputs.jrePath }}/arm64 && ls
+      # - name: Build package
+      #   run: mvn -P macos-arm-ci package -DskipTests=true
+      # - name: Write tag to Gon configs
+      #   uses: richardrigutins/replace-in-files@v3.0.0
+      #   with:
+      #     files: './.github/workflows/dependencies/gon-config-*.json'
+      #     search-text: 'VERSION_TAG'
+      #     replacement-text: ${{ env.TAG }}
+      # - name: Write password to Gon configs
+      #   uses: richardrigutins/replace-in-files@v3.0.0
+      #   with:
+      #     files: './.github/workflows/dependencies/gon-config-*.json'
+      #     search-text: 'APPLE_PASSWORD'
+      #     replacement-text: ${{secrets.APPLE_PASSWORD}}
+      # - name: Import codesign cert
+      #   uses: apple-actions/import-codesign-certs@v7
+      #   with: 
+      #     p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
+      #     p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
+      # - name: Run pre-build signing step
+      #   run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
+      # - name: Run post-build signing step
+      #   run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json || true
+      # - name: Upload artifact
+      #   uses: actions/upload-artifact@v7
+      #   with:
+      #     name: macos-arm
+      #     path: '**/*.dmg'
   # macos-intel:
   #   runs-on: macos-26-intel
   #   steps:
