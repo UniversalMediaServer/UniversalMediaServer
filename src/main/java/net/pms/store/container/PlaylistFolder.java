@@ -260,7 +260,9 @@ public final class PlaylistFolder extends StoreContainer {
 			Collections.shuffle(getChildren());
 		}
 
-		for (StoreResource r : getChildren()) {
+		// Create a copy of the children list to avoid ConcurrentModificationException
+		// when syncResolve() modifies the children list
+		for (StoreResource r : new ArrayList<>(getChildren())) {
 			r.syncResolve();
 		}
 	}
