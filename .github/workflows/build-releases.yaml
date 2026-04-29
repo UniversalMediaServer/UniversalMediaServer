@@ -82,7 +82,7 @@ jobs:
           p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
       - name: Run pre-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
+        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild-arm.json
       - name: Run post-build signing step
         run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json || true
       - name: Upload artifact
