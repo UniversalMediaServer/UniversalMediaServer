@@ -607,6 +607,12 @@ public class MediaStore extends StoreContainer {
 			if (sr != null) {
 				systemFileResources.add(sr);
 			}
+			if (sr == null) {
+				sr = createResourceFromFile(file, false);
+				if (sr != null) {
+					systemFileResources.add(sr);
+				}
+			}
 		}
 		return systemFileResources;
 	}
