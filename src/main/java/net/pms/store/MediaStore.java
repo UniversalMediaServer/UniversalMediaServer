@@ -602,15 +602,23 @@ public class MediaStore extends StoreContainer {
 				}
 			}
 		}
+
 		if (systemFileResources.isEmpty()) {
-			StoreResource sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
+			StoreResource sr = null;
+			if (file.isDirectory()) {
+				sr = DbIdResourceLocator.getLibraryResourceRealFolder(renderer, file.getAbsolutePath());
+			} else {
+				sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
+			}
 			if (sr != null) {
 				systemFileResources.add(sr);
-			}
-			if (sr == null) {
+			} else {
+				LOGGER.debug("resource not in database {}", file.getAbsolutePath());
 				sr = createResourceFromFile(file, false);
 				if (sr != null) {
 					systemFileResources.add(sr);
+				} else {
+					LOGGER.debug("findSystemFileResources has failed for {}", file.getAbsolutePath());
 				}
 			}
 		}
