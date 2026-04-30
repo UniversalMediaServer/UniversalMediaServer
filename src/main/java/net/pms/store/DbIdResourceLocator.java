@@ -78,6 +78,20 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
+	public static StoreResource getLibraryResourceRealFolder(Renderer renderer, String realFileName) {
+		if (renderer.hasShareAccess(new File(realFileName))) {
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFileName, "RealFolder", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
+			}
+			LOGGER.error("{} not found as RealFile in database.", realFileName);
+		}
+		return null;
+	}
+
 	public static StoreResource getLibraryResourcePlaylist(Renderer renderer, String realFileName) {
 		if (renderer.hasShareAccess(new File(realFileName))) {
 			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFileName, "PlaylistFolder", "RealFolder");
