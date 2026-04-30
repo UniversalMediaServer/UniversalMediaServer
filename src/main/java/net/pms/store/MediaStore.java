@@ -602,6 +602,12 @@ public class MediaStore extends StoreContainer {
 				}
 			}
 		}
+		if (systemFileResources.isEmpty()) {
+			StoreResource sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
+			if (sr != null) {
+				systemFileResources.add(sr);
+			}
+		}
 		return systemFileResources;
 	}
 
