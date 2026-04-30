@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Set jrePath to default Java 17
         id: paths
-        run: echo "jrePath=$JAVA_HOME_17_x86_64" >> "$GITHUB_OUTPUT"
+        run: echo "jrePath=$JAVA_HOME_17_X64" >> "$GITHUB_OUTPUT"
       - name: Extract tag
         run: echo "TAG=15.6.0" >> $GITHUB_ENV
       - name: Write specific Java version to Maven pom config
@@ -128,7 +128,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Set jrePath to default Java 17
         id: paths
-        run: echo "jrePath=$JAVA_HOME_17_x86_64" >> "$GITHUB_OUTPUT"
+        run: echo "jrePath=$JAVA_HOME_17_X64" >> "$GITHUB_OUTPUT"
       - name: Extract tag
         run: echo "TAG=15.6.0" >> $GITHUB_ENV
       - name: Write specific Java version to Maven pom config
