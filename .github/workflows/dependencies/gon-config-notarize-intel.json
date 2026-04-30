@@ -10,8 +10,7 @@
     },
     "sign" :{
         "entitlements_file": "./entitlements.xml",
-        "application_identity" : "Developer ID Application: Klaus Townsend (9V2H7S647T)",
-        "deep": true
+        "application_identity" : "Developer ID Application: Klaus Townsend (9V2H7S647T)"
     },
     "dmg" :{
         "output_path": "UMS-macOS-VERSION_TAG-x86_64.dmg",
