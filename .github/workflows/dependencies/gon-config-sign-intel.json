@@ -14,6 +14,7 @@
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/jfr/profile.jfc",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/jrt-fs.jar",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/jvm.cfg",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/modules",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/psfont.properties.ja",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/psfontj2d.properties",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/security/blocked.certs",
