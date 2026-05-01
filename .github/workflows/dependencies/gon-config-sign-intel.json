@@ -13,6 +13,7 @@
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/conf/security/policy/README.txt",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/conf/security/policy/limited/default_local.policy",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/conf/security/policy/limited/default_US_export.policy",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/conf/security/policy/limited/exempt_local.policy",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/conf/security/policy/unlimited/default_local.policy",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/conf/security/policy/unlimited/default_US_export.policy",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/conf/sound.properties",
