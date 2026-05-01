@@ -122,6 +122,11 @@ jobs:
         with:
           name: ci-builds
           path: '**/*.dmg'
+      - name: Upload JDK
+        uses: actions/upload-artifact@v7
+        with:
+          name: jdk
+          path: ${{ steps.paths.outputs.jrePath }}
   macos-intel-pre1015:
     runs-on: macos-26-intel
     steps:
