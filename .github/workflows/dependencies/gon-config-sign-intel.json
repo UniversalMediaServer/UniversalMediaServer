@@ -40,6 +40,7 @@
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/shaders.metallib",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/tzdb.dat",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/Welcome.html",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Info.plist",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Java/ums-VERSION_TAG-jar-with-dependencies.jar"
     ],
     "bundle_id" : "com.universalmediaserver.ums",
