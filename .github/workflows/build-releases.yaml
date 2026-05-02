@@ -90,7 +90,7 @@ jobs:
       - name: Extract Java Runtime Environment
         run: tar -xvf ./jre.tgz
       - name: Extract folder name of JRE
-        run: cd jre* && echo "jreFolderName=${pwd}" >> $GITHUB_OUTPUT
+        run: cd jre-* && echo "jreFolderName=${pwd}" >> $GITHUB_OUTPUT
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
