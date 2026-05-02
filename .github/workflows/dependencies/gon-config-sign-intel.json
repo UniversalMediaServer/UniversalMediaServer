@@ -30,6 +30,8 @@
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/security/cacerts",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/security/default.policy",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/security/public_suffix_list.dat",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/server/classes.jsa",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/server/classes_nocoops.jsa",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/shaders.metallib",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/tzdb.dat",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/Welcome.html",
