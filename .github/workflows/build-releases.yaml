@@ -91,6 +91,7 @@ jobs:
         run: tar -xvf ./jre.tgz
       - run: ls
       - name: Extract folder name of JRE
+        id: paths
         run: cd jre-* && echo "jreFolderName=${pwd}" >> $GITHUB_OUTPUT
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
