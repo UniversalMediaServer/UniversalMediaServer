@@ -98,7 +98,7 @@ jobs:
         with:
           files: '**/pom.xml'
           search-text: 'JAVA_PATH_CI'
-          replacement-text: ${{ steps.paths.outputs.jreFolderName }}
+          replacement-text: '/Users/runner/hostedtoolcache/Java_Zulu_jre/17.0.19-10/x64/Contents/Home'
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
