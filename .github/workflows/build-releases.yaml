@@ -104,6 +104,11 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
           java-package: jre
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          java-package: jdk
       - name: Build package
         run: mvn -P macos-ci package -DskipTests=true
       - name: Write tag to Gon configs
