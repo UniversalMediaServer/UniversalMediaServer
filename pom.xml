@@ -2417,12 +2417,12 @@
 									<property environment="env" />
 									<target name="bundle" unless="jaronly">
 										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
+										<!-- <exec executable="/usr/libexec/java_home"
 											  failonerror="true"
 											  outputproperty="runtime">
 											<arg value="-v"/>
 											<arg value="${project.jre-version}"/>
-										</exec>
+										</exec> -->
 
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
