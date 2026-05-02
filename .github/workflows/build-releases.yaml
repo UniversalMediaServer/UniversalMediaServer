@@ -86,7 +86,7 @@ jobs:
       - name: Extract tag
         run: echo "TAG=15.6.0" >> $GITHUB_ENV
       - name: Download Java Runtime Environment
-        run: curl -L -o ./jre.tgz https://www.azul.com/core-post-download/?endpoint=zulu&uuid=89e6b8c4-2a64-4a22-a64a-82e449735fa3
+        run: curl -L -o ./jre.tgz https://cdn.azul.com/zulu/bin/zulu17.66.19-ca-jre17.0.19-macosx_x64.tar.gz
       - name: Extract Java Runtime Environment
         run: tar -xvf ./jre.tgz
       - run: ls
