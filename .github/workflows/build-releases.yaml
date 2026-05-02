@@ -86,9 +86,9 @@ jobs:
       - name: Extract tag
         run: echo "TAG=15.6.0" >> $GITHUB_ENV
       - name: Download Java Runtime Environment
-        run: curl -o ./jre.tgz https://github.com/bell-sw/Liberica/releases/download/17.0.19%2B11/bellsoft-jre17.0.19%2B11-macos-amd64.tar.gz
+        run: curl -OL https://github.com/bell-sw/Liberica/releases/download/17.0.19%2B11/bellsoft-jre17.0.19+11-macos-amd64.tar.gz
       - name: Extract Java Runtime Environment
-        run: tar -xvf ./jre.tgz
+        run: tar -xvf ./jre*
       - run: ls
       - name: Extract folder name of JRE
         run: cd jre-* && echo "jreFolderName=${pwd}" >> $GITHUB_OUTPUT
