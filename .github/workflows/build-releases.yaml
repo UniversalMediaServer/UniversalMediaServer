@@ -132,9 +132,9 @@ jobs:
       - name: Set permissions on files so that signing succeeds
         run: chmod -R +w "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/server/"
       - name: Run signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-sign-intel.json
+        run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-sign-intel.json
       - name: Run notarization step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-notarize-intel.json || true
+        run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-intel.json || true
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
