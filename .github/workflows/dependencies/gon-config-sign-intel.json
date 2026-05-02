@@ -8,6 +8,7 @@
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/tsMuxeR",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Resources/osx/youtube-dl",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/Welcome.html",
+        "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/psfontj2d.properties",
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app/Contents/Java/ums-VERSION_TAG-jar-with-dependencies.jar"
     ],
     "bundle_id" : "com.universalmediaserver.ums",
