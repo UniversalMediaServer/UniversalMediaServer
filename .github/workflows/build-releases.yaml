@@ -104,6 +104,11 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
           java-package: jre
+      - name: Upload jre
+        uses: actions/upload-artifact@v7
+        with:
+          name: jre
+          path: '/Users/runner/hostedtoolcache/Java_Zulu_jre/17.0.19-10/x64/Contents/Home'
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
