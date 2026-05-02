@@ -83,17 +83,20 @@ jobs:
     runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v6
-      - name: Set jrePath to default Java 17
-        id: paths
-        run: echo "jrePath=$JAVA_HOME_17_X64" >> "$GITHUB_OUTPUT"
       - name: Extract tag
         run: echo "TAG=15.6.0" >> $GITHUB_ENV
+      - name: Download Java Runtime Environment
+        run: curl -o ./jre.tgz https://github.com/bell-sw/Liberica/releases/download/17.0.19%2B11/bellsoft-jre17.0.19+11-macos-amd64.tar.gz
+      - name: Extract Java Runtime Environment
+        run: tar -xvf ./jre.tgz
+      - name: Extract folder name of JRE
+        run: cd jre* && echo "jreFolderName=${pwd}" >> $GITHUB_OUTPUT
       - name: Write specific Java version to Maven pom config
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
           files: '**/pom.xml'
           search-text: 'JAVA_PATH_CI'
-          replacement-text: ${{ steps.paths.outputs.jrePath }}
+          replacement-text: ${{ steps.paths.outputs.jreFolderName }}
       - name: Build package
         run: mvn -P macos-ci package -DskipTests=true
       - name: Write tag to Gon configs
