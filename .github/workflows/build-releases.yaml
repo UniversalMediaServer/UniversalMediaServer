@@ -34,51 +34,59 @@ jobs:
   #       with:
   #         name: ci-builds
   #         path: 'dist'
-  # macos-arm:
-  #   runs-on: macos-26
-  #   steps:
-  #     - uses: actions/checkout@v6
-  #     - name: Set jrePath to default Java 17
-  #       id: paths
-  #       run: echo "jrePath=$JAVA_HOME_17_arm64" >> "$GITHUB_OUTPUT"
-  #     - name: Extract tag
-  #       run: echo "TAG=15.6.0" >> $GITHUB_ENV
-  #     - name: Write specific Java version to Maven pom config
-  #       uses: richardrigutins/replace-in-files@v3.0.0
-  #       with:
-  #         files: '**/pom.xml'
-  #         search-text: 'JAVA_PATH_CI'
-  #         replacement-text: ${{ steps.paths.outputs.jrePath }}
-  #     - name: Build package
-  #       run: mvn -P macos-arm-ci package -DskipTests=true
-  #     - name: Write tag to Gon configs
-  #       uses: richardrigutins/replace-in-files@v3.0.0
-  #       with:
-  #         files: './.github/workflows/dependencies/gon-config-*.json'
-  #         search-text: 'VERSION_TAG'
-  #         replacement-text: ${{ env.TAG }}
-  #     - name: Write password to Gon configs
-  #       uses: richardrigutins/replace-in-files@v3.0.0
-  #       with:
-  #         files: './.github/workflows/dependencies/gon-config-*.json'
-  #         search-text: 'APPLE_PASSWORD'
-  #         replacement-text: ${{secrets.APPLE_PASSWORD}}
-  #     - name: Import codesign cert
-  #       uses: apple-actions/import-codesign-certs@v7
-  #       with: 
-  #         p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
-  #         p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
-  #     - name: Set permissions on files so that signing succeeds
-  #       run: chmod -R +w "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/arm64/Contents/Home/lib/server/"
-  #     - name: Run signing step
-  #       run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-sign-arm.json
-  #     - name: Run notarization step
-  #       run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-arm.json || true
-  #     - name: Upload artifact
-  #       uses: actions/upload-artifact@v7
-  #       with:
-  #         name: ci-builds
-  #         path: '**/*.dmg'
+  macos-arm:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v6
+      - run: corepack enable
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: 'react-client/yarn.lock'
+      - name: Extract tag
+        run: echo "TAG=15.6.0" >> $GITHUB_ENV
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17.0.19'
+          java-package: jre
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17.0.19'
+          java-package: jdk
+          cache: 'maven'
+      - name: Build package
+        run: mvn -P macos-arm-ci package -DskipTests=true
+      - name: Write tag to Gon configs
+        uses: richardrigutins/replace-in-files@v3.0.0
+        with:
+          files: './.github/workflows/dependencies/gon-config-*.json'
+          search-text: 'VERSION_TAG'
+          replacement-text: ${{ env.TAG }}
+      - name: Write password to Gon configs
+        uses: richardrigutins/replace-in-files@v3.0.0
+        with:
+          files: './.github/workflows/dependencies/gon-config-*.json'
+          search-text: 'APPLE_PASSWORD'
+          replacement-text: ${{secrets.APPLE_PASSWORD}}
+      - name: Import codesign cert
+        uses: apple-actions/import-codesign-certs@v7
+        with: 
+          p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
+          p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
+      - name: Set permissions on files so that signing succeeds
+        run: chmod -R +w "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/arm64/Contents/Home/lib/server/"
+      - name: Run signing step
+        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-sign-arm.json
+      - name: Run notarization step
+        run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-arm.json || true
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-builds
+          path: '**/*.dmg'
   macos-intel:
     runs-on: macos-26-intel
     steps:
@@ -132,30 +140,38 @@ jobs:
         with:
           name: ci-builds
           path: '**/*.dmg'
-  # macos-intel-pre1015:
-  #   runs-on: macos-26-intel
-  #   steps:
-  #     - uses: actions/checkout@v6
-  #     - name: Set jrePath to default Java 17
-  #       id: paths
-  #       run: echo "jrePath=$JAVA_HOME_17_X64" >> "$GITHUB_OUTPUT"
-  #     - name: Extract tag
-  #       run: echo "TAG=15.6.0" >> $GITHUB_ENV
-  #     - name: Write specific Java version to Maven pom config
-  #       uses: richardrigutins/replace-in-files@v3.0.0
-  #       with:
-  #         files: '**/pom.xml'
-  #         search-text: 'JAVA_PATH_CI'
-  #         replacement-text: ${{ steps.paths.outputs.jrePath }}
-  #     - name: Build package
-  #       run: mvn -P macos-pre1015-ci package -DskipTests=true
-  #     - name: Package package
-  #       run: hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-${{ env.TAG }}-pre10.15.dmg
-  #     - name: Upload artifact
-  #       uses: actions/upload-artifact@v7
-  #       with:
-  #         name: ci-builds
-  #         path: '**/*.dmg'
+  macos-intel-pre1015:
+    runs-on: macos-26-intel
+    steps:
+      - uses: actions/checkout@v6
+      - run: corepack enable
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: 'react-client/yarn.lock'
+      - name: Extract tag
+        run: echo "TAG=15.6.0" >> $GITHUB_ENV
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17.0.19'
+          java-package: jre
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17.0.19'
+          java-package: jdk
+          cache: 'maven'
+      - name: Build package
+        run: mvn -P macos-pre1015-ci package -DskipTests=true
+      - name: Package package
+        run: hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-${{ env.TAG }}-pre10.15.dmg
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-builds
+          path: '**/*.dmg'
   # docker-ubuntu:
   #   runs-on: macos-26-intel
   #   steps:

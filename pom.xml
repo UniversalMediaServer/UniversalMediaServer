@@ -2916,7 +2916,7 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<runtime dir="JAVA_PATH_CI"/>
+											<runtime dir="/Users/runner/hostedtoolcache/Java_Zulu_jre/17.0.19-10/arm64/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
@@ -3282,7 +3282,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-macos-pre1015</id>
+								<id>process-resources-macos-pre1015-ci</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -3314,7 +3314,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>prepare-package-macos-pre1015</id>
+								<id>prepare-package-macos-pre1015-ci</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3341,7 +3341,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>package-app-macos-pre1015</id>
+								<id>package-app-macos-pre1015-ci</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3374,6 +3374,7 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
+											<runtime dir="/Users/runner/hostedtoolcache/Java_Zulu_jre/17.0.19-10/x64/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
@@ -3414,7 +3415,7 @@
 								moving them to the app Bundle.
 							-->
 							<execution>
-								<id>make-assembly-macos-pre1015</id>
+								<id>make-assembly-macos-pre1015-ci</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
