@@ -53,9 +53,5 @@
         "entitlements_file": "./entitlements.xml",
         "application_identity": "Developer ID Application: Klaus Townsend (9V2H7S647T)",
         "deep": true
-    },
-    "dmg": {
-        "output_path": "UMS-macOS-VERSION_TAG-x86_64.dmg",
-        "volume_name": "Universal Media Server"
     }
 }
