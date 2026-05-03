@@ -1,20 +1,20 @@
 {
-    "source" : [
+    "source": [
         "./target/ums-VERSION_TAG-distribution/Universal Media Server.app"
     ],
-    "bundle_id" : "com.universalmediaserver.ums",
+    "bundle_id": "com.universalmediaserver.ums",
     "apple_id": {
-        "username" : "klaus@klaustownsend.com",
+        "username": "klaus@klaustownsend.com",
         "password":  "APPLE_PASSWORD",
         "provider": "9V2H7S647T"
     },
-    "sign" :{
+    "sign": {
         "entitlements_file": "./entitlements.xml",
-        "application_identity" : "Developer ID Application: Klaus Townsend (9V2H7S647T)"
-    },
-    "dmg" :{
-        "output_path": "UMS-macOS-VERSION_TAG-x86_64.dmg",
-        "volume_name": "Universal Media Server",
+        "application_identity": "Developer ID Application: Klaus Townsend (9V2H7S647T)",
         "deep": true
+    },
+    "dmg": {
+        "output_path": "UMS-macOS-VERSION_TAG-x86_64.dmg",
+        "volume_name": "Universal Media Server"
     }
 }
