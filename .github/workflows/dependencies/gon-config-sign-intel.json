@@ -57,8 +57,5 @@
     "dmg": {
         "output_path": "UMS-macOS-VERSION_TAG-x86_64.dmg",
         "volume_name": "Universal Media Server"
-    },
-    "zip" :{
-        "output_path" : "macos-x86_64.zip"
     }
 }
