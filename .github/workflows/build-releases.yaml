@@ -84,8 +84,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
-        node-version: 22
-        cache: 'yarn'
+        with:
+          node-version: 22
+          cache: 'yarn'
       - name: Extract tag
         run: echo "TAG=15.6.0" >> $GITHUB_ENV
       - name: Download Java Runtime Environment
