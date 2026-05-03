@@ -135,13 +135,13 @@ jobs:
         run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-sign-intel.json
       # - name: Run notarization step
       #   run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-intel.json
-      - run: sync
-      - name: Run notarization step
-        uses: Wandalen/wretry.action@master
-        with:
-          command: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-notarize-intel.json
-          attempt_limit: 10
-          attempt_delay: 2000
+      # - run: sync
+      # - name: Run notarization step
+      #   uses: Wandalen/wretry.action@master
+      #   with:
+      #     command: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-notarize-intel.json
+      #     attempt_limit: 10
+      #     attempt_delay: 2000
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
