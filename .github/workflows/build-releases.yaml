@@ -137,7 +137,7 @@ jobs:
       #   run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-intel.json
       - run: sync
       - name: Run notarization step
-        uses: Wandalen/wretry.action@3
+        uses: Wandalen/wretry.action@master
         with:
           command: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-notarize-intel.json
           attempt_limit: 10
