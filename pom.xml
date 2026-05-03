@@ -2441,7 +2441,7 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<runtime dir="JAVA_PATH_CI"/>
+											<runtime dir="/Users/runner/hostedtoolcache/Java_Zulu_jre/17.0.19-10/x64/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
