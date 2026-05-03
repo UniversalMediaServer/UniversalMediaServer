@@ -83,6 +83,7 @@ jobs:
     runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v6
+      - run: corepack enable
       - uses: actions/setup-node@v6
         with:
           node-version: 22
