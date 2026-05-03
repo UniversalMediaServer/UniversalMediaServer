@@ -87,6 +87,7 @@ jobs:
         with:
           node-version: 22
           cache: 'yarn'
+          cache-dependency-path: 'react-client/yarn.lock'
       - name: Extract tag
         run: echo "TAG=15.6.0" >> $GITHUB_ENV
       - name: Download Java Runtime Environment
