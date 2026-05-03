@@ -150,7 +150,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: macos-x86_64
-          path: '**/macos-x86_64.zip'
+          path: '**/*.dmg'
   # macos-intel-pre1015:
   #   runs-on: macos-26-intel
   #   steps:
