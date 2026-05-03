@@ -133,8 +133,15 @@ jobs:
         run: chmod -R +w "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/server/"
       - name: Run signing step
         run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-sign-intel.json
+      # - name: Run notarization step
+      #   run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-intel.json
+      - run: sync
       - name: Run notarization step
-        run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-intel.json
+        uses: Wandalen/wretry.action@3
+        with:
+          command: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-notarize-intel.json
+          attempt_limit: 10
+          attempt_delay: 2000
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
