@@ -102,12 +102,12 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '17.0.19'
           java-package: jre
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '17.0.19'
           java-package: jdk
           cache: 'maven'
       - name: Build package
