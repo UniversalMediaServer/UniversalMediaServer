@@ -16,14 +16,14 @@ import org.slf4j.LoggerFactory;
  *
  * Currently known roles are ALBUM_ARTIST, COMPOSER and CONDUCTOR.
  */
-public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
+public class PersonFolder extends VirtualFolderDbIdNamed {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MusicBrainzPersonFolder.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(PersonFolder.class);
 
 	private VirtualFolderDbId allFiles = null;
 	private VirtualFolderDbId albumFiles = null;
 
-	public MusicBrainzPersonFolder(Renderer renderer, String personName, DbIdTypeAndIdent typeIdent) {
+	public PersonFolder(Renderer renderer, String personName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, personName, typeIdent);
 		if (StringUtils.isAllBlank(typeIdent.ident)) {
 			LOGGER.debug("person name is blanc");

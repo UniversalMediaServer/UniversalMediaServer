@@ -22,7 +22,7 @@ import java.util.Optional;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MusicAlbumFolder;
-import net.pms.store.container.MusicBrainzPersonFolder;
+import net.pms.store.container.PersonFolder;
 import net.pms.store.container.VirtualFolderDbId;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -120,12 +120,12 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
-	public static MusicBrainzPersonFolder getLibraryResourcePersonFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
-		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicBrainzPersonFolder.class);
+	public static PersonFolder getLibraryResourcePersonFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), PersonFolder.class);
 		for (Long id : ids) {
 			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
 			if (resource != null) {
-				return (MusicBrainzPersonFolder) resource;
+				return (PersonFolder) resource;
 			}
 		}
 		LOGGER.debug("Person '{}' not found in database.", typeIdent.toString());
@@ -192,7 +192,7 @@ public class DbIdResourceLocator {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
 					return renderer.getMediaStore().getDbIdLibrary().getPersonArtistFolder();
 				}
-				MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, typeIdent);
+				PersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, typeIdent);
 				if (personFolder == null) {
 					personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, typeIdent);
 				}
@@ -207,7 +207,7 @@ public class DbIdResourceLocator {
 				return folder;
 			}
 			case TYPE_PERSON_ALBUM_FILES -> {
-				MusicBrainzPersonFolder folder = getLibraryResourcePersonFolder(renderer, typeIdent);
+				PersonFolder folder = getLibraryResourcePersonFolder(renderer, typeIdent);
 				if (folder == null) {
 					LOGGER.debug("person album path not in database : {} " + typeIdent.toString());
 				}

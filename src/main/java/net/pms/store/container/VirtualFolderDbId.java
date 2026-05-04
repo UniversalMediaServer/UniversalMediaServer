@@ -298,7 +298,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 										String name = resultSet.getString("NAME");
 										LOGGER.debug("person name is : {}", name);
 										DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(typeIdent.type, name.substring(name.lastIndexOf("$") + 1));
-										MusicBrainzPersonFolder person = new MusicBrainzPersonFolder(renderer, tiPerson.getIdentUnprefixed(), tiPerson);
+										PersonFolder person = new PersonFolder(renderer, tiPerson.getIdentUnprefixed(), tiPerson);
 										addChild(person);
 										person.discoverChildren();
 									}
@@ -308,7 +308,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							} else {
 								// We have a person folder which means, we need to add the two virtual folders "all files" and "by album".
 								LOGGER.debug("Person {}", typeIdent.ident);
-								if (this instanceof MusicBrainzPersonFolder person) {
+								if (this instanceof PersonFolder person) {
 									person.discoverChildren();
 								} else {
 									LOGGER.warn("unknown folder type.");

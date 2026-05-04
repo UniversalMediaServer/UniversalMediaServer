@@ -29,7 +29,7 @@ import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MusicAlbumFolder;
-import net.pms.store.container.MusicBrainzPersonFolder;
+import net.pms.store.container.PersonFolder;
 
 public abstract class BaseSearchRequestHandler {
 
@@ -312,7 +312,7 @@ public abstract class BaseSearchRequestHandler {
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(getRequestType(), filenameField);
-									MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
+									PersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
 									if (personFolder == null) {
 										personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, ti);
 									}
