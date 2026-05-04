@@ -37,7 +37,7 @@ import net.pms.store.StoreResource;
 	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictUser", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string")
+	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string"),
 	})
 public class UmsExtendedServices {
 
@@ -93,8 +93,19 @@ public class UmsExtendedServices {
 		}
 		if (this.preferEuropeanServer != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
 			LOG.debug("prefer european srevers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
-			this.anonymousDevicesWrite = PMS.getConfiguration().isAudioAddictEuropeanServer();
+			this.preferEuropeanServer = PMS.getConfiguration().isAudioAddictEuropeanServer();
 		}
+	}
+
+	@UpnpAction(out = @UpnpOutputArgument(name = "ObjectID"))
+	public String getAudioArtistDir() {
+		return PMS.getConfiguration().getAudioArtistDir();
+	}
+
+	@UpnpAction
+	public void setAudioArtistDir(@UpnpInputArgument(name = "ObjectID") String audioArtistDir) {
+		PMS.getConfiguration().setAudioArtistDir(audioArtistDir);
+		LOG.debug("updated AudioArtistDir to {}", audioArtistDir);
 	}
 
 	@UpnpAction
