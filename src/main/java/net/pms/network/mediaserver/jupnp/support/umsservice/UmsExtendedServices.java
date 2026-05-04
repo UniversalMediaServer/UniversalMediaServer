@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 import jakarta.annotation.Nullable;
+import org.apache.commons.configuration.ConfigurationException;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;
@@ -106,6 +107,7 @@ public class UmsExtendedServices {
 	public void setAudioArtistDir(@UpnpInputArgument(name = "ObjectID") String audioArtistDir) {
 		PMS.getConfiguration().setAudioArtistDir(audioArtistDir);
 		LOG.debug("updated AudioArtistDir to {}", audioArtistDir);
+		saveUmsConfig();
 	}
 
 	@UpnpAction
@@ -113,6 +115,7 @@ public class UmsExtendedServices {
 		LOG.debug("updating preferEuropeanServer to {}. Value changed from : {}", preferEuropeanServer, this.preferEuropeanServer);
 		PMS.getConfiguration().setAudioAddictEuropeanServer(preferEuropeanServer);
 		this.preferEuropeanServer = preferEuropeanServer;
+		saveUmsConfig();
 	}
 
 	@UpnpAction
@@ -120,6 +123,7 @@ public class UmsExtendedServices {
 		this.audioUpdateRatingTag = newAudioUpdateRatingTag;
 		boolean changed = PMS.getConfiguration().setAudioUpdateTag(newAudioUpdateRatingTag);
 		LOG.debug("updating audioUpdateRatingTag to {}. Value changed : {}", newAudioUpdateRatingTag, changed);
+		saveUmsConfig();
 	}
 
 	@UpnpAction
@@ -127,6 +131,7 @@ public class UmsExtendedServices {
 		this.audioLikesVisibleRoot = newAudioLikesVisibleRoot;
 		boolean changed = PMS.getConfiguration().setDisplayAudioLikesInRootFolder(newAudioLikesVisibleRoot);
 		LOG.debug("updating audioLikesVisibleRoot to {}. Value changed : {}", newAudioLikesVisibleRoot, changed);
+		saveUmsConfig();
 	}
 
 	@UpnpAction
@@ -134,13 +139,23 @@ public class UmsExtendedServices {
 		this.upnpCdsWrite = newUpnpCdsWrite;
 		boolean changed = PMS.getConfiguration().setUpnpCdsWrite(newUpnpCdsWrite);
 		LOG.debug("updating upnpCdsWrite to {}. Value changed : {}", newUpnpCdsWrite, changed);
+		saveUmsConfig();
 	}
 
 	@UpnpAction
 	public void setAnonymousDevicesWrite(@UpnpInputArgument(name = "AnonymousDevicesWrite") boolean newAnonymousDevicesWrite) {
 		this.anonymousDevicesWrite = newAnonymousDevicesWrite;
 		boolean changed = PMS.getConfiguration().setAnonymousDevicesWrite(newAnonymousDevicesWrite);
+		saveUmsConfig();
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
+	}
+
+	private void saveUmsConfig() {
+		try {
+			PMS.getConfiguration().save();
+		} catch (ConfigurationException e) {
+			LOG.error("Failed to save UMS configuration", e);
+		}
 	}
 
 	/**

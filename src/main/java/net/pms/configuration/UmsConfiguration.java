@@ -231,7 +231,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
 	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
 	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
-	private static final String KEY_AUDIO_ARTIST_DIR = "audio_artist_dir";
+	public  static final String KEY_AUDIO_ARTIST_DIR = "audio_artist_dir";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";

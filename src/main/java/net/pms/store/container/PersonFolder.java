@@ -1,14 +1,14 @@
 package net.pms.store.container;
 
 import java.io.IOException;
-import net.pms.database.MediaTableCoverArtArchive;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdTypeAndIdent;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.util.artistImageProvider.ArtistImageProvider;
 
 /**
  * This class represents one person, having two folders to navigate into. One is the "all files" folder and one is the "albums" related to
@@ -26,7 +26,7 @@ public class PersonFolder extends VirtualFolderDbIdNamed {
 	public PersonFolder(Renderer renderer, String personName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, personName, typeIdent);
 		if (StringUtils.isAllBlank(typeIdent.ident)) {
-			LOGGER.debug("person name is blanc");
+			LOGGER.debug("person ident name is blanc");
 		} else {
 			initChilds();
 		}
@@ -77,10 +77,11 @@ public class PersonFolder extends VirtualFolderDbIdNamed {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		MediaTableCoverArtArchive.CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(getMediaIdent());
-		if (res.isFound()) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(res.getCoverBytes());
+		DLNAThumbnailInputStream thumb = ArtistImageProvider.getInstance().getThumbnail(renderer, getMediaIdent());
+		if (thumb != null) {
+			return thumb;
 		}
+		LOGGER.debug("No thumbnail found for person '{}', falling back to default thumbnail", getMediaIdent());
 		return super.getThumbnailInputStream();
 	}
 
