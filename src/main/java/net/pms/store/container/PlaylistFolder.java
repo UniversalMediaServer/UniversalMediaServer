@@ -179,10 +179,12 @@ public final class PlaylistFolder extends StoreContainer {
 			// Just use folder image as Thumbnail is available
 			if (result == null) {
 				diskThumbnail = SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile());
-				try {
-					result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(diskThumbnail));
-				} catch (IOException e) {
-					LOGGER.trace("getThumbnailInputStream", e);
+				if (diskThumbnail != null) {
+					try {
+						result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(diskThumbnail));
+					} catch (IOException e) {
+						LOGGER.trace("getThumbnailInputStream", e);
+					}
 				}
 			}
 
