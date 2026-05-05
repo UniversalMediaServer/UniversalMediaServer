@@ -123,7 +123,7 @@ jobs:
           search-text: 'JAVA_PATH_VERSION'
           replacement-text: ${{ steps.paths.outputs.jrePath }}
       - name: Build package
-        run: mvn -P macos-ci package -DskipTests=true
+        run: mvn -P macos-ci package -DskipTests=true -e
       - name: Write tag to Gon configs
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
