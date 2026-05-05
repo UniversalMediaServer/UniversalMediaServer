@@ -150,6 +150,11 @@ jobs:
         with:
           name: macos-intel
           path: '**/*.dmg'
+      - name: Upload jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-intel
+          path: '**/*jar-with-dependencies.jar'
   # macos-intel-pre1015:
   #   runs-on: macos-26-intel
   #   steps:
