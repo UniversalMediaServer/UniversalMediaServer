@@ -124,6 +124,11 @@ jobs:
           replacement-text: ${{ steps.paths.outputs.jrePath }}
       - name: Build package
         run: mvn -P macos-ci package -DskipTests=true -e
+      - name: Upload jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-intel
+          path: '**/*jar-with-dependencies.jar'
       - name: Write tag to Gon configs
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
@@ -150,11 +155,6 @@ jobs:
         with:
           name: macos-intel
           path: '**/*.dmg'
-      - name: Upload jar
-        uses: actions/upload-artifact@v7
-        with:
-          name: macos-intel
-          path: '**/*jar-with-dependencies.jar'
   # macos-intel-pre1015:
   #   runs-on: macos-26-intel
   #   steps:
