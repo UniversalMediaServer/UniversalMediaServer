@@ -113,6 +113,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 
 			if (renderer == null) {
 				LOGGER.debug("Renderer not identified by header. Using default.");
+				LOGGER.debug("Request headers were: {}", headerMap);
 				renderer = RendererConfigurations.getDefaultRenderer();
 			}
 			LOGGER.trace("Using {} renderer for this request", renderer.getRendererName());
