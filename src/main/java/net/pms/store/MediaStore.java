@@ -759,7 +759,6 @@ public class MediaStore extends StoreContainer {
 			if (storeResource instanceof RealFile rf) {
 				rf.setMediaInfo(null);
 				rf.resolve();
-				rf.getParent().doRefreshChildren();
 				LOGGER.debug("File {} updated, media info refreshed and parent folder refreshed.", file.toString());
 			} else if (storeResource instanceof RealFolder rf) {
 				rf.setMediaInfo(null);
@@ -767,6 +766,7 @@ public class MediaStore extends StoreContainer {
 				rf.doRefreshChildren();
 				LOGGER.debug("Folder {} updated, media info refreshed and children refreshed.", file.toString());
 			}
+			storeResource.getParent().doRefreshChildren();
 		}
 	}
 
