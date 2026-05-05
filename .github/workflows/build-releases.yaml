@@ -127,8 +127,8 @@ jobs:
       - name: Upload jar
         uses: actions/upload-artifact@v7
         with:
-          name: macos-intel
-          path: '**/*jar-with-dependencies.jar'
+          name: macos-intel-target
+          path: 'target'
       - name: Write tag to Gon configs
         uses: richardrigutins/replace-in-files@v3.0.0
         with:
