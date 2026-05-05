@@ -9,6 +9,7 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 
 
@@ -35,6 +36,7 @@ public class UmsArtistImageProvider implements IArtistImageProvider, Configurati
 							.findFirst();
 					if (match.isPresent()) {
 						try {
+							MediaStoreIds.incrementUpdateId(match.get().getLongId());
 							thumb = match.get().getThumbnailInputStream();
 							LOGGER.info("Thumbnail retrieved for artist: " + artistName);
 						} catch (Exception e) {

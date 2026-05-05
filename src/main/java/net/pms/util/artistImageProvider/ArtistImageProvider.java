@@ -9,11 +9,11 @@ import net.pms.renderers.Renderer;
 
 public class ArtistImageProvider {
 
-	private static ArtistImageProvider instance = new ArtistImageProvider();
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(ArtistImageProvider.class.getName());
 
-	private static List<IArtistImageProvider> providers = new CopyOnWriteArrayList<>();
+	private static ArtistImageProvider instance = new ArtistImageProvider();
+
+	private List<IArtistImageProvider> providers = new CopyOnWriteArrayList<>();
 
 	public ArtistImageProvider() {
 		providers.add(new UmsArtistImageProvider());
