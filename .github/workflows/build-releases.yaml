@@ -101,13 +101,13 @@ jobs:
       - name: Set up JRE
         uses: actions/setup-java@v5
         with:
-          distribution: 'liberica'
+          distribution: 'zulu'
           java-version: 17
           java-package: jre
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
-          distribution: 'liberica'
+          distribution: 'zulu'
           java-version: 17
           java-package: jdk
           cache: 'maven'
