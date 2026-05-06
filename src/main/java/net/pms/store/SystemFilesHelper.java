@@ -21,13 +21,14 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.util.FileUtil;
 
 public class SystemFilesHelper {
 
@@ -38,7 +39,7 @@ public class SystemFilesHelper {
 	 * the file extensions that are eligible for evaluation as file or folder
 	 * thumbnails.
 	 */
-	public static final Set<String> THUMBNAIL_EXTENSIONS = Set.of("jpeg", "jpg", "png");
+	public static final Set<String> THUMBNAIL_EXTENSIONS = Set.of("webp", "png", "jpeg", "jpg", "bmp", "gif");
 
 	/**
 	 * An array of {@link String}s that defines the file extensions that are
@@ -53,30 +54,43 @@ public class SystemFilesHelper {
 	}
 
 	/**
+	 * Default "folder" logic.
+	 *
+	 * @param folder
+	 * @return
+	 */
+	public static File getFolderThumbnail(File folder) {
+		return getFolderThumbnail(folder, "folder");
+	}
+
+	/**
 	 * Returns the first {@link File} in a specified folder that is considered a
 	 * "folder thumbnail" by naming convention.
 	 *
 	 * @param folder the folder to search for a folder thumbnail.
 	 * @return The first "folder thumbnail" file in {@code folder} or
-	 * {@code null} if none was found.
+	 *         {@code null} if none was found.
 	 */
-	public static File getFolderThumbnail(File folder) {
+	public static File getFolderThumbnail(File folder, String thumbFilename) {
 		if (folder == null || !folder.isDirectory()) {
 			return null;
 		}
+
+		String thumbPrefix = Paths.get(thumbFilename).getFileName().toString() + ".";
+
 		try (DirectoryStream<Path> folderThumbnails = Files.newDirectoryStream(folder.toPath(), (Path entry) -> {
 			Path fileNamePath = entry.getFileName();
 			if (fileNamePath == null) {
 				return false;
 			}
-			String fileName = fileNamePath.toString().toLowerCase(Locale.ROOT);
-			if (fileName.startsWith("folder.") || fileName.contains("albumart")) {
-				return isPotentialThumbnail(fileName);
+			String fileName = fileNamePath.toString();
+			String fileNameLower = fileName.toLowerCase(Locale.ROOT);
+			if (fileName.startsWith(thumbPrefix) || fileNameLower.contains("albumart")) {
+				return isPotentialThumbnail(fileNameLower);
 			}
 			return false;
 		})) {
 			for (Path folderThumbnail : folderThumbnails) {
-				// We don't have any rule to prioritize between them; return the first
 				return folderThumbnail.toFile();
 			}
 		} catch (IOException e) {
@@ -92,10 +106,10 @@ public class SystemFilesHelper {
 	 *
 	 * @param file the {@link File} to evaluate.
 	 * @param evaluateExtension if {@code true} the file extension will also be
-	 * evaluated in addition to the file name, if {@code false} only the file
-	 * name will be evaluated.
+	 *            evaluated in addition to the file name, if {@code false} only
+	 *            the file name will be evaluated.
 	 * @return {@code true} if {@code file} name matches the naming convention
-	 * for folder thumbnails, {@code false} otherwise.
+	 *         for folder thumbnails, {@code false} otherwise.
 	 */
 	public static boolean isFolderThumbnail(File file, boolean evaluateExtension) {
 		if (file == null || !file.isFile()) {
@@ -118,15 +132,12 @@ public class SystemFilesHelper {
 	 * video file as a {@link Set} of {@link File}s.
 	 *
 	 * @param audioVideoFile the {@link File} for which to enumerate potential
-	 * thumbnail files.
+	 *            thumbnail files.
 	 * @param existingOnly if {@code true}, files will only be added to the
-	 * returned {@link Set} if they {@link File#exists()}.
+	 *            returned {@link Set} if they {@link File#exists()}.
 	 * @return The {@link Set} of {@link File}s.
 	 */
-	public static Set<File> getPotentialFileThumbnails(
-			File audioVideoFile,
-			boolean existingOnly
-	) {
+	public static Set<File> getPotentialFileThumbnails(File audioVideoFile, boolean existingOnly) {
 		File file;
 		Set<File> potentialMatches = new HashSet<>(THUMBNAIL_EXTENSIONS.size() * 2);
 		for (String extension : THUMBNAIL_EXTENSIONS) {
@@ -149,8 +160,8 @@ public class SystemFilesHelper {
 	 *
 	 * @param file the {@link File} to evaluate.
 	 * @return {@code true} if {@code file} has one of the predefined
-	 * {@link VirtualFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
-	 * otherwise.
+	 *         {@link VirtualFile#THUMBNAIL_EXTENSIONS} extensions,
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isPotentialThumbnail(File file) {
 		return file != null && file.isFile() && isPotentialThumbnail(file.getName());
@@ -163,8 +174,8 @@ public class SystemFilesHelper {
 	 *
 	 * @param fileName the file name to evaluate.
 	 * @return {@code true} if {@code fileName} has one of the predefined
-	 * {@link VirtualFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
-	 * otherwise.
+	 *         {@link VirtualFile#THUMBNAIL_EXTENSIONS} extensions,
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
 		return THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
@@ -176,8 +187,8 @@ public class SystemFilesHelper {
 	 *
 	 * @param fileName the file name to evaluate.
 	 * @return {@code true} if {@code fileName} has not the one of the
-	 * predefined {@link VirtualFile#EXTENSIONS_DENYLIST} extensions,
-	 * {@code false} otherwise.
+	 *         predefined {@link VirtualFile#EXTENSIONS_DENYLIST} extensions,
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isPotentialMediaFile(String fileName) {
 		String ext = FileUtil.getExtension(fileName);
