@@ -40,7 +40,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.encoders.Engine;
 import net.pms.swing.SwingUtil;
 import net.pms.swing.gui.UmsFormBuilder;
-import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration2.event.ConfigurationEvent;
 
 public class AviSynthMEncoder {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();

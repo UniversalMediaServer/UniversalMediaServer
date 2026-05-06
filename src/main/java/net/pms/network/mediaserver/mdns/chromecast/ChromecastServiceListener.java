@@ -31,7 +31,7 @@ import net.pms.configuration.RendererConfigurations;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.devices.ChromecastDevice;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

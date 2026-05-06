@@ -33,7 +33,7 @@ import net.pms.Messages;
 import net.pms.configuration.GuiConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.swing.components.SvgMultiResolutionImage;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.annotation.Nonnull;

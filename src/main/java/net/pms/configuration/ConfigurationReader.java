@@ -18,10 +18,9 @@ package net.pms.configuration;
 
 import java.io.File;
 import java.util.*;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConversionException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ex.ConversionException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,9 +44,9 @@ public class ConfigurationReader {
 	ConfigurationReader(Configuration configuration, boolean logOverrides) {
 		this.configuration = configuration;
 		this.logOverrides = logOverrides;
-		dConf = (configuration instanceof CompositeConfiguration) ?
-			((CompositeConfiguration) configuration).getConfiguration(0) : null;
-		File f = dConf != null ? ((PropertiesConfiguration) dConf).getFile() : null;
+		dConf = (configuration instanceof CompositeConfiguration compositeConf) ?
+			compositeConf.getConfiguration(0) : null;
+		File f = dConf instanceof ManagedPropertiesConfiguration managed ? managed.getFile() : null;
 		dTag = f != null ? ("[" + f.getName() + "] ") : null;
 	}
 

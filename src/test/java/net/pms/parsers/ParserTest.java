@@ -27,7 +27,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
 import net.pms.service.Services;
 import net.pms.util.InputFile;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeAll;

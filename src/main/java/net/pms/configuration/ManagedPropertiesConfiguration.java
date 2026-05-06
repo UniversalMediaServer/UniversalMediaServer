@@ -1,19 +1,3 @@
-/*
- * This file is part of Universal Media Server, based on PS3 Media Server.
- *
- * This program is a free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; version 2 of the License only.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
 package net.pms.configuration;
 
 import java.io.File;
@@ -22,31 +6,29 @@ import org.apache.commons.configuration2.event.ConfigurationEvent;
 import org.apache.commons.configuration2.event.EventListener;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.io.FileHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * A {@link PropertiesConfiguration} subclass that keeps an associated
- * {@link FileHandler} so that file-related operations (load, save, getFile …)
- * are available directly on the configuration object – matching the CC 1.x API
- * that the rest of the code was written against.
+ * A subclass that keeps an associated so that file-related operations (load, save, getFile …)
+ * are available directly on the configuration object for compatibility with the old API.
  */
 public class ManagedPropertiesConfiguration extends PropertiesConfiguration {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ManagedPropertiesConfiguration.class.getName());
+
 	private final FileHandler fileHandler = new FileHandler(this);
 
-	/** Auto-save listener – added/removed by {@link #setAutoSave(boolean)}. */
 	private final EventListener<ConfigurationEvent> autoSaveListener = event -> {
 		if (!event.isBeforeUpdate()) {
 			try {
 				fileHandler.save();
 			} catch (ConfigurationException e) {
-				// best-effort; caller is responsible for explicit saves
+				LOGGER.error("Failed to auto-save configuration file: " + e.getMessage(), e);
 			}
 		}
 	};
 
-	// -----------------------------------------------------------------------
-	// File I/O – delegates to FileHandler
-	// -----------------------------------------------------------------------
 
 	public File getFile() {
 		return fileHandler.getFile();
@@ -68,17 +50,9 @@ public class ManagedPropertiesConfiguration extends PropertiesConfiguration {
 		fileHandler.save();
 	}
 
-	/**
-	 * Reload the configuration from the file that was previously set via
-	 * {@link #setPath(String)} or {@link #setFile(File)}.
-	 */
 	public void refresh() throws ConfigurationException {
 		fileHandler.load();
 	}
-
-	// -----------------------------------------------------------------------
-	// Auto-save support
-	// -----------------------------------------------------------------------
 
 	public void setAutoSave(boolean autoSave) {
 		if (autoSave) {

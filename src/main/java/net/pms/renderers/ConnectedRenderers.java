@@ -39,7 +39,7 @@ import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.store.MediaInfoStore;
 import net.pms.util.SortedHeaderMap;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

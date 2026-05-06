@@ -24,7 +24,7 @@ import net.pms.renderers.RendererFilter;
 import net.pms.renderers.RendererUser;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.ChromecastPlayer;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
