@@ -39,7 +39,7 @@ import net.pms.parsers.MediaInfoParser;
 import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
 import net.pms.store.item.RealFile;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 import org.junit.jupiter.api.BeforeAll;

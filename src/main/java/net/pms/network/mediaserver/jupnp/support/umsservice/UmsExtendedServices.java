@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 import jakarta.annotation.Nullable;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;

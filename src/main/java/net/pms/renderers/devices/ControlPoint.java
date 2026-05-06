@@ -1,6 +1,6 @@
 package net.pms.renderers.devices;
 
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.formats.Format;

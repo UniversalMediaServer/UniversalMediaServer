@@ -1,7 +1,7 @@
 package net.pms.util.artistImageProvider;
 
-import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.configuration2.event.ConfigurationEvent;
+import org.apache.commons.configuration2.event.EventListener;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +13,7 @@ import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 
 
-public class UmsArtistImageProvider implements IArtistImageProvider, ConfigurationListener {
+public class UmsArtistImageProvider implements IArtistImageProvider, EventListener<ConfigurationEvent> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsArtistImageProvider.class.getName());
 	private String objectId;
@@ -58,7 +58,7 @@ public class UmsArtistImageProvider implements IArtistImageProvider, Configurati
 	}
 
 	@Override
-	public void configurationChanged(ConfigurationEvent event) {
+	public void onEvent(ConfigurationEvent event) {
 		if (!event.isBeforeUpdate()) {
 			if (UmsConfiguration.KEY_AUDIO_ARTIST_DIR.equals(event.getPropertyName())) {
 				objectId = event.getPropertyValue().toString();

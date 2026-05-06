@@ -49,7 +49,7 @@ import net.pms.swing.SwingUtil;
 import net.pms.swing.components.CustomJButton;
 import net.pms.swing.gui.FormLayoutUtil;
 import net.pms.swing.gui.UmsFormBuilder;
-import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration2.event.ConfigurationEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

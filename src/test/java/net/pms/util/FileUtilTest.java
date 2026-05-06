@@ -33,7 +33,7 @@ import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.media.subtitle.MediaSubtitleTest;
 import static net.pms.util.Constants.*;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.*;

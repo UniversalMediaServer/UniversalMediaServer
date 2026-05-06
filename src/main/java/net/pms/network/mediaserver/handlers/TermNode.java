@@ -1,7 +1,7 @@
 package net.pms.network.mediaserver.handlers;
 
 import java.util.regex.Pattern;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.UmsConfiguration;
