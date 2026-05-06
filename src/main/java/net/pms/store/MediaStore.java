@@ -746,7 +746,7 @@ public class MediaStore extends StoreContainer {
 				rf.doRefreshChildren();
 				LOGGER.debug("Folder {} updated, media info refreshed and children refreshed.", file.toString());
 			}
-			storeResource.getParent().doRefreshChildren();
+			storeResource.getParent().discoverChildren();
 		}
 	}
 
