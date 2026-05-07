@@ -22,6 +22,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
 
@@ -104,10 +105,16 @@ public class UmsExtendedServices {
 	}
 
 	@UpnpAction
-	public void setAudioArtistDir(@UpnpInputArgument(name = "ObjectID") String audioArtistDir) {
-		PMS.getConfiguration().setAudioArtistDir(audioArtistDir);
-		LOG.debug("updated AudioArtistDir to {}", audioArtistDir);
-		saveUmsConfig();
+	public void setAudioArtistDir(@UpnpInputArgument(name = "ObjectID") String objectIdString) {
+		StoreResource sr = ControlPoint.getRenderer().getMediaStore().getResource(objectIdString);
+		if (sr != null) {
+			LOG.debug("object with ID {} has path of {} ", objectIdString, sr.getFileName());
+			PMS.getConfiguration().setAudioArtistDir(sr.getFileName());
+			LOG.debug("updated AudioArtistDir to {}", sr.getFileName());
+			saveUmsConfig();
+		} else {
+			LOG.warn("object with ID {} not found in media store", objectIdString);
+		}
 	}
 
 	@UpnpAction
