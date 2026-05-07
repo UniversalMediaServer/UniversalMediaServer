@@ -29,7 +29,13 @@ public class UmsArtistImageProvider implements IArtistImageProvider, Configurati
 		if (dir.exists() && dir.isDirectory()) {
 			LOGGER.info("Artist directory found: " + dir.getAbsolutePath());
 			StoreResource sr = DbIdResourceLocator.getLibraryResourceFolder(ControlPoint.getRenderer(), dir.getAbsolutePath());
-			objectId = sr.getId();
+			if (sr != null) {
+				objectId = sr.getId();
+				LOGGER.info("Artist folder objectId set to: " + objectId);
+			} else {
+				LOGGER.warn("Artist directory not found in media store: " + dir.getAbsolutePath());
+				objectId = null;
+			}
 			LOGGER.debug("artist folder objectId: " + objectId);
 		} else {
 			LOGGER.warn("Artist directory not found or is not a directory: " + dir.getAbsolutePath());
