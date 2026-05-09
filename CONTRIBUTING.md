@@ -26,7 +26,7 @@ For more information, please see [our Development Guide](https://github.com/Univ
 
 # <a name="Attachments"></a>Attachments
 
-GitHub only allows image attachments. Other attachments, such as zipped logs, can be posted in the <a href="https://www.universalmediaserver.com/forum/viewtopic.php?f=14&t=1656">GitHub attachments thread</a> in the UMS forum.
+GitHub only allows image attachments in issues.. Other attachments, such as zipped logs, can be posted in the <a href="https://www.universalmediaserver.com/forum/viewtopic.php?f=14&t=1656">GitHub attachments thread</a> in the UMS forum.
 Remember to include a link to the attachment in your post here.
 
 If you prefer to upload your attachment elsewhere, please avoid sites with restricted access or captcha if possible.
