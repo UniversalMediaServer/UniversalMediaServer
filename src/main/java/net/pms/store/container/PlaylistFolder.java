@@ -236,28 +236,33 @@ public final class PlaylistFolder extends StoreContainer {
 					}
 				}
 			} else {
-				String u = FileUtil.urlJoin(uri, entry.fileName);
-				Integer type = MediaTableFiles.getFormatType(u);
-				if (type == null || type == 0) {
-					type = WebStreamParser.getWebStreamType(entry.fileName, defaultContent);
-				}
-				StoreResource d = switch (type) {
-					case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null, entry.directives);
-					case Format.AUDIO -> new WebAudioStream(renderer, entry.title, u, null, entry.directives);
-					case Format.IMAGE -> new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE);
-					case Format.PLAYLIST -> PlaylistManager.getPlaylist(renderer, entry.title, u, 0);
-					default -> null;
-				};
-
-				if (d != null) {
-					addChild(d);
-					Long entryId;
-					if (d instanceof StoreContainer storeContainer) {
-						entryId = MediaTableFiles.getOrInsertFileId(u, storeContainer.getLastModified(), type);
-					} else {
-						entryId = MediaTableFiles.getOrInsertFileId(u, 0L, type);
+				try {
+					String u = FileUtil.urlJoin(uri, entry.fileName);
+					Integer type = MediaTableFiles.getFormatType(u);
+					if (type == null || type == 0) {
+						type = WebStreamParser.getWebStreamType(entry.fileName, defaultContent);
 					}
-					MediaTableContainerFiles.addContainerEntry(containerId, entryId);
+					StoreResource d = switch (type) {
+						case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null, entry.directives);
+						case Format.AUDIO -> new WebAudioStream(renderer, entry.title, u, null, entry.directives);
+						case Format.IMAGE -> new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE);
+						case Format.PLAYLIST -> PlaylistManager.getPlaylist(renderer, entry.title, u, 0);
+						default -> null;
+					};
+
+					if (d != null) {
+						addChild(d);
+						Long entryId;
+						if (d instanceof StoreContainer storeContainer) {
+							entryId = MediaTableFiles.getOrInsertFileId(u, storeContainer.getLastModified(), type);
+						} else {
+							entryId = MediaTableFiles.getOrInsertFileId(u, 0L, type);
+						}
+						MediaTableContainerFiles.addContainerEntry(containerId, entryId);
+					}
+				} catch (Exception e) {
+					LOGGER.warn("Failed to add playlist entry: {}", entry, e);
+					LOGGER.warn("Maybe the stream is not available any more.");
 				}
 			}
 		}
