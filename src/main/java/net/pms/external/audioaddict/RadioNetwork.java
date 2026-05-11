@@ -126,6 +126,7 @@ public class RadioNetwork {
 					try {
 						readNetworkBatch();
 						successBatchRead = true;
+						LOGGER.info("{} : initialized.", network.name());
 					} catch (Exception e) {
 						i++;
 						LOGGER.warn("{} : failed to read batch update network data. Waiting 5 seconds. Retry count {} of {}", network.displayName, i, maxRetryBatchCount);
@@ -374,7 +375,7 @@ public class RadioNetwork {
 
 	private void initFinished() {
 		successInit = true;
-		LOGGER.debug("{} : Initialization finished. Calling callback handler ... ", network.displayName);
+		LOGGER.info("{} : Initialization finished. Calling callback handler ... ", network.displayName);
 		for (INetworkInitialized callback : networkInitCallbacks) {
 			callback.networkInitialized();
 		}
