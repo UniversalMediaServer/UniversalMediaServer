@@ -130,6 +130,8 @@ public class NavigationShareTab {
 		"p," +                            //
 		"3dlu," +                         //
 		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
 		"9dlu," +                         //
 		"fill:default:grow";              // Shared folders
 
@@ -202,14 +204,14 @@ public class NavigationShareTab {
 			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed)).at(FormLayoutUtil.flip(cc.xy(3, 29), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(hideEmptyFolders)).at(FormLayoutUtil.flip(cc.xy(7, 29), colSpec, orientation));
 
-			builder.add(SwingUtil.getPreferredSizeComponent(flattenFolders)).at(FormLayoutUtil.flip(cc.xy(9, 29), colSpec, orientation));
+			builder.add(SwingUtil.getPreferredSizeComponent(flattenFolders)).at(FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
 
-			builder.add(SwingUtil.getPreferredSizeComponent(useSymlinksTargetFile)).at(FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
+			builder.add(SwingUtil.getPreferredSizeComponent(useSymlinksTargetFile)).at(FormLayoutUtil.flip(cc.xy(1, 33), colSpec, orientation));
 
-			builder.addLabel(Messages.getGuiString("FullyPlayedAction")).at(FormLayoutUtil.flip(cc.xy(1, 33), colSpec, orientation));
-			builder.add(fullyPlayedAction).at(FormLayoutUtil.flip(cc.xyw(3, 33, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(7, 33), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(9, 33), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("FullyPlayedAction")).at(FormLayoutUtil.flip(cc.xy(1, 35), colSpec, orientation));
+			builder.add(fullyPlayedAction).at(FormLayoutUtil.flip(cc.xyw(3, 35, 3), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(7, 35), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(9, 35), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
