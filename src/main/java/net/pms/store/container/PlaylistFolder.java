@@ -48,6 +48,7 @@ import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 import net.pms.store.SystemFilesHelper;
+import net.pms.store.ThumbnailStore;
 import net.pms.store.item.FeedItem;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
@@ -189,8 +190,10 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 
 			return result != null ? result : super.getThumbnailInputStream();
+		} else {
+			DLNAThumbnailInputStream storeThum = ThumbnailStore.getThumbnailInputStream(getLongId());
+			return storeThum != null ? storeThum : super.getThumbnailInputStream();
 		}
-		return null;
 	}
 
 	@Override
