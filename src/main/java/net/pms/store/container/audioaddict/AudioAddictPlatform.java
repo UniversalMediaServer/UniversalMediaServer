@@ -14,14 +14,18 @@ public class AudioAddictPlatform extends StoreContainer {
 	public AudioAddictPlatform(Renderer renderer, String name) {
 		super(renderer, name, "/images/audioaddict/audioAddict.png");
 
-		boolean authenticated = false;
-		for (Platform network : Platform.values()) {
-			addChild(new AudioAddictNetwork(renderer, network.displayName, network));
-			authenticated = AudioAddictService.get().getRadioNetwork(network).isAuthenticated();
-		}
+		Thread initThread = new Thread(() -> {
+			boolean authenticated = false;
+			for (Platform network : Platform.values()) {
+				addChild(new AudioAddictNetwork(renderer, network.displayName, network));
+				authenticated = AudioAddictService.get().getRadioNetwork(network).isAuthenticated();
+			}
 
-		if (!authenticated) {
-			addChild(new LocalizedStoreContainer(renderer, "AudioAddictNotAuthenticated"));
-		}
+			if (!authenticated) {
+				addChild(new LocalizedStoreContainer(renderer, "AudioAddictNotAuthenticated"));
+			}
+		}, "AudioAddictPlatform-init");
+		initThread.setDaemon(true);
+		initThread.start();
 	}
 }
