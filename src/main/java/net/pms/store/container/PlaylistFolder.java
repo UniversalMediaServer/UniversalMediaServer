@@ -31,6 +31,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -59,10 +64,24 @@ import net.pms.util.ProcessUtil;
 
 public final class PlaylistFolder extends StoreContainer {
 
+	private record ResolvedWebEntry(Entry entry, String url, int type, StoreResource resource) {
+	}
+
+	private static final class WebEntryResolveException extends RuntimeException {
+		private final Entry entry;
+
+		private WebEntryResolveException(Entry entry, String message) {
+			super(message);
+			this.entry = entry;
+		}
+	}
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
 
 	public static final String DIRECTIVE_ALBUMART_URI = "#EXTIMG:";
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
+	private static final ExecutorService WEB_ENTRY_EXECUTOR =
+		Executors.newFixedThreadPool(Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())));
 
 	private final String uri;
 	private File uriAsFile;
@@ -211,15 +230,16 @@ public final class PlaylistFolder extends StoreContainer {
 		Long containerId = MediaTableFiles.getOrInsertFileId(uri, getLastModified(), Format.PLAYLIST);
 
 		List<Entry> entries = getPlaylistEntries();
+		List<CompletableFuture<ResolvedWebEntry>> webEntryFutures = new ArrayList<>();
 		for (Entry entry : entries) {
 			if (entry == null) {
 				continue;
 			}
 			LOGGER.debug("Adding playlist entry: {}", entry);
 
-			if (!isweb && !FileUtil.isUrl(entry.fileName)) {
+			if (!isweb && !FileUtil.isUrl(entry.fileName())) {
 				int type = defaultContent;
-				String ext = FileUtil.getUrlExtension(entry.fileName);
+				String ext = FileUtil.getUrlExtension(entry.fileName());
 				if (ext != null) {
 					ext = "." + ext;
 					Format f = FormatFactory.getAssociatedFormat(ext);
@@ -227,50 +247,134 @@ public final class PlaylistFolder extends StoreContainer {
 						type = f.getType();
 					}
 				}
-				File en = new File(FilenameUtils.concat(new File(uri).getParent(), entry.fileName));
+				File en = new File(FilenameUtils.concat(new File(uri).getParent(), entry.fileName()));
 				if (en.exists()) {
 					if (type == Format.PLAYLIST) {
 						addChild(new PlaylistFolder(renderer, en));
 					} else {
-						addChild(new RealFile(renderer, en, entry.title));
+						addChild(new RealFile(renderer, en, entry.title()));
 					}
 				}
 			} else {
-				String u = FileUtil.urlJoin(uri, entry.fileName);
+				String u = FileUtil.urlJoin(uri, entry.fileName());
 				Integer type = MediaTableFiles.getFormatType(u);
-				if (type == null || type == 0) {
-					type = WebStreamParser.getWebStreamType(entry.fileName, defaultContent);
+				StoreResource cachedResource = null;
+				if (type != null && type != 0 && type != Format.UNKNOWN) {
+					LOGGER.debug("Web playlist entry DB hit for {}: type {}", u, type);
+					cachedResource = createWebResource(entry, u, type);
 				}
-				StoreResource d = switch (type) {
-					case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null, entry.directives);
-					case Format.AUDIO -> new WebAudioStream(renderer, entry.title, u, null, entry.directives);
-					case Format.IMAGE -> new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE);
-					case Format.PLAYLIST -> PlaylistManager.getPlaylist(renderer, entry.title, u, 0);
-					default -> null;
-				};
 
-				if (d != null) {
-					addChild(d);
+				if (cachedResource != null) {
+					addChild(cachedResource);
 					Long entryId;
-					if (d instanceof StoreContainer storeContainer) {
+					if (cachedResource instanceof StoreContainer storeContainer) {
 						entryId = MediaTableFiles.getOrInsertFileId(u, storeContainer.getLastModified(), type);
 					} else {
 						entryId = MediaTableFiles.getOrInsertFileId(u, 0L, type);
 					}
 					MediaTableContainerFiles.addContainerEntry(containerId, entryId);
+				} else {
+					LOGGER.debug("Web playlist entry queued for async resolve: {}", u);
+					webEntryFutures.add(CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR));
 				}
 			}
 		}
+
+		collectWebFutures(containerId, webEntryFutures);
 
 		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == StoreResourceSorter.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
 		}
 
-		// Create a copy of the children list to avoid ConcurrentModificationException
-		// when syncResolve() modifies the children list
 		for (StoreResource r : new ArrayList<>(getChildren())) {
 			r.syncResolve();
 		}
+	}
+
+	/**
+	 * Asynchronously collects resolved web entries, adds them as children and updates the database. Waits max. up to 3 seconds for resolution,
+	 * then adds any remaining unresolved entries to the failedEntries list for later retry or other error handling.
+	 *
+	 * @param containerId
+	 * @param webEntryFutures
+	 */
+	private void collectWebFutures(Long containerId, List<CompletableFuture<ResolvedWebEntry>> webEntryFutures) {
+		if (webEntryFutures.isEmpty()) {
+			return;
+		}
+
+		try {
+			CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]))
+				.get(3, TimeUnit.SECONDS);
+		} catch (java.util.concurrent.TimeoutException e) {
+			LOGGER.debug("Web playlist entry resolution timed out — collecting completed entries");
+		} catch (Exception e) {
+			// Individual failures are handled per-future below
+		}
+
+		// Collect whichever futures completed within the budget
+		List<ResolvedWebEntry> resolvedWebEntries = new ArrayList<>();
+		for (CompletableFuture<ResolvedWebEntry> future : webEntryFutures) {
+			if (!future.isDone() || future.isCompletedExceptionally() || future.isCancelled()) {
+				continue;
+			}
+			try {
+				ResolvedWebEntry resolved = future.getNow(null);
+				if (resolved != null && resolved.resource() != null) {
+					resolvedWebEntries.add(resolved);
+				}
+			} catch (Exception e) {
+				Throwable cause = (e instanceof CompletionException && e.getCause() != null) ? e.getCause() : e;
+				LOGGER.debug("Web playlist entry resolve failed", cause);
+			}
+		}
+
+		for (ResolvedWebEntry resolved : resolvedWebEntries) {
+			LOGGER.debug("Web playlist entry async resolved: {} type {}", resolved.url(), resolved.type());
+			addChild(resolved.resource());
+			Long entryId;
+			if (resolved.resource() instanceof StoreContainer storeContainer) {
+				entryId = MediaTableFiles.getOrInsertFileId(resolved.url(), storeContainer.getLastModified(), resolved.type());
+			} else {
+				entryId = MediaTableFiles.getOrInsertFileId(resolved.url(), 0L, resolved.type());
+			}
+			MediaTableContainerFiles.addContainerEntry(containerId, entryId);
+		}
+
+		for (CompletableFuture<ResolvedWebEntry> future : webEntryFutures) {
+			if (!future.isDone()) {
+				continue;
+			}
+			if (future.isCompletedExceptionally()) {
+				try {
+					future.join();
+				} catch (CompletionException e) {
+					if (e.getCause() instanceof WebEntryResolveException re && re.entry != null) {
+						LOGGER.warn("Web playlist entry resolve failed for: {}", re.entry);
+					}
+				}
+			}
+		}
+	}
+
+	private ResolvedWebEntry resolveWebEntry(Entry entry) {
+		String u = FileUtil.urlJoin(uri, entry.fileName());
+		int type = WebStreamParser.getWebStreamType(entry.fileName(), defaultContent);
+		StoreResource d = createWebResource(entry, u, type);
+		if (d == null) {
+			throw new WebEntryResolveException(entry, "Unsupported web stream type for entry");
+		}
+		return new ResolvedWebEntry(entry, u, type, d);
+	}
+
+	private StoreResource createWebResource(Entry entry, String url, int type) {
+		return switch (type) {
+			case Format.VIDEO -> new WebVideoStream(renderer, entry.title(), url, null, entry.directives());
+			case Format.AUDIO -> new WebAudioStream(renderer, entry.title(), url, null, entry.directives());
+			case Format.IMAGE -> new FeedItem(renderer, entry.title(), url, null, null, Format.IMAGE);
+			case Format.PLAYLIST -> PlaylistManager.getPlaylist(renderer, entry.title(), url, 0);
+			default -> null;
+		};
 	}
 
 	public boolean deleteEntry(String url) {
@@ -313,7 +417,6 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
-
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
 		boolean firstline = true;
 		try (BufferedReader br = getBufferedReader(utf8)) {
@@ -344,10 +447,8 @@ public final class PlaylistFolder extends StoreContainer {
 					// Parsing finished. This line is the filename.
 					if (line.equalsIgnoreCase(url)) {
 						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(externalAlbumArtUri).append(System.getProperty("line.separator"));
-					} else {
-						if (lastAlbumArtDirective != null) {
-							lastEntry.append(DIRECTIVE_ALBUMART_URI).append(lastAlbumArtDirective).append(System.getProperty("line.separator"));
-						}
+					} else if (lastAlbumArtDirective != null) {
+						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(lastAlbumArtDirective).append(System.getProperty("line.separator"));
 					}
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 					out.append(lastEntry);
@@ -379,39 +480,16 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
-	private boolean isExtendedM3uPlaylist(BufferedReader br) throws IOException {
-		return isExtendedM3uPlaylist(br, null);
-	}
-
-	private boolean isExtendedM3uPlaylist(BufferedReader br, StringBuilder cache) throws IOException {
-		String line;
-		while (br != null && (line = br.readLine()) != null) {
-			if (cache != null) {
-				cache.append(line).append(System.getProperty("line.separator"));
-			}
-			line = line.trim();
-			if (line.startsWith("#EXTM3U")) {
-				LOGGER.debug("Reading m3u playlist: " + getName());
-				return true;
-			} else if (line.length() > 0 && line.equals("[playlist]")) {
-				LOGGER.debug("Reading PLS playlist: " + getName());
-				return false;
-			}
-		}
-		LOGGER.debug("unknown playlist type: " + getName());
-		return false;
-	}
-
 	private List<Entry> getPlaylistEntries() {
 		List<Entry> entries = new ArrayList<>();
-		String extension = getExtension();
 		try (BufferedReader br = getBufferedReader(utf8)) {
 			String line;
-			String fileName;
 			String title = null;
 			String playlistType = getExtension();
 			Map<String, String> directives = new HashMap<>();
-			while (br != null &&  (line = br.readLine()) != null) {
+			// For PLS: accumulate fileName and title per index before creating records
+			Map<Integer, String[]> plsData = new HashMap<>();
+			while (br != null && (line = br.readLine()) != null) {
 				line = line.trim();
 				if ("pls".equals(playlistType)) {
 					if (line.length() > 0 && !line.startsWith("#")) {
@@ -419,31 +497,13 @@ public final class PlaylistFolder extends StoreContainer {
 						if (eq != -1) {
 							String value = line.substring(eq + 1);
 							String valueType = line.substring(0, eq).toLowerCase();
-							fileName = null;
-							title = null;
 							int index = 0;
 							if (valueType.startsWith("file")) {
 								index = Integer.parseInt(valueType.substring(4));
-								fileName = value;
+								plsData.computeIfAbsent(index, k -> new String[2])[0] = value;
 							} else if (valueType.startsWith("title")) {
 								index = Integer.parseInt(valueType.substring(5));
-								title = value;
-							}
-							if (index > 0) {
-								while (entries.size() < index) {
-									entries.add(null);
-								}
-								Entry entry = entries.get(index - 1);
-								if (entry == null) {
-									entry = new Entry();
-									entries.set(index - 1, entry);
-								}
-								if (fileName != null) {
-									entry.fileName = fileName;
-								}
-								if (title != null) {
-									entry.title = title;
-								}
+								plsData.computeIfAbsent(index, k -> new String[2])[1] = value;
 							}
 						}
 					}
@@ -460,30 +520,23 @@ public final class PlaylistFolder extends StoreContainer {
 					} else if (line.toUpperCase().startsWith(DIRECTIVE_ALBUMART_URI)) {
 						directives.put(DIRECTIVE_ALBUMART_URI, line.substring(DIRECTIVE_ALBUMART_URI.length()));
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
-						// Non-comment and non-empty line contains the filename
-						fileName = line;
-						Entry entry = new Entry();
-						entry.fileName = fileName;
-						entry.title = title;
-						entry.directives = directives;
-						entries.add(entry);
+						entries.add(new Entry(line, title, directives));
 						title = null;
 						directives = new HashMap<>();
 					}
 				}
 			}
+			// Build PLS entries sorted by index
+			plsData.entrySet().stream()
+				.sorted(Map.Entry.comparingByKey())
+				.forEach(e -> entries.add(new Entry(e.getValue()[0], e.getValue()[1], null)));
 		} catch (NumberFormatException | IOException e) {
 			LOGGER.error(null, e);
 		}
 		return entries;
 	}
 
-	private static class Entry {
-
-		private String fileName;
-		private String title;
-		private Map<String, String> directives;
-
+	private record Entry(String fileName, String title, Map<String, String> directives) {
 		@Override
 		public String toString() {
 			return "[" + fileName + "," + title + "]";
