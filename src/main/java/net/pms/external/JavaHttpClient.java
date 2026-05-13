@@ -27,6 +27,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.concurrent.CompletionException;
 import java.util.Map;
 import net.pms.PMS;
@@ -34,6 +35,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.UnknownFormatException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -229,6 +231,14 @@ public class JavaHttpClient {
 	}
 
 	public static DLNAThumbnail getThumbnail(String uri) {
+		if (StringUtils.isBlank(uri)) {
+			return null;
+		}
+
+		if (uri.startsWith("data:")) {
+			return handleDataUri(uri);
+		}
+
 		try {
 			LOGGER.trace("Downloading image from {}", uri);
 			byte[] image = getBytes(uri);
@@ -243,6 +253,38 @@ public class JavaHttpClient {
 			LOGGER.debug("Could not read thumbnail from uri \"{}\": {}", uri, e.getMessage(), e);
 		} catch (IOException e) {
 			LOGGER.error("Error reading thumbnail from uri \"{}\": {}", uri, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	/**
+	 * Convert data: URI to DLNAThumbnail without making an HTTP request.
+	 * Format: data:[<mediatype>][;base64],<data>
+	 * @param uri
+	 * @return
+	 */
+	private static DLNAThumbnail handleDataUri(String uri) {
+		try {
+			int commaIndex = uri.indexOf(',');
+			if (commaIndex < 0) {
+				LOGGER.debug("Invalid data URI (no comma found): {}", uri.substring(0, Math.min(uri.length(), 100)));
+				return null;
+			}
+			String meta = uri.substring(5, commaIndex); // skip "data:"
+			String data = uri.substring(commaIndex + 1);
+			byte[] image;
+			if (meta.endsWith(";base64")) {
+				image = Base64.getDecoder().decode(data);
+			} else {
+				// plain text / URL-encoded data
+				image = data.getBytes(StandardCharsets.UTF_8);
+			}
+			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+		} catch (EOFException e) {
+			LOGGER.debug("Error reading thumbnail from data URI: Unexpected end of stream, probably corrupt or read error.", e);
+		} catch (Exception e) {
+			LOGGER.error("Error reading thumbnail from data URI: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return null;
