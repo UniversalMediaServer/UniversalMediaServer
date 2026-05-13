@@ -458,6 +458,7 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 
 			writeContentToFile(out);
+			resolve();
 		} catch (Exception er) {
 			LOGGER.error("updateAlbumArtUriDirective", er);
 		}
