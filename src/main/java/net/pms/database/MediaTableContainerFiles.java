@@ -219,7 +219,12 @@ public class MediaTableContainerFiles extends MediaTable {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Cannot add container entry {} for {} ", entryId, containerId, e);
+			// H2 error code 23505 = unique constraint violation — another concurrent thread already inserted this entry
+			if (e.getErrorCode() == 23505) {
+				LOGGER.trace("Container entry {} for {} already inserted by concurrent thread, ignoring", entryId, containerId);
+			} else {
+				LOGGER.error("Cannot add container entry {} for {} ", entryId, containerId, e);
+			}
 		}
 	}
 
