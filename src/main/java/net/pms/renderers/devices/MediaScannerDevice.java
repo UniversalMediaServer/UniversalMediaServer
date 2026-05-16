@@ -17,7 +17,7 @@
 package net.pms.renderers.devices;
 
 import net.pms.renderers.Renderer;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 
 public final class MediaScannerDevice extends Renderer {
 

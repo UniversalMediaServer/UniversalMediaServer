@@ -26,7 +26,7 @@ import net.pms.network.webguiserver.WebSocketSession;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 
 public class WebGuiRenderer extends Renderer {

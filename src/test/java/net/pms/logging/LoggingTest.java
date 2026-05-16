@@ -37,7 +37,7 @@ import net.pms.PMS;
 import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.util.FileUtil;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

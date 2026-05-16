@@ -48,7 +48,7 @@ import net.pms.store.MediaStore;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.util.UMSUtils;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.action.ActionArgumentValue;
 import org.slf4j.Logger;

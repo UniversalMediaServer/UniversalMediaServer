@@ -19,7 +19,7 @@ package net.pms.network.mediaserver.handlers;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
