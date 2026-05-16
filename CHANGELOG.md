@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `commons-beanutils:commons-beanutils` from 1.9.4 to 1.11.0 ([#6162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6162))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.3.0 to 3.3.1 ([#6144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6144))
 - Bump `org.jsoup:jsoup` from 1.22.1 to 1.22.2 ([#6136](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6136))
 - Bump `org.jsoup:jsoup` from 1.22.1 to 1.22.2 ([#6136](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6136))
