@@ -21,7 +21,7 @@
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
 
-	<version>15.6.0-SNAPSHOT</version>
+	<version>15.6.0</version>
 	
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
@@ -2056,7 +2056,7 @@
 
 		<!--
 			macOS 10.15 (Catalina) onwards
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos</id>
@@ -2441,12 +2441,12 @@
 									<property environment="env" />
 									<target name="bundle" unless="jaronly">
 										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
+										<!-- <exec executable="/usr/libexec/java_home"
 											  failonerror="true"
 											  outputproperty="runtime">
 											<arg value="-v"/>
 											<arg value="${project.jre-version}"/>
-										</exec>
+										</exec> -->
 
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
@@ -2465,7 +2465,7 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<!-- <runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/> -->
+											<runtime dir="/Users/runner/hostedtoolcache/Java_Zulu_jre/17.0.19-10/x64/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
@@ -2531,7 +2531,7 @@
 
 		<!--
 			macOS on ARM (Apple Silicon) processors
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos-arm</id>
@@ -2940,7 +2940,7 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<!-- <runtime dir="/Users/runner/hostedtoolcache/Java_Liberica_jre/JAVA_PATH_VERSION/arm64"/> -->
+											<runtime dir="/Users/runner/hostedtoolcache/Java_Zulu_jre/17.0.19-10/arm64/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
@@ -3006,7 +3006,7 @@
 
 		<!--
 			macOS pre-10.15 (Catalina)
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos-pre1015</id>
@@ -3236,7 +3236,7 @@
 
 		<!--
 			macOS pre-10.15 (Catalina) on CI
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos-pre1015-ci</id>
@@ -3306,7 +3306,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-macos-pre1015</id>
+								<id>process-resources-macos-pre1015-ci</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -3338,7 +3338,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>prepare-package-macos-pre1015</id>
+								<id>prepare-package-macos-pre1015-ci</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3365,7 +3365,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>package-app-macos-pre1015</id>
+								<id>package-app-macos-pre1015-ci</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3398,6 +3398,7 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
+											<runtime dir="/Users/runner/hostedtoolcache/Java_Zulu_jre/17.0.19-10/x64/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
@@ -3438,7 +3439,7 @@
 								moving them to the app Bundle.
 							-->
 							<execution>
-								<id>make-assembly-macos-pre1015</id>
+								<id>make-assembly-macos-pre1015-ci</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>

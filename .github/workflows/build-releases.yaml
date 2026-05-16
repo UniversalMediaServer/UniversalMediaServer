@@ -2,120 +2,114 @@ name: Build releases
 
 on:
   push:
-    tags:
-      - '*'
 
 jobs:
-  appimage:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-      - name: Install MediaInfo
-        run: |
-          sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
-          sudo dpkg -i libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
-      - name: Build x86_64 release
-        run: mvn package -P linux-x86_64 -DskipTests
-      - name: Install AppImage dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
-        with:
-          packages: desktop-file-utils
-      - name: Build AppImage
-        run: |
-          bash ./.github/workflows/build-appimage.sh
-          mkdir dist
-          mv ./target/*AppImage* dist/
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: AppImage
-          path: 'dist'
-  macos-arm:
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up JRE
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-          java-package: jre
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-      - name: Extract tag
-        run: echo "TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
-      - name: Save JRE version in path format
-        id: paths
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
-      - name: Write specific Java version to Maven pom config
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: '**/pom.xml'
-          search-text: 'JAVA_PATH_VERSION'
-          replacement-text: ${{ steps.paths.outputs.jrePath }}
-      - name: Build package
-        run: mvn -P macos-arm-ci package -DskipTests=true
-      - name: Write tag to Gon configs
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: './.github/workflows/dependencies/gon-config-*.json'
-          search-text: 'VERSION_TAG'
-          replacement-text: ${{ env.TAG }}
-      - name: Write password to Gon configs
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: './.github/workflows/dependencies/gon-config-*.json'
-          search-text: 'APPLE_PASSWORD'
-          replacement-text: ${{secrets.APPLE_PASSWORD}}
-      - name: Import codesign cert
-        uses: apple-actions/import-codesign-certs@v7
-        with: 
-          p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
-          p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
-      - name: Run pre-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
-      - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-arm.json || true
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: macos-arm
-          path: '**/*.dmg'
+  # appimage:
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - name: Set up JDK
+  #       uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'liberica'
+  #         java-version: 17
+  #     - name: Install MediaInfo
+  #       run: |
+  #         sudo apt-get -y install libmms0
+  #         wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
+  #         sudo dpkg -i libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
+  #     - name: Build x86_64 release
+  #       run: mvn package -P linux-x86_64 -DskipTests
+  #     - name: Install AppImage dependencies
+  #       uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+  #       with:
+  #         packages: desktop-file-utils
+  #     - name: Build AppImage
+  #       run: |
+  #         bash ./.github/workflows/build-appimage.sh
+  #         mkdir dist
+  #         mv ./target/*AppImage* dist/
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v7
+  #       with:
+  #         name: ci-builds
+  #         path: 'dist'
+  # macos-arm:
+  #   runs-on: macos-26
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - run: corepack enable
+  #     - uses: actions/setup-node@v6
+  #       with:
+  #         node-version: 22
+  #         cache: 'yarn'
+  #         cache-dependency-path: 'react-client/yarn.lock'
+  #     - name: Extract tag
+  #       run: echo "TAG=15.6.0" >> $GITHUB_ENV
+  #     - uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'zulu'
+  #         java-version: '17.0.19'
+  #         java-package: jre
+  #     - uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'zulu'
+  #         java-version: '17.0.19'
+  #         java-package: jdk
+  #         cache: 'maven'
+  #     - name: Build package
+  #       run: mvn -P macos-arm-ci package -DskipTests=true
+  #     - name: Write tag to Gon configs
+  #       uses: richardrigutins/replace-in-files@v3.0.0
+  #       with:
+  #         files: './.github/workflows/dependencies/gon-config-*.json'
+  #         search-text: 'VERSION_TAG'
+  #         replacement-text: ${{ env.TAG }}
+  #     - name: Write password to Gon configs
+  #       uses: richardrigutins/replace-in-files@v3.0.0
+  #       with:
+  #         files: './.github/workflows/dependencies/gon-config-*.json'
+  #         search-text: 'APPLE_PASSWORD'
+  #         replacement-text: ${{secrets.APPLE_PASSWORD}}
+  #     - name: Import codesign cert
+  #       uses: apple-actions/import-codesign-certs@v7
+  #       with: 
+  #         p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
+  #         p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
+  #     - name: Set permissions on files so that signing succeeds
+  #       run: chmod -R +w "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/arm64/Contents/Home/lib/server/"
+  #     - name: Run signing step
+  #       run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-sign-arm.json
+  #     - name: Run notarization step
+  #       run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-arm.json || true
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v7
+  #       with:
+  #         name: macos-arm
+  #         path: '**/*.dmg'
   macos-intel:
     runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v6
-      - name: Set up JRE
-        uses: actions/setup-java@v5
+      - run: corepack enable
+      - uses: actions/setup-node@v6
         with:
-          distribution: 'liberica'
-          java-version: 17
-          java-package: jre
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: 'react-client/yarn.lock'
       - name: Extract tag
-        run: echo "TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
-      - name: Save JRE version in path format
-        id: paths
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
-      - name: Write specific Java version to Maven pom config
-        uses: richardrigutins/replace-in-files@v3.0.0
+        run: echo "TAG=15.6.0" >> $GITHUB_ENV
+      - uses: actions/setup-java@v5
         with:
-          files: '**/pom.xml'
-          search-text: 'JAVA_PATH_VERSION'
-          replacement-text: ${{ steps.paths.outputs.jrePath }}
+          distribution: 'zulu'
+          java-version: '17.0.19'
+          java-package: jre
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17.0.19'
+          java-package: jdk
+          cache: 'maven'
       - name: Build package
         run: mvn -P macos-ci package -DskipTests=true
       - name: Write tag to Gon configs
@@ -135,109 +129,119 @@ jobs:
         with: 
           p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
-      - name: Run pre-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-prebuild.json
-      - name: Run post-build signing step
-        run: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-build-intel.json || true
+      - name: Set permissions on files so that signing succeeds
+        run: chmod -R +w "./target/ums-${{ env.TAG }}-distribution/Universal Media Server.app/Contents/PlugIns/x64/Contents/Home/lib/server/"
+      - name: Run signing step
+        uses: Wandalen/wretry.action@master
+        with:
+          command: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-sign-intel.json
+          attempt_limit: 10
+          attempt_delay: 2000
+      # - name: Run notarization step
+      #   run: ./.github/workflows/dependencies/gon -log-level=trace ./.github/workflows/dependencies/gon-config-notarize-intel.json
+      - run: sync
+      - name: Run notarization step
+        uses: Wandalen/wretry.action@master
+        with:
+          command: ./.github/workflows/dependencies/gon ./.github/workflows/dependencies/gon-config-notarize-intel.json
+          attempt_limit: 10
+          attempt_delay: 2000
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: macos-intel
+          name: macos-x86_64
           path: '**/*.dmg'
-  macos-intel-pre1015:
-    runs-on: macos-26-intel
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up JRE
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-          java-package: jre
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-      - name: Extract tag
-        run: echo "TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
-      - name: Save JRE version in path format
-        id: paths
-        run: cd /Users/runner/hostedtoolcache/Java_Liberica_jre/ && ls && echo "jrePath=$(ls)" >> "$GITHUB_OUTPUT"
-      - name: Write specific Java version to Maven pom config
-        uses: richardrigutins/replace-in-files@v3.0.0
-        with:
-          files: '**/pom.xml'
-          search-text: 'JAVA_PATH_VERSION'
-          replacement-text: ${{ steps.paths.outputs.jrePath }}
-      - name: Build package
-        run: mvn -P macos-pre1015-ci package -DskipTests=true
-      - name: Package package
-        run: hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-${{ env.TAG }}-pre10.15.dmg
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: macos-intel-pre1015
-          path: '**/*.dmg'
-  docker-ubuntu:
-    runs-on: macos-26-intel
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up JRE
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-          java-package: jre
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v5
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build app
-        run: mvn -P macos-pre1015-ci package -DskipTests=true
-      - name: Download binaries
-        run: mvn -P docker-ubuntu prepare-package -DskipTests=true
-      - name: Build images
-        run: mvn -P docker-ubuntu package -DskipTests=true
-      - name: Publish images
-        run: mvn -P docker-ubuntu install -DskipTests=true
-  docker-alpine:
-    runs-on: macos-26-intel
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up JRE
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-          java-package: jre
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'liberica'
-          java-version: 17
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v5
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build app
-        run: mvn -P macos-pre1015-ci package -DskipTests=true
-      - name: Download binaries
-        run: mvn -P docker-alpine prepare-package -DskipTests=true
-      - name: Build images
-        run: mvn -P docker-alpine package -DskipTests=true
-      - name: Publish images
-        run: mvn -P docker-alpine install -DskipTests=true
+  # macos-intel-pre1015:
+  #   runs-on: macos-26-intel
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - run: corepack enable
+  #     - uses: actions/setup-node@v6
+  #       with:
+  #         node-version: 22
+  #         cache: 'yarn'
+  #         cache-dependency-path: 'react-client/yarn.lock'
+  #     - name: Extract tag
+  #       run: echo "TAG=15.6.0" >> $GITHUB_ENV
+  #     - uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'zulu'
+  #         java-version: '17.0.19'
+  #         java-package: jre
+  #     - uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'zulu'
+  #         java-version: '17.0.19'
+  #         java-package: jdk
+  #         cache: 'maven'
+  #     - name: Build package
+  #       run: mvn -P macos-pre1015-ci package -DskipTests=true
+  #     - name: Package package
+  #       run: hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution -fs HFS+ UMS-macOS-${{ env.TAG }}-pre10.15.dmg
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v7
+  #       with:
+  #         name: macos-pre1015
+  #         path: '**/*.dmg'
+  # docker-ubuntu:
+  #   runs-on: macos-26-intel
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - name: Set up JRE
+  #       uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'liberica'
+  #         java-version: 17
+  #         java-package: jre
+  #     - name: Set up JDK
+  #       uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'liberica'
+  #         java-version: 17
+  #     - name: Set up Docker
+  #       uses: docker/setup-docker-action@v5
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v4
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v4
+  #       with:
+  #         username: ${{ vars.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Build app
+  #       run: mvn -P macos-pre1015-ci package -DskipTests=true
+  #     - name: Download binaries
+  #       run: mvn -P docker-ubuntu prepare-package -DskipTests=true
+  #     - name: Build images
+  #       run: mvn -P docker-ubuntu package -DskipTests=true
+  #     - name: Publish images
+  #       run: mvn -P docker-ubuntu install -DskipTests=true
+  # docker-alpine:
+  #   runs-on: macos-26-intel
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - name: Set up JRE
+  #       uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'liberica'
+  #         java-version: 17
+  #         java-package: jre
+  #     - name: Set up JDK
+  #       uses: actions/setup-java@v5
+  #       with:
+  #         distribution: 'liberica'
+  #         java-version: 17
+  #     - name: Set up Docker
+  #       uses: docker/setup-docker-action@v5
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v4
+  #       with:
+  #         username: ${{ vars.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Build app
+  #       run: mvn -P macos-pre1015-ci package -DskipTests=true
+  #     - name: Download binaries
+  #       run: mvn -P docker-alpine prepare-package -DskipTests=true
+  #     - name: Build images
+  #       run: mvn -P docker-alpine package -DskipTests=true
+  #     - name: Publish images
+  #       run: mvn -P docker-alpine install -DskipTests=true
