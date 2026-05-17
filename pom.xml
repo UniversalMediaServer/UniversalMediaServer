@@ -146,7 +146,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.21.0</version>
+			<version>1.22.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -1050,9 +1050,9 @@
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
 
 										<!-- MediaInfo binaries -->
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_i386_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x86.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_i386_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x86.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x86.zip" dest="${project.basedir}/target/mediainfo-windows-x86-folder"></unzip>
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
 										<copy file="${project.basedir}/target/mediainfo-windows-x86-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86/MediaInfo.dll" overwrite="true" />
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86_64/MediaInfo.dll" overwrite="true" />
@@ -4228,7 +4228,7 @@
 										<mkdir dir="${project.binaries}/bin" />
 
 										<!-- MediaInfo binary -->
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/bin/MediaInfo.dll" overwrite="true" />
 
