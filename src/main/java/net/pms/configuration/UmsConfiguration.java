@@ -79,10 +79,10 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.event.ConfigurationEvent;
+import org.apache.commons.configuration2.event.EventListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -311,6 +311,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	private static final String KEY_FLATTEN_FOLDERS = "flatten_folders";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
 	private static final String KEY_FILE_EXTENSIONS_IGNORED = "file_extensions_ignored";
@@ -602,6 +603,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 		KEY_DISABLE_TRANSCODING,
 		KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
+		KEY_FLATTEN_FOLDERS,
 		KEY_FULLY_PLAYED_ACTION,
 		KEY_HIDE_EMPTY_FOLDERS,
 		KEY_OPEN_ARCHIVES,
@@ -766,7 +768,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * Default constructor that will attempt to load the UMS configuration file
 	 * from the profile path.
 	 *
-	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws org.apache.commons.configuration2.ex.ConfigurationException
 	 * @throws InterruptedException
 	 */
 	public UmsConfiguration() throws ConfigurationException, InterruptedException {
@@ -788,7 +790,7 @@ public class UmsConfiguration extends BaseConfiguration {
 			File pmsConfFile = new File(PROFILE_PATH);
 
 			try {
-				((PropertiesConfiguration) configuration).load(pmsConfFile);
+				((ManagedPropertiesConfiguration) configuration).load(pmsConfFile);
 			} catch (ConfigurationException e) {
 				if (Platform.isLinux() && SKEL_PROFILE_PATH != null) {
 					LOGGER.debug("Failed to load {} ({}) - attempting to load skel profile", PROFILE_PATH, e.getMessage());
@@ -796,7 +798,7 @@ public class UmsConfiguration extends BaseConfiguration {
 
 					try {
 						// Load defaults from skel profile, save them later to PROFILE_PATH
-						((PropertiesConfiguration) configuration).load(skelConfigFile);
+						((ManagedPropertiesConfiguration) configuration).load(skelConfigFile);
 						LOGGER.info("Default configuration loaded from {}", SKEL_PROFILE_PATH);
 					} catch (ConfigurationException ce) {
 						LOGGER.warn("Can't load neither {}: {} nor {}: {}", PROFILE_PATH, e.getMessage(), SKEL_PROFILE_PATH, ce.getMessage());
@@ -807,7 +809,7 @@ public class UmsConfiguration extends BaseConfiguration {
 			}
 		}
 
-		((PropertiesConfiguration) configuration).setPath(PROFILE_PATH);
+		((ManagedPropertiesConfiguration) configuration).setPath(PROFILE_PATH);
 		for (Entry<String, String> refactoredKey : REFACTORED_KEYS.entrySet()) {
 			if (configuration.containsKey(refactoredKey.getKey())) {
 				Object value = configuration.getProperty(refactoredKey.getKey());
@@ -3743,7 +3745,7 @@ public class UmsConfiguration extends BaseConfiguration {
      * been set yet
      */
 	public void save() throws ConfigurationException {
-		((PropertiesConfiguration) configuration).save();
+		((ManagedPropertiesConfiguration) configuration).save();
 		LOGGER.info("Configuration saved to \"{}\"", PROFILE_PATH);
 	}
 
@@ -4337,6 +4339,14 @@ public class UmsConfiguration extends BaseConfiguration {
 		this.configuration.setProperty(UmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, value);
 	}
 
+	public boolean isFlattenFolders() {
+		return getBoolean(UmsConfiguration.KEY_FLATTEN_FOLDERS, false);
+	}
+
+	public void setFlattenFolders(final boolean value) {
+		this.configuration.setProperty(UmsConfiguration.KEY_FLATTEN_FOLDERS, value);
+	}
+
 	public boolean isHideEmptyFolders() {
 		return getBoolean(UmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, false);
 	}
@@ -4688,12 +4698,12 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_UUID, value);
 	}
 
-	public void addConfigurationListener(ConfigurationListener l) {
-		((PropertiesConfiguration) configuration).addConfigurationListener(l);
+	public void addConfigurationListener(EventListener<ConfigurationEvent> l) {
+		((ManagedPropertiesConfiguration) configuration).addEventListener(ConfigurationEvent.ANY, l);
 	}
 
-	public void removeConfigurationListener(ConfigurationListener l) {
-		((PropertiesConfiguration) configuration).removeConfigurationListener(l);
+	public void removeConfigurationListener(EventListener<ConfigurationEvent> l) {
+		((ManagedPropertiesConfiguration) configuration).removeEventListener(ConfigurationEvent.ANY, l);
 	}
 
 	public boolean getFolderLimit() {
@@ -4719,7 +4729,7 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void reload() {
 		try {
-			((PropertiesConfiguration) configuration).refresh();
+			((ManagedPropertiesConfiguration) configuration).refresh();
 		} catch (ConfigurationException e) {
 			LOGGER.error(null, e);
 		}
@@ -4866,7 +4876,7 @@ public class UmsConfiguration extends BaseConfiguration {
 
 				// Save the path if we got here
 				configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
-				((PropertiesConfiguration) configuration).save();
+				((ManagedPropertiesConfiguration) configuration).save();
 			} catch (IOException e) {
 				LOGGER.debug("Error initializing credentials file: {}", e);
 			} catch (ConfigurationException e) {
@@ -5464,7 +5474,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * Enable the automatically saving of modified properties to the disk.
 	 */
 	public void setAutoSave() {
-		((PropertiesConfiguration) configuration).setAutoSave(true);
+		((ManagedPropertiesConfiguration) configuration).setAutoSave(true);
 	}
 
 	public boolean isUpnpEnabled() {
@@ -5913,6 +5923,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FORCED_SUBTITLE_LANGUAGE, "");
 		jObj.addProperty(KEY_FORCED_SUBTITLE_TAGS, "forced");
 		jObj.addProperty(KEY_THUMBNAIL_GENERATION_ENABLED, true);
+		jObj.addProperty(KEY_FLATTEN_FOLDERS, false);
 		jObj.addProperty(KEY_HIDE_EMPTY_FOLDERS, false);
 		jObj.addProperty(KEY_HIDE_ENGINENAMES, true);
 		jObj.addProperty(KEY_HIDE_EXTENSIONS, true);

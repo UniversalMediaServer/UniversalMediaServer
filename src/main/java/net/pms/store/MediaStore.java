@@ -256,6 +256,7 @@ public class MediaStore extends StoreContainer {
 		List<StoreResource> realSystemFileResources = new ArrayList<>();
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 		boolean useExternalContent = CONFIGURATION.getExternalNetwork() && renderer.getUmsConfiguration().getExternalNetwork();
+		boolean flatten = renderer.getUmsConfiguration().isFlattenFolders();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent.isActive() && sharedContent.isGroupAllowed(renderer.getAccountGroupId())) {
 				if (sharedContent instanceof ITunesContent iTunesContent) {
@@ -266,9 +267,13 @@ public class MediaStore extends StoreContainer {
 					setIPhotoContent();
 				} else if (sharedContent instanceof FolderContent folder) {
 					if (folder.getFile() != null) {
-						StoreResource realSystemFileResource = setFolderContent(folder);
-						if (realSystemFileResource instanceof RealFolder || realSystemFileResource instanceof RealFile) {
-							realSystemFileResources.add(realSystemFileResource);
+						if (flatten) {
+							addFlattenedFiles(folder.getFile(), realSystemFileResources);
+						} else {
+							StoreResource realSystemFileResource = setFolderContent(folder);
+							if (realSystemFileResource instanceof RealFolder || realSystemFileResource instanceof RealFile) {
+								realSystemFileResources.add(realSystemFileResource);
+							}
 						}
 					}
 				} else if (sharedContent instanceof VirtualFolderContent virtualFolder) {
@@ -282,6 +287,60 @@ public class MediaStore extends StoreContainer {
 		if (renderer.getUmsConfiguration().getSearchFolder()) {
 			SearchFolder sf = new SearchFolder(renderer, "SearchDiscFolders", new FileSearch(realSystemFileResources));
 			addChild(sf);
+		}
+	}
+
+	/**
+	 * Recursively collects all media files from a directory and adds them
+	 * directly to this container (the root), skipping folder hierarchy.
+	 */
+	private void addFlattenedFiles(File directory, List<StoreResource> realSystemFileResources) {
+		if (directory == null || !directory.isDirectory() || !directory.canRead()) {
+			return;
+		}
+		List<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
+		List<File> allFiles = new ArrayList<>();
+		collectAllMediaFiles(directory, ignoredFolderNames, allFiles);
+		for (File file : allFiles) {
+			StoreResource resource = createResourceFromFile(file);
+			if (resource != null) {
+				addChild(resource, true, true);
+				if (resource instanceof RealFile) {
+					realSystemFileResources.add(resource);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Recursively walks a directory tree collecting only media files.
+	 */
+	private void collectAllMediaFiles(File directory, List<String> ignoredFolderNames, List<File> out) {
+		if (!directory.canRead()) {
+			LOGGER.warn("Can't read directory: {}", directory.getAbsolutePath());
+			return;
+		}
+		File[] files = directory.listFiles();
+		if (files == null) {
+			LOGGER.debug("I/O error listing files in directory: {}", directory.getAbsolutePath());
+			return;
+		}
+		for (File file : files) {
+			if (!file.canRead() || file.isHidden()) {
+				LOGGER.trace("Ignoring '{}' because it is unreadable or hidden", file);
+				continue;
+			}
+			if (file.isDirectory()) {
+				if (!ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
+					LOGGER.debug("Ignoring '{}' because it is in the ignored directories list", file);
+					continue;
+				}
+				collectAllMediaFiles(file, ignoredFolderNames, out);
+			} else if (SystemFilesHelper.isPotentialMediaFile(file.getName())) {
+				out.add(file);
+			} else {
+				LOGGER.trace("Ignoring '{}' because it is not a media file", file);
+			}
 		}
 	}
 
