@@ -34,7 +34,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreResource;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 

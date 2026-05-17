@@ -18,7 +18,7 @@ package net.pms.swing;
 
 import java.util.Locale;
 import net.pms.TestHelper;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -39,7 +39,7 @@ import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
 import net.pms.util.XmlUtils;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.jupnp.controlpoint.ActionCallback;
 import org.jupnp.model.action.ActionArgumentValue;

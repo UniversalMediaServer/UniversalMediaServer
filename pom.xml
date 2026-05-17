@@ -146,18 +146,42 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.21.0</version>
+			<version>1.22.0</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.10</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-configuration2</artifactId>
+			<version>2.11.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-text</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.11.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-logging</groupId>
@@ -601,7 +625,7 @@
 		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>radiobrowser4j</artifactId>
-			<version>3.3.0</version>
+			<version>3.3.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -617,7 +641,7 @@
 			<!-- jsoup HTML parser library @ https://jsoup.org/ -->
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.22.1</version>
+			<version>1.22.2</version>
 		</dependency>
 		<dependency>
 			<groupId>dev.dirs</groupId>
@@ -1026,9 +1050,9 @@
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
 
 										<!-- MediaInfo binaries -->
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_i386_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x86.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_i386_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x86.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x86.zip" dest="${project.basedir}/target/mediainfo-windows-x86-folder"></unzip>
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
 										<copy file="${project.basedir}/target/mediainfo-windows-x86-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86/MediaInfo.dll" overwrite="true" />
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86_64/MediaInfo.dll" overwrite="true" />
@@ -4204,7 +4228,7 @@
 										<mkdir dir="${project.binaries}/bin" />
 
 										<!-- MediaInfo binary -->
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/bin/MediaInfo.dll" overwrite="true" />
 
