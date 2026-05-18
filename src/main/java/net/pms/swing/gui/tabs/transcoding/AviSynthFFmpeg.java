@@ -37,7 +37,7 @@ import net.pms.swing.components.CustomTabbedPaneUI;
 import net.pms.swing.components.KeyedComboBoxModel;
 import net.pms.swing.gui.FormLayoutUtil;
 import net.pms.swing.gui.UmsFormBuilder;
-import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration2.event.ConfigurationEvent;
 
 public class AviSynthFFmpeg {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();

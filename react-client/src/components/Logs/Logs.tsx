@@ -251,7 +251,7 @@ const Logs = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterfac
     axios.post(logsApiUrl + 'packer', { items: packerFiles }, { responseType: 'blob' })
       .then(function (response: AxiosResponse) {
         const fileName = response.headers['content-disposition'].split('filename=')[1].replaceAll('"', '')
-        const type = response.headers['content-type']
+        const type = response.headers['content-type'] as string
         const blob = new Blob([response.data], { type: type })
         const link = document.createElement('a')
         link.href = window.URL.createObjectURL(blob)

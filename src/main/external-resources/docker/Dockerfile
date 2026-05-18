@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.title="Universal Media Server"
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
-RUN apt-get install coreutils ffmpeg mediainfo openjdk-17-jdk-headless iputils-ping mplayer fonts-dejavu -y
+RUN apt-get install coreutils ffmpeg mediainfo openjdk-17-jre-headless iputils-ping mplayer fonts-dejavu -y
 
 WORKDIR /profile
 

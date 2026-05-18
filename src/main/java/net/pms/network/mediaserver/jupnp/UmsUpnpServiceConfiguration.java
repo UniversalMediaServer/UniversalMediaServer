@@ -35,7 +35,7 @@ import net.pms.network.mediaserver.jupnp.transport.impl.UmsMulticastReceiver;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
 import net.pms.network.mediaserver.jupnp.transport.impl.jetty.JettyTransportConfiguration;
 import net.pms.util.SimpleThreadFactory;
-import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration2.event.ConfigurationEvent;
 import org.jupnp.UpnpServiceConfiguration;
 import org.jupnp.binding.xml.DeviceDescriptorBinder;
 import org.jupnp.binding.xml.RecoveringUDA10DeviceDescriptorBinderImpl;

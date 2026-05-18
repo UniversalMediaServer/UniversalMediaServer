@@ -22,7 +22,6 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,13 +32,14 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.network.DnsResolver;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
 import net.pms.util.XmlUtils;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.jupnp.controlpoint.ActionCallback;
 import org.jupnp.model.action.ActionArgumentValue;
@@ -85,6 +85,7 @@ public class JUPnPDeviceHelper {
 	public static final int ANY = 0xff;
 
 	private static final boolean DEBUG = true; // log upnp state vars
+
 
 	// AVTransport
 	// Play modes
@@ -224,13 +225,9 @@ public class JUPnPDeviceHelper {
 	}
 
 	private static InetAddress getInetAddress(Device device) {
-		try {
-			URL url = getURL(device);
-			if (url != null && url.getHost() != null) {
-				return InetAddress.getByName(url.getHost());
-			}
-		} catch (UnknownHostException e) {
-			//no IP address for the host could be found.
+		URL url = getURL(device);
+		if (url != null && url.getHost() != null) {
+			return DnsResolver.resolveByName(url.getHost());
 		}
 		return null;
 	}
@@ -439,18 +436,14 @@ public class JUPnPDeviceHelper {
 	 */
 	private static Device getDevice(InetAddress socket, Collection<Device> devices) {
 		for (Device device : devices) {
-			try {
-				URL url = getURL(device);
-				if (url != null && url.getHost() != null) {
-					InetAddress[] addresses = InetAddress.getAllByName(url.getHost());
-					for (InetAddress address : addresses) {
-						if (address.equals(socket)) {
-							return device;
-						}
+			URL url = getURL(device);
+			if (url != null && url.getHost() != null) {
+				InetAddress[] addresses = DnsResolver.resolveAllByName(url.getHost());
+				for (InetAddress address : addresses) {
+					if (address.equals(socket)) {
+						return device;
 					}
 				}
-			} catch (UnknownHostException e) {
-				//no IP address for the host could be found
 			}
 		}
 		return null;

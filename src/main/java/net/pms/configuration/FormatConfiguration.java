@@ -718,7 +718,7 @@ public class FormatConfiguration {
 
 		for (MediaAudio audio : media.getAudioTracks()) {
 			// ignore commentary tracks, that is probably not what the user is interested in
-			if (audio.getTitle() != null && StringUtils.containsIgnoreCase(audio.getTitle(), "commentary")) {
+			if (audio.getTitle() != null && Strings.CI.contains(audio.getTitle(), "commentary")) {
 				continue;
 			}
 
