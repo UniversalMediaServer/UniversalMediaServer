@@ -8,6 +8,7 @@
 - Bump `commons-io:commons-io` from 2.21.0 to 2.22.0 ([#6134](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6134))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.3.0 to 3.3.1 ([#6144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6144))
 - Bump `minimatch` from 10.2.4 to 10.2.5 ([#6165](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6165))
+- Bump `org.apache.commons:commons-configuration2` from 2.11.0 to 2.15.0 ([#6170](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6170))
 - Bump `org.jsoup:jsoup` from 1.22.1 to 1.22.2 ([#6136](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6136))
 - Bump `org.jsoup:jsoup` from 1.22.1 to 1.22.2 ([#6136](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6136))
 - Bump `postcss` from 8.5.6 to 8.5.14 ([#6151](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6151))
