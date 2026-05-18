@@ -345,8 +345,9 @@ public class StoreResourceHelper {
 				if (videoMetadata.getTvSeason() != null) {
 					movie.setEpisodeSeason(UnsignedInteger.valueOf(videoMetadata.getTvSeason()));
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeNumber())) {
-					movie.setEpisodeNumber(UnsignedInteger.valueOf(videoMetadata.getTvEpisodeNumber()));
+				Integer episodeNumber = videoMetadata.getFirstTvEpisodeNumber();
+				if (episodeNumber != null) {
+					movie.setEpisodeNumber(UnsignedInteger.valueOf(episodeNumber));
 				}
 				if (StringUtils.isNotBlank(videoMetadata.getTvSeriesTitle())) {
 					movie.setSeriesTitle(videoMetadata.getTvSeriesTitle());

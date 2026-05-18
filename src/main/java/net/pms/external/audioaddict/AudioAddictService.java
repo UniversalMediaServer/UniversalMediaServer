@@ -2,14 +2,14 @@ package net.pms.external.audioaddict;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.configuration2.event.ConfigurationEvent;
+import org.apache.commons.configuration2.event.EventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 
-public class AudioAddictService implements ConfigurationListener {
+public class AudioAddictService implements EventListener<ConfigurationEvent> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictService.class.getName());
 
@@ -72,7 +72,7 @@ public class AudioAddictService implements ConfigurationListener {
 	}
 
 	@Override
-	public void configurationChanged(ConfigurationEvent event) {
+	public void onEvent(ConfigurationEvent event) {
 		UmsConfiguration ums = PMS.getConfiguration();
 
 		if (conf.user != ums.getAudioAddictUser() || conf.pass != ums.getAudioAddictPassword() ||

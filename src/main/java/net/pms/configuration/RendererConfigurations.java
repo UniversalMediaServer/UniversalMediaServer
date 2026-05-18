@@ -37,8 +37,7 @@ import net.pms.renderers.Renderer;
 import net.pms.util.FileWatcher;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SortedHeaderMap;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -86,7 +85,7 @@ public class RendererConfigurations {
 		return r1.getConfName().compareToIgnoreCase(r2.getConfName());
 	};
 	private static final SortedSet<RendererConfiguration> ENABLED_RENDERERS_CONFS = Collections.synchronizedSortedSet(new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR));
-	private static final Map<String, PropertiesConfiguration> DEVICES_CONFS = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<String, ManagedPropertiesConfiguration> DEVICES_CONFS = Collections.synchronizedMap(new HashMap<>());
 
 	private static RendererConfiguration defaultConf;
 	private static Renderer defaultRenderer;
@@ -292,11 +291,11 @@ public class RendererConfigurations {
 		return DEVICES_CONFS.containsKey(id);
 	}
 
-	public static boolean isDeviceConfigurationChanged(String id, PropertiesConfiguration deviceConf) {
+	public static boolean isDeviceConfigurationChanged(String id, ManagedPropertiesConfiguration deviceConf) {
 		return DEVICES_CONFS.containsKey(id) && deviceConf != DEVICES_CONFS.get(id);
 	}
 
-	public static PropertiesConfiguration getDeviceConfiguration(String id) {
+	public static ManagedPropertiesConfiguration getDeviceConfiguration(String id) {
 		return DEVICES_CONFS.get(id);
 	}
 
@@ -464,7 +463,7 @@ public class RendererConfigurations {
 				if (!idsList.contains(deviceId)) {
 					idsList.add(id);
 				}
-				DEVICES_CONFS.put(id, (PropertiesConfiguration) rendererConf.getConfiguration());
+				DEVICES_CONFS.put(id, (ManagedPropertiesConfiguration) rendererConf.getConfiguration());
 				LOGGER.info("Loaded device configuration {} for {}", rendererConf.getFile().getName(), id);
 			}
 		}
@@ -493,7 +492,7 @@ public class RendererConfigurations {
 		List<String> idsList = new ArrayList<>();
 		for (Iterator<String> iterator = DEVICES_CONFS.keySet().iterator(); iterator.hasNext();) {
 			String id = iterator.next();
-			PropertiesConfiguration deviceConfiguration = DEVICES_CONFS.get(id);
+			ManagedPropertiesConfiguration deviceConfiguration = DEVICES_CONFS.get(id);
 			if (deviceConfiguration.getFile().equals(file)) {
 				idsList.add(id);
 				iterator.remove();

@@ -2,10 +2,23 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `commons-beanutils:commons-beanutils` from 1.9.4 to 1.11.0 ([#6162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6162))
+- Bump `commons-codec:commons-codec` from 1.21.0 to 1.22.0 ([#6135](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6135))
+- Bump `commons-io:commons-io` from 2.21.0 to 2.22.0 ([#6134](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6134))
+- Bump `de.sfuhrm:radiobrowser4j` from 3.3.0 to 3.3.1 ([#6144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6144))
+- Bump `minimatch` from 10.2.4 to 10.2.5 ([#6165](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6165))
+- Bump `org.jsoup:jsoup` from 1.22.1 to 1.22.2 ([#6136](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6136))
+- Bump `org.jsoup:jsoup` from 1.22.1 to 1.22.2 ([#6136](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6136))
+- Bump `postcss` from 8.5.6 to 8.5.14 ([#6151](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6151))
+
+## [15.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.5.0...15.6.0) (2026-04-24)
+
 ### General
 
 - Added Discogs integration for audio metadata and UPnP
 - Added new options for DNS resolution handling (thanks, @henry701 Henrique Campos!)
+- Added a loading indicator to the Shared Content area on the web settings (#6037)
 - Improved detection of sample videos
 - Improved stability of speed test (thanks, @henry701 Henrique Campos!)
 - Fixed support for servers with no Internet access (#6047) (thanks, @henry701 Henrique Campos!)
@@ -13,6 +26,13 @@
 - Fixed API lookups happening for TV series when episode lookup fails, even if the series metadata is already in the local database (#6080)
 - Fixed JDK being used in Docker image instead of JRE (#6089) (thanks, @mvanhorn Matt Van Horn!)
 - Fixed editing a video feed on the web settings erases the URL (#6046) (thanks, @serinekjo kjo!)
+- Fixed docs for FFmpeg GPU support (thanks, @Harshit-dell Harshit Kumar Sahu!)
+
+### Translation updates via Crowdin
+- Dutch (97%) (thanks, Lefteye!)
+- English (United Kingdom) (80%) (thanks, Andi Chandler!)
+- Italian (63%) (thanks, parduz!)
+- Portuguese (Brazilian) (67%) (thanks, Henrique Campos!)
 
 ### Dependencies
 - Bump `@mantine/core` from 8.3.15 to 8.3.18 ([#6059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6059), [#6075](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6075), [#6083](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6083))
@@ -24,19 +44,22 @@
 - Bump `@stylistic/eslint-plugin` from 5.8.0 to 5.10.0 ([#6063](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6063))
 - Bump `@tabler/icons-react` from 3.37.1 to 3.41.1 ([#6061](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6061), [#6094](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6094))
 - Bump `@types/lodash` from 4.17.23 to 4.17.24 ([#6050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6050))
-- Bump `@xmldom/xmldom` from 0.8.10 to 0.8.12 ([#6098](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6098))
+- Bump `@xmldom/xmldom` from 0.8.10 to 0.8.13 ([#6098](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6098), [#6125](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6125))
 - Bump `actions/upload-artifact` from 6 to 7 ([#6049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6049))
 - Bump `axios` from 1.13.5 to 1.15.0 ([#6077](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6077), [#6111](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6111))
 - Bump `brace-expansion` from 1.1.12 to 1.1.14 ([#6092](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6092), [#6110](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6110))
 - Bump `com.drewnoakes:metadata-extractor` from 2.19.0 to 2.20.0 ([#6114](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6114))
-- Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.8 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042))
+- Bump `com.github.junrar:junrar` from 7.5.7 to 7.5.10 ([#6042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6042), [#6122](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6122))
 - Bump `com.github.oshi:oshi-core` from 6.10.0 to 6.11.1 ([#6104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6104), [#6116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6116))
+- Bump `com.google.guava:guava` from 33.5.0-jre to 33.6.0-jre ([#6123](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6123))
 - Bump `commons-logging:commons-logging` from 1.3.5 to 1.3.6 ([#6060](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6060))
 - Bump `de.sfuhrm:chromecast-java-api-v2` from 0.12.19 to 0.12.20 ([#6052](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6052))
 - Bump `dorny/paths-filter` from 3 to 4 ([#6073](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6073))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
 - Bump `eslint-plugin-react-refresh` from 0.5.0 to 0.5.2 ([#6051](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6051))
+- Bump `FFmpeg` from 8.0.1 to 8.1
 - Bump `flatted` from 3.3.3 to 3.4.2 ([#6088](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6088))
+- Bump `follow-redirects` from 1.15.11 to 1.16.0 ([#6118](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6118))
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 9.0.2 to 9.1.0 ([#6095](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6095))
 - Bump `lodash` from 4.17.23 to 4.18.1 ([#6106](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6106))
 - Bump `org.apache.maven.plugins:maven-resources-plugin` from 3.4.0 to 3.5.0 ([#6058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6058))

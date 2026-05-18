@@ -20,7 +20,7 @@ import java.util.Locale;
 import net.pms.PMS;
 import net.pms.TestHelper;
 import net.pms.util.SortedHeaderMap;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;

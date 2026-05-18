@@ -50,7 +50,7 @@ import net.pms.swing.components.KeyedComboBoxModel;
 import net.pms.util.Languages;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
