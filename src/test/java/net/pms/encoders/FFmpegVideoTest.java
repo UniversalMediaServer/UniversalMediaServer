@@ -112,6 +112,7 @@ public class FFmpegVideoTest {
 
 		boolean hasDolbyVisionOutput = false;
 		boolean hasLoopedPastOutputLine = false;
+		System.out.println("ffmpegOutput " + ffmpegOutput);
 		for (String line : ffmpegOutput) {
 			line = line.trim();
 
