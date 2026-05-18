@@ -16,8 +16,6 @@
  */
 package net.pms.network.mediaserver.handlers;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +26,7 @@ import net.pms.renderers.Renderer;
 public class SearchRequestHandlerTest {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchRequestHandlerTest.class.getName());
-	@BeforeAll
-	public static final void setUp() throws ConfigurationException, InterruptedException {
-	}
+
 
 	@Test
 	public void testGlobalPlaylistSearchSql() {
