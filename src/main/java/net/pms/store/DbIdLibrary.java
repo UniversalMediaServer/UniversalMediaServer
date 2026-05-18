@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaTableMusicBrainzReleases;
 import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.renderers.Renderer;
@@ -36,7 +35,6 @@ import net.pms.store.container.VirtualFolderDbId;
 public class DbIdLibrary {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdLibrary.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final Renderer renderer;
 	private VirtualFolderDbId audioLikesFolder;
@@ -82,10 +80,8 @@ public class DbIdLibrary {
 	}
 
 	protected final void reset(List<StoreResource> backupChildren) {
-		if (CONFIGURATION.useNextcpApi()) {
-			setAudioLikesFolder(backupChildren);
-			setPersonFolder();
-		}
+		setAudioLikesFolder(backupChildren);
+		setPersonFolder();
 	}
 
 	private void addChildToMediaLibraryAudioFolder(VirtualFolderDbId dbIdFolder) {
@@ -194,10 +190,17 @@ public class DbIdLibrary {
 			MusicAlbumFolder mbFolder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(renderer, typeIdent);
 			if (mbFolder == null) {
 				LOGGER.debug("music album not in database : {} ", typeIdent.toString());
-				AlbumMetadata persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(album.getMbReleaseid());
-				if (persistentAlbum == null) {
-					MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+
+				if (DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.equals(typeIdent.type)) {
+					// check if album is in database, if not store it
+					AlbumMetadata persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(album.getMbReleaseid());
+					if (persistentAlbum == null) {
+						MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+					}
+				} else if (DbIdMediaType.TYPE_DISCOGS_RELEASEID.equals(typeIdent.type)) {
+					// TODO store discogs release in database
 				}
+
 				mbFolder = new MusicAlbumFolder(renderer, album);
 
 				// Lookup person's album folder as parent
