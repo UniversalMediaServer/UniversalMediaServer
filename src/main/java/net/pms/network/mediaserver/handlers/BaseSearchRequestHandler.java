@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -394,9 +394,7 @@ public abstract class BaseSearchRequestHandler {
 	public int getLibraryResourceCountFromSQL() {
 		String query = convertToCountSql();
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(String.format("SQL count : %s", query));
-		}
+		LOGGER.debug("SQL count : {}", query);
 
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable();
 			Statement statement = connection.createStatement();
