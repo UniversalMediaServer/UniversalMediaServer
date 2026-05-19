@@ -799,7 +799,6 @@ public class MediaTableFiles extends MediaTable {
 		return media;
 	}
 
-	// Hilfsmethode zum Deserialisieren
 	private static Object deserialize(byte[] bytes) {
 		if (bytes == null) {
 			return null;
