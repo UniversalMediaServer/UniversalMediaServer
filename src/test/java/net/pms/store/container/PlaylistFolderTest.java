@@ -2,11 +2,10 @@ package net.pms.store.container;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -22,7 +21,7 @@ public class PlaylistFolderTest {
 	private static final Logger LOG = LoggerFactory.getLogger(PlaylistFolderTest.class.getName());
 
 	@BeforeAll
-	static void initTest() throws SQLException, ConfigurationException, InterruptedException {
+	static void initTest() throws Exception {
 		System.setProperty("surefire.real.class.path", "/tmp");
 
 		PMS.get();
@@ -40,7 +39,7 @@ public class PlaylistFolderTest {
 	 * @throws IOException
 	 */
 	@Test
-	public void testInternetPlaylist() throws IOException {
+	public void testInternetPlaylist() throws Exception {
 		Path testPlaylist;
 		testPlaylist = Files.createTempFile("playlist_", ".m3u8");
 		testPlaylist.toFile().deleteOnExit();
@@ -57,6 +56,7 @@ public class PlaylistFolderTest {
 				assertNotNull(child.getThumbnailInputStream());
 			} catch (IOException e) {
 				e.printStackTrace();
+				assertTrue(false, "Failed to get thumbnail input stream for child: " + child.getName());
 			}
 		});
 	}
