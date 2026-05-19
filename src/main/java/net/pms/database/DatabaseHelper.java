@@ -61,7 +61,7 @@ public abstract class DatabaseHelper {
 	protected static final String LOG_ERROR_WHILE_VAR_IN_FOR = "Database \"{}\" error while {} \"{}\" in \"{}\" for \"{}\": {}";
 
 	// Generic constant for the maximum string size: 255 chars
-	protected static final int SIZE_2048 = 1024;
+	protected static final int SIZE_2048 = 2048;
 	protected static final int SIZE_1024 = 1024;
 	protected static final int SIZE_MAX = 255;
 	protected static final int SIZE_LANG = 3;
