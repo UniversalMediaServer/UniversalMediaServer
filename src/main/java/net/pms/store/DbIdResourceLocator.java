@@ -92,6 +92,20 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
+	public static StoreResource getLibraryResourceVideoImage(Renderer renderer, String realFileName) {
+		if (renderer.hasShareAccess(new File(realFileName))) {
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFileName, "RealFile", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
+			}
+			LOGGER.error("{} not found as PlaylistFolder in database.", realFileName);
+		}
+		return null;
+	}
+
 	public static MusicBrainzPersonFolder getLibraryResourcePersonFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicBrainzPersonFolder.class);
 		for (Long id : ids) {

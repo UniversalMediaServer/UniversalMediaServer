@@ -83,6 +83,10 @@ public class DidlHelper extends DlnaHelper {
 	 *         ="1">}
 	 */
 	public static final String getDidlString(StoreResource resource) {
+		if (resource == null) {
+			LOGGER.warn("cannot generate DIDL-Lite for null resource");
+			return "";
+		}
 		final Renderer renderer = resource.getDefaultRenderer();
 		final MediaInfo mediaInfo = resource.getMediaInfo();
 		final MediaStatus mediaStatus = resource.getMediaStatus();

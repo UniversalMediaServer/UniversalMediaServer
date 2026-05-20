@@ -354,6 +354,8 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		} catch (SQLException e) {
 			LOGGER.error("getMusicBrainzAlbum : Database error in " + TABLE_NAME + " for \"{}\": {}", mbid, e.getMessage());
 			LOGGER.trace("", e);
+		} catch (IllegalArgumentException e) {
+			LOGGER.error("getMusicBrainzAlbum : invalid UUID. Cannot get album information for mbid: " + mbid, e);
 		}
 		return null;
 	}
