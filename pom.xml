@@ -96,7 +96,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<slf4j-api-version>2.0.17</slf4j-api-version>
-
+		<lucene-version>9.12.3</lucene-version>
 		<surefire-version>3.5.5</surefire-version>
 
 		<!--
@@ -397,7 +397,7 @@
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>7.5.10</version>
+			<version>7.6.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -577,7 +577,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10.websocket</groupId>
 			<artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
-			<version>12.1.8</version>
+			<version>12.1.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -592,7 +592,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.1.8</version>
+			<version>12.1.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -603,7 +603,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.1.8</version>
+			<version>12.1.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -614,7 +614,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.1.8</version>
+			<version>12.1.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -647,6 +647,24 @@
 			<groupId>dev.dirs</groupId>
 			<artifactId>directories</artifactId>
 			<version>26</version>
+		</dependency>
+		
+		<!-- Lucene search support -->
+		<!-- Attention: Lucene 10+ requires JDK 21+ (i.e. 10.4.0) -->
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-core</artifactId>
+		    <version>${lucene-version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-queryparser</artifactId>
+		    <version>${lucene-version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-analysis-common</artifactId>
+		    <version>${lucene-version}</version>
 		</dependency>
 	</dependencies>
 	<build>

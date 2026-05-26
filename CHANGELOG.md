@@ -3,13 +3,17 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `com.github.junrar:junrar` from 7.5.10 to 7.6.0 ([#6169](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6169))
 - Bump `com.github.oshi:oshi-core` from 6.11.1 to 7.1.0 ([#6168](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6168))
 - Bump `commons-beanutils:commons-beanutils` from 1.9.4 to 1.11.0 ([#6162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6162))
 - Bump `commons-codec:commons-codec` from 1.21.0 to 1.22.0 ([#6135](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6135))
 - Bump `commons-io:commons-io` from 2.21.0 to 2.22.0 ([#6134](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6134))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.3.0 to 3.3.1 ([#6144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6144))
 - Bump `minimatch` from 10.2.4 to 10.2.5 ([#6165](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6165))
-- Bump `org.jsoup:jsoup` from 1.22.1 to 1.22.2 ([#6136](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6136))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
 - Bump `org.jsoup:jsoup` from 1.22.1 to 1.22.2 ([#6136](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6136))
 - Bump `postcss` from 8.5.6 to 8.5.14 ([#6151](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6151))
 
