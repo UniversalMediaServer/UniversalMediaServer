@@ -2074,7 +2074,7 @@
 
 		<!--
 			macOS 10.15 (Catalina) onwards
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos</id>
@@ -2549,7 +2549,7 @@
 
 		<!--
 			macOS on ARM (Apple Silicon) processors
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos-arm</id>
@@ -3024,7 +3024,7 @@
 
 		<!--
 			macOS pre-10.15 (Catalina)
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos-pre1015</id>
@@ -3254,7 +3254,7 @@
 
 		<!--
 			macOS pre-10.15 (Catalina) on CI
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos-pre1015-ci</id>
