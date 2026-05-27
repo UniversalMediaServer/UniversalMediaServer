@@ -13,15 +13,7 @@ cd ..
 
 # Clear the folder for a clean build
 rm UMS-macOS-*
-rm -fr target/ums*
-rm -rf target/antrun
-rm -rf target/archive-tmp
-rm -rf target/classes
-rm -rf target/generated-sources
-rm -rf target/generated-test-sources
-rm -rf target/maven-archiver
-rm -rf target/surefire-reports
-rm -rf target/test-classes
+rm -rf target
 
 mvn -P macos-arm package -DskipTests=true
 
