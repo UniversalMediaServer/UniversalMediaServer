@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `axios` from 1.15.2 to 1.16.0 ([#6176](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6176))
 - Bump `com.github.junrar:junrar` from 7.5.10 to 7.6.0 ([#6169](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6169))
 - Bump `com.github.oshi:oshi-core` from 6.11.1 to 7.1.0 ([#6168](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6168))
 - Bump `commons-beanutils:commons-beanutils` from 1.9.4 to 1.11.0 ([#6162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6162))
