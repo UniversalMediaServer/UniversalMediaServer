@@ -24,6 +24,7 @@
 - Bump `de.sfuhrm:radiobrowser4j` from 3.3.0 to 3.3.1 ([#6144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6144))
 - Bump `MediaInfo` from 25.10 to 26.05
 - Bump `minimatch` from 10.2.4 to 10.2.5 ([#6165](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6165))
+- Bump `org.apache.commons:commons-configuration2` from 2.11.0 to 2.15.1 ([#6170](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6170))
 - Bump `org.apache.commons:configuration-common` from 1.10 to 2.11.0
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
