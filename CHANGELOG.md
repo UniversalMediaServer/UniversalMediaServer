@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
+
 ### General
 
 - Added support for webp thumbnail images, see the Knowledge Base article https://support.universalmediaserver.com/guides/how-to-add-artwork
@@ -13,6 +15,13 @@
 - Fixed letters in episode numbers (e.g. S01E01a) breaking browsing of the parent directory (thanks, @callmepri2003!)
 - Fixed phrasing in attachment instructions (thanks, @sohamsharmadev-svg!)
 - Fixed development workflow on Windows, see the Knowledge Base article https://support.universalmediaserver.com/development/
+
+### Translation updates via Crowdin
+- Chinese Simplified (58%) (thanks, 橙子!)
+- Dutch (100%) (thanks, Lefteye!)
+- German (81%) (thanks, Frank Peters!)
+- Korean (88%) (thanks, VenusGirl!)
+- Turkish (94%) (thanks, Burak Yavuz!)
 
 ### Dependencies
 - Bump `axios` from 1.15.2 to 1.16.0 ([#6176](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6176))
