@@ -82,12 +82,16 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 	}
 
 	/**
-	 * We can handle all types with this implementation now ... If not do a check and return false here, so that the request is processed by another handler.
+	 * This handler needs a non-empty Lucene query. Search criteria consisting only of
+	 * upnp:class predicates (e.g. 'upnp:class derivedfrom "object.item.audioItem"') result
+	 * in an empty Lucene expression, because upnp:class is handled in the SQL WHERE clause
+	 * and not by the fulltext index.
 	 *
-	 * @return
+	 * @return true if this handler can process the search criteria
 	 */
+	@Override
 	public boolean canHandle() {
-		return true;
+		return StringUtils.isNotBlank(luceneQuery);
 	}
 
 	private int getCount() {

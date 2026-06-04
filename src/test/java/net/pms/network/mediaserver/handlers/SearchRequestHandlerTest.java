@@ -16,6 +16,8 @@
  */
 package net.pms.network.mediaserver.handlers;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,6 +205,46 @@ public class SearchRequestHandlerTest {
 		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		String sql = searchRequestHandler.convertToCountSql();
 		LOG.info(sql);
+	}
+
+	/**
+	 * A search criteria filtering only by upnp:class (no fulltext term) produces an
+	 * empty Lucene query. The LuceneSearchRequestHandler cannot handle it and has to
+	 * report this, so that UmsContentDirectoryService falls back to the
+	 * DbSearchRequestHandler (see BubbleUPnP audio search regression).
+	 */
+	@Test
+	public void testClassOnlySearchFallsBackToDbHandler() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.item.audioItem\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(1);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler luceneHandler = new LuceneSearchRequestHandler(sr);
+		assertFalse(luceneHandler.canHandle(), "empty lucene query cannot be handled by LuceneSearchRequestHandler");
+
+		DbSearchRequestHandler dbHandler = new DbSearchRequestHandler(sr);
+		assertTrue(dbHandler.canHandle());
+		String sql = dbHandler.convertToFilesSql();
+		LOG.info(sql);
+		assertTrue(sql.contains("FORMAT_TYPE = 1"), "db handler should filter audio by FORMAT_TYPE");
+		assertTrue(sql.contains("LIMIT 1"), "requested count must be honoured");
+	}
+
+	/**
+	 * A criteria containing a fulltext term must still be handled by the Lucene handler.
+	 */
+	@Test
+	public void testClassWithTitleSearchIsHandledByLucene() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.item.audioItem\" and dc:title contains \"jazz\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler luceneHandler = new LuceneSearchRequestHandler(sr);
+		assertTrue(luceneHandler.canHandle());
 	}
 
 	@Test
