@@ -2,14 +2,38 @@
 
 ## [Unreleased]
 
+## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
+
+### General
+
+- Added support for webp thumbnail images, see the Knowledge Base article https://support.universalmediaserver.com/guides/how-to-add-artwork
+- Added option to flatten folder structure to files only (thanks, @kibermaks!)
+- Added Lucene search capabilities for audio files
+- Added automatic thumbnails for Internet playlists
+- Update album art when it is changed on the drive
+- Fixed audio tracks database update failing
+- Fixed letters in episode numbers (e.g. S01E01a) breaking browsing of the parent directory (thanks, @callmepri2003!)
+- Fixed phrasing in attachment instructions (thanks, @sohamsharmadev-svg!)
+- Fixed development workflow on Windows, see the Knowledge Base article https://support.universalmediaserver.com/development/
+
+### Translation updates via Crowdin
+- Chinese Simplified (58%) (thanks, 橙子!)
+- Dutch (100%) (thanks, Lefteye!)
+- German (81%) (thanks, Frank Peters!)
+- Korean (88%) (thanks, VenusGirl!)
+- Turkish (94%) (thanks, Burak Yavuz!)
+
 ### Dependencies
+- Bump `axios` from 1.15.2 to 1.16.0 ([#6176](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6176))
 - Bump `com.github.junrar:junrar` from 7.5.10 to 7.6.0 ([#6169](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6169))
 - Bump `com.github.oshi:oshi-core` from 6.11.1 to 7.1.0 ([#6168](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6168))
 - Bump `commons-beanutils:commons-beanutils` from 1.9.4 to 1.11.0 ([#6162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6162))
 - Bump `commons-codec:commons-codec` from 1.21.0 to 1.22.0 ([#6135](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6135))
 - Bump `commons-io:commons-io` from 2.21.0 to 2.22.0 ([#6134](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6134))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.3.0 to 3.3.1 ([#6144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6144))
+- Bump `MediaInfo` from 25.10 to 26.05
 - Bump `minimatch` from 10.2.4 to 10.2.5 ([#6165](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6165))
+- Bump `org.apache.commons:commons-configuration2` from 1.10 to 2.15.1 ([#6170](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6170))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.8 to 12.1.9 ([#6167](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6167))
