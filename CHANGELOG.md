@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `com.sun.xml.bind:jaxb-impl` from 4.0.6 to 4.0.9 ([#6180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6180))
+
 ## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
 
 ### General
