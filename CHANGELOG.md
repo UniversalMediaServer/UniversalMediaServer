@@ -5,6 +5,7 @@
 ### Dependencies
 - Bump `ch.qos.logback:logback-classic` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
 - Bump `ch.qos.logback:logback-core` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
+- Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.2.1 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189))
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.6 to 4.0.9 ([#6180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6180))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.5 to 3.5.6 ([#6190](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6190))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
