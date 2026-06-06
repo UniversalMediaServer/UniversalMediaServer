@@ -28,6 +28,11 @@ updates:
       typescript-eslint:
         patterns:
         - "@typescript-eslint*"
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 7
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -55,3 +60,8 @@ updates:
       twelvemonkeys:
         patterns:
         - "*twelvemonkeys*"
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 7
