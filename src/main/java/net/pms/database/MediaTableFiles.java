@@ -508,7 +508,6 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_RESOURCE_UID + VARCHAR);
 					}
 					case 44 -> {
-						
 						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + ")");
 					}
 					case 45 -> {
