@@ -20,26 +20,25 @@ import java.io.IOException;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
-import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
-import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdTypeAndIdent;
 
-public class MusicBrainzAlbumFolder extends VirtualFolderDbIdNamed {
+public class MusicAlbumFolder extends VirtualFolderDbIdNamed {
 
-	public MusicBrainzAlbumFolder(Renderer renderer, String mbid) {
-		super(renderer, null, getTypeIdentForMbid(mbid));
+	public MusicAlbumFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		super(renderer, null, typeIdent);
 		// virtual root of MusicBrainz Music Folder
 		setParent(renderer.getMediaStore().getMediaLibrary());
 	}
 
-	public MusicBrainzAlbumFolder(Renderer renderer, MusicBrainzAlbum album) {
-		this(renderer, album.getMbReleaseid(), album.getAlbum(), album.getMbReleaseid(), album.getAlbum(), album.getArtist(), album.getYear(), album.getGenre());
+	public MusicAlbumFolder(Renderer renderer, AlbumMetadata album) {
+		this(renderer, album.getTypeIdent(), album.getAlbum(), album.getMbReleaseid(), album.getAlbum(), album.getArtist(), album.getYear(), album.getGenre());
 	}
 
-	public MusicBrainzAlbumFolder(Renderer renderer, String mbid, String folderName, String mbReleaseid, String album, String artist, String year, String genre) {
-		super(renderer, folderName, getTypeIdentForMbid(mbid));
+	private MusicAlbumFolder(Renderer renderer, DbIdTypeAndIdent typeIdent, String folderName, String mbReleaseid, String album, String artist, String year, String genre) {
+		super(renderer, folderName, typeIdent);
 		MediaInfo fakeMediaInfo = new MediaInfo();
 		MediaAudioMetadata fakeAudioMetadata = new MediaAudioMetadata();
 		fakeAudioMetadata.setAlbum(album);
@@ -68,9 +67,4 @@ public class MusicBrainzAlbumFolder extends VirtualFolderDbIdNamed {
 		}
 		return super.getThumbnailInputStream();
 	}
-
-	private static DbIdTypeAndIdent getTypeIdentForMbid(String mbid) {
-		return new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid);
-	}
-
 }

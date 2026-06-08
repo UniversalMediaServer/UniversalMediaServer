@@ -17,18 +17,17 @@
 package net.pms.store;
 
 import java.util.List;
-import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
-import net.pms.database.MediaTableMusicBrainzReleases;
-import net.pms.media.audio.metadata.MusicBrainzAlbum;
-import net.pms.renderers.Renderer;
-import net.pms.store.container.MediaLibrary;
-import net.pms.store.container.MusicBrainzAlbumFolder;
-import net.pms.store.container.MusicBrainzPersonFolder;
-import net.pms.store.container.VirtualFolderDbId;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
+import net.pms.database.MediaTableMusicBrainzReleases;
+import net.pms.media.audio.metadata.AlbumMetadata;
+import net.pms.renderers.Renderer;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.MusicAlbumFolder;
+import net.pms.store.container.MusicBrainzPersonFolder;
+import net.pms.store.container.VirtualFolderDbId;
 
 /**
  * @author Surf@ceS
@@ -36,7 +35,6 @@ import org.slf4j.LoggerFactory;
 public class DbIdLibrary {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdLibrary.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final Renderer renderer;
 	private VirtualFolderDbId audioLikesFolder;
@@ -82,10 +80,8 @@ public class DbIdLibrary {
 	}
 
 	protected final void reset(List<StoreResource> backupChildren) {
-		if (CONFIGURATION.useNextcpApi()) {
-			setAudioLikesFolder(backupChildren);
-			setPersonFolder();
-		}
+		setAudioLikesFolder(backupChildren);
+		setPersonFolder();
 	}
 
 	private void addChildToMediaLibraryAudioFolder(VirtualFolderDbId dbIdFolder) {
@@ -181,24 +177,31 @@ public class DbIdLibrary {
 	}
 
 	/**
-	 * Add a musicBrainz folder to the library.
+	 * Add a MusicAlbum folder to the library.
 	 *
 	 * @param renderer
 	 * @param typeIdent
 	 * @param album
 	 * @return
 	 */
-	public static MusicBrainzAlbumFolder addLibraryResourceMusicBrainzAlbum(Renderer renderer, MusicBrainzAlbum album) {
+	public static MusicAlbumFolder addLibraryResourceMusicAlbum(Renderer renderer, AlbumMetadata album) {
 		try {
-			DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, album.getMbReleaseid());
-			MusicBrainzAlbumFolder mbFolder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(renderer, typeIdent);
+			DbIdTypeAndIdent typeIdent = album.getTypeIdent();
+			MusicAlbumFolder mbFolder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(renderer, typeIdent);
 			if (mbFolder == null) {
-				LOGGER.debug("musicBrainz album not in database : {} ", typeIdent.toString());
-				MusicBrainzAlbum persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(album.getMbReleaseid());
-				if (persistentAlbum == null) {
-					MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+				LOGGER.debug("music album not in database : {} ", typeIdent.toString());
+
+				if (DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.equals(typeIdent.type)) {
+					// check if album is in database, if not store it
+					AlbumMetadata persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(album.getMbReleaseid());
+					if (persistentAlbum == null) {
+						MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+					}
+				} else if (DbIdMediaType.TYPE_DISCOGS_RELEASEID.equals(typeIdent.type)) {
+					// TODO store discogs release in database
 				}
-				mbFolder = new MusicBrainzAlbumFolder(renderer, album);
+
+				mbFolder = new MusicAlbumFolder(renderer, album);
 
 				// Lookup person's album folder as parent
 				DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, album.getArtist());
@@ -210,7 +213,7 @@ public class DbIdLibrary {
 			}
 			return mbFolder;
 		} catch (Exception e) {
-			LOGGER.error("cannot add MusicBrainzAlbumFolder.", e);
+			LOGGER.error("cannot add MusicAlbumFolder.", e);
 			return null;
 		}
 	}

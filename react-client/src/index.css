@@ -123,3 +123,6 @@ nav button .mantine-Button-inner:hover {
   bottom: 20px;
   right: 20px;
 }
+[data-mantine-color-scheme="dark"] .shared-content-switch .mantine-Switch-input:disabled ~ .mantine-Switch-track  {
+  background-color: var(--mantine-color-dimmed);
+}

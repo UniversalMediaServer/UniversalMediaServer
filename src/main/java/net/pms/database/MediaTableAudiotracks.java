@@ -117,7 +117,11 @@ public class MediaTableAudiotracks extends MediaTable {
 					//removed
 				}
 				case 8 -> {
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + RENAME + CONSTRAINT + IF_EXISTS + "PKAUDIO TO " + TABLE_NAME + PK_MARKER);
+					try {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + RENAME + CONSTRAINT + "PKAUDIO TO " + TABLE_NAME + PK_MARKER);
+					} catch (SQLException e) {
+						LOGGER.trace("Constraint PKAUDIO not found, skipping rename: {}", e.getMessage());
+					}
 				}
 				case 9, 10 -> {
 					//removed

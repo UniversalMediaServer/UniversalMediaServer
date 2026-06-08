@@ -43,8 +43,7 @@ import net.pms.store.StoreResource;
 import net.pms.util.FileWatcher;
 import net.pms.util.SortedHeaderMap;
 import net.pms.util.StringUtil;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -278,8 +277,8 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	public boolean load(File f) throws ConfigurationException {
-		if (f != null && !f.equals(NOFILE) && (configuration instanceof PropertiesConfiguration)) {
-			((PropertiesConfiguration) configuration).load(f);
+		if (f != null && !f.equals(NOFILE) && (configuration instanceof ManagedPropertiesConfiguration managed)) {
+			managed.load(f);
 
 			// Set up the header matcher
 			SortedHeaderMap searchMap = new SortedHeaderMap();

@@ -21,9 +21,9 @@ import java.net.InetAddress;
 import java.util.UUID;
 import net.pms.PMS;
 import net.pms.renderers.ConnectedRenderers;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +43,7 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 	private static final int DEVICE = 0;
 	private static final int RENDERER = 1;
 
-	private PropertiesConfiguration deviceConf = null;
+	private ManagedPropertiesConfiguration deviceConf = null;
 	private RendererConfiguration ref = null;
 	protected String uuid;
 
@@ -69,7 +69,7 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 	 */
 	public final void inherit(RendererConfiguration ref) throws ConfigurationException {
 		CompositeConfiguration cconf = new CompositeConfiguration();
-		cconf.setListDelimiter((char) 0);
+		cconf.setListDelimiterHandler(DisabledListDelimiterHandler.INSTANCE);
 
 		// Add the component configurations in order of lookup priority:
 
@@ -153,7 +153,7 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 		//let renderer know uuid was changed
 	}
 
-	public final PropertiesConfiguration initDeviceConfiguration(InetAddress ia, String uuid) {
+	public final ManagedPropertiesConfiguration initDeviceConfiguration(InetAddress ia, String uuid) {
 		//try first the uuid if exists then ip address
 		String id = uuid != null ? uuid : ConnectedRenderers.getUuidOf(ia);
 		if (ia != null && (id == null || !RendererConfigurations.hasDeviceConfiguration(id))) {
@@ -168,12 +168,12 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 		return deviceConf;
 	}
 
-	public PropertiesConfiguration getConfiguration(int index) {
+	public ManagedPropertiesConfiguration getConfiguration(int index) {
 		CompositeConfiguration c = (CompositeConfiguration) configuration;
-		return (PropertiesConfiguration) c.getConfiguration(index);
+		return (ManagedPropertiesConfiguration) c.getConfiguration(index);
 	}
 
-	public PropertiesConfiguration getDeviceConfiguration() {
+	public ManagedPropertiesConfiguration getDeviceConfiguration() {
 		return getConfiguration(DEVICE);
 	}
 

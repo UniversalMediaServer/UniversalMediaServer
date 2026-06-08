@@ -6,6 +6,9 @@
     "configurations": [
         {
             "command": "yarn && yarn dev",
+            "windows": {
+                "command": "yarn; yarn dev"
+            },
             "name": "Launch web interface",
             "request": "launch",
             "type": "node-terminal",

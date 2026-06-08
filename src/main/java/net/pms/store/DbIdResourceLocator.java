@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibraryFolder;
-import net.pms.store.container.MusicBrainzAlbumFolder;
+import net.pms.store.container.MusicAlbumFolder;
 import net.pms.store.container.MusicBrainzPersonFolder;
 import net.pms.store.container.VirtualFolderDbId;
 import org.apache.commons.lang3.StringUtils;
@@ -92,6 +92,20 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
+	public static StoreResource getLibraryResourceVideoImage(Renderer renderer, String realFileName) {
+		if (renderer.hasShareAccess(new File(realFileName))) {
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFileName, "RealFile", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
+			}
+			LOGGER.error("{} not found as PlaylistFolder in database.", realFileName);
+		}
+		return null;
+	}
+
 	public static MusicBrainzPersonFolder getLibraryResourcePersonFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicBrainzPersonFolder.class);
 		for (Long id : ids) {
@@ -104,15 +118,15 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
-	public static MusicBrainzAlbumFolder getLibraryResourceMusicBrainzFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
-		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicBrainzAlbumFolder.class);
+	public static MusicAlbumFolder getLibraryResourceMusicBrainzFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicAlbumFolder.class);
 		for (Long id : ids) {
 			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
 			if (resource != null) {
-				return (MusicBrainzAlbumFolder) resource;
+				return (MusicAlbumFolder) resource;
 			}
 		}
-		LOGGER.debug("MusicBrainz album '{}' not found in database.", typeIdent.toString());
+		LOGGER.debug("MusicAlbumFolder '{}' not found in MediaStore database.", typeIdent.toString());
 		return null;
 	}
 

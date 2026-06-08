@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.title="Universal Media Server"
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
-RUN apt-get install coreutils ffmpeg mediainfo openjdk-17-jdk-headless iputils-ping mplayer fonts-dejavu -y
+RUN apt-get install coreutils ffmpeg mediainfo openjdk-17-jre-headless iputils-ping mplayer fonts-dejavu -y
 
 WORKDIR /profile
 
@@ -24,6 +24,6 @@ EXPOSE 1900/udp 5001/tcp 5353/udp 9001/tcp 9002/tcp
 
 ENV UMS_PROFILE=/profile
 
-ENV JDK_JAVA_OPTIONS="-Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true --add-opens java.base/sun.nio.ch=ALL-UNNAMED"
+ENV JDK_JAVA_OPTIONS="--add-modules=jdk.incubator.vector --add-opens java.base/sun.nio.ch=ALL-UNNAMED -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true"
 
 ENTRYPOINT [ "java", "-jar", "ums.jar" ]

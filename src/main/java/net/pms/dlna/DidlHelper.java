@@ -83,6 +83,10 @@ public class DidlHelper extends DlnaHelper {
 	 *         ="1">}
 	 */
 	public static final String getDidlString(StoreResource resource) {
+		if (resource == null) {
+			LOGGER.warn("cannot generate DIDL-Lite for null resource");
+			return "";
+		}
 		final Renderer renderer = resource.getDefaultRenderer();
 		final MediaInfo mediaInfo = resource.getMediaInfo();
 		final MediaStatus mediaStatus = resource.getMediaStatus();
@@ -490,6 +494,9 @@ public class DidlHelper extends DlnaHelper {
 				endTag(sb);
 				addXMLTagAndAttribute(sb, "musicbrainztrackid", audioMetadata.getMbidTrack());
 				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", audioMetadata.getMbidRecord());
+				if (audioMetadata.getDiscogsReleaseId() != null) {
+					addXMLTagAndAttribute(sb, "discogsreleaseid", audioMetadata.getDiscogsReleaseId());
+				}
 				addXMLTagAndAttribute(sb, "resourceid", mediaInfo.getResourceId());
 				if (audioMetadata.getDisc() > 0) {
 					addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));

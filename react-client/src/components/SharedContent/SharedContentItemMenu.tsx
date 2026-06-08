@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Group, Menu } from '@mantine/core'
+import { ActionIcon, Group, Menu, Switch } from '@mantine/core'
 import { IconEdit, IconMenu2, IconShare, IconShareOff, IconSquareX } from '@tabler/icons-react'
 import _ from 'lodash'
 
@@ -59,18 +59,14 @@ export default function SharedContentItemMenu({
 
   return (
     <Group justify="flex-end">
-      <ActionIcon
-        variant="subtle"
-        size={30}
-        color={value.active ? 'blue' : 'orange'}
+      <Switch
+        className="shared-content-switch"
+        color="blue"
         disabled={!canModify}
-        visibleFrom="sm"
-        onClick={() => toogleSharedContentItemActive(value)}
+        checked={value.active}
+        onChange={() => toogleSharedContentItemActive(value)}
       >
-        {value.active
-          ? <IconShare size={16} />
-          : <IconShareOff size={16} />}
-      </ActionIcon>
+      </Switch>
       <Menu zIndex={5000}>
         <Menu.Target>
           <ActionIcon variant="default" size={30}>

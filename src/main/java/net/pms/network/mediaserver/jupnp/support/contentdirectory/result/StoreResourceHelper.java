@@ -345,8 +345,9 @@ public class StoreResourceHelper {
 				if (videoMetadata.getTvSeason() != null) {
 					movie.setEpisodeSeason(UnsignedInteger.valueOf(videoMetadata.getTvSeason()));
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeNumber())) {
-					movie.setEpisodeNumber(UnsignedInteger.valueOf(videoMetadata.getTvEpisodeNumber()));
+				Integer episodeNumber = videoMetadata.getFirstTvEpisodeNumber();
+				if (episodeNumber != null) {
+					movie.setEpisodeNumber(UnsignedInteger.valueOf(episodeNumber));
 				}
 				if (StringUtils.isNotBlank(videoMetadata.getTvSeriesTitle())) {
 					movie.setSeriesTitle(videoMetadata.getTvSeriesTitle());
@@ -575,6 +576,9 @@ public class StoreResourceHelper {
 				desc.setType("ums-tags");
 				desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
 				desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
+				if (audioMetadata.getDiscogsReleaseId() != null) {
+					desc.addMetadata("discogsreleaseid", audioMetadata.getDiscogsReleaseId().toString());
+				}
 				desc.addMetadata("resourceid", mediaInfo.getResourceId());
 				if (audioMetadata.getDisc() > 0) {
 					desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));

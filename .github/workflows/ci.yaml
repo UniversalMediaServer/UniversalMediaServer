@@ -29,7 +29,7 @@ jobs:
       - name: Get previous commit SHA
         id: prev_commit
         run: echo "PREV_COMMIT_SHA=$(git rev-parse HEAD~1)" >> $GITHUB_ENV
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           base: ${{ env.PREV_COMMIT_SHA }}
@@ -57,7 +57,7 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS web browser tests
-    runs-on: macos-14
+    runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK
@@ -84,11 +84,11 @@ jobs:
       - name: Run Playwright tests
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: my-artifact
-          path: react-client/screenshot.png
+          path: '**/test-results/**/*.png'
 
   macos-intel:
     needs: changes
@@ -101,7 +101,7 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS Intel Java tests
-    runs-on: macos-14
+    runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK
@@ -133,7 +133,7 @@ jobs:
         needs.changes.outputs.cifile == 'true'
       )
     name: macOS ARM Java tests
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK
@@ -220,8 +220,8 @@ jobs:
           sudo apt-get -y install libmms0
           wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libmediainfo0v5_25.10-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/26.05/libmediainfo0v5_26.05-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_26.05-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-noble:
@@ -256,8 +256,8 @@ jobs:
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/25.10/libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
-          sudo dpkg -i libmediainfo0v5_25.10-1_amd64.Ubuntu_24.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/26.05/libmediainfo0v5_26.05-1_amd64.Ubuntu_24.04.deb
+          sudo dpkg -i libmediainfo0v5_26.05-1_amd64.Ubuntu_24.04.deb
           mvn verify -P testing -DdisableXmlReport=true
         
   lint:

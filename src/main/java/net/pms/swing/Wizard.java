@@ -25,7 +25,7 @@ import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.swing.components.RestrictedFileSystemView;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

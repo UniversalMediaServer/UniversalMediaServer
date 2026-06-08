@@ -20,8 +20,9 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.util.StringUtil;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
 
 public abstract class BaseConfiguration {
 	private static final StringUtil.LaxUnicodeUnescaper LAX_UNICODE_UNESCAPER = new StringUtil.LaxUnicodeUnescaper();
@@ -90,15 +91,15 @@ public abstract class BaseConfiguration {
 		configuration.setProperty(key, result.toString());
 	}
 
-	public static PropertiesConfiguration createPropertiesConfiguration() {
-		PropertiesConfiguration conf = new PropertiesConfiguration();
-		conf.setListDelimiter((char) 0);
+	public static ManagedPropertiesConfiguration createPropertiesConfiguration() {
+		ManagedPropertiesConfiguration conf = new ManagedPropertiesConfiguration();
+		conf.setListDelimiterHandler(DisabledListDelimiterHandler.INSTANCE);
 		// Treat backslashes in the conf as literal while also supporting double-backslash syntax, i.e.
 		// ensure that typical raw regex strings (and unescaped Windows file paths) are read correctly.
 		conf.setIOFactory(new PropertiesConfiguration.DefaultIOFactory() {
 			@Override
-			public PropertiesConfiguration.PropertiesReader createPropertiesReader(final Reader in, final char delimiter) {
-				return new PropertiesConfiguration.PropertiesReader(in, delimiter) {
+			public PropertiesConfiguration.PropertiesReader createPropertiesReader(final Reader in) {
+				return new PropertiesConfiguration.PropertiesReader(in) {
 					@Override
 					protected void parseProperty(final String line) {
 						// Decode any backslashed unicode escapes, e.g. '\u005c', from the

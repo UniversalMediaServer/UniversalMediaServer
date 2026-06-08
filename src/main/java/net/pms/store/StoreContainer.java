@@ -134,8 +134,7 @@ public class StoreContainer extends StoreResource {
 				if (isAddGlobally && item.getFormat() != null) {
 					// Do not add unsupported mediaInfo formats to the list
 					if (renderer != null && !renderer.supportsFormat(item.getFormat())) {
-						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", item.getName(),
-								renderer.getRendererName());
+						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", item.getName(), renderer.getRendererName());
 						children.remove(item);
 						return;
 					}
@@ -147,8 +146,7 @@ public class StoreContainer extends StoreResource {
 					}
 				}
 
-				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", item.getName(),
-						item.getClass().getSimpleName());
+				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", item.getName(), item.getClass().getSimpleName());
 
 				if (allChildrenAreContainers && !item.isFolder()) {
 					allChildrenAreContainers = false;
@@ -158,21 +156,24 @@ public class StoreContainer extends StoreResource {
 
 				StoreItem resumeRes = null;
 
-				ResumeObj resumeObject = ResumeObj.create(item);
-				if (isAddGlobally &&
-						resumeObject != null &&
-						!renderer.disableUmsResume() &&
-						!renderer.isSamsung()) {
-					resumeRes = item.clone();
-					resumeRes.setResume(resumeObject);
-					resumeRes.setResumeHash(item.resumeHash());
+				if (
+					isAddGlobally &&
+					!renderer.disableUmsResume() &&
+					!renderer.isSamsung() &&
+					renderer.getUmsConfiguration().isResumeEnabled()
+				) {
+					ResumeObj resumeObject = ResumeObj.create(item);
+					if (resumeObject != null) {
+						resumeRes = item.clone();
+						resumeRes.setResume(resumeObject);
+						resumeRes.setResumeHash(item.resumeHash());
+					}
 				}
 
 				if (isAddGlobally && item.getFormat() != null) {
 					// Determine transcoding possibilities if either
 					// - the format is known to be transcodable
-					// - we have mediaInfo info (via parserV2, playback info, or a
-					// plugin)
+					// - we have mediaInfo info (via parserV2, playback info, or a plugin)
 					if (item.getFormat().transcodable() || item.getMediaInfo() != null) {
 						if (item.getMediaInfo() == null) {
 							item.setMediaInfo(new MediaInfo());
@@ -226,19 +227,16 @@ public class StoreContainer extends StoreResource {
 								if (transcodeFolder != null) {
 									FileTranscodeVirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(renderer, item);
 
-									LOGGER.trace("Adding \"{}\" to transcode folder for engine: \"{}\"", item.getName(),
-											transcodingSettings);
+									LOGGER.trace("Adding \"{}\" to transcode folder for engine: \"{}\"", item.getName(), transcodingSettings);
 									transcodeFolder.addChildInternal(fileTranscodeFolder);
 								}
 							}
 
-							if (renderer.getUmsConfiguration().isDynamicPls() && !item.isFolder() && renderer != null &&
-									!renderer.isNoDynPlsFolder()) {
+							if (renderer.getUmsConfiguration().isDynamicPls() && !item.isFolder() && renderer != null && !renderer.isNoDynPlsFolder()) {
 								addDynamicPls(item);
 							}
 						} else if (!item.getFormat().isCompatible(item, renderer) && !item.isFolder()) {
-							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", item.getName(),
-									renderer.getRendererName());
+							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", item.getName(), renderer.getRendererName());
 							children.remove(item);
 							return;
 						}
@@ -257,8 +255,13 @@ public class StoreContainer extends StoreResource {
 					 * Mux24BitFlacToVideo if we ever have another purpose for
 					 * it, which I doubt we will have.
 					 */
-					if (item.getFormat().getSecondaryFormat() != null && item.getMediaInfo() != null && renderer != null &&
-							renderer.supportsFormat(item.getFormat().getSecondaryFormat()) && renderer.isPS3()) {
+					if (
+						item.getFormat().getSecondaryFormat() != null &&
+						item.getMediaInfo() != null &&
+						renderer != null &&
+						renderer.supportsFormat(item.getFormat().getSecondaryFormat()) &&
+						renderer.isPS3()
+					) {
 						StoreItem newChild = item.clone();
 						newChild.setFormat(newChild.getFormat().getSecondaryFormat());
 						LOGGER.trace("Detected secondary format \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getName());
@@ -268,16 +271,14 @@ public class StoreContainer extends StoreResource {
 						if (!newChild.getFormat().isCompatible(newChild, renderer)) {
 							TranscodingSettings transcodingSettings = TranscodingSettings.getBestTranscodingSettings(newChild);
 							newChild.setTranscodingSettings(transcodingSettings);
-							LOGGER.trace("Secondary format \"{}\" will use engine \"{}\" for \"{}\"", newChild.getFormat().toString(),
-									transcodingSettings == null ? "null" : transcodingSettings.toString(), newChild.getName());
+							LOGGER.trace("Secondary format \"{}\" will use engine \"{}\" for \"{}\"", newChild.getFormat().toString(), transcodingSettings == null ? "null" : transcodingSettings.toString(), newChild.getName());
 						}
 
 						if (item.getMediaInfo() != null && item.getMediaInfo().isSecondaryFormatValid()) {
 							addChild(newChild);
 							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getName());
 						} else {
-							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.getFormat().toString(),
-									newChild.getName());
+							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.getFormat().toString(), newChild.getName());
 						}
 					}
 				}

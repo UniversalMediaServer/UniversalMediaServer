@@ -232,9 +232,6 @@ public class MediaScanner implements SharedContentListener {
 		}
 	}
 
-	/**
-	 * only used by nextcpapi
-	 */
 	public static void backgroundScanFileOrFolder(String filename) {
 		if (!isMediaScanRunning()) {
 			Runnable scan = () -> {
@@ -287,10 +284,8 @@ public class MediaScanner implements SharedContentListener {
 			}
 			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 			if (systemFileResources.isEmpty()) {
-				//not yet discovered or root path outside shared folders ?
-				String parent = file.getParentFile().getAbsolutePath();
-				if (isInSharedFolders(parent)) {
-					internalScanFileOrFolder(parent);
+				if (isInSharedFolders(filename)) {
+					internalScanFileOrFolder(filename);
 					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 				}
 			}

@@ -21,7 +21,7 @@
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
 
-	<version>15.4.0-SNAPSHOT</version>
+	<version>15.7.0-SNAPSHOT</version>
 	
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
@@ -55,7 +55,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>15.4.0</project.version.short>
+		<project.version.short>15.7.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -74,14 +74,14 @@
 		<project.binaries-base>https://www.universalmediaserver.com/binaries</project.binaries-base>
 
 		<!-- This MUST be bumped every time binaries (files in /bin) are changed, or the Windows installer will not replace them -->
-		<binary-revision>220</binary-revision>
+		<binary-revision>223</binary-revision>
 
 		<exec-maven-plugin-version>3.6.3</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
-		<git-commit-id-plugin-version>9.0.2</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>9.1.0</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.8.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
-		<maven-resources-plugin-version>3.4.0</maven-resources-plugin-version>
+		<maven-resources-plugin-version>3.5.0</maven-resources-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -96,8 +96,8 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<slf4j-api-version>2.0.17</slf4j-api-version>
-
-		<surefire-version>3.5.4</surefire-version>
+		<lucene-version>9.12.3</lucene-version>
+		<surefire-version>3.5.6</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
-			<version>4.5.0</version>
+			<version>4.5.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -146,12 +146,31 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.21.0</version>
+			<version>1.22.0</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.10</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-configuration2</artifactId>
+			<version>2.15.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-text</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.11.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
@@ -160,14 +179,19 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.3.5</version>
+			<version>1.3.6</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.21.0</version>
+			<version>2.22.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -194,7 +218,7 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>1.5.27</version>
+			<version>1.5.34</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -205,17 +229,17 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.5.27</version>
+			<version>1.5.34</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.13.2</version>
+			<version>2.14.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>33.5.0-jre</version>
+			<version>33.6.0-jre</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.errorprone</groupId>
@@ -272,87 +296,87 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-icns</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-iff</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-hdr</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-metadata</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pcx</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pict</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pnm</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-psd</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-sgi</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tga</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-webp</artifactId>
-			<version>3.13.0</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
-			<version>2.19.0</version>
+			<version>2.20.0</version>
 		</dependency>
 		<dependency>
 			<groupId>net.jthink</groupId>
@@ -373,7 +397,7 @@
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>7.5.7</version>
+			<version>7.6.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -411,13 +435,13 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>6.0.2</version>
+			<version>6.1.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>6.0.2</version>
+			<version>6.1.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -445,7 +469,7 @@
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>chromecast-java-api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>0.12.19</version>
+			<version>0.12.20</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -464,7 +488,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.9.2</version>
+			<version>7.2.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -489,7 +513,7 @@
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>4.0.6</version>
+			<version>4.0.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>jakarta.activation</groupId>
@@ -553,7 +577,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10.websocket</groupId>
 			<artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
-			<version>12.1.6</version>
+			<version>12.1.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -568,7 +592,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.1.6</version>
+			<version>12.1.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -579,7 +603,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.1.6</version>
+			<version>12.1.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -590,7 +614,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.1.6</version>
+			<version>12.1.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -601,7 +625,7 @@
 		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>radiobrowser4j</artifactId>
-			<version>3.3.0</version>
+			<version>3.3.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -617,7 +641,7 @@
 			<!-- jsoup HTML parser library @ https://jsoup.org/ -->
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.22.1</version>
+			<version>1.22.2</version>
 		</dependency>
 		<dependency>
 			<groupId>dev.dirs</groupId>
@@ -631,6 +655,23 @@
 		    <artifactId>zero-allocation-hashing</artifactId>
 		    <version>2026.0</version>
 		    <scope>compile</scope>
+	    </dependency>
+		<!-- Lucene search support -->
+		<!-- Attention: Lucene 10+ requires JDK 21+ (i.e. 10.4.0) -->
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-core</artifactId>
+		    <version>${lucene-version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-queryparser</artifactId>
+		    <version>${lucene-version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.lucene</groupId>
+		    <artifactId>lucene-analysis-common</artifactId>
+		    <version>${lucene-version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -1034,9 +1075,9 @@
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
 
 										<!-- MediaInfo binaries -->
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_i386_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x86.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_i386_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x86.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x86.zip" dest="${project.basedir}/target/mediainfo-windows-x86-folder"></unzip>
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
 										<copy file="${project.basedir}/target/mediainfo-windows-x86-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86/MediaInfo.dll" overwrite="true" />
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86_64/MediaInfo.dll" overwrite="true" />
@@ -1047,9 +1088,8 @@
 										<get src="${project.binaries-base}/win32/builds.txt" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dcrawMS.exe" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
 
-										<!-- FFmpeg binaries -->
 										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
-										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.0.1/ffmpeg-8.0.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
+										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.1/ffmpeg-8.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
 											<cutdirsmapper dirs="1" />
 										</unzip>
@@ -1061,7 +1101,7 @@
 										<get src="${project.binaries-base}/win32/mplayer.exe" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/tsMuxeR.exe" dest="${project.binaries}/windows/tsMuxeR.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/vcomp100.dll" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp.exe" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp.exe" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv33260.dll" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv43260.dll" dest="${project.binaries}/windows/codecs/drv43260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drvc.dll" dest="${project.binaries}/windows/codecs/drvc.dll" usetimestamp="true" />
@@ -1094,11 +1134,11 @@
 										<get src="${project.binaries-base}/win32/mplayer/config" dest="${project.binaries}/windows/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf" dest="${project.binaries}/windows/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true" />
-										<get src="https://github.com/bell-sw/Liberica/releases/download/25.0.2%2B12/bellsoft-jre25.0.2+12-windows-amd64.zip" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
+										<get src="https://github.com/bell-sw/Liberica/releases/download/17.0.18%2B10/bellsoft-jdk17.0.18+10-windows-amd64.zip" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/windows/x86_64/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
 										</unzip>
-										<get src="https://github.com/bell-sw/Liberica/releases/download/25.0.2%2B12/bellsoft-jre25.0.2+12-windows-i586.zip" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
+										<get src="https://github.com/bell-sw/Liberica/releases/download/17.0.18%2B10/bellsoft-jdk17.0.18+10-windows-i586.zip" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/windows/x86/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
 										</unzip>
@@ -1451,7 +1491,7 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/arm64/ffmpeg/ffmpeg" dest="${project.binaries}/linux/arm64/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp_linux_aarch64" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_linux_aarch64" dest="${project.binaries}/linux/arm64/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1589,7 +1629,7 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp" dest="${project.binaries}/linux/armel/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1867,8 +1907,8 @@
 										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
-										<get src="https://github.com/bell-sw/Liberica/releases/download/25.0.2%2B12/bellsoft-jre25.0.2+12-linux-i586.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp" dest="${project.binaries}/linux/x86/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/bell-sw/Liberica/releases/download/17.0.18%2B10/bellsoft-jre17.0.18+10-linux-i586.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
 										<untar src="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}" compression="gzip">
 											<cutdirsmapper dirs="1" />
 										</untar>
@@ -2012,8 +2052,8 @@
 										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp_linux" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
-										<get src="https://github.com/bell-sw/Liberica/releases/download/25.0.2%2B12/bellsoft-jre25.0.2+12-linux-amd64.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_linux" dest="${project.binaries}/linux/x86_64/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/bell-sw/Liberica/releases/download/17.0.18%2B10/bellsoft-jre17.0.18+10-linux-amd64.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
 										<untar src="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}" compression="gzip">
 											<cutdirsmapper dirs="1" />
 										</untar>
@@ -2041,7 +2081,7 @@
 
 		<!--
 			macOS 10.15 (Catalina) onwards
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos</id>
@@ -2126,9 +2166,9 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.0.1.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.1.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
 											<cutdirsmapper dirs="1" />
 										</unzip>
@@ -2280,8 +2320,244 @@
 		</profile>
 
 		<!--
+			macOS 10.15 (Catalina) onwards on CI
+		-->
+		<profile>
+			<id>macos-ci</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>install node and corepack</id>
+								<goals>
+									<goal>install-node-and-corepack</goal>
+								</goals>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>${maven-enforcer-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>enforce-java</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireJavaVersion>
+											<version>${project.jre-version}</version>
+										</requireJavaVersion>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Plugin to download binaries before assembly
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>process-resources-macos</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+										<mkdir dir="${project.binaries}/osx/10.15" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.0.1.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
+											<cutdirsmapper dirs="1" />
+										</unzip>
+
+										<!-- Copy FFmpeg binary -->
+										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg" tofile="${project.binaries}/osx/10.15/ffmpeg" overwrite="true" />
+
+										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mplayer" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-macos</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package-app-macos</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<property environment="env" />
+									<target name="bundle" unless="jaronly">
+										<!-- Obtain path to the selected JRE -->
+										<exec executable="/usr/libexec/java_home"
+											  failonerror="true"
+											  outputproperty="runtime">
+											<arg value="-v"/>
+											<arg value="${project.jre-version}"/>
+										</exec>
+
+										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+										<bundleapp 
+											jrePreferred="true"
+											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
+											name="${project.name}"
+											displayname="${project.name}"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
+											shortversion="${project.version.short}"
+											version="${project.version}"
+											icon="${project.basedir}/src/main/resources/images/logo.icns"
+											applicationCategory="public.app-category.entertainment"
+											workingdirectory="$APP_ROOT/Contents/Resources"
+											mainclassname="${project.mainclass}"
+										>
+											<!-- <runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/> -->
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+											<option value="-Xmx2048M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=${project.name.short}"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the files in the right place before
+								moving them to the app Bundle.
+							-->
+							<execution>
+								<id>make-assembly-macos</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-macos.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
 			macOS on ARM (Apple Silicon) processors
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos-arm</id>
@@ -2367,9 +2643,9 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="https://www.osxexperts.net/ffmpeg80arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm.zip" usetimestamp="true" />
+										<get src="https://www.osxexperts.net/ffmpeg81arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-macos-arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm"></unzip>
 
 										<!-- Copy FFmpeg binary -->
@@ -2520,8 +2796,244 @@
 		</profile>
 
 		<!--
+			macOS on ARM (Apple Silicon) processors and CI
+		-->
+		<profile>
+			<id>macos-arm-ci</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>install node and corepack</id>
+								<goals>
+									<goal>install-node-and-corepack</goal>
+								</goals>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>${maven-enforcer-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>enforce-java</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireJavaVersion>
+											<version>${project.jre-version}</version>
+										</requireJavaVersion>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Plugin to download binaries before assembly
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>process-resources-macos-arm-ci</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+										<mkdir dir="${project.binaries}/osx/10.15" />
+										<mkdir dir="${project.binaries}/osx/arm" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="https://www.osxexperts.net/ffmpeg80arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-arm.zip" dest="${project.basedir}/target/ffmpeg-macos-arm"></unzip>
+
+										<!-- Copy FFmpeg binary -->
+										<copy file="${project.basedir}/target/ffmpeg-macos-arm/ffmpeg" tofile="${project.binaries}/osx/arm/ffmpeg" overwrite="true" />
+
+										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mplayer" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/arm" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-macos-arm-ci</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package-app-macos-arm-ci</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<property environment="env" />
+									<target name="bundle">
+										<!-- Obtain path to the selected JRE -->
+										<exec executable="/usr/libexec/java_home"
+											  failonerror="true"
+											  outputproperty="runtime">
+											<arg value="-v"/>
+											<arg value="${project.jre-version}"/>
+										</exec>
+
+										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+										<bundleapp 
+											jrePreferred="true"
+											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
+											name="${project.name}"
+											displayname="${project.name}"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
+											shortversion="${project.version.short}"
+											version="${project.version}"
+											icon="${project.basedir}/src/main/resources/images/logo.icns"
+											applicationCategory="public.app-category.entertainment"
+											workingdirectory="$APP_ROOT/Contents/Resources"
+											mainclassname="${project.mainclass}"
+										>
+											<!-- <runtime dir="/Users/runner/hostedtoolcache/Java_Liberica_jre/JAVA_PATH_VERSION/arm64"/> -->
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+											<option value="-Xmx2048M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=${project.name.short}"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the files in the right place before
+								moving them to the app Bundle.
+							-->
+							<execution>
+								<id>make-assembly-macos-arm</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-macos-arm.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
 			macOS pre-10.15 (Catalina)
-			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
 		-->
 		<profile>
 			<id>macos-pre1015</id>
@@ -2607,7 +3119,7 @@
 										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
@@ -2692,6 +3204,233 @@
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
 											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
+											<option value="-Xdock:name=${project.name.short}"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the files in the right place before
+								moving them to the app Bundle.
+							-->
+							<execution>
+								<id>make-assembly-macos-pre1015</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-macos-pre10.15.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			macOS pre-10.15 (Catalina) on CI
+			Note: This does not make the disk image (.dmg), see the Knowledge Base for instructions https://support.universalmediaserver.com/development/build-instructions
+		-->
+		<profile>
+			<id>macos-pre1015-ci</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>install node and corepack</id>
+								<goals>
+									<goal>install-node-and-corepack</goal>
+								</goals>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>${maven-enforcer-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>enforce-java</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireJavaVersion>
+											<version>${project.jre-version}</version>
+										</requireJavaVersion>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Plugin to download binaries before assembly
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>process-resources-macos-pre1015</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-macos-pre1015</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package-app-macos-pre1015</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<property environment="env" />
+									<target name="bundle">
+										<!-- Obtain path to the selected JRE -->
+										<exec executable="/usr/libexec/java_home"
+											  failonerror="true"
+											  outputproperty="runtime">
+											<arg value="-v"/>
+											<arg value="${project.jre-version}"/>
+										</exec>
+
+										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+										<bundleapp 
+											jrePreferred="true"
+											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
+											name="${project.name}"
+											displayname="${project.name}"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
+											shortversion="${project.version.short}"
+											version="${project.version}"
+											icon="${project.basedir}/src/main/resources/images/logo.icns"
+											applicationCategory="public.app-category.entertainment"
+											workingdirectory="$APP_ROOT/Contents/Resources"
+											mainclassname="${project.mainclass}"
+										>
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+											<option value="-Xmx2048M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -3481,7 +4220,7 @@
 										<mkdir dir="${project.binaries}/osx" />
 
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.0.1.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.1.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015">
 											<cutdirsmapper dirs="1" />
 										</unzip>
@@ -3502,38 +4241,6 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>com.github.eirslett</groupId>
-						<artifactId>frontend-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>install node and corepack</id>
-								<goals>
-									<goal>install-node-and-corepack</goal>
-								</goals>
-							</execution>
-							<!-- download Node.js dependencies -->
-							<execution>
-								<id>yarn install</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn install</arguments>
-								</configuration>
-							</execution>
-							<!-- compile the react client to the web directory -->
-							<execution>
-								<id>yarn build</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn build</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>${maven-antrun-plugin-version}</version>
@@ -3549,12 +4256,12 @@
 										<mkdir dir="${project.binaries}/bin" />
 
 										<!-- MediaInfo binary -->
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/25.10/MediaInfo_DLL_25.10_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
+										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/bin/MediaInfo.dll" overwrite="true" />
 
 										<!-- FFmpeg binary -->
-										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.0.1/ffmpeg-8.0.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
+										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.1/ffmpeg-8.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
 											<cutdirsmapper dirs="1" />
 										</unzip>
@@ -3604,7 +4311,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>docker</id>
+			<id>docker-ubuntu</id>
 			<properties>
 				<maven.test.skip>true</maven.test.skip>
 			</properties>
@@ -3689,8 +4396,6 @@
 										<mkdir dir="${project.basedir}/target/docker/profile/renderers" />
 										<copy file="${project.external-resources}/docker/Dockerfile"
 											  tofile="${project.basedir}/target/docker/Dockerfile" overwrite="true" />
-										<copy file="${project.external-resources}/docker/Dockerfile-alpine"
-											  tofile="${project.basedir}/target/docker/Dockerfile-alpine" overwrite="true" />
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 											  tofile="${project.basedir}/target/docker/app/${project.artifactId}.jar" overwrite="true" />
 										<copy todir="${project.basedir}/target/docker/app">
@@ -3704,7 +4409,7 @@
 											</fileset>
 										</copy>
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR" dest="${project.basedir}/target/docker/app/linux/tsMuxeR" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2025.10.14/yt-dlp_linux" dest="${project.basedir}/target/docker/app/linux/youtube-dl" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_linux" dest="${project.basedir}/target/docker/app/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3717,10 +4422,7 @@
 								<configuration>
 									<target>
 										<exec executable="docker" dir="${project.basedir}/target/docker">
-											<arg line="buildx build --platform linux/amd64,linux/arm64 . -f Dockerfile -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest" />
-										</exec>
-										<exec executable="docker" dir="${project.basedir}/target/docker">
-											<arg line="build . -f Dockerfile-alpine -t universalmediaserver/ums-alpine:${project.version} -t universalmediaserver/ums-alpine:latest" />
+											<arg line="buildx build --platform linux/amd64,linux/arm64 . -f Dockerfile -t universalmediaserver/ums:${project.version} -t universalmediaserver/ums:latest --load" />
 										</exec>
 									</target>
 								</configuration>
@@ -3739,6 +4441,139 @@
 										<exec executable="docker">
 											<arg line="push universalmediaserver/ums:latest" />
 										</exec>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>docker-alpine</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>install node and corepack</id>
+								<goals>
+									<goal>install-node-and-corepack</goal>
+								</goals>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>prepare-docker</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<mkdir dir="${project.basedir}/target/docker" />
+										<mkdir dir="${project.basedir}/target/docker/app" />
+										<mkdir dir="${project.basedir}/target/docker/app/linux" />
+										<mkdir dir="${project.basedir}/target/docker/profile" />
+										<mkdir dir="${project.basedir}/target/docker/profile/data" />
+										<mkdir dir="${project.basedir}/target/docker/profile/database" />
+										<mkdir dir="${project.basedir}/target/docker/profile/renderers" />
+										<copy file="${project.external-resources}/docker/Dockerfile-alpine"
+											  tofile="${project.basedir}/target/docker/Dockerfile-alpine" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											  tofile="${project.basedir}/target/docker/app/${project.artifactId}.jar" overwrite="true" />
+										<copy todir="${project.basedir}/target/docker/app">
+											<fileset dir="${project.external-resources}">
+												<include name="UMS.conf"/>
+												<include name="logback.headless.xml"/>
+												<include name="renderers/*"/>
+												<include name="DummyInput.ass"/>
+												<include name="DummyInput.jpg"/>
+												<include name="web/**"/>
+											</fileset>
+										</copy>
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR" dest="${project.basedir}/target/docker/app/linux/tsMuxeR" usetimestamp="true" />
+										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_linux" dest="${project.basedir}/target/docker/app/linux/youtube-dl" usetimestamp="true" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>docker-build</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<exec executable="docker" dir="${project.basedir}/target/docker">
+											<arg line="build . -f Dockerfile-alpine -t universalmediaserver/ums-alpine:${project.version} -t universalmediaserver/ums-alpine:latest" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>docker-deploy</id>
+								<phase>install</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
 										<exec executable="docker">
 											<arg line="push universalmediaserver/ums-alpine:${project.version}" />
 										</exec>
@@ -3755,3 +4590,4 @@
 		</profile>
 	</profiles>
 </project>
+

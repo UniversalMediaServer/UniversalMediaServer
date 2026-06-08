@@ -35,7 +35,7 @@ There are a number of manual steps involved in a new version release. This list 
 
 ## Release
 
-1. Compile the releases. The instructions are detailed in [the How to build UMS wiki article](https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS).
+1. Compile the releases. The instructions are detailed in [our build instructions article](https://support.universalmediaserver.com/development/build-instructions/).
 
      I (SubJunk) use 3 machines to compile the releases, mostly due to macOS making things difficult. I compile the Windows and Linux releases on my Windows PC using a simple `.bat` file with the commands in it.
 
@@ -49,7 +49,7 @@ There are a number of manual steps involved in a new version release. This list 
 
      Lastly, download the AppImage release from GitHub Actions by going to the `Build releases` workflow run for the tag. Unzip the folder, and the two files contained in it can be uploaded in the next step.
 
-1. Upload the releases.
+1. Upload the releases to Patreon
 
      After each of the 3 machines is done compiling, I upload the binaries directly to Patreon. The first machine you use will create a draft post, then you can find the draft post on the remaining machines and add their binaries to that. I hope Patreon will add that ability to their API someday!
 
@@ -59,7 +59,7 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Add a pre-release on GitHub.
 
-     Copy the previous release text from GitHub to get the template, but replace the summary text with the one you used on Patreon. Customize the Patreon link to point to the new post, and check the checkboxes to create a discussion and that this is a pre-release. There are no files for this release on GitHub yet, because GitHub is always one release behind Patreon.
+     Copy the previous release text from GitHub to get the template, but replace the summary text with the one you used on Patreon. Customize the Patreon link to point to the new post, and check the checkboxes to `create a discussion` and that `this is a pre-release`. There are no files for this release on GitHub yet, because GitHub is always one release behind Patreon.
 
 ## Post-release
 

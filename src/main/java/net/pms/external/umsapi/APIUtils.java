@@ -616,6 +616,9 @@ public class APIUtils {
 			if (tvSeriesMetadata == null && seriesIMDbIDFromAPI != null) {
 				tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadataFromImdbId(connection, seriesIMDbIDFromAPI);
 			}
+			if (tvSeriesMetadata == null && titleFromFilename != null) {
+				tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadataFromSeriesTitle(connection, titleFromFilename, startYear);
+			}
 
 			if (tvSeriesMetadata != null) {
 				LOGGER.trace("TV series with API data already found in database {}", tvSeriesMetadata.getTitle());
@@ -865,7 +868,7 @@ public class APIUtils {
 
 		String notFoundPartialMessage = "Metadata not found";
 		if (apiResult == null || Strings.CS.contains(apiResult, notFoundPartialMessage)) {
-			LOGGER.trace("No result for {}, received: {}", movieOrTVSeriesTitle, apiResult);
+			LOGGER.trace("No result for video {} {} {} {}, received: {}", movieOrTVSeriesTitle, year, season, episode, apiResult);
 			return null;
 		}
 
@@ -906,7 +909,7 @@ public class APIUtils {
 
 		String notFoundPartialMessage = "Metadata not found";
 		if (apiResult == null || Strings.CS.contains(apiResult, notFoundPartialMessage)) {
-			LOGGER.trace("No result for {}, received: {}", formattedName, apiResult);
+			LOGGER.trace("No result for TV series {}, received: {}", formattedName, apiResult);
 			return null;
 		}
 

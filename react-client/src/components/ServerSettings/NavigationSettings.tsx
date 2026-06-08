@@ -70,6 +70,12 @@ export default function NavigationSettings({
                 {...form.getInputProps('hide_empty_folders', { type: 'checkbox' })}
               />
             </Tooltip>
+            <Tooltip label={allowHtml(i18n.get('FlattenFoldersTooltip'))} {...defaultTooltipSettings}>
+              <Checkbox
+                label={i18n.get('FlattenFolders')}
+                {...form.getInputProps('flatten_folders', { type: 'checkbox' })}
+              />
+            </Tooltip>
             <Tooltip label={allowHtml(i18n.get('TreatMultipleSymbolicLinks'))} {...defaultTooltipSettings}>
               <Checkbox
                 label={i18n.get('UseTargetFileSymbolicLinks')}

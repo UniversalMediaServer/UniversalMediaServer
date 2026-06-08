@@ -26,7 +26,7 @@ import net.pms.formats.Format;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebStream;
 import static net.pms.util.PlayerUtil.*;
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

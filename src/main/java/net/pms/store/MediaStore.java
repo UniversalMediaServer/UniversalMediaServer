@@ -256,6 +256,7 @@ public class MediaStore extends StoreContainer {
 		List<StoreResource> realSystemFileResources = new ArrayList<>();
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 		boolean useExternalContent = CONFIGURATION.getExternalNetwork() && renderer.getUmsConfiguration().getExternalNetwork();
+		boolean flatten = renderer.getUmsConfiguration().isFlattenFolders();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent.isActive() && sharedContent.isGroupAllowed(renderer.getAccountGroupId())) {
 				if (sharedContent instanceof ITunesContent iTunesContent) {
@@ -266,9 +267,13 @@ public class MediaStore extends StoreContainer {
 					setIPhotoContent();
 				} else if (sharedContent instanceof FolderContent folder) {
 					if (folder.getFile() != null) {
-						StoreResource realSystemFileResource = setFolderContent(folder);
-						if (realSystemFileResource instanceof RealFolder || realSystemFileResource instanceof RealFile) {
-							realSystemFileResources.add(realSystemFileResource);
+						if (flatten) {
+							addFlattenedFiles(folder.getFile(), realSystemFileResources);
+						} else {
+							StoreResource realSystemFileResource = setFolderContent(folder);
+							if (realSystemFileResource instanceof RealFolder || realSystemFileResource instanceof RealFile) {
+								realSystemFileResources.add(realSystemFileResource);
+							}
 						}
 					}
 				} else if (sharedContent instanceof VirtualFolderContent virtualFolder) {
@@ -282,6 +287,60 @@ public class MediaStore extends StoreContainer {
 		if (renderer.getUmsConfiguration().getSearchFolder()) {
 			SearchFolder sf = new SearchFolder(renderer, "SearchDiscFolders", new FileSearch(realSystemFileResources));
 			addChild(sf);
+		}
+	}
+
+	/**
+	 * Recursively collects all media files from a directory and adds them
+	 * directly to this container (the root), skipping folder hierarchy.
+	 */
+	private void addFlattenedFiles(File directory, List<StoreResource> realSystemFileResources) {
+		if (directory == null || !directory.isDirectory() || !directory.canRead()) {
+			return;
+		}
+		List<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
+		List<File> allFiles = new ArrayList<>();
+		collectAllMediaFiles(directory, ignoredFolderNames, allFiles);
+		for (File file : allFiles) {
+			StoreResource resource = createResourceFromFile(file);
+			if (resource != null) {
+				addChild(resource, true, true);
+				if (resource instanceof RealFile) {
+					realSystemFileResources.add(resource);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Recursively walks a directory tree collecting only media files.
+	 */
+	private void collectAllMediaFiles(File directory, List<String> ignoredFolderNames, List<File> out) {
+		if (!directory.canRead()) {
+			LOGGER.warn("Can't read directory: {}", directory.getAbsolutePath());
+			return;
+		}
+		File[] files = directory.listFiles();
+		if (files == null) {
+			LOGGER.debug("I/O error listing files in directory: {}", directory.getAbsolutePath());
+			return;
+		}
+		for (File file : files) {
+			if (!file.canRead() || file.isHidden()) {
+				LOGGER.trace("Ignoring '{}' because it is unreadable or hidden", file);
+				continue;
+			}
+			if (file.isDirectory()) {
+				if (!ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
+					LOGGER.debug("Ignoring '{}' because it is in the ignored directories list", file);
+					continue;
+				}
+				collectAllMediaFiles(file, ignoredFolderNames, out);
+			} else if (SystemFilesHelper.isPotentialMediaFile(file.getName())) {
+				out.add(file);
+			} else {
+				LOGGER.trace("Ignoring '{}' because it is not a media file", file);
+			}
 		}
 	}
 
@@ -739,7 +798,14 @@ public class MediaStore extends StoreContainer {
 			if (storeResource instanceof RealFile rf) {
 				rf.setMediaInfo(null);
 				rf.resolve();
+				LOGGER.debug("File {} updated, media info refreshed and parent folder refreshed.", file.toString());
+			} else if (storeResource instanceof RealFolder rf) {
+				rf.setMediaInfo(null);
+				rf.resolve();
+				rf.doRefreshChildren();
+				LOGGER.debug("Folder {} updated, media info refreshed and children refreshed.", file.toString());
 			}
+			storeResource.getParent().discoverChildren();
 		}
 	}
 
@@ -907,6 +973,7 @@ public class MediaStore extends StoreContainer {
 
 		String album = null;
 		String mbReleaseId = null;
+		Long discogsReleaseId = null;
 		int numberOfAudioFiles = 0;
 		int numberOfOtherFiles = 0;
 
@@ -917,28 +984,40 @@ public class MediaStore extends StoreContainer {
 					LOGGER.warn("Audio resource has no AudioMetadata : {}", res.getDisplayName());
 					continue;
 				}
+				audioExists = true;
 				MediaAudioMetadata metadata = res.getMediaInfo().getAudioMetadata();
 				numberOfAudioFiles++;
 				if (album == null) {
-					audioExists = true;
+					// First audio file, set the album and ids to match
 					album = metadata.getAlbum() != null ? metadata.getAlbum() : "";
 					mbReleaseId = metadata.getMbidRecord();
-					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
+					discogsReleaseId = metadata.getDiscogsReleaseId();
+					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId) && discogsReleaseId == null) {
+						LOGGER.trace("First audio file has no album, mbReleaseId and discogsReleaseId, skipping audio track sorting");
 						return false;
+					} else {
+						LOGGER.trace("First audio file has album: {}, mbReleaseId: {}, discogsReleaseId: {}", album, mbReleaseId, discogsReleaseId);
 					}
 				} else {
-					if (mbReleaseId != null && !StringUtils.isAllBlank(mbReleaseId)) {
-						// First check musicbrainz ReleaseID
-						if (!mbReleaseId.equals(metadata.getMbidRecord())) {
-							return false;
-						}
-					} else if (!album.equals(metadata.getAlbum())) {
+					if (mbReleaseId != null && !mbReleaseId.equals(metadata.getMbidRecord())) {
+						LOGGER.trace("Audio file {} has different mbReleaseId {}, skipping audio track sorting", res.getDisplayName(), metadata.getMbidRecord());
+						return false;
+					}
+					if (discogsReleaseId != null && !discogsReleaseId.equals(metadata.getDiscogsReleaseId())) {
+						LOGGER.trace("Audio file {} has different discogsReleaseId {}, skipping audio track sorting", res.getDisplayName(), metadata.getDiscogsReleaseId());
+						return false;
+					}
+					if (!StringUtils.isAllBlank(album) && !album.equals(metadata.getAlbum())) {
+						LOGGER.trace("Audio file {} has different album {}, skipping audio track sorting", res.getDisplayName(), metadata.getAlbum());
 						return false;
 					}
 				}
 			} else {
 				numberOfOtherFiles++;
 			}
+		}
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("shouldDoAudioTrackSorting : audioExists={}, numberOfAudioFiles={}, numberOfOtherFiles={} -> {}", audioExists, numberOfAudioFiles, numberOfOtherFiles, audioExists && (numberOfAudioFiles > numberOfOtherFiles));
 		}
 		return audioExists && (numberOfAudioFiles > numberOfOtherFiles);
 	}
