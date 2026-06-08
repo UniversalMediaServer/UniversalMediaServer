@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `ch.qos.logback:logback-classic` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
+- Bump `ch.qos.logback:logback-core` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
+- Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.2.1 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189))
+- Bump `com.google.code.gson:gson` from 2.13.2 to 2.14.0 ([#6188](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6188))
+- Bump `com.sun.xml.bind:jaxb-impl` from 4.0.6 to 4.0.9 ([#6180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6180))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.5 to 3.5.6 ([#6190](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6190))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
+
 ## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
 
 ### General
@@ -27,6 +37,7 @@
 - Bump `axios` from 1.15.2 to 1.16.0 ([#6176](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6176))
 - Bump `com.github.junrar:junrar` from 7.5.10 to 7.6.0 ([#6169](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6169))
 - Bump `com.github.oshi:oshi-core` from 6.11.1 to 7.1.0 ([#6168](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6168))
+- Bump `com.sun.xml.bind:jaxb-impl` from 4.0.6 to 4.0.9 ([#6180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6180))
 - Bump `commons-beanutils:commons-beanutils` from 1.9.4 to 1.11.0 ([#6162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6162))
 - Bump `commons-codec:commons-codec` from 1.21.0 to 1.22.0 ([#6135](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6135))
 - Bump `commons-io:commons-io` from 2.21.0 to 2.22.0 ([#6134](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6134))
