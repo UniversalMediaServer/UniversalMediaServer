@@ -11,6 +11,7 @@
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.5 to 3.5.6 ([#6190](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6190))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
+- Bump `org.slf4j:slf4j-api` from 2.0.17 to 2.0.18 ([#6197](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6197))
 
 ## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
 
