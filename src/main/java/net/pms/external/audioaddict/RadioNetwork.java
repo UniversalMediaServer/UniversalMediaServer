@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -34,6 +35,10 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import net.pms.external.audioaddict.mapper.ChannelFilter;
 import net.pms.external.audioaddict.mapper.ChannelJson;
 import net.pms.external.audioaddict.mapper.Favorite;
+import net.pms.external.audioaddict.mapper.PlaylistJson;
+import net.pms.external.audioaddict.mapper.PlaylistPlayResponse;
+import net.pms.external.audioaddict.mapper.PlaylistTrackJson;
+import net.pms.external.audioaddict.mapper.PlaylistsResponse;
 import net.pms.external.audioaddict.mapper.Root;
 import net.pms.store.container.audioaddict.INetworkInitialized;
 
@@ -93,6 +98,11 @@ public class RadioNetwork {
 		AuthenticationStore auth = httpBatch.getAuthenticationStore();
 		URI uri = URI.create("http://api.audioaddict.com/v1");
 		auth.addAuthenticationResult(new BasicAuthentication.BasicResult(uri, "ephemeron", "dayeiph0ne@pp"));
+
+		// The playlist resources are served over HTTPS and require the same basic authentication.
+		URI secureUri = URI.create("https://api.audioaddict.com/v1");
+		httpBlocking.getAuthenticationStore().addAuthenticationResult(
+			new BasicAuthentication.BasicResult(secureUri, "ephemeron", "dayeiph0ne@pp"));
 
 		httpBatch.setConnectTimeout(30000);
 		httpBlocking.setConnectTimeout(10000);
@@ -435,5 +445,121 @@ public class RadioNetwork {
 
 	protected static String getListenKey() {
 		return listenKey;
+	}
+
+	/**
+	 * Reads the list of curated playlists of this network.
+	 *
+	 * @return the available playlists, or an empty list when unavailable.
+	 */
+	public List<AudioAddictPlaylistDto> getPlaylists() {
+		List<AudioAddictPlaylistDto> result = new ArrayList<>();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot read playlists, not authenticated.", network.displayName);
+			return result;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/playlists?api_key=%s", network.shortName, apiKey);
+		try {
+			ContentResponse response = httpBlocking.GET(url);
+			PlaylistsResponse resp = om.readValue(response.getContentAsString(), PlaylistsResponse.class);
+			if (resp.results != null) {
+				for (PlaylistJson p : resp.results) {
+					AudioAddictPlaylistDto dto = new AudioAddictPlaylistDto();
+					dto.id = p.id;
+					dto.name = p.name;
+					dto.description = p.description;
+					dto.duration = p.duration;
+					dto.trackCount = p.trackCount;
+					dto.albumArt = imageUrlFromMap(p.images);
+					result.add(dto);
+				}
+			}
+			LOGGER.info("{} : received {} playlists.", network.displayName, result.size());
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading playlists", network.displayName, e);
+		}
+		return result;
+	}
+
+	/**
+	 * Reads the ordered tracks of a single playlist. The returned content URLs are signed,
+	 * IP bound and expire shortly, so this must be called close to playback time and the
+	 * result must not be cached.
+	 *
+	 * @param playlistId the playlist id.
+	 * @return the playlist tracks, or an empty list when unavailable.
+	 */
+	public List<AudioAddictTrackDto> getPlaylistTracks(int playlistId) {
+		List<AudioAddictTrackDto> result = new ArrayList<>();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot read playlist tracks, not authenticated.", network.displayName);
+			return result;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/playlists/%d/play?api_key=%s", network.shortName, playlistId,
+			apiKey);
+		try {
+			ContentResponse response = httpBlocking.POST(url).send();
+			PlaylistPlayResponse resp = om.readValue(response.getContentAsString(), PlaylistPlayResponse.class);
+			if (resp.tracks != null) {
+				for (PlaylistTrackJson t : resp.tracks) {
+					String contentUrl = firstContentUrl(t);
+					if (contentUrl == null) {
+						LOGGER.warn("{} : no playable content for track {}", network.displayName, t.id);
+						continue;
+					}
+					AudioAddictTrackDto dto = new AudioAddictTrackDto();
+					dto.id = t.id;
+					dto.title = t.displayTitle != null ? t.displayTitle : t.track;
+					dto.artist = t.displayArtist;
+					dto.length = t.length;
+					dto.contentUrl = contentUrl;
+					dto.albumArt = normalizeUrl(t.assetUrl);
+					result.add(dto);
+				}
+			}
+			LOGGER.info("{} : received {} tracks for playlist {}.", network.displayName, result.size(), playlistId);
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading tracks for playlist {}", network.displayName, playlistId, e);
+		}
+		return result;
+	}
+
+	private static String firstContentUrl(PlaylistTrackJson track) {
+		if (track.content == null || track.content.assets == null || track.content.assets.isEmpty()) {
+			return null;
+		}
+		return normalizeUrl(track.content.assets.get(0).url);
+	}
+
+	private static String imageUrlFromMap(Map<String, String> images) {
+		if (images == null) {
+			return null;
+		}
+		String image = images.get("square");
+		if (image == null) {
+			image = images.get("default");
+		}
+		if (image == null) {
+			return null;
+		}
+		int templateStart = image.indexOf('{');
+		if (templateStart > -1) {
+			image = image.substring(0, templateStart);
+		}
+		return normalizeUrl(image);
+	}
+
+	/**
+	 * AudioAddict serves protocol relative URLs (starting with {@code //}). Prepend the
+	 * scheme so the URL can be opened directly.
+	 */
+	private static String normalizeUrl(String url) {
+		if (url == null) {
+			return null;
+		}
+		if (url.startsWith("//")) {
+			return "https:" + url;
+		}
+		return url;
 	}
 }
