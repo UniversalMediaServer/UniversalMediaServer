@@ -7,6 +7,7 @@ import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.external.audioaddict.Platform;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreResource;
 import net.pms.store.StoreContainer;
@@ -52,6 +53,16 @@ public class AudioAddictEvents extends StoreContainer {
 			MediaInfo mi = new MediaInfo();
 			mi.setMimeType("audio/mpeg");
 			mi.setMediaParser("STATIC");
+			if (event.genres != null || event.album != null) {
+				MediaAudioMetadata md = new MediaAudioMetadata();
+				if (event.genres != null) {
+					md.setGenre(event.genres);
+				}
+				if (event.album != null) {
+					md.setAlbum(event.album);
+				}
+				mi.setAudioMetadata(md);
+			}
 			String title = event.artist != null ? (event.artist + " - " + event.title) : event.title;
 			if (event.startLabel != null) {
 				title = event.startLabel + "  " + title;

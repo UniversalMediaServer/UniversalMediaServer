@@ -12,6 +12,14 @@ public class AudioAddictTrackDto {
 	 * Localized start time label for events (e.g. "16.06. 10:00"); null for playlist tracks.
 	 */
 	public String startLabel;
+	/**
+	 * Comma separated genre/category names (events only); null otherwise.
+	 */
+	public String genres;
+	/**
+	 * Short description / grouping shown as album (events: the show name); null otherwise.
+	 */
+	public String album;
 
 	public AudioAddictTrackDto() {
 	}
