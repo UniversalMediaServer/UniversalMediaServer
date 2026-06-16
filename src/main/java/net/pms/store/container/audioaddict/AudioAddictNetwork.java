@@ -30,8 +30,9 @@ public class AudioAddictNetwork extends StoreContainer implements INetworkInitia
 
 	private void addChildren() {
 		clearChildren();
-		LOGGER.debug("AudioAddictNetwork store container {} : adding Radio and Playlists folders.", network.displayName);
+		LOGGER.debug("AudioAddictNetwork store container {} : adding Radio, Playlists and Events folders.", network.displayName);
 		addChild(new AudioAddictRadio(renderer, network));
 		addChild(new AudioAddictPlaylists(renderer, network));
+		addChild(new AudioAddictEvents(renderer, network));
 	}
 }

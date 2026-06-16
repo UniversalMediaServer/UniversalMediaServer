@@ -8,6 +8,10 @@ public class AudioAddictTrackDto {
 	public int length;
 	public String contentUrl;
 	public String albumArt;
+	/**
+	 * Localized start time label for events (e.g. "16.06. 10:00"); null for playlist tracks.
+	 */
+	public String startLabel;
 
 	public AudioAddictTrackDto() {
 	}

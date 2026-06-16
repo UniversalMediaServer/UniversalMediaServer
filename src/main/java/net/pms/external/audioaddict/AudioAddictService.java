@@ -81,6 +81,11 @@ public class AudioAddictService implements EventListener<ConfigurationEvent> {
 		return network.getPlaylistTracks(playlistId);
 	}
 
+	public List<AudioAddictTrackDto> getUpcomingEvents(Platform platform) {
+		RadioNetwork network = getNetwork(platform);
+		return network.getUpcomingEvents();
+	}
+
 	@Override
 	public void onEvent(ConfigurationEvent event) {
 		UmsConfiguration ums = PMS.getConfiguration();
