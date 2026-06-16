@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,6 +59,9 @@ public class RadioNetwork {
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
 	private static final DateTimeFormatter EVENT_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
+
+	// maybe we make it configurable in the future, but for now we limit the number of events to 500
+	private static final int EVENTS_LIMIT = 500;
 
 	private static String apiKey = null;
 
@@ -255,6 +259,7 @@ public class RadioNetwork {
 	private void updateChannels() {
 		LOGGER.debug("{} : updating channels ...", this.network.displayName);
 		channels = new ArrayList<>();
+		Map<Integer, String> genreFilters = buildGenreFilterMap();
 		ChannelFilter allFilter = getChannelByName("all");
 		if (allFilter != null) {
 			for (net.pms.external.audioaddict.mapper.Channel c : allFilter.channels) {
@@ -263,6 +268,7 @@ public class RadioNetwork {
 				dto.id = c.id;
 				dto.key = c.key;
 				dto.name = c.name;
+				dto.genres = joinGenres(c.channelFilterIds, genreFilters);
 				Optional<Channel> s = Arrays.stream(channelUrls).filter(channel -> channel.id() == c.id).findAny();
 				if (s.isPresent()) {
 					dto.streamUrl = s.get().url();
@@ -278,6 +284,39 @@ public class RadioNetwork {
 		} else {
 			LOGGER.warn("ALL filter unavailable. [TODO] Adjust retrieving logic for channels of this notwork.");
 		}
+	}
+
+	/**
+	 * Builds a map of filter id to filter name for the genre filters only (the {@code genre}
+	 * flag distinguishes real genres from meta filters like "all" or "Favorites").
+	 */
+	private Map<Integer, String> buildGenreFilterMap() {
+		Map<Integer, String> genreFilters = new HashMap<>();
+		if (networkBatchRoot != null && networkBatchRoot.channelFilters != null) {
+			for (ChannelFilter filter : networkBatchRoot.channelFilters) {
+				if (filter.genre) {
+					genreFilters.put(filter.id, filter.name);
+				}
+			}
+		}
+		return genreFilters;
+	}
+
+	private static String joinGenres(int[] filterIds, Map<Integer, String> genreFilters) {
+		if (filterIds == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int id : filterIds) {
+			String name = genreFilters.get(id);
+			if (name != null) {
+				if (sb.length() > 0) {
+					sb.append(", ");
+				}
+				sb.append(name);
+			}
+		}
+		return sb.length() > 0 ? sb.toString() : null;
 	}
 
 	private ChannelFilter getChannelByName(String filterName) {
@@ -543,9 +582,12 @@ public class RadioNetwork {
 			LOGGER.warn("{} : cannot read events, not authenticated.", network.displayName);
 			return result;
 		}
-		String url = String.format("https://api.audioaddict.com/v1/%s/events/upcoming?limit=24&api_key=%s", network.shortName, apiKey);
+		String url = String.format("https://api.audioaddict.com/v1/%s/events/upcoming?limit=%d&api_key=%s", network.shortName,
+			EVENTS_LIMIT, apiKey);
 		try {
-			ContentResponse response = httpBlocking.GET(url);
+			Request request = httpBlocking.newRequest(url);
+			CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
+			ContentResponse response = completable.get(30, TimeUnit.SECONDS);
 			EventJson[] events = om.readValue(response.getContentAsString(), EventJson[].class);
 			for (EventJson event : events) {
 				if (event.tracks == null || event.tracks.isEmpty()) {
