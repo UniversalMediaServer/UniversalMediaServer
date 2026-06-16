@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -301,6 +302,28 @@ public class RadioNetwork {
 		return genreFilters;
 	}
 
+	/**
+	 * Resolves the genre names of an event from the channels of its show.
+	 */
+	private static String eventGenres(EventJson event, Map<Integer, String> genreFilters) {
+		if (event.show == null || event.show.channels == null) {
+			return null;
+		}
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		for (net.pms.external.audioaddict.mapper.Channel c : event.show.channels) {
+			if (c.channelFilterIds == null) {
+				continue;
+			}
+			for (int id : c.channelFilterIds) {
+				String name = genreFilters.get(id);
+				if (name != null) {
+					names.add(name);
+				}
+			}
+		}
+		return names.isEmpty() ? null : String.join(", ", names);
+	}
+
 	private static String joinGenres(int[] filterIds, Map<Integer, String> genreFilters) {
 		if (filterIds == null) {
 			return null;
@@ -588,6 +611,7 @@ public class RadioNetwork {
 			CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
 			ContentResponse response = completable.get(30, TimeUnit.SECONDS);
 			EventJson[] events = om.readValue(response.getContentAsString(), EventJson[].class);
+			Map<Integer, String> genreFilters = buildGenreFilterMap();
 			for (EventJson event : events) {
 				if (event.tracks == null || event.tracks.isEmpty()) {
 					continue;
@@ -606,6 +630,8 @@ public class RadioNetwork {
 				dto.contentUrl = contentUrl;
 				dto.albumArt = normalizeUrl(t.assetUrl);
 				dto.startLabel = formatEventStart(event.startAt);
+				dto.genres = eventGenres(event, genreFilters);
+				dto.album = event.show != null ? event.show.name : null;
 				result.add(dto);
 			}
 			LOGGER.info("{} : received {} upcoming events.", network.displayName, result.size());
