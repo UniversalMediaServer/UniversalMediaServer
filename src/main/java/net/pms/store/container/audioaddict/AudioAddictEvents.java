@@ -53,8 +53,11 @@ public class AudioAddictEvents extends StoreContainer {
 			MediaInfo mi = new MediaInfo();
 			mi.setMimeType("audio/mpeg");
 			mi.setMediaParser("STATIC");
-			if (event.genres != null || event.album != null) {
+			if (event.artist != null || event.genres != null || event.album != null) {
 				MediaAudioMetadata md = new MediaAudioMetadata();
+				if (event.artist != null) {
+					md.setArtist(event.artist);
+				}
 				if (event.genres != null) {
 					md.setGenre(event.genres);
 				}
@@ -63,10 +66,8 @@ public class AudioAddictEvents extends StoreContainer {
 				}
 				mi.setAudioMetadata(md);
 			}
-			String title = event.artist != null ? (event.artist + " - " + event.title) : event.title;
-			if (event.startLabel != null) {
-				title = event.startLabel + "  " + title;
-			}
+			// The artist (DJ/host) is exposed via upnp:artist, so keep it out of the title.
+			String title = event.startLabel != null ? (event.startLabel + "  " + event.title) : event.title;
 			StoreResource sr = new WebAudioStream(renderer, title, event.contentUrl, event.albumArt);
 			sr.setMediaInfo(mi);
 			addChild(sr);
