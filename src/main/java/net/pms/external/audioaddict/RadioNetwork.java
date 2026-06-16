@@ -59,6 +59,9 @@ public class RadioNetwork {
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
 	private static final DateTimeFormatter EVENT_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
 
+	// maybe we make it configurable in the future, but for now we limit the number of events to 500
+	private static final int EVENTS_LIMIT = 500;
+
 	private static String apiKey = null;
 
 	private static String listenKey = null;
@@ -542,9 +545,12 @@ public class RadioNetwork {
 			LOGGER.warn("{} : cannot read events, not authenticated.", network.displayName);
 			return result;
 		}
-		String url = String.format("https://api.audioaddict.com/v1/%s/events/upcoming?limit=24&api_key=%s", network.shortName, apiKey);
+		String url = String.format("https://api.audioaddict.com/v1/%s/events/upcoming?limit=%d&api_key=%s", network.shortName,
+			EVENTS_LIMIT, apiKey);
 		try {
-			ContentResponse response = httpBlocking.GET(url);
+			Request request = httpBlocking.newRequest(url);
+			CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
+			ContentResponse response = completable.get(30, TimeUnit.SECONDS);
 			EventJson[] events = om.readValue(response.getContentAsString(), EventJson[].class);
 			for (EventJson event : events) {
 				if (event.tracks == null || event.tracks.isEmpty()) {
