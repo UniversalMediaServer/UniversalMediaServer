@@ -65,7 +65,6 @@ public class RadioNetwork {
 
 	// maybe we make it configurable in the future, but for now we limit the number of events to 500
 	private static final int EVENTS_LIMIT = 500;
-	private static final String SESSION_KEY_HEADER = "X-Session-Key";
 
 	// Basic auth for "ephemeron:dayeiph0ne@pp" - required by the play
 	private static final String BASIC_AUTH_HEADER = "Basic ZXBoZW1lcm9uOmRheWVpcGgwbmVAcHA=";
@@ -663,15 +662,15 @@ public class RadioNetwork {
 	}
 
 	/**
-	 * Requests the next window of a playlist play session. With a stable {@code sessionKey} and
-	 * {@link #markPlayed} calls between requests, the windows walk the playlist in order until
-	 * {@code lastTracks} is set / {@code remainingTracks} reaches 0.
+	 * Requests the next window of a playlist play session. AudioAddict tracks the playback
+	 * progress per member (identified by the {@code api_key}); {@link #markPlayed} calls advance
+	 * it, so consecutive requests walk the playlist until {@code lastTracks} is set /
+	 * {@code remainingTracks} reaches 0.
 	 *
 	 * @param playlistId the playlist id.
-	 * @param sessionKey the client generated session key (stable for one playback).
 	 * @return the next window (possibly empty when unavailable).
 	 */
-	public AudioAddictPlayWindow playPlaylist(int playlistId, String sessionKey) {
+	public AudioAddictPlayWindow playPlaylist(int playlistId) {
 		AudioAddictPlayWindow window = new AudioAddictPlayWindow();
 		if (apiKey == null) {
 			LOGGER.warn("{} : cannot play playlist, not authenticated.", network.displayName);
@@ -683,7 +682,6 @@ public class RadioNetwork {
 			ContentResponse response = httpBlocking.newRequest(url)
 				.method(HttpMethod.POST)
 				.headers(headers -> {
-					headers.put(SESSION_KEY_HEADER, sessionKey);
 					headers.put("Authorization", BASIC_AUTH_HEADER);
 					headers.put("Content-Type", "application/json");
 				})
@@ -714,10 +712,10 @@ public class RadioNetwork {
 	}
 
 	/**
-	 * Marks a track of a playlist as played to advance the play session identified by
-	 * {@code sessionKey}.
+	 * Marks a track of a playlist as played to advance the member's playback progress for this
+	 * playlist.
 	 */
-	public void markPlayed(int playlistId, long trackId, String sessionKey) {
+	public void markPlayed(int playlistId, long trackId) {
 		if (apiKey == null) {
 			return;
 		}
@@ -727,7 +725,6 @@ public class RadioNetwork {
 			httpBlocking.newRequest(url)
 				.method(HttpMethod.POST)
 				.headers(headers -> {
-					headers.put(SESSION_KEY_HEADER, sessionKey);
 					headers.put("Authorization", BASIC_AUTH_HEADER);
 				})
 				.body(new StringRequestContent("application/json", body))

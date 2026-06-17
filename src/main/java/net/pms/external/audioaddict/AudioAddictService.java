@@ -86,14 +86,14 @@ public class AudioAddictService implements EventListener<ConfigurationEvent> {
 		return network.getUpcomingEvents();
 	}
 
-	public AudioAddictPlayWindow playPlaylist(Platform platform, int playlistId, String sessionKey) {
+	public AudioAddictPlayWindow playPlaylist(Platform platform, int playlistId) {
 		RadioNetwork network = getNetwork(platform);
-		return network.playPlaylist(playlistId, sessionKey);
+		return network.playPlaylist(playlistId);
 	}
 
-	public void markPlaylistTrackPlayed(Platform platform, int playlistId, long trackId, String sessionKey) {
+	public void markPlaylistTrackPlayed(Platform platform, int playlistId, long trackId) {
 		RadioNetwork network = getNetwork(platform);
-		network.markPlayed(playlistId, trackId, sessionKey);
+		network.markPlayed(playlistId, trackId);
 	}
 
 	@Override

@@ -7,7 +7,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.external.audioaddict.AudioAddictPlayWindow;
@@ -31,7 +30,6 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	private final int playlistId;
 	private final boolean loop;
 
-	private String sessionKey;
 	private final Deque<AudioAddictTrackDto> buffer = new ArrayDeque<>();
 	private final Set<Long> servedIds = new HashSet<>();
 	private InputStream current;
@@ -43,11 +41,6 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		this.network = network;
 		this.playlistId = playlistId;
 		this.loop = loop;
-		this.sessionKey = newSessionKey();
-	}
-
-	private static String newSessionKey() {
-		return UUID.randomUUID().toString().replace("-", "");
 	}
 
 	@Override
@@ -101,7 +94,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 					return t;
 				}
 			}
-			AudioAddictPlayWindow window = AudioAddictService.get().playPlaylist(network, playlistId, sessionKey);
+			AudioAddictPlayWindow window = AudioAddictService.get().playPlaylist(network, playlistId);
 			boolean added = false;
 			for (AudioAddictTrackDto t : window.tracks) {
 				if (!servedIds.contains(t.id)) {
@@ -114,8 +107,8 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 				boolean ended = window.lastTracks || window.remainingTracks <= 0 || emptyWindows >= MAX_EMPTY_WINDOWS;
 				if (ended) {
 					if (loop && servedThisPass) {
-						// Restart a fresh session and keep playing.
-						sessionKey = newSessionKey();
+						// Replay from the start. AudioAddict tracks progress per member, so this
+						// only keeps looping while the server still returns not-yet-served tracks.
 						servedIds.clear();
 						servedThisPass = false;
 						emptyWindows = 0;
@@ -137,7 +130,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			current = null;
 		}
 		if (markPlayed && currentTrack != null) {
-			AudioAddictService.get().markPlaylistTrackPlayed(network, playlistId, currentTrack.id, sessionKey);
+			AudioAddictService.get().markPlaylistTrackPlayed(network, playlistId, currentTrack.id);
 		}
 		currentTrack = null;
 	}
