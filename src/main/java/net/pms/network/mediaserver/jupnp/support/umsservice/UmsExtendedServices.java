@@ -37,7 +37,8 @@ import net.pms.store.StoreResource;
 	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictUser", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string")
+	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_PlaylistLoop", sendEvents = false, datatype = "boolean")
 	})
 public class UmsExtendedServices {
 
@@ -62,6 +63,9 @@ public class UmsExtendedServices {
 
 	@UpnpStateVariable(name = "PreferEuropeanServer", defaultValue = "false", sendEvents = true)
 	public boolean preferEuropeanServer = false;
+
+	@UpnpStateVariable(name = "PlaylistLoop", defaultValue = "false", sendEvents = true)
+	public boolean playlistLoop = false;
 
 	public UmsExtendedServices() {
 		readConfig();
@@ -92,8 +96,12 @@ public class UmsExtendedServices {
 			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
 		}
 		if (this.preferEuropeanServer != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
-			LOG.debug("prefer european srevers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
-			this.anonymousDevicesWrite = PMS.getConfiguration().isAudioAddictEuropeanServer();
+			LOG.debug("prefer european servers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
+			this.preferEuropeanServer = PMS.getConfiguration().isAudioAddictEuropeanServer();
+		}
+		if (this.playlistLoop != PMS.getConfiguration().isAudioAddictPlaylistLoop()) {
+			LOG.debug("playlistLoop has changed to {} ", PMS.getConfiguration().isAudioAddictPlaylistLoop());
+			this.playlistLoop = PMS.getConfiguration().isAudioAddictPlaylistLoop();
 		}
 	}
 
@@ -102,6 +110,13 @@ public class UmsExtendedServices {
 		LOG.debug("updating preferEuropeanServer to {}. Value changed from : {}", preferEuropeanServer, this.preferEuropeanServer);
 		PMS.getConfiguration().setAudioAddictEuropeanServer(preferEuropeanServer);
 		this.preferEuropeanServer = preferEuropeanServer;
+	}
+
+	@UpnpAction
+	public void setPlaylistLoop(@UpnpInputArgument(name = "PlaylistLoop") boolean playlistLoop) {
+		LOG.debug("updating playlistLoop to {}. Value changed from : {}", playlistLoop, this.playlistLoop);
+		PMS.getConfiguration().setAudioAddictPlaylistLoop(playlistLoop);
+		this.playlistLoop = playlistLoop;
 	}
 
 	@UpnpAction

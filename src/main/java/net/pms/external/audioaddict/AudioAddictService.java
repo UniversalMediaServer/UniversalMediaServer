@@ -86,6 +86,16 @@ public class AudioAddictService implements EventListener<ConfigurationEvent> {
 		return network.getUpcomingEvents();
 	}
 
+	public AudioAddictPlayWindow playPlaylist(Platform platform, int playlistId, String sessionKey) {
+		RadioNetwork network = getNetwork(platform);
+		return network.playPlaylist(playlistId, sessionKey);
+	}
+
+	public void markPlaylistTrackPlayed(Platform platform, int playlistId, long trackId, String sessionKey) {
+		RadioNetwork network = getNetwork(platform);
+		network.markPlayed(playlistId, trackId, sessionKey);
+	}
+
 	@Override
 	public void onEvent(ConfigurationEvent event) {
 		UmsConfiguration ums = PMS.getConfiguration();

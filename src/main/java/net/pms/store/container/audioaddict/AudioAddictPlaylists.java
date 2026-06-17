@@ -26,10 +26,11 @@ public class AudioAddictPlaylists extends StoreContainer {
 
 	@Override
 	public void discoverChildren() {
+		boolean loop = renderer.getUmsConfiguration().isAudioAddictPlaylistLoop();
 		List<AudioAddictPlaylistDto> playlists = AudioAddictService.get().getPlaylists(network);
-		LOGGER.debug("{} : adding {} playlists.", network.displayName, playlists.size());
+		LOGGER.debug("{} : adding {} playlists (loop={}).", network.displayName, playlists.size(), loop);
 		for (AudioAddictPlaylistDto playlist : playlists) {
-			addChild(new AudioAddictPlaylist(renderer, network, playlist));
+			addChild(new AudioAddictPlaylistStream(renderer, network, playlist, loop));
 		}
 	}
 }
