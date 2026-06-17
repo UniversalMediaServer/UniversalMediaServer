@@ -61,6 +61,7 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.sleep.SleepManager;
+import net.pms.store.IcyMetadataSource;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -448,7 +449,15 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						range.setStart(0L);
 						range.setEnd(0L);
 					}
-					inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
+					if ("1".equals(req.getHeader("Icy-MetaData")) && item instanceof IcyMetadataSource icySource) {
+						// Renderer asked for SHOUTcast/Icecast in-band metadata: advertise the
+						// interval and interleave the metadata blocks into the stream.
+						int metaInt = icySource.getIcyMetaInt();
+						resp.setHeader("icy-metaint", Integer.toString(metaInt));
+						inputStream = icySource.getIcyInputStream(metaInt);
+					} else {
+						inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
+					}
 
 					if (item.isResume()) {
 						// Update range to possibly adjusted resume time
