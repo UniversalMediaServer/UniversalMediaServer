@@ -36,6 +36,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	private AudioAddictTrackDto currentTrack;
 	private boolean servedThisPass;
 	private boolean finished;
+	private int trackNumber;
 
 	public AudioAddictPlaylistInputStream(Platform network, int playlistId, boolean loop) {
 		this.network = network;
@@ -91,6 +92,9 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		try {
 			current = URI.create(next.contentUrl).toURL().openStream();
 			currentTrack = next;
+			trackNumber++;
+			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {}", network.displayName, playlistId, trackNumber,
+				next.id, next.artist, next.title);
 			return true;
 		} catch (IOException e) {
 			LOGGER.warn("{} : cannot open playlist track {}", network.displayName, next.id, e);
@@ -110,6 +114,8 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 				}
 			}
 			AudioAddictPlayWindow window = AudioAddictService.get().playPlaylist(network, playlistId);
+			LOGGER.debug("{} : playlist {} - fetched window: {} tracks, remaining={}, lastTracks={}", network.displayName,
+				playlistId, window.tracks.size(), window.remainingTracks, window.lastTracks);
 			boolean added = false;
 			for (AudioAddictTrackDto t : window.tracks) {
 				if (!servedIds.contains(t.id)) {
@@ -124,11 +130,15 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 					if (loop && servedThisPass) {
 						// Replay from the start. AudioAddict tracks progress per member, so this
 						// only keeps looping while the server still returns not-yet-served tracks.
+						LOGGER.debug("{} : playlist {} - looping, replaying from start after {} tracks", network.displayName,
+							playlistId, trackNumber);
 						servedIds.clear();
 						servedThisPass = false;
 						emptyWindows = 0;
 						continue;
 					}
+					LOGGER.debug("{} : playlist {} - no more tracks, ending after {} tracks (lastTracks={}, remaining={})",
+						network.displayName, playlistId, trackNumber, window.lastTracks, window.remainingTracks);
 					return null;
 				}
 			}
@@ -145,6 +155,8 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			current = null;
 		}
 		if (markPlayed && currentTrack != null) {
+			LOGGER.debug("{} : playlist {} - finished track #{} (id={}), marking played", network.displayName, playlistId,
+				trackNumber, currentTrack.id);
 			AudioAddictService.get().markPlaylistTrackPlayed(network, playlistId, currentTrack.id);
 		}
 		currentTrack = null;
@@ -152,6 +164,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 
 	@Override
 	public void close() throws IOException {
+		LOGGER.debug("{} : playlist {} - stream closed by consumer after {} tracks", network.displayName, playlistId, trackNumber);
 		closeCurrent(false);
 		buffer.clear();
 		finished = true;
