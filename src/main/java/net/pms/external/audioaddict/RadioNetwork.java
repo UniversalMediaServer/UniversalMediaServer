@@ -680,9 +680,18 @@ public class RadioNetwork {
 		try {
 			ContentResponse response = httpBlocking.newRequest(url)
 				.method(HttpMethod.POST)
-				.headers(headers -> headers.put(SESSION_KEY_HEADER, sessionKey))
+				.headers(headers -> {
+					headers.put(SESSION_KEY_HEADER, sessionKey);
+					headers.put("Content-Type", "application/json");
+				})
 				.send();
-			PlaylistPlayResponse resp = om.readValue(response.getContentAsString(), PlaylistPlayResponse.class);
+			String content = response.getContentAsString();
+			if (response.getStatus() != 200 || content == null || !content.startsWith("{")) {
+				LOGGER.warn("{} : play playlist {} returned HTTP {} : {}", network.displayName, playlistId, response.getStatus(),
+					abbreviate(content));
+				return window;
+			}
+			PlaylistPlayResponse resp = om.readValue(content, PlaylistPlayResponse.class);
 			window.lastTracks = resp.lastTracks;
 			if (resp.currentProgress != null) {
 				window.remainingTracks = resp.currentProgress.remainingTracks;
@@ -774,5 +783,13 @@ public class RadioNetwork {
 			return "https:" + url;
 		}
 		return url;
+	}
+
+	private static String abbreviate(String s) {
+		if (s == null) {
+			return "null";
+		}
+		String trimmed = s.strip();
+		return trimmed.length() <= 300 ? trimmed : trimmed.substring(0, 300) + "...";
 	}
 }
