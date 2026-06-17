@@ -622,7 +622,11 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					} else if (!item.isTranscoded() || renderer.isTranscodeSeekByByte()) {
 						resp.setHeader("Accept-Ranges", "bytes");
 					}
-					if (GET.equals(req.getMethod().toUpperCase())) {
+					if (item.isUnboundedLiveStream()) {
+						// Endless stream with no Content-Length/chunked: signal read-until-close so the
+						// renderer keeps one connection open instead of stopping after a buffer's worth.
+						resp.setHeader("Connection", "close");
+					} else if (GET.equals(req.getMethod().toUpperCase())) {
 						resp.setHeader("Connection", "keep-alive");
 					}
 				}
