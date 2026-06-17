@@ -57,6 +57,15 @@ public class AudioAddictPlaylistStream extends WebAudioStream implements IcyMeta
 	}
 
 	/**
+	 * ICY metadata is gated behind the {@code audio_addict_icy_metadata} setting so it can be
+	 * turned off for renderers that do not cope with the in-band metadata. Disabled by default.
+	 */
+	@Override
+	public boolean isIcyMetadataEnabled() {
+		return renderer.getUmsConfiguration().isAudioAddictIcyMetadata();
+	}
+
+	/**
 	 * The stream is already transcoded to MP3 by the API, so no transcoding settings. If transcoding is needed, we need
 	 * to investigate, how to glue things together.
 	 */
