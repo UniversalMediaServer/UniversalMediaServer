@@ -1,6 +1,7 @@
 package net.pms.store.container.audioaddict;
 
 import java.io.InputStream;
+import net.pms.encoders.TranscodingSettings;
 import net.pms.external.audioaddict.AudioAddictPlaylistDto;
 import net.pms.external.audioaddict.Platform;
 import net.pms.media.MediaInfo;
@@ -41,5 +42,16 @@ public class AudioAddictPlaylistStream extends WebAudioStream {
 	@Override
 	public InputStream getInputStream() {
 		return new AudioAddictPlaylistInputStream(network, playlistId, loop);
+	}
+
+	/**
+	 * The playable audio is available only through {@link #getInputStream()} (the proxy that
+	 * walks the play session); the resource URL is the {@code /play} API endpoint, not fetchable
+	 * media. An ffmpeg transcode - which would be launched with that URL - can never succeed, so
+	 * this resource must always be streamed directly, regardless of the requesting renderer.
+	 */
+	@Override
+	public TranscodingSettings resolveTranscodingSettings() {
+		return null;
 	}
 }
