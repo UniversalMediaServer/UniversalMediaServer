@@ -1079,8 +1079,7 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	/**
 	 * @return whether SHOUTcast/Icecast (ICY) in-band metadata (current track title) should be
-	 * sent to renderers that request it. Disabled by default while it is validated against strict
-	 * renderers.
+	 * sent to renderers that request it.
 	 */
 	public boolean isAudioAddictIcyMetadata() {
 		return getBoolean(KEY_AUDIO_ADDICT_ICY_METADATA, false);

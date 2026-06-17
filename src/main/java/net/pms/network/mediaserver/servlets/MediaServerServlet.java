@@ -455,6 +455,12 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						int metaInt = icySource.getIcyMetaInt();
 						resp.setHeader("icy-metaint", Integer.toString(metaInt));
 						inputStream = icySource.getIcyInputStream(metaInt);
+						// ICY is a continuous SHOUTcast-style stream, not a byte range: answer 200
+						// without Content-Range/Content-Length, otherwise strict clients (ffmpeg/Lavf)
+						// tie byte offsets to audio positions and the interleaved metadata desyncs them.
+						status = 200;
+						range.setStart(0L);
+						range.setEnd(0L);
 					} else {
 						inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
 					}
