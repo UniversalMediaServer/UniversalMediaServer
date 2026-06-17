@@ -11,8 +11,8 @@ import net.pms.store.item.WebAudioStream;
 
 /**
  * A curated playlist represented as a single, continuously playable item. Playing it streams
- * the playlist tracks back to back via {@link AudioAddictPlaylistInputStream} instead of
- * exposing the individual tracks (the API has no static, ordered tracklist).
+ * the playlist tracks back to back via AudioAddictPlaylistInputStream. AudioAddict doesn't
+ * expose the playlist items, so we have to imitate a web player behaviour.
  */
 public class AudioAddictPlaylistStream extends WebAudioStream {
 
@@ -30,7 +30,7 @@ public class AudioAddictPlaylistStream extends WebAudioStream {
 
 		MediaInfo mi = new MediaInfo();
 		mi.setMimeType("audio/mpeg");
-		mi.setMediaParser("STATIC");
+		mi.setMediaParser("AudioAddictPlaylistStream");
 		if (playlist.description != null) {
 			MediaAudioMetadata md = new MediaAudioMetadata();
 			md.setAlbum(playlist.description);
@@ -45,10 +45,8 @@ public class AudioAddictPlaylistStream extends WebAudioStream {
 	}
 
 	/**
-	 * The playable audio is available only through {@link #getInputStream()} (the proxy that
-	 * walks the play session); the resource URL is the {@code /play} API endpoint, not fetchable
-	 * media. An ffmpeg transcode - which would be launched with that URL - can never succeed, so
-	 * this resource must always be streamed directly, regardless of the requesting renderer.
+	 * The stream is already transcoded to MP3 by the API, so no transcoding settings. If transcoding is needed, we need
+	 * to investigate, how to glue things together.
 	 */
 	@Override
 	public TranscodingSettings resolveTranscodingSettings() {
