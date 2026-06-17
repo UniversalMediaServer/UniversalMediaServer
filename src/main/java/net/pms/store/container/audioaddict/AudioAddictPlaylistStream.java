@@ -46,6 +46,16 @@ public class AudioAddictPlaylistStream extends WebAudioStream implements IcyMeta
 	}
 
 	/**
+	 * The playlist is an endless, non-seekable stream, so it must be served like internet radio
+	 * (one persistent HTTP 200 without byte ranges); otherwise strict renderers reconnect with
+	 * byte ranges and restart the play session on a different track.
+	 */
+	@Override
+	public boolean isUnboundedLiveStream() {
+		return true;
+	}
+
+	/**
 	 * Provides the same continuous playlist stream but with ICY metadata interleaved, so a
 	 * renderer that asked for {@code Icy-MetaData: 1} can display the current track. The title is
 	 * taken live from the underlying {@link AudioAddictPlaylistInputStream}.

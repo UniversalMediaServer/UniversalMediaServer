@@ -239,6 +239,16 @@ public abstract class StoreItem extends StoreResource {
 		return getTranscodingSettings() != null;
 	}
 
+	/**
+	 * @return whether this item is an unbounded, non-seekable live stream (radio-style) that must
+	 * be served as a single persistent HTTP 200 response without byte ranges, rather than as a
+	 * seekable file. Renderers otherwise reconnect with byte ranges, which an endless stream
+	 * cannot satisfy.
+	 */
+	public boolean isUnboundedLiveStream() {
+		return false;
+	}
+
 	public boolean isTimeSeekable() {
 		return isTranscoded() ? getTranscodingSettings().getEngine().isTimeSeekable() : true;
 	}
