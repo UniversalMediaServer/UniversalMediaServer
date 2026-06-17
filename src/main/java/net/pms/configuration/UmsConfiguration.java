@@ -229,6 +229,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
+	private static final String KEY_AUDIO_ADDICT_ICY_METADATA = "audio_addict_icy_metadata";
 	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
 	private static final String KEY_AUDIO_ADDICT_PLAYLIST_LOOP = "audio_addict_playlist_loop";
 	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
@@ -1065,6 +1066,19 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setAudioAddictEuropeanServer(boolean europeServer) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_EUROPE, europeServer);
+	}
+
+	/**
+	 * @return whether SHOUTcast/Icecast (ICY) in-band metadata (current track title) should be
+	 * sent to renderers that request it. Disabled by default while it is validated against strict
+	 * renderers.
+	 */
+	public boolean isAudioAddictIcyMetadata() {
+		return getBoolean(KEY_AUDIO_ADDICT_ICY_METADATA, false);
+	}
+
+	public void setAudioAddictIcyMetadata(boolean icyMetadata) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_ICY_METADATA, icyMetadata);
 	}
 
 	/**

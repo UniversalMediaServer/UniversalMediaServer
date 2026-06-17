@@ -19,6 +19,14 @@ public interface IcyMetadataSource {
 	}
 
 	/**
+	 * @return whether ICY metadata should currently be sent. Lets an implementation gate it behind
+	 * configuration; defaults to {@code true}.
+	 */
+	default boolean isIcyMetadataEnabled() {
+		return true;
+	}
+
+	/**
 	 * Builds a stream that interleaves ICY metadata every "metaInt" bytes.
 	 *
 	 * @param metaInt the byte interval between metadata blocks (must match the advertised header).
