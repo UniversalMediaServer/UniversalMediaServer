@@ -278,6 +278,10 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			InputStream inputStream = null;
 			long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 
+			// TEMPORARY: log whether the renderer requests SHOUTcast/Icecast in-band metadata.
+			LOGGER.info("[ICY-CHECK] item='{}' renderer='{}' Icy-MetaData='{}' User-Agent='{}'",
+				item.getName(), getRendererNameForLogging(req, renderer), req.getHeader("Icy-MetaData"), req.getHeader("User-Agent"));
+
 			if (req.getHeader("transfermode.dlna.org") != null) {
 				resp.setHeader("TransferMode.DLNA.ORG", req.getHeader("transfermode.dlna.org"));
 			}

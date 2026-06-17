@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 import jakarta.annotation.Nullable;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;
@@ -22,7 +21,6 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
-import net.pms.renderers.devices.ControlPoint;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
 
@@ -40,6 +38,7 @@ import net.pms.store.StoreResource;
 	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictUser", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_PlaylistLoop", sendEvents = false, datatype = "boolean")
 	})
 public class UmsExtendedServices {
 
@@ -64,6 +63,9 @@ public class UmsExtendedServices {
 
 	@UpnpStateVariable(name = "PreferEuropeanServer", defaultValue = "false", sendEvents = true)
 	public boolean preferEuropeanServer = false;
+
+	@UpnpStateVariable(name = "PlaylistLoop", defaultValue = "false", sendEvents = true)
+	public boolean playlistLoop = false;
 
 	public UmsExtendedServices() {
 		readConfig();
@@ -94,26 +96,12 @@ public class UmsExtendedServices {
 			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
 		}
 		if (this.preferEuropeanServer != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
-			LOG.debug("prefer european srevers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
+			LOG.debug("prefer european servers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
 			this.preferEuropeanServer = PMS.getConfiguration().isAudioAddictEuropeanServer();
 		}
-	}
-
-	@UpnpAction(out = @UpnpOutputArgument(name = "ObjectID"))
-	public String getAudioArtistDir() {
-		return PMS.getConfiguration().getAudioArtistDir();
-	}
-
-	@UpnpAction
-	public void setAudioArtistDir(@UpnpInputArgument(name = "ObjectID") String objectIdString) {
-		StoreResource sr = ControlPoint.getRenderer().getMediaStore().getResource(objectIdString);
-		if (sr != null) {
-			LOG.debug("object with ID {} has path of {} ", objectIdString, sr.getFileName());
-			PMS.getConfiguration().setAudioArtistDir(sr.getFileName());
-			LOG.debug("updated AudioArtistDir to {}", sr.getFileName());
-			saveUmsConfig();
-		} else {
-			LOG.warn("object with ID {} not found in media store", objectIdString);
+		if (this.playlistLoop != PMS.getConfiguration().isAudioAddictPlaylistLoop()) {
+			LOG.debug("playlistLoop has changed to {} ", PMS.getConfiguration().isAudioAddictPlaylistLoop());
+			this.playlistLoop = PMS.getConfiguration().isAudioAddictPlaylistLoop();
 		}
 	}
 
@@ -122,7 +110,13 @@ public class UmsExtendedServices {
 		LOG.debug("updating preferEuropeanServer to {}. Value changed from : {}", preferEuropeanServer, this.preferEuropeanServer);
 		PMS.getConfiguration().setAudioAddictEuropeanServer(preferEuropeanServer);
 		this.preferEuropeanServer = preferEuropeanServer;
-		saveUmsConfig();
+	}
+
+	@UpnpAction
+	public void setPlaylistLoop(@UpnpInputArgument(name = "PlaylistLoop") boolean playlistLoop) {
+		LOG.debug("updating playlistLoop to {}. Value changed from : {}", playlistLoop, this.playlistLoop);
+		PMS.getConfiguration().setAudioAddictPlaylistLoop(playlistLoop);
+		this.playlistLoop = playlistLoop;
 	}
 
 	@UpnpAction
@@ -130,7 +124,6 @@ public class UmsExtendedServices {
 		this.audioUpdateRatingTag = newAudioUpdateRatingTag;
 		boolean changed = PMS.getConfiguration().setAudioUpdateTag(newAudioUpdateRatingTag);
 		LOG.debug("updating audioUpdateRatingTag to {}. Value changed : {}", newAudioUpdateRatingTag, changed);
-		saveUmsConfig();
 	}
 
 	@UpnpAction
@@ -138,7 +131,6 @@ public class UmsExtendedServices {
 		this.audioLikesVisibleRoot = newAudioLikesVisibleRoot;
 		boolean changed = PMS.getConfiguration().setDisplayAudioLikesInRootFolder(newAudioLikesVisibleRoot);
 		LOG.debug("updating audioLikesVisibleRoot to {}. Value changed : {}", newAudioLikesVisibleRoot, changed);
-		saveUmsConfig();
 	}
 
 	@UpnpAction
@@ -146,23 +138,13 @@ public class UmsExtendedServices {
 		this.upnpCdsWrite = newUpnpCdsWrite;
 		boolean changed = PMS.getConfiguration().setUpnpCdsWrite(newUpnpCdsWrite);
 		LOG.debug("updating upnpCdsWrite to {}. Value changed : {}", newUpnpCdsWrite, changed);
-		saveUmsConfig();
 	}
 
 	@UpnpAction
 	public void setAnonymousDevicesWrite(@UpnpInputArgument(name = "AnonymousDevicesWrite") boolean newAnonymousDevicesWrite) {
 		this.anonymousDevicesWrite = newAnonymousDevicesWrite;
 		boolean changed = PMS.getConfiguration().setAnonymousDevicesWrite(newAnonymousDevicesWrite);
-		saveUmsConfig();
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
-	}
-
-	private void saveUmsConfig() {
-		try {
-			PMS.getConfiguration().save();
-		} catch (ConfigurationException e) {
-			LOG.error("Failed to save UMS configuration", e);
-		}
 	}
 
 	/**

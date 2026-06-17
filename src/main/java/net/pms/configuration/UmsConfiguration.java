@@ -230,6 +230,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
 	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
+	private static final String KEY_AUDIO_ADDICT_PLAYLIST_LOOP = "audio_addict_playlist_loop";
 	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
 	public  static final String KEY_AUDIO_ARTIST_DIR = "audio_artist_dir";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
@@ -1073,6 +1074,18 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setAudioAddictEuropeanServer(boolean europeServer) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_EUROPE, europeServer);
+	}
+
+	/**
+	 * @return whether curated playlists should loop endlessly instead of stopping after the
+	 * last track.
+	 */
+	public boolean isAudioAddictPlaylistLoop() {
+		return getBoolean(KEY_AUDIO_ADDICT_PLAYLIST_LOOP, false);
+	}
+
+	public void setAudioAddictPlaylistLoop(boolean loop) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_PLAYLIST_LOOP, loop);
 	}
 
 	public boolean isAudioUpdateTag() {

@@ -31,6 +31,8 @@ import org.eclipse.jetty.client.CompletableResponseListener;
 import org.eclipse.jetty.client.ContentResponse;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.Request;
+import org.eclipse.jetty.client.StringRequestContent;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +65,7 @@ public class RadioNetwork {
 
 	// maybe we make it configurable in the future, but for now we limit the number of events to 500
 	private static final int EVENTS_LIMIT = 500;
+	private static final String SESSION_KEY_HEADER = "X-Session-Key";
 
 	private static String apiKey = null;
 
@@ -655,6 +658,83 @@ public class RadioNetwork {
 		} catch (DateTimeException e) {
 			return null;
 		}
+	}
+
+	/**
+	 * Requests the next window of a playlist play session. With a stable {@code sessionKey} and
+	 * {@link #markPlayed} calls between requests, the windows walk the playlist in order until
+	 * {@code lastTracks} is set / {@code remainingTracks} reaches 0.
+	 *
+	 * @param playlistId the playlist id.
+	 * @param sessionKey the client generated session key (stable for one playback).
+	 * @return the next window (possibly empty when unavailable).
+	 */
+	public AudioAddictPlayWindow playPlaylist(int playlistId, String sessionKey) {
+		AudioAddictPlayWindow window = new AudioAddictPlayWindow();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot play playlist, not authenticated.", network.displayName);
+			return window;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/playlists/%d/play?api_key=%s", network.shortName, playlistId,
+			apiKey);
+		try {
+			ContentResponse response = httpBlocking.newRequest(url)
+				.method(HttpMethod.POST)
+				.headers(headers -> headers.put(SESSION_KEY_HEADER, sessionKey))
+				.send();
+			PlaylistPlayResponse resp = om.readValue(response.getContentAsString(), PlaylistPlayResponse.class);
+			window.lastTracks = resp.lastTracks;
+			if (resp.currentProgress != null) {
+				window.remainingTracks = resp.currentProgress.remainingTracks;
+			}
+			if (resp.tracks != null) {
+				for (PlaylistTrackJson t : resp.tracks) {
+					AudioAddictTrackDto dto = toTrackDto(t);
+					if (dto != null) {
+						window.tracks.add(dto);
+					}
+				}
+			}
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : play playlist {} failed", network.displayName, playlistId, e);
+		}
+		return window;
+	}
+
+	/**
+	 * Marks a track of a playlist as played to advance the play session identified by
+	 * {@code sessionKey}.
+	 */
+	public void markPlayed(int playlistId, long trackId, String sessionKey) {
+		if (apiKey == null) {
+			return;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/listen_history?api_key=%s", network.shortName, apiKey);
+		String body = String.format("{\"track_id\":%d,\"playlist_id\":%d}", trackId, playlistId);
+		try {
+			httpBlocking.newRequest(url)
+				.method(HttpMethod.POST)
+				.headers(headers -> headers.put(SESSION_KEY_HEADER, sessionKey))
+				.body(new StringRequestContent("application/json", body))
+				.send();
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			LOGGER.warn("{} : listen_history for track {} failed", network.displayName, trackId, e);
+		}
+	}
+
+	private static AudioAddictTrackDto toTrackDto(PlaylistTrackJson t) {
+		String contentUrl = firstContentUrl(t);
+		if (contentUrl == null) {
+			return null;
+		}
+		AudioAddictTrackDto dto = new AudioAddictTrackDto();
+		dto.id = t.id;
+		dto.title = t.displayTitle != null ? t.displayTitle : t.track;
+		dto.artist = t.displayArtist;
+		dto.length = t.length;
+		dto.contentUrl = contentUrl;
+		dto.albumArt = normalizeUrl(t.assetUrl);
+		return dto;
 	}
 
 	private static String firstContentUrl(PlaylistTrackJson track) {
