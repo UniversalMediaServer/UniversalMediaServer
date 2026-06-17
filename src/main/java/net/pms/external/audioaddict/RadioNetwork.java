@@ -67,6 +67,9 @@ public class RadioNetwork {
 	private static final int EVENTS_LIMIT = 500;
 	private static final String SESSION_KEY_HEADER = "X-Session-Key";
 
+	// Basic auth for "ephemeron:dayeiph0ne@pp" - required by the play
+	private static final String BASIC_AUTH_HEADER = "Basic ZXBoZW1lcm9uOmRheWVpcGgwbmVAcHA=";
+
 	private static String apiKey = null;
 
 	private static String listenKey = null;
@@ -682,6 +685,7 @@ public class RadioNetwork {
 				.method(HttpMethod.POST)
 				.headers(headers -> {
 					headers.put(SESSION_KEY_HEADER, sessionKey);
+					headers.put("Authorization", BASIC_AUTH_HEADER);
 					headers.put("Content-Type", "application/json");
 				})
 				.send();
@@ -723,7 +727,10 @@ public class RadioNetwork {
 		try {
 			httpBlocking.newRequest(url)
 				.method(HttpMethod.POST)
-				.headers(headers -> headers.put(SESSION_KEY_HEADER, sessionKey))
+				.headers(headers -> {
+					headers.put(SESSION_KEY_HEADER, sessionKey);
+					headers.put("Authorization", BASIC_AUTH_HEADER);
+				})
 				.body(new StringRequestContent("application/json", body))
 				.send();
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
