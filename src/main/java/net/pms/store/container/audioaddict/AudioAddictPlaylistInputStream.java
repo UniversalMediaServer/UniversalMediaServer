@@ -67,6 +67,21 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		}
 	}
 
+	/**
+	 * @return the currently playing track as "Artist - Title" for ICY metadata, or {@code null}
+	 * when no track is currently open (treated as "unchanged" by the metadata layer).
+	 */
+	public String getStreamTitle() {
+		AudioAddictTrackDto track = currentTrack;
+		if (track == null) {
+			return null;
+		}
+		if (track.artist != null && !track.artist.isBlank()) {
+			return track.artist + " - " + track.title;
+		}
+		return track.title;
+	}
+
 	private boolean openNextTrack() {
 		AudioAddictTrackDto next = nextTrack();
 		if (next == null) {
