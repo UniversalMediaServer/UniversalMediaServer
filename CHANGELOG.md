@@ -21,6 +21,7 @@
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
 - Bump `tar` from 7.5.11 to 7.5.16 ([#6211](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6211))
+- Bump `vite` from 7.3.2 to 7.3.5 ([#6206](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6206))
 
 ## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
 
