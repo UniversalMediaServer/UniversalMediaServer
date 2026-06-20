@@ -17,6 +17,7 @@
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
+- Bump `tar` from 7.5.11 to 7.5.16 ([#6211](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6211))
 
 ## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
 
