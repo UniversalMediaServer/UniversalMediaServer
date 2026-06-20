@@ -11,6 +11,10 @@
 - Bump `esbuild` from 0.27.2 to 0.27.7 ([#6202](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6202))
 - Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.6.2 to 3.6.3 ([#6198](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6198))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.5 to 3.5.6 ([#6190](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6190))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
 
