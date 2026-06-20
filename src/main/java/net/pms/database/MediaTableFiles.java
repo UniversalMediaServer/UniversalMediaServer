@@ -102,6 +102,7 @@ public class MediaTableFiles extends MediaTable {
 	 * - 43: clear ffmpeg data parsed
 	 * - 44: added DATEADDED and RUID
 	 * - 45: added lucene column and index
+	 * - 46: implemented new ruid algorithm
 	 */
 	private static final int TABLE_VERSION = 46;
 
@@ -518,6 +519,9 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, "CALL FTL_INIT();");
 						executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'FILES');");
 						executeUpdate(connection, "CALL FTL_CREATE_INDEX('PUBLIC', 'FILES', 'ONLYFILENAME');");
+					}
+					case 46 -> {
+						executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_RESOURCE_UID + " = NULL");
 					}
 					default -> {
 						// Do the dumb way
