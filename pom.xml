@@ -2497,6 +2497,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2973,6 +2974,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -3431,6 +3433,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
