@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `@babel/core` from 7.28.5 to 7.29.7 ([#6208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6208))
+- Bump `actions/cache` from 5 to 6 ([#6217](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6217))
 - Bump `ch.qos.logback:logback-classic` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
 - Bump `ch.qos.logback:logback-core` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
 - Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.3.0 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189), [#6205](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6205))
