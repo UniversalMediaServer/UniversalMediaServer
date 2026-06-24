@@ -6,6 +6,7 @@
 - Bump `@babel/core` from 7.28.5 to 7.29.7 ([#6208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6208))
 - Bump `ch.qos.logback:logback-classic` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
 - Bump `ch.qos.logback:logback-core` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
+- Bump `com.auth0:java-jwt` from 4.5.1 to 4.5.2 ([#6221](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6221))
 - Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.3.0 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189), [#6205](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6205))
 - Bump `com.google.code.gson:gson` from 2.13.2 to 2.14.0 ([#6188](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6188))
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.6 to 4.0.9 ([#6180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6180))
