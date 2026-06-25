@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.eclipse.jetty.client.AuthenticationStore;
@@ -42,6 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import net.pms.external.audioaddict.mapper.ChannelFilter;
 import net.pms.external.audioaddict.mapper.ChannelJson;
+import net.pms.external.audioaddict.mapper.CurrentlyPlayingJson;
 import net.pms.external.audioaddict.mapper.EventJson;
 import net.pms.external.audioaddict.mapper.Favorite;
 import net.pms.external.audioaddict.mapper.PlaylistJson;
@@ -100,6 +102,12 @@ public class RadioNetwork {
 
 	private Platform network = null;
 	private volatile boolean successInit = false;
+
+	// Cache of the global "currently playing" track per channel id, refreshed at most every TTL.
+	private static final long CURRENTLY_PLAYING_TTL_MS = 15000;
+	private volatile Map<Integer, String> currentlyPlaying = new HashMap<>();
+	private volatile long currentlyPlayingFetchedAt = 0;
+	private final AtomicBoolean currentlyPlayingRefreshInFlight = new AtomicBoolean(false);
 
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
@@ -749,6 +757,81 @@ public class RadioNetwork {
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			LOGGER.warn("{} : listen_history for track {} failed", network.displayName, trackId, e);
 		}
+	}
+
+	/**
+	 * @param channelId the channel id.
+	 * @return the currently playing track on that channel as "Artist - Title", or NULL when unknown.
+	 */
+	public String getCurrentTrackTitle(int channelId) {
+		triggerCurrentlyPlayingRefreshIfStale();
+		return currentlyPlaying.get(channelId);
+	}
+
+	private void triggerCurrentlyPlayingRefreshIfStale() {
+		if (System.currentTimeMillis() - currentlyPlayingFetchedAt < CURRENTLY_PLAYING_TTL_MS) {
+			return;
+		}
+		// Only one refresh at a time; mark the timestamp up front so failures don't hammer the API.
+		if (!currentlyPlayingRefreshInFlight.compareAndSet(false, true)) {
+			return;
+		}
+		currentlyPlayingFetchedAt = System.currentTimeMillis();
+		EXEC_SERVICE.submit(() -> {
+			try {
+				fetchCurrentlyPlaying();
+			} catch (Exception e) {
+				LOGGER.warn("{} : failed to refresh currently_playing", network.displayName, e);
+			} finally {
+				currentlyPlayingRefreshInFlight.set(false);
+			}
+		});
+	}
+
+	private void fetchCurrentlyPlaying() throws InterruptedException, ExecutionException, TimeoutException, JsonProcessingException {
+		String url = String.format("https://api.audioaddict.com/v1/%s/currently_playing", network.shortName);
+		ContentResponse response = httpBlocking.newRequest(url).method(HttpMethod.GET).send();
+		String content = response.getContentAsString();
+		if (response.getStatus() != 200 || content == null || !content.startsWith("[")) {
+			LOGGER.warn("{} : currently_playing returned HTTP {} : {}", network.displayName, response.getStatus(),
+				abbreviate(content));
+			return;
+		}
+		CurrentlyPlayingJson[] entries = om.readValue(content, CurrentlyPlayingJson[].class);
+		Map<Integer, String> map = new HashMap<>();
+		for (CurrentlyPlayingJson e : entries) {
+			if (e.channelId == null || e.track == null) {
+				continue;
+			}
+			String title = formatCurrentTitle(e.track);
+			if (title != null) {
+				map.put(e.channelId, title);
+			}
+		}
+		currentlyPlaying = map;
+		LOGGER.debug("{} : refreshed currently_playing for {} channels", network.displayName, map.size());
+	}
+
+	private static String formatCurrentTitle(CurrentlyPlayingJson.Track t) {
+		String artist = firstNonBlank(t.displayArtist, t.artist);
+		String title = firstNonBlank(t.displayTitle, t.title);
+		if (artist != null && title != null) {
+			return artist + " - " + title;
+		}
+		if (t.track != null && !t.track.isBlank()) {
+			return t.track;
+		}
+		return title;
+	}
+
+	private static String firstNonBlank(String a, String b) {
+		if (a != null && !a.isBlank()) {
+			return a;
+		}
+		if (b != null && !b.isBlank()) {
+			return b;
+		}
+		return null;
 	}
 
 	private static AudioAddictTrackDto toTrackDto(PlaylistTrackJson t) {
