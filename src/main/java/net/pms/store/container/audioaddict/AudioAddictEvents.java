@@ -11,7 +11,6 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreResource;
 import net.pms.store.StoreContainer;
-import net.pms.store.item.WebAudioStream;
 
 /**
  * Upcoming events (scheduled show episodes) of a network, listed as playable items. The
@@ -68,7 +67,7 @@ public class AudioAddictEvents extends StoreContainer {
 			}
 			// The artist (DJ/host) is exposed via upnp:artist, so keep it out of the title.
 			String title = event.startLabel != null ? (event.startLabel + "  " + event.title) : event.title;
-			StoreResource sr = new WebAudioStream(renderer, title, event.contentUrl, event.albumArt);
+			StoreResource sr = new AudioAddictEventStream(renderer, title, event.contentUrl, event.albumArt);
 			sr.setMediaInfo(mi);
 			addChild(sr);
 		}

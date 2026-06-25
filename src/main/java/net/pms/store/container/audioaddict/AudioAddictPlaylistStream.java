@@ -7,15 +7,13 @@ import net.pms.external.audioaddict.Platform;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
-import net.pms.store.IcyMetadataSource;
-import net.pms.store.item.WebAudioStream;
 
 /**
  * A curated playlist represented as a single, continuously playable item. Playing it streams
  * the playlist tracks back to back via AudioAddictPlaylistInputStream. AudioAddict doesn't
  * expose the playlist items, so we have to imitate a web player behaviour.
  */
-public class AudioAddictPlaylistStream extends WebAudioStream implements IcyMetadataSource {
+public class AudioAddictPlaylistStream extends AudioAddictBroadcastStream {
 
 	private final Platform network;
 	private final int playlistId;
@@ -46,19 +44,8 @@ public class AudioAddictPlaylistStream extends WebAudioStream implements IcyMeta
 	}
 
 	/**
-	 * The playlist is an endless, non-seekable stream, so it must be served like internet radio
-	 * (one persistent HTTP 200 without byte ranges); otherwise strict renderers reconnect with
-	 * byte ranges and restart the play session on a different track.
-	 */
-	@Override
-	public boolean isUnboundedLiveStream() {
-		return true;
-	}
-
-	/**
 	 * Provides the same continuous playlist stream but with ICY metadata interleaved, so a
-	 * renderer that asked for {@code Icy-MetaData: 1} can display the current track. The title is
-	 * taken live from the underlying {@link AudioAddictPlaylistInputStream}.
+	 * renderer that asked for "Icy-MetaData" can display the current track.
 	 */
 	@Override
 	public InputStream getIcyInputStream(int metaInt) {
@@ -67,17 +54,7 @@ public class AudioAddictPlaylistStream extends WebAudioStream implements IcyMeta
 	}
 
 	/**
-	 * ICY metadata is gated behind the {@code audio_addict_icy_metadata} setting so it can be
-	 * turned off for renderers that do not cope with the in-band metadata. Disabled by default.
-	 */
-	@Override
-	public boolean isIcyMetadataEnabled() {
-		return renderer.getUmsConfiguration().isAudioAddictIcyMetadata();
-	}
-
-	/**
-	 * The stream is already transcoded to MP3 by the API, so no transcoding settings. If transcoding is needed, we need
-	 * to investigate, how to glue things together.
+	 * The stream is already delivered as MP3. If transcoding is needed, we need to glue things together.
 	 */
 	@Override
 	public TranscodingSettings resolveTranscodingSettings() {

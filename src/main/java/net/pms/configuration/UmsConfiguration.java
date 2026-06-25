@@ -1082,7 +1082,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * sent to renderers that request it.
 	 */
 	public boolean isAudioAddictIcyMetadata() {
-		return getBoolean(KEY_AUDIO_ADDICT_ICY_METADATA, false);
+		return getBoolean(KEY_AUDIO_ADDICT_ICY_METADATA, true);
 	}
 
 	public void setAudioAddictIcyMetadata(boolean icyMetadata) {

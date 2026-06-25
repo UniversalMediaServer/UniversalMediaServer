@@ -9,7 +9,6 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
-import net.pms.store.item.WebAudioStream;
 
 public class AudioAddictNetworkFilter extends StoreContainer {
 
@@ -35,7 +34,7 @@ public class AudioAddictNetworkFilter extends StoreContainer {
 				}
 				mi.setAudioMetadata(md);
 			}
-			StoreResource sr = new WebAudioStream(renderer, c.name, c.streamUrl, "http:" + c.albumArt);
+			StoreResource sr = new AudioAddictRadioStream(renderer, c.name, c.streamUrl, "http:" + c.albumArt);
 			sr.setMediaInfo(mi);
 			addChild(sr);
 		}
