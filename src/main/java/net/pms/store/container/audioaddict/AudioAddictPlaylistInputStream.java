@@ -16,10 +16,8 @@ import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.external.audioaddict.Platform;
 
 /**
- * Continuous audio stream of a curated playlist. It walks the playlist play session
- * (play window -&gt; stream track -&gt; mark played -&gt; next window) and concatenates the track
- * MP3s into a single stream. When {@code loop} is set it restarts a fresh session after the
- * last track and plays forever; otherwise the stream ends after the last track.
+ * Continuous audio stream of a curated playlist. It concatenates the track MP3s into a single stream. When "loop" is set it
+ * restarts a fresh session after the last track and plays forever; otherwise the stream ends after the last track.
  */
 public class AudioAddictPlaylistInputStream extends InputStream {
 
