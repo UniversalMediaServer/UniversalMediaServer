@@ -49,6 +49,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.MusicGenre;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.PlaylistContainer;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.StorageFolder;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.AudioBroadcast;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Movie;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.MusicTrack;
@@ -204,7 +205,7 @@ public class StoreResourceHelper {
 		} else if (mediaType == MediaType.IMAGE || mediaType == MediaType.UNKNOWN && format != null && format.isImage()) {
 			result = new Photo();
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
-			result = new MusicTrack();
+			result = item.isUnboundedLiveStream() ? new AudioBroadcast() : new MusicTrack();
 		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || mediaInfo.getVideoMetadata().getYear() != null)) {
 			// videoItem.movie is used for TV episodes and movies
 			result = new Movie();
