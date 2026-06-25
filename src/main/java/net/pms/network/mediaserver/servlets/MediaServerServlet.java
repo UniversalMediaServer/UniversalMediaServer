@@ -449,6 +449,10 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						range.setStart(0L);
 						range.setEnd(0L);
 					}
+					if (item instanceof IcyMetadataSource icyDiag) {
+						LOGGER.debug("ICY decision for '{}': Icy-MetaData='{}', isIcyMetadataEnabled={}",
+							item.getName(), req.getHeader("Icy-MetaData"), icyDiag.isIcyMetadataEnabled());
+					}
 					if ("1".equals(req.getHeader("Icy-MetaData")) && item instanceof IcyMetadataSource icySource && icySource.isIcyMetadataEnabled()) {
 						// Renderer asked for SHOUTcast/Icecast in-band metadata: advertise the
 						// interval and interleave the metadata blocks into the stream.
