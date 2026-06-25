@@ -4591,6 +4591,106 @@
 				</plugins>
 			</build>
 		</profile>
+
+		<!--
+			Slim build profile for the local Ubuntu Docker container (ik6666/ums).
+
+			This profile is NOT active by default. Activate it explicitly with
+			`-P ubuntu-x86_64`; Maven then deactivates all the activeByDefault
+			linux-* profiles, so ONLY the x86_64 distribution is built instead of
+			all five linux architectures. This keeps the shared build/profile
+			section identical to upstream / main_ums (clean merges) while building
+			exactly what the container needs.
+
+			It produces the same ums*.gz as linux-x86_64 but via
+			assembly-ubuntu-x86_64.xml, which omits the bundled JRE: the container
+			ships its own java_25 base image and provides ffmpeg / tsMuxeR itself,
+			so no platform binaries are downloaded here.
+		-->
+		<profile>
+			<id>ubuntu-x86_64</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>install node and corepack</id>
+								<goals>
+									<goal>install-node-and-corepack</goal>
+								</goals>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>corepack</goal>
+								</goals>
+								<configuration>
+									<arguments>yarn build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+
+							<!-- Assemble the slim x86_64 distribution file (no bundled JRE). -->
+							<execution>
+								<id>build-ums-ubuntu-x86_64</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-ubuntu-x86_64.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>${project.mainclass}</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 </project>
 
