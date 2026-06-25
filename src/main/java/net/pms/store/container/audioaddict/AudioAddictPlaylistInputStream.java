@@ -24,13 +24,8 @@ import net.pms.external.audioaddict.Platform;
 public class AudioAddictPlaylistInputStream extends InputStream {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictPlaylistInputStream.class.getName());
-	// Guard against tight loops when the API keeps returning only already served tracks.
+
 	private static final int MAX_EMPTY_WINDOWS = 3;
-	// TEMP diagnostics: MP3 frame-header lookup tables.
-	private static final int[] MP3_SAMPLE_RATE_MPEG1 = {44100, 48000, 32000, 0};
-	private static final int[] MP3_SAMPLE_RATE_MPEG2 = {22050, 24000, 16000, 0};
-	private static final int[] MP3_SAMPLE_RATE_MPEG25 = {11025, 12000, 8000, 0};
-	private static final int[] MP3_BITRATE_MPEG1_L3 = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0};
 
 	private final Platform network;
 	private final int playlistId;
@@ -75,7 +70,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	}
 
 	/**
-	 * @return the currently playing track as "Artist - Title" for ICY metadata, or {@code null}
+	 * @return the currently playing track as "Artist - Title" for ICY metadata, or NULL
 	 * when no track is currently open (treated as "unchanged" by the metadata layer).
 	 */
 	public String getStreamTitle() {
@@ -96,13 +91,15 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			return false;
 		}
 		try {
-			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 512 * 1024);
+			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 64 * 1024);
 			currentTrack = next;
 			trackNumber++;
+			// Strip the ID3v2 tag so the renderer sees a clean, continuous MP3 frame stream across
+			// track boundaries; strict decoders (e.g. Lumin) lose sync on the tag bytes between tracks.
+			stripId3v2(in);
+			current = in;
 			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {}", network.displayName, playlistId, trackNumber,
 				next.id, next.artist, next.title);
-			logMp3Diagnostics(in, next);
-			current = in;
 			return true;
 		} catch (IOException e) {
 			LOGGER.warn("{} : cannot open playlist track {}", network.displayName, next.id, e);
@@ -136,8 +133,6 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 				boolean ended = window.lastTracks || window.remainingTracks <= 0 || emptyWindows >= MAX_EMPTY_WINDOWS;
 				if (ended) {
 					if (loop && servedThisPass) {
-						// Replay from the start. AudioAddict tracks progress per member, so this
-						// only keeps looping while the server still returns not-yet-served tracks.
 						LOGGER.debug("{} : playlist {} - looping, replaying from start after {} tracks", network.displayName,
 							playlistId, trackNumber);
 						servedIds.clear();
@@ -154,49 +149,17 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	}
 
 	/**
-	 * TEMP diagnostics: non-destructively peek (mark/reset) at the start of the track and log
-	 * whether it carries an ID3v2 tag (size) and the first MP3 frame header (version/layer/sample
-	 * rate/bitrate). Confirms tag cruft at the boundaries and whether the sample rate is uniform.
+	 * Skips a leading ID3v2 tag so the rest of the stream begins at the first MP3 audio frame.
 	 */
-	private void logMp3Diagnostics(BufferedInputStream in, AudioAddictTrackDto t) {
-		try {
-			in.mark(400_000);
-			byte[] b = in.readNBytes(262_144);
+	private void stripId3v2(BufferedInputStream in) throws IOException {
+		in.mark(16);
+		byte[] header = in.readNBytes(10);
+		if (header.length == 10 && header[0] == 'I' && header[1] == 'D' && header[2] == '3') {
+			int size = ((header[6] & 0x7F) << 21) | ((header[7] & 0x7F) << 14) | ((header[8] & 0x7F) << 7) | (header[9] & 0x7F);
+			in.skipNBytes(size);
+			LOGGER.debug("{} : playlist {} - track #{} stripped ID3v2 ({} bytes)", network.displayName, playlistId, trackNumber, size);
+		} else {
 			in.reset();
-			boolean hasId3 = b.length >= 10 && b[0] == 'I' && b[1] == 'D' && b[2] == '3';
-			int id3Size = 0;
-			int scanFrom = 0;
-			if (hasId3) {
-				id3Size = ((b[6] & 0x7F) << 21) | ((b[7] & 0x7F) << 14) | ((b[8] & 0x7F) << 7) | (b[9] & 0x7F);
-				scanFrom = 10 + id3Size;
-			}
-			int f = -1;
-			for (int i = Math.max(0, scanFrom); i + 3 < b.length; i++) {
-				if ((b[i] & 0xFF) == 0xFF && (b[i + 1] & 0xE0) == 0xE0) {
-					f = i;
-					break;
-				}
-			}
-			if (f < 0) {
-				LOGGER.info("MP3-DIAG: track #{} (id={}) ID3v2={} (size={}), no frame header within {} peeked bytes",
-					trackNumber, t.id, hasId3, id3Size, b.length);
-				return;
-			}
-			int h1 = b[f + 1] & 0xFF;
-			int h2 = b[f + 2] & 0xFF;
-			int h3 = b[f + 3] & 0xFF;
-			int ver = (h1 >> 3) & 0x3;
-			int layer = (h1 >> 1) & 0x3;
-			int brIdx = (h2 >> 4) & 0xF;
-			int srIdx = (h2 >> 2) & 0x3;
-			int chMode = (h3 >> 6) & 0x3;
-			int sr = ver == 3 ? MP3_SAMPLE_RATE_MPEG1[srIdx] : ver == 2 ? MP3_SAMPLE_RATE_MPEG2[srIdx] : MP3_SAMPLE_RATE_MPEG25[srIdx];
-			int br = (ver == 3 && layer == 1) ? MP3_BITRATE_MPEG1_L3[brIdx] : -1;
-			String verStr = ver == 3 ? "MPEG1" : ver == 2 ? "MPEG2" : ver == 0 ? "MPEG2.5" : "reserved";
-			LOGGER.info("MP3-DIAG: track #{} (id={}) ID3v2={} (size={}), {} layer-bits={} (1=III) {}Hz {}kbps chMode={} (3=mono) frameAt={}",
-				trackNumber, t.id, hasId3, id3Size, verStr, layer, sr, br, chMode, f);
-		} catch (IOException e) {
-			LOGGER.info("MP3-DIAG: track #{} (id={}) peek failed: {}", trackNumber, t.id, e.toString());
 		}
 	}
 
