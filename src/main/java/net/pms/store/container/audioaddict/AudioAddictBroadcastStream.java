@@ -52,4 +52,16 @@ public abstract class AudioAddictBroadcastStream extends WebAudioStream implemen
 		return null;
 	}
 
+	/**
+	 * Diagnostic: when {@code audio_addict_capture_stream} is enabled, wraps the stream so the first
+	 * chunk served is dumped to a capture file (see {@link CapturingInputStream}); otherwise returns
+	 * the stream unchanged.
+	 */
+	protected InputStream maybeCapture(InputStream in, String label) {
+		if (renderer != null && renderer.getUmsConfiguration().isAudioAddictCaptureStream()) {
+			return CapturingInputStream.wrap(in, label);
+		}
+		return in;
+	}
+
 }

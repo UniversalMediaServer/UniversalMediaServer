@@ -228,8 +228,10 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_ADDICT_CAPTURE_STREAM = "audio_addict_capture_stream";
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
 	private static final String KEY_AUDIO_ADDICT_ICY_METADATA = "audio_addict_icy_metadata";
+	private static final String KEY_AUDIO_ADDICT_KEEP_ORIGINAL_ID3 = "audio_addict_keep_original_id3";
 	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
 	private static final String KEY_AUDIO_ADDICT_PLAYLIST_LOOP = "audio_addict_playlist_loop";
 	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
@@ -1087,6 +1089,25 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setAudioAddictIcyMetadata(boolean icyMetadata) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_ICY_METADATA, icyMetadata);
+	}
+
+	/**
+	 * Diagnostic: when true, curated-playlist tracks are streamed with their ORIGINAL ID3v2 tag
+	 * (incl. cover art) untouched, instead of stripping it and prepending a tiny synthetic one. Used
+	 * to test whether a large/cover-art ID3 is what makes some renderers (Lumin) engage their
+	 * metadata-aware decoder. May break gapless playback on strict renderers - diagnostic only.
+	 */
+	public boolean isAudioAddictKeepOriginalId3() {
+		return getBoolean(KEY_AUDIO_ADDICT_KEEP_ORIGINAL_ID3, false);
+	}
+
+	/**
+	 * Diagnostic: when true, the first chunk of each served AudioAddict stream is written to a file
+	 * (aa-capture-*.bin) in the profile directory, to compare what differs between playlist, radio
+	 * and event streams. Diagnostic only.
+	 */
+	public boolean isAudioAddictCaptureStream() {
+		return getBoolean(KEY_AUDIO_ADDICT_CAPTURE_STREAM, false);
 	}
 
 	/**

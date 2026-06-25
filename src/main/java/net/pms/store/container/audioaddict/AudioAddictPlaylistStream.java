@@ -40,7 +40,7 @@ public class AudioAddictPlaylistStream extends AudioAddictBroadcastStream {
 
 	@Override
 	public InputStream getInputStream() {
-		return new AudioAddictPlaylistInputStream(network, playlistId, loop);
+		return maybeCapture(new AudioAddictPlaylistInputStream(network, playlistId, loop), "playlist-" + playlistId);
 	}
 
 	/**

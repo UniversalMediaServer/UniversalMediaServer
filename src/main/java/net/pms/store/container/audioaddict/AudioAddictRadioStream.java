@@ -1,5 +1,6 @@
 package net.pms.store.container.audioaddict;
 
+import java.io.InputStream;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
@@ -25,6 +26,11 @@ public class AudioAddictRadioStream extends AudioAddictBroadcastStream {
 			return null;
 		}
 		return AudioAddictService.get().getCurrentTrackTitle(network, channelId);
+	}
+
+	@Override
+	public InputStream getInputStream() {
+		return maybeCapture(super.getInputStream(), "radio-" + getName());
 	}
 
 }

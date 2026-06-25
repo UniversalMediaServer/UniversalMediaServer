@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
 import net.pms.external.audioaddict.AudioAddictPlayWindow;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
@@ -95,13 +96,21 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 64 * 1024);
 			currentTrack = next;
 			trackNumber++;
-			// Strip the original ID3v2 tag (it carries large cover art that desyncs strict decoders at
-			// concatenated track boundaries) and prepend a tiny synthetic one.
-			stripId3v2(in);
-			byte[] id3 = buildId3v2(next.artist, next.title);
-			current = new SequenceInputStream(new ByteArrayInputStream(id3), in);
-			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (prepended {} byte ID3v2)", network.displayName,
-				playlistId, trackNumber, next.id, next.artist, next.title, id3.length);
+			if (PMS.getConfiguration().isAudioAddictKeepOriginalId3()) {
+				// Diagnostic: serve the original stream (incl. its large cover-art ID3) untouched, to
+				// test whether that is what makes a renderer engage its metadata-aware decoder.
+				current = in;
+				LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (original ID3 kept, diagnostic)",
+					network.displayName, playlistId, trackNumber, next.id, next.artist, next.title);
+			} else {
+				// Strip the original ID3v2 tag (it carries large cover art that desyncs strict decoders at
+				// concatenated track boundaries) and prepend a tiny synthetic one.
+				stripId3v2(in);
+				byte[] id3 = buildId3v2(next.artist, next.title);
+				current = new SequenceInputStream(new ByteArrayInputStream(id3), in);
+				LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (prepended {} byte ID3v2)", network.displayName,
+					playlistId, trackNumber, next.id, next.artist, next.title, id3.length);
+			}
 			return true;
 		} catch (IOException e) {
 			LOGGER.warn("{} : cannot open playlist track {}", network.displayName, next.id, e);

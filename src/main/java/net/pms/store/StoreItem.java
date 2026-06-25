@@ -450,7 +450,7 @@ public abstract class StoreItem extends StoreResource {
 		}
 
 		if (renderer.getUmsConfiguration().isDisableTranscoding()) {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
+			LOGGER.trace("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
 			return null;
 		}
 
@@ -507,7 +507,7 @@ public abstract class StoreItem extends StoreResource {
 		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
 
 		if (skipTranscode) {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed since it is forced by configuration", getName());
+			LOGGER.trace("Final verdict: \"{}\" will be streamed since it is forced by configuration", getName());
 			return null;
 		}
 
@@ -592,17 +592,17 @@ public abstract class StoreItem extends StoreResource {
 			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.debug("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\" with mime type \"{}\"", getName(),
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\" with mime type \"{}\"", getName(),
 							resolvedTranscodingSettings.toString(), getMimeType());
 				} else {
-					LOGGER.debug("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\"", getName(), resolvedTranscodingSettings.toString());
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\"", getName(), resolvedTranscodingSettings.toString());
 				}
 			} else {
 				resolvedTranscodingSettings = null;
-				LOGGER.debug("Final verdict: \"{}\" will be streamed", getName());
+				LOGGER.trace("Final verdict: \"{}\" will be streamed", getName());
 			}
 		} else {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed because no compatible engine was found", getName());
+			LOGGER.trace("Final verdict: \"{}\" will be streamed because no compatible engine was found", getName());
 		}
 		return resolvedTranscodingSettings;
 	}
