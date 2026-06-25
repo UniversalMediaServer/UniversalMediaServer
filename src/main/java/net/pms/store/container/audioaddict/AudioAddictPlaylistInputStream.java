@@ -1,5 +1,6 @@
 package net.pms.store.container.audioaddict;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -23,7 +24,7 @@ import net.pms.external.audioaddict.Platform;
 public class AudioAddictPlaylistInputStream extends InputStream {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictPlaylistInputStream.class.getName());
-	// Guard against tight loops when the API keeps returning only already served tracks.
+
 	private static final int MAX_EMPTY_WINDOWS = 3;
 
 	private final Platform network;
@@ -69,7 +70,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	}
 
 	/**
-	 * @return the currently playing track as "Artist - Title" for ICY metadata, or {@code null}
+	 * @return the currently playing track as "Artist - Title" for ICY metadata, or NULL
 	 * when no track is currently open (treated as "unchanged" by the metadata layer).
 	 */
 	public String getStreamTitle() {
@@ -90,9 +91,13 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			return false;
 		}
 		try {
-			current = URI.create(next.contentUrl).toURL().openStream();
+			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 64 * 1024);
 			currentTrack = next;
 			trackNumber++;
+			// Strip the ID3v2 tag so the renderer sees a clean, continuous MP3 frame stream across
+			// track boundaries; strict decoders (e.g. Lumin) lose sync on the tag bytes between tracks.
+			stripId3v2(in);
+			current = in;
 			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {}", network.displayName, playlistId, trackNumber,
 				next.id, next.artist, next.title);
 			return true;
@@ -128,8 +133,6 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 				boolean ended = window.lastTracks || window.remainingTracks <= 0 || emptyWindows >= MAX_EMPTY_WINDOWS;
 				if (ended) {
 					if (loop && servedThisPass) {
-						// Replay from the start. AudioAddict tracks progress per member, so this
-						// only keeps looping while the server still returns not-yet-served tracks.
 						LOGGER.debug("{} : playlist {} - looping, replaying from start after {} tracks", network.displayName,
 							playlistId, trackNumber);
 						servedIds.clear();
@@ -142,6 +145,21 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 					return null;
 				}
 			}
+		}
+	}
+
+	/**
+	 * Skips a leading ID3v2 tag so the rest of the stream begins at the first MP3 audio frame.
+	 */
+	private void stripId3v2(BufferedInputStream in) throws IOException {
+		in.mark(16);
+		byte[] header = in.readNBytes(10);
+		if (header.length == 10 && header[0] == 'I' && header[1] == 'D' && header[2] == '3') {
+			int size = ((header[6] & 0x7F) << 21) | ((header[7] & 0x7F) << 14) | ((header[8] & 0x7F) << 7) | (header[9] & 0x7F);
+			in.skipNBytes(size);
+			LOGGER.debug("{} : playlist {} - track #{} stripped ID3v2 ({} bytes)", network.displayName, playlistId, trackNumber, size);
+		} else {
+			in.reset();
 		}
 	}
 
