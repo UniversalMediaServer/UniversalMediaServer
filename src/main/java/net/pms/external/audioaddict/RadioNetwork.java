@@ -61,6 +61,7 @@ public class RadioNetwork {
 	private final static ExecutorService EXEC_SERVICE = Executors.newSingleThreadExecutor();
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
+	private static final Pattern SESSION_KEY_PATTERN = Pattern.compile(".*session_key\":\\s*\"([\\w\\d]*)\",");
 	private static final DateTimeFormatter EVENT_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
 
 	// maybe we make it configurable in the future, but for now we limit the number of events to 500
@@ -72,6 +73,10 @@ public class RadioNetwork {
 	private static String apiKey = null;
 
 	private static String listenKey = null;
+
+	// Server-issued per login (in the member object next to api_key/listen_key). Not used in the
+	// current api_key streaming mode; kept for a possible future per-stream x-session-key mode.
+	private static String sessionKey = null;
 
 	private static boolean authenticated = false;
 
@@ -208,6 +213,14 @@ public class RadioNetwork {
 		} else {
 			LOGGER.warn("listen-key not found!");
 		}
+		m = SESSION_KEY_PATTERN.matcher(resp);
+		if (m.find()) {
+			sessionKey = m.group(1);
+			LOGGER.info("{} : extracted session_key (length {}) - kept for possible future per-stream session use",
+				network.displayName, sessionKey.length());
+		} else {
+			LOGGER.warn("{} : session-key not found in authenticate response!", network.displayName);
+		}
 	}
 
 	public void updateConfig(AudioAddictServiceConfig config) {
@@ -293,7 +306,7 @@ public class RadioNetwork {
 	}
 
 	/**
-	 * Builds a map of filter id to filter name for the genre filters only (the {@code genre}
+	 * Builds a map of filter id to filter name for the genre filters only (the "genre"
 	 * flag distinguishes real genres from meta filters like "all" or "Favorites").
 	 */
 	private Map<Integer, String> buildGenreFilterMap() {
@@ -521,6 +534,10 @@ public class RadioNetwork {
 		return listenKey;
 	}
 
+	protected static String getSessionKey() {
+		return sessionKey;
+	}
+
 	/**
 	 * Reads the list of curated playlists of this network.
 	 *
@@ -648,7 +665,7 @@ public class RadioNetwork {
 	}
 
 	/**
-	 * Parses an event start time (ISO-8601 with offset, e.g. {@code 2026-06-16T04:00:00-04:00})
+	 * Parses an event start time (ISO-8601 with offset "2026-06-16T04:00:00-04:00"
 	 * and formats it in the local time zone of the host running UMS.
 	 */
 	private static String formatEventStart(String startAt) {
@@ -664,12 +681,11 @@ public class RadioNetwork {
 
 	/**
 	 * Requests the next window of a playlist play session. AudioAddict tracks the playback
-	 * progress per member (identified by the {@code api_key}); {@link #markPlayed} calls advance
-	 * it, so consecutive requests walk the playlist until {@code lastTracks} is set /
-	 * {@code remainingTracks} reaches 0.
+	 * progress per member (identified by the "api_key"); "markPlayed" calls advance
+	 * it, so consecutive requests walk the playlist until "lastTracks" is set /
+	 * "remainingTracks" reaches 0.
 	 *
 	 * @param playlistId the playlist id.
-	 * @return the next window (possibly empty when unavailable).
 	 */
 	public AudioAddictPlayWindow playPlaylist(int playlistId) {
 		AudioAddictPlayWindow window = new AudioAddictPlayWindow();
@@ -776,7 +792,7 @@ public class RadioNetwork {
 	}
 
 	/**
-	 * AudioAddict serves protocol relative URLs (starting with {@code //}). Prepend the
+	 * AudioAddict serves protocol relative URLs (starting with "//"). Prepend the
 	 * scheme so the URL can be opened directly.
 	 */
 	private static String normalizeUrl(String url) {
