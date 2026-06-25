@@ -34,7 +34,7 @@ public class AudioAddictNetworkFilter extends StoreContainer {
 				}
 				mi.setAudioMetadata(md);
 			}
-			StoreResource sr = new AudioAddictRadioStream(renderer, c.name, c.streamUrl, "http:" + c.albumArt);
+			StoreResource sr = new AudioAddictRadioStream(renderer, c.name, c.streamUrl, "http:" + c.albumArt, network, c.id);
 			sr.setMediaInfo(mi);
 			addChild(sr);
 		}

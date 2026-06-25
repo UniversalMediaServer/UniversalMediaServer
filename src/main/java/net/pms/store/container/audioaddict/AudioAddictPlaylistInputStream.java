@@ -1,9 +1,12 @@
 package net.pms.store.container.audioaddict;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -94,12 +97,13 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 64 * 1024);
 			currentTrack = next;
 			trackNumber++;
-			// Strip the ID3v2 tag so the renderer sees a clean, continuous MP3 frame stream across
-			// track boundaries; strict decoders (e.g. Lumin) lose sync on the tag bytes between tracks.
+			// Strip the original ID3v2 tag (it carries large cover art that desyncs strict decoders at
+			// concatenated track boundaries) and prepend a tiny synthetic one.
 			stripId3v2(in);
-			current = in;
-			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {}", network.displayName, playlistId, trackNumber,
-				next.id, next.artist, next.title);
+			byte[] id3 = buildId3v2(next.artist, next.title);
+			current = new SequenceInputStream(new ByteArrayInputStream(id3), in);
+			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (prepended {} byte ID3v2)", network.displayName,
+				playlistId, trackNumber, next.id, next.artist, next.title, id3.length);
 			return true;
 		} catch (IOException e) {
 			LOGGER.warn("{} : cannot open playlist track {}", network.displayName, next.id, e);
@@ -161,6 +165,57 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		} else {
 			in.reset();
 		}
+	}
+
+	/**
+	 * Builds a minimal ID3v2.4 tag holding just the track title "TIT2" and, when present,
+	 * the artist "TPE1", UTF-8 encoded and without any cover art.
+	 */
+	private static byte[] buildId3v2(String artist, String title) {
+		byte[] titleFrame = textFrame("TIT2", title);
+		byte[] artistFrame = (artist != null && !artist.isBlank()) ? textFrame("TPE1", artist) : new byte[0];
+		int bodySize = titleFrame.length + artistFrame.length;
+		byte[] tag = new byte[10 + bodySize];
+		tag[0] = 'I';
+		tag[1] = 'D';
+		tag[2] = '3';
+		tag[3] = 0x04; // version 2.4.0
+		tag[4] = 0x00; // revision
+		tag[5] = 0x00; // flags
+		writeSyncsafe(tag, 6, bodySize);
+		System.arraycopy(titleFrame, 0, tag, 10, titleFrame.length);
+		System.arraycopy(artistFrame, 0, tag, 10 + titleFrame.length, artistFrame.length);
+		return tag;
+	}
+
+	/**
+	 * Builds a single ID3v2.4 text information frame: 4-char id, syncsafe size, no flags, then a
+	 * UTF-8 encoding byte ({@code 0x03}) followed by the UTF-8 text.
+	 */
+	private static byte[] textFrame(String id, String text) {
+		byte[] textBytes = (text != null ? text : "").getBytes(StandardCharsets.UTF_8);
+		int bodySize = 1 + textBytes.length; // encoding byte + text
+		byte[] frame = new byte[10 + bodySize];
+		frame[0] = (byte) id.charAt(0);
+		frame[1] = (byte) id.charAt(1);
+		frame[2] = (byte) id.charAt(2);
+		frame[3] = (byte) id.charAt(3);
+		writeSyncsafe(frame, 4, bodySize);
+		frame[8] = 0x00; // flags
+		frame[9] = 0x00;
+		frame[10] = 0x03; // text encoding: UTF-8
+		System.arraycopy(textBytes, 0, frame, 11, textBytes.length);
+		return frame;
+	}
+
+	/**
+	 * Writes a 28-bit syncsafe integer (7 bits per byte) into 4 bytes starting at {@code offset}.
+	 */
+	private static void writeSyncsafe(byte[] buf, int offset, int value) {
+		buf[offset] = (byte) ((value >> 21) & 0x7F);
+		buf[offset + 1] = (byte) ((value >> 14) & 0x7F);
+		buf[offset + 2] = (byte) ((value >> 7) & 0x7F);
+		buf[offset + 3] = (byte) (value & 0x7F);
 	}
 
 	private void closeCurrent(boolean markPlayed) {
