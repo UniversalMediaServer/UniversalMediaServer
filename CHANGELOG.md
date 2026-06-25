@@ -3,16 +3,28 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@babel/core` from 7.28.5 to 7.29.7 ([#6208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6208))
+- Bump `actions/cache` from 5 to 6 ([#6217](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6217))
 - Bump `ch.qos.logback:logback-classic` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
 - Bump `ch.qos.logback:logback-core` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
-- Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.2.1 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189))
+- Bump `com.auth0:java-jwt` from 4.5.1 to 4.5.2 ([#6221](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6221))
+- Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.3.0 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189), [#6205](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6205))
 - Bump `com.google.code.gson:gson` from 2.13.2 to 2.14.0 ([#6188](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6188))
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.6 to 4.0.9 ([#6180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6180))
 - Bump `esbuild` from 0.27.2 to 0.27.7 ([#6202](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6202))
+- Bump `form-data` from 4.0.5 to 4.0.6 ([#6209](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6209))
+- Bump `js-yaml` from 4.1.1 to 4.2.0 ([#6210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6210))
 - Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.6.2 to 3.6.3 ([#6198](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6198))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.5 to 3.5.6 ([#6190](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6190))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.9 to 12.1.10 ([#6196](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6196))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
+- Bump `org.slf4j:slf4j-api` from 2.0.17 to 2.0.18 ([#6197](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6197))
+- Bump `tar` from 7.5.11 to 7.5.16 ([#6211](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6211))
+- Bump `vite` from 7.3.2 to 7.3.5 ([#6206](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6206))
 
 ## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
 
