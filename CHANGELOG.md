@@ -14,6 +14,7 @@
 - Bump `com.google.code.gson:gson` from 2.13.2 to 2.14.0 ([#6188](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6188))
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.6 to 4.0.9 ([#6180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6180))
 - Bump `esbuild` from 0.27.2 to 0.27.7 ([#6202](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6202))
+- Bump `eslint-plugin-react-hooks` from 7.0.1 to 7.1.1 ([#6219](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6219))
 - Bump `form-data` from 4.0.5 to 4.0.6 ([#6209](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6209))
 - Bump `js-yaml` from 4.1.1 to 4.2.0 ([#6210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6210))
 - Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.6.2 to 3.6.3 ([#6198](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6198))
