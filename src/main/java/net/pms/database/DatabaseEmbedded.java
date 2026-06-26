@@ -135,6 +135,9 @@ public class DatabaseEmbedded {
 			LOGGER.info("The database need a migration to the new h2 format");
 			migrateDatabase(197, true, dbName);
 			return true;
+		} else if (se.getErrorCode() == 90041) {
+			LOGGER.error("Database in inconsistent state. A trigger already exists. Stop the program and delete the folder \"" + dbDir + "\" manually", se);
+			return false;
 		} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
 			FileUtils.deleteQuietly(dbDirectory);
 			if (!dbDirectory.exists()) {
