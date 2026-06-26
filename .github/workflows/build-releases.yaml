@@ -9,7 +9,7 @@ jobs:
   appimage:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -39,7 +39,7 @@ jobs:
   docker-ubuntu:
     runs-on: macos-26-intel
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JRE
         uses: actions/setup-java@v5
         with:
@@ -71,7 +71,7 @@ jobs:
   docker-alpine:
     runs-on: macos-26-intel
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JRE
         uses: actions/setup-java@v5
         with:
