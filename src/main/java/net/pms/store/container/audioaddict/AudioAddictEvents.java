@@ -67,7 +67,7 @@ public class AudioAddictEvents extends StoreContainer {
 			}
 			// The artist (DJ/host) is exposed via upnp:artist, so keep it out of the title.
 			String title = event.startLabel != null ? (event.startLabel + "  " + event.title) : event.title;
-			StoreResource sr = new AudioAddictEventStream(renderer, title, event.contentUrl, event.albumArt);
+			StoreResource sr = new AudioAddictFileStream(renderer, title, event.contentUrl, event.albumArt);
 			sr.setMediaInfo(mi);
 			addChild(sr);
 		}
