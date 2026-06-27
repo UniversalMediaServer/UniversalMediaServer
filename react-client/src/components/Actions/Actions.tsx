@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip } from '@mantine/core'
+import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Title, Tooltip } from '@mantine/core'
 import axios, { AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -96,6 +96,8 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">
+      <Title order={1}>{i18n.get('Tools')}</Title>
+
       {canRestartServer
         && (
           <Modal
@@ -213,9 +215,7 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
           </Modal>
         )}
       <Stack>
-        {canModify && (
-          <Button variant="default" leftSection={<IconReport />} onClick={() => { navigate('/logs') }}>View Logs</Button>
-        )}
+        <Title order={2} mt="xl">{i18n.get('Actions')}</Title>
         {canRestartServer && (
           <Tooltip label={i18n.get('ThisRestartsMediaServices')} {...defaultTooltipSettings}>
             <Button variant="default" leftSection={<IconRefresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get('RestartServer')}</Button>
@@ -242,6 +242,10 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
           <Button variant="default" leftSection={<IconUpload strokeWidth={2} />} onClick={() => { saveBackup() }}>{i18n.get('Save')}</Button>
           <Button variant="default" leftSection={<IconDownload strokeWidth={2} />} onClick={() => { restoreBackup() }}>{i18n.get('Restore')}</Button>
         </Group>
+        <Title order={2} mt="xl">{i18n.get('Logs')}</Title>
+        {canModify && (
+          <Button variant="default" leftSection={<IconReport />} onClick={() => { navigate('/logs') }}>View Logs</Button>
+        )}
       </Stack>
     </Box>
   )
