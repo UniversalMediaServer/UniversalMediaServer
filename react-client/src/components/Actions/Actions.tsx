@@ -18,12 +18,13 @@ import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip
 import axios, { AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff } from '@tabler/icons-react'
+import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff, IconUpload, IconDownload } from '@tabler/icons-react'
 
 import { ActionsValues, sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils'
+import { showError, showInfo } from '../../utils/notifications'
 
 const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   const canModify = session.havePermission(UmsPermission.settings_modify)
@@ -52,6 +53,34 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
   const [shutdownApplicationOpened, setShutdownApplicationOpened] = useState(false)
   const shutdownApplication = async () => {
     await sendAction('Process.Exit')
+  }
+
+  // backup actions
+  const saveBackup = async () => {
+    const response = await sendAction('Server.SaveBackup')
+    if (response.status === 200) {
+      showInfo({
+        message: i18n.get('Saved'),
+      })
+    }
+    else {
+      showError({
+        message: i18n.get('Error'),
+      })
+    }
+  }
+  const restoreBackup = async () => {
+    const response = await sendAction('Server.RestoreBackup')
+    if (response.status === 200) {
+      showInfo({
+        message: i18n.get('Saved'),
+      })
+    }
+    else {
+      showError({
+        message: i18n.get('Error'),
+      })
+    }
   }
 
   useEffect(() => {
@@ -207,6 +236,12 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
             <Button variant="default" leftSection={<IconDevicesPcOff strokeWidth={2} color="red" />} onClick={() => { setShutdownComputerOpened(true) }}>{i18n.get('ShutDownComputer')}</Button>
           </Tooltip>
         )}
+        <Title order={2} mt="xl">{i18n.get('Backups')}</Title>
+        <Text size="md">{i18n.get('BackupAndRestoreYourPersonalData')}</Text>
+        <Group>
+          <Button variant="default" leftSection={<IconUpload strokeWidth={2} />} onClick={() => { saveBackup() }}>{i18n.get('Save')}</Button>
+          <Button variant="default" leftSection={<IconDownload strokeWidth={2} />} onClick={() => { restoreBackup() }}>{i18n.get('Restore')}</Button>
+        </Group>
       </Stack>
     </Box>
   )
