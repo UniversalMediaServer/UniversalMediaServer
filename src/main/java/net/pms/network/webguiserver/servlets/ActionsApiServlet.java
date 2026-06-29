@@ -28,6 +28,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.FilesStatusBackupManager;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.platform.PlatformUtils;
 import net.pms.store.MediaScanner;
@@ -77,6 +78,14 @@ public class ActionsApiServlet extends GuiHttpServlet {
 								} else {
 									respondForbidden(req, resp);
 								}
+							}
+							case "Server.RestoreBackup" -> {
+								FilesStatusBackupManager.getInstance().restore();
+								respond(req, resp, "{}", 200, "application/json");
+							}
+							case "Server.SaveBackup" -> {
+								FilesStatusBackupManager.getInstance().backup();
+								respond(req, resp, "{}", 200, "application/json");
 							}
 							case "Computer.Shutdown" -> {
 								if (account.havePermission(Permissions.COMPUTER_SHUTDOWN)) {

@@ -24,6 +24,8 @@ const PERMITTED_ACTIONS = [
   'Process.Reboot.Trace',
   'Server.ResetCache',
   'Server.Restart',
+  'Server.RestoreBackup',
+  'Server.SaveBackup',
   'Computer.Shutdown',
   'Server.ScanAllSharedFolders',
   'Server.ScanAllSharedFoldersCancel',
@@ -41,6 +43,8 @@ export const sendAction = async (operation: string) => {
         operation,
       })
       .then((response) => {
+        response.data = response.data || {}
+        response.data.status = response.status
         return response.data
       })
   }

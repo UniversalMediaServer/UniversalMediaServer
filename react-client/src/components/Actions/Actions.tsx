@@ -14,16 +14,17 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip } from '@mantine/core'
+import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Title, Tooltip } from '@mantine/core'
 import axios, { AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff } from '@tabler/icons-react'
+import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff, IconUpload, IconDownload } from '@tabler/icons-react'
 
 import { ActionsValues, sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils'
+import { showError, showInfo } from '../../utils/notifications'
 
 const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   const canModify = session.havePermission(UmsPermission.settings_modify)
@@ -54,6 +55,34 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
     await sendAction('Process.Exit')
   }
 
+  // backup actions
+  const saveBackup = async () => {
+    const response = await sendAction('Server.SaveBackup')
+    if (response.status === 200) {
+      showInfo({
+        message: i18n.get('Saved'),
+      })
+    }
+    else {
+      showError({
+        message: i18n.get('Error'),
+      })
+    }
+  }
+  const restoreBackup = async () => {
+    const response = await sendAction('Server.RestoreBackup')
+    if (response.status === 200) {
+      showInfo({
+        message: i18n.get('Saved'),
+      })
+    }
+    else {
+      showError({
+        message: i18n.get('Error'),
+      })
+    }
+  }
+
   useEffect(() => {
     session.unsubscribe()
     session.stopPlayerSse()
@@ -67,6 +96,8 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
 
   return (
     <Box style={{ maxWidth: 1024 }} mx="auto">
+      <Title order={1}>{i18n.get('Tools')}</Title>
+
       {canRestartServer
         && (
           <Modal
@@ -184,9 +215,7 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
           </Modal>
         )}
       <Stack>
-        {canModify && (
-          <Button variant="default" leftSection={<IconReport />} onClick={() => { navigate('/logs') }}>View Logs</Button>
-        )}
+        <Title order={2} mt="xl">{i18n.get('Actions')}</Title>
         {canRestartServer && (
           <Tooltip label={i18n.get('ThisRestartsMediaServices')} {...defaultTooltipSettings}>
             <Button variant="default" leftSection={<IconRefresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get('RestartServer')}</Button>
@@ -206,6 +235,16 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
           <Tooltip label={i18n.get('ThisShutDownComputer')} {...defaultTooltipSettings}>
             <Button variant="default" leftSection={<IconDevicesPcOff strokeWidth={2} color="red" />} onClick={() => { setShutdownComputerOpened(true) }}>{i18n.get('ShutDownComputer')}</Button>
           </Tooltip>
+        )}
+        <Title order={2} mt="xl">{i18n.get('Backups')}</Title>
+        <Text size="md">{i18n.get('BackupAndRestoreYourPersonalData')}</Text>
+        <Group>
+          <Button variant="default" leftSection={<IconUpload strokeWidth={2} />} onClick={() => { saveBackup() }}>{i18n.get('Save')}</Button>
+          <Button variant="default" leftSection={<IconDownload strokeWidth={2} />} onClick={() => { restoreBackup() }}>{i18n.get('Restore')}</Button>
+        </Group>
+        <Title order={2} mt="xl">{i18n.get('Logs')}</Title>
+        {canModify && (
+          <Button variant="default" leftSection={<IconReport />} onClick={() => { navigate('/logs') }}>View Logs</Button>
         )}
       </Stack>
     </Box>
