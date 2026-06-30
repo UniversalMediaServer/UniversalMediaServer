@@ -205,7 +205,7 @@ public class StoreResourceHelper {
 		} else if (mediaType == MediaType.IMAGE || mediaType == MediaType.UNKNOWN && format != null && format.isImage()) {
 			result = new Photo();
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
-			result = item.isUnboundedLiveStream() ? new AudioBroadcast() : new MusicTrack();
+			result = item.isAudioBroadcast() ? new AudioBroadcast() : new MusicTrack();
 		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || mediaInfo.getVideoMetadata().getYear() != null)) {
 			// videoItem.movie is used for TV episodes and movies
 			result = new Movie();

@@ -27,6 +27,16 @@ public abstract class AudioAddictBroadcastStream extends WebAudioStream implemen
 	}
 
 	/**
+	 * Advertise these continuous streams (playlist + radio) as internet radio
+	 * "object.item.audioItem.audioBroadcast" so an OpenHome control points can play them via
+	 * the renderer's Radio source (where ICY metadata is consumed), rather than its Playlist source.
+	 */
+	@Override
+	public boolean isAudioBroadcast() {
+		return true;
+	}
+
+	/**
 	 * ICY metadata is gated behind the "audio_addict_icy_metadata" setting so it can be turned
 	 * off for renderers that do not cope with the in-band metadata.
 	 */
