@@ -242,11 +242,17 @@ public abstract class StoreItem extends StoreResource {
 	/**
 	 * @return whether this item is an unbounded, non-seekable live stream (radio-style) that must
 	 * be served as a single persistent HTTP 200 response without byte ranges, rather than as a
-	 * seekable file. For audio items this also drives the UPnP class: an unbounded live audio
-	 * stream is advertised as "object.item.audioItem.audioBroadcast" instead of "musicTrack", so
-	 * radio-aware renderer may request ICY in-band metadata and shows the live StreamTitle.
+	 * seekable file.
 	 */
 	public boolean isUnboundedLiveStream() {
+		return false;
+	}
+
+	/**
+	 * @return whether this audio item should be advertised with the UPnP class
+	 * "object.item.audioItem.audioBroadcast" (internet radio) instead of "musicTrack".
+	 */
+	public boolean isAudioBroadcast() {
 		return false;
 	}
 

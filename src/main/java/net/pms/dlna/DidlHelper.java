@@ -558,7 +558,7 @@ public class DidlHelper extends DlnaHelper {
 		} else if (mediaType == MediaType.IMAGE || mediaType == MediaType.UNKNOWN && format != null && format.isImage()) {
 			uclass = "object.item.imageItem.photo";
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
-			uclass = item != null && item.isUnboundedLiveStream() ? "object.item.audioItem.audioBroadcast" : "object.item.audioItem.musicTrack";
+			uclass = item != null && item.isAudioBroadcast() ? "object.item.audioItem.audioBroadcast" : "object.item.audioItem.musicTrack";
 		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || mediaInfo.getVideoMetadata().getYear() != null)) {
 			// videoItem.movie is used for TV episodes and movies
 			uclass = "object.item.videoItem.movie";
