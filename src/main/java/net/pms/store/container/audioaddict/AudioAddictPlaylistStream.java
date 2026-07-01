@@ -38,6 +38,10 @@ public class AudioAddictPlaylistStream extends AudioAddictBroadcastStream {
 		setMediaInfo(mi);
 	}
 
+	public int getPlaylistId() {
+		return playlistId;
+	}
+
 	@Override
 	public InputStream getInputStream() {
 		return new AudioAddictPlaylistInputStream(network, playlistId, loop);

@@ -10,7 +10,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.external.audioaddict.AudioAddictPlayWindow;
@@ -19,9 +21,8 @@ import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.external.audioaddict.Platform;
 
 /**
- * Continuous audio stream of a curated playlist. It walks the playlist play session
- * (play window -&gt; stream track -&gt; mark played -&gt; next window) and concatenates the track
- * MP3s into a single stream. When {@code loop} is set it restarts a fresh session after the
+ * Continuous audio stream of a curated playlist. It walks the playlist play session and concatenates the track
+ * MP3s into a single stream. When "loop" is set it restarts a fresh session after the
  * last track and plays forever; otherwise the stream ends after the last track.
  */
 public class AudioAddictPlaylistInputStream extends InputStream {
@@ -33,6 +34,10 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	private final Platform network;
 	private final int playlistId;
 	private final boolean loop;
+
+	// Current track per playlist id, so a control point can look up "now playing" for a playlist it
+	// is not itself streaming. Last-writer-wins if the same playlist is streamed by several clients.
+	private static final Map<Integer, AudioAddictTrackDto> CURRENT_TRACKS = new ConcurrentHashMap<>();
 
 	private final Deque<AudioAddictTrackDto> buffer = new ArrayDeque<>();
 	private final Set<Long> servedIds = new HashSet<>();
@@ -87,6 +92,15 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		return track.title;
 	}
 
+	/**
+	 * @return the track currently playing for the given playlist id, or {@code null} if that
+	 * playlist is not being streamed right now. Used by the UmsExtendedServices UPnP action so a
+	 * control point can display the live playlist track.
+	 */
+	public static AudioAddictTrackDto getCurrentTrack(int playlistId) {
+		return CURRENT_TRACKS.get(playlistId);
+	}
+
 	private boolean openNextTrack() {
 		AudioAddictTrackDto next = nextTrack();
 		if (next == null) {
@@ -96,6 +110,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		try {
 			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 64 * 1024);
 			currentTrack = next;
+			CURRENT_TRACKS.put(playlistId, next);
 			trackNumber++;
 			// Strip the original ID3v2 tag (it carries large cover art that desyncs strict decoders at
 			// concatenated track boundaries) and prepend a tiny synthetic one.

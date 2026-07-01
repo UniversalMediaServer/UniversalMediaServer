@@ -43,6 +43,8 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.DVDISOFile;
 import net.pms.store.container.PlaylistFolder;
+import net.pms.store.container.audioaddict.AudioAddictBroadcastStream;
+import net.pms.store.container.audioaddict.AudioAddictPlaylistStream;
 import net.pms.store.container.audioaddict.AudioAddictRadioStream;
 import net.pms.store.container.VirtualFolderDbId;
 import net.pms.store.item.RealFile;
@@ -487,9 +489,9 @@ public class DidlHelper extends DlnaHelper {
 			// DESC Metadata support: add ability for control point to identify
 			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels so
 			// a control point can look up live "now playing" info from the AudioAddict API.
-			boolean isAudioAddictChannel = item instanceof AudioAddictRadioStream;
+			boolean isAudioAddictBroadcast = item instanceof AudioAddictBroadcastStream;
 			boolean hasAudioMetadata = mediaInfo != null && mediaInfo.isAudio() && audioMetadata != null;
-			if (hasAudioMetadata || isAudioAddictChannel) {
+			if (hasAudioMetadata || isAudioAddictBroadcast) {
 				openTag(sb, "desc");
 				addAttribute(sb, "id", "2");
 				// TODO add real namespace
@@ -517,6 +519,8 @@ public class DidlHelper extends DlnaHelper {
 					if (audioAddictStream.getNetworkShortName() != null) {
 						addXMLTagAndAttribute(sb, "audioaddictnetwork", audioAddictStream.getNetworkShortName());
 					}
+				} else if (item instanceof AudioAddictPlaylistStream audioAddictPlaylist) {
+					addXMLTagAndAttribute(sb, "audioaddictplaylistid", Integer.toString(audioAddictPlaylist.getPlaylistId()));
 				}
 				closeTag(sb, "desc");
 			}
