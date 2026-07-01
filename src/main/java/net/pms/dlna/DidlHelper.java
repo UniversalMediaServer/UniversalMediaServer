@@ -484,6 +484,11 @@ public class DidlHelper extends DlnaHelper {
 				closeTag(sb, "res");
 			}
 
+			if (item instanceof net.pms.store.item.WebAudioStream) {
+				LOGGER.info("[AudioAddict-DIAG] DidlHelper item='{}' class={} isAudio={} isAudioAddictRadio={}",
+					item.getName(), item.getClass().getName(), mediaInfo != null && mediaInfo.isAudio(), item instanceof AudioAddictRadioStream);
+			}
+
 			// DESC Metadata support: add ability for control point to identify
 			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels so
 			// a control point can look up live "now playing" info from the AudioAddict API.
