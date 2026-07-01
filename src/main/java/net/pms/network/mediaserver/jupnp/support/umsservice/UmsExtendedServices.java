@@ -23,6 +23,7 @@ import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
+import net.pms.util.artistImageProvider.UmsArtistImageProvider;
 import net.pms.store.container.audioaddict.AudioAddictPlaylistInputStream;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -196,6 +197,25 @@ public class UmsExtendedServices {
 	public void setAudioAddictPass(@UpnpInputArgument(name = "AudioAddictPass") String audioAddictPass) {
 		PMS.getConfiguration().setAudioAddictPassword(audioAddictPass);
 		LOG.debug("updated AudioAddict password");
+	}
+
+	/**
+	 * Sets the "audio artist" directory in the UMS configuration from a media-store object id. The
+	 * object id is resolved to its filesystem path and stored; used as the source of artist images.
+	 */
+	@UpnpAction
+	public void setAudioArtistDir(@UpnpInputArgument(name = "ObjectID") String objectId) {
+		LOG.debug("updating audio artist directory to object id {}", objectId);
+		new UmsArtistImageProvider().updateArtistDir(objectId);
+	}
+
+	/**
+	 * @return the currently configured audio artist directory, or an empty string when none is set.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "ObjectID"))
+	public String getAudioArtistDir() {
+		String dir = PMS.getConfiguration().getAudioArtistDir();
+		return dir != null ? dir : "";
 	}
 
 	@UpnpAction
