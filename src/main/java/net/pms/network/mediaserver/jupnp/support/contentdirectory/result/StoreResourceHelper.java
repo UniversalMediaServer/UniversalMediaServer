@@ -66,6 +66,7 @@ import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.DVDISOFile;
+import net.pms.store.container.audioaddict.AudioAddictRadioStream;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RealFolder;
 import net.pms.store.container.VirtualFolderDbId;
@@ -569,23 +570,35 @@ public class StoreResourceHelper {
 			}
 
 			// DESC Metadata support: add ability for control point to identify
-			// songs by MusicBrainz TrackID or audiotrack-id
-			if (mediaInfo != null && audioMetadata != null && mediaInfo.isAudio()) {
+			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels
+			// so a control point can look up live "now playing" info from the AudioAddict API.
+			boolean isAudioAddictChannel = item instanceof AudioAddictRadioStream;
+			if (mediaInfo != null && mediaInfo.isAudio() && (audioMetadata != null || isAudioAddictChannel)) {
 				// TODO add real namespace
 				Desc desc = new Desc("http://ums/tags");
 				desc.setId("2");
 				desc.setType("ums-tags");
-				desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
-				desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
-				if (audioMetadata.getDiscogsReleaseId() != null) {
-					desc.addMetadata("discogsreleaseid", audioMetadata.getDiscogsReleaseId().toString());
+				if (audioMetadata != null) {
+					desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
+					desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
+					if (audioMetadata.getDiscogsReleaseId() != null) {
+						desc.addMetadata("discogsreleaseid", audioMetadata.getDiscogsReleaseId().toString());
+					}
+					desc.addMetadata("resourceid", mediaInfo.getResourceId());
+					if (audioMetadata.getDisc() > 0) {
+						desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
+					}
+					if (audioMetadata.getRating() != null) {
+						desc.addMetadata("rating", Integer.toString(audioMetadata.getRating()));
+					}
 				}
-				desc.addMetadata("resourceid", mediaInfo.getResourceId());
-				if (audioMetadata.getDisc() > 0) {
-					desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
-				}
-				if (audioMetadata.getRating() != null) {
-					desc.addMetadata("rating", Integer.toString(audioMetadata.getRating()));
+				if (item instanceof AudioAddictRadioStream audioAddictStream) {
+					if (audioAddictStream.getChannelId() != null) {
+						desc.addMetadata("audioaddictchannelid", audioAddictStream.getChannelId().toString());
+					}
+					if (audioAddictStream.getNetworkShortName() != null) {
+						desc.addMetadata("audioaddictnetwork", audioAddictStream.getNetworkShortName());
+					}
 				}
 				result.addDescription(desc);
 			}

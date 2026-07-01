@@ -27,4 +27,18 @@ public class AudioAddictRadioStream extends AudioAddictBroadcastStream {
 		return AudioAddictService.get().getCurrentTrackTitle(network, channelId);
 	}
 
+	/**
+	 * @return the AudioAddict numeric channel id (may be {@code null})
+	 */
+	public Integer getChannelId() {
+		return channelId;
+	}
+
+	/**
+	 * @return the AudioAddict network short name (e.g. "di"), or "null" when unknown.
+	 */
+	public String getNetworkShortName() {
+		return network != null ? network.shortName : null;
+	}
+
 }
