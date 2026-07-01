@@ -10,18 +10,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
 import net.pms.external.audioaddict.AudioAddictPlayWindow;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.external.audioaddict.Platform;
 
 /**
- * Continuous audio stream of a curated playlist. It concatenates the track MP3s into a single stream. When "loop" is set it
- * restarts a fresh session after the last track and plays forever; otherwise the stream ends after the last track.
+ * Continuous audio stream of a curated playlist. It walks the playlist play session and concatenates the track
+ * MP3s into a single stream. When "loop" is set it restarts a fresh session after the
+ * last track and plays forever; otherwise the stream ends after the last track.
  */
 public class AudioAddictPlaylistInputStream extends InputStream {
 
@@ -32,6 +34,10 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	private final Platform network;
 	private final int playlistId;
 	private final boolean loop;
+
+	// Current track per playlist id, so a control point can look up "now playing" for a playlist it
+	// is not itself streaming. Last-writer-wins if the same playlist is streamed by several clients.
+	private static final Map<Integer, AudioAddictTrackDto> CURRENT_TRACKS = new ConcurrentHashMap<>();
 
 	private final Deque<AudioAddictTrackDto> buffer = new ArrayDeque<>();
 	private final Set<Long> servedIds = new HashSet<>();
@@ -86,6 +92,15 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		return track.title;
 	}
 
+	/**
+	 * @return the track currently playing for the given playlist id, or {@code null} if that
+	 * playlist is not being streamed right now. Used by the UmsExtendedServices UPnP action so a
+	 * control point can display the live playlist track.
+	 */
+	public static AudioAddictTrackDto getCurrentTrack(int playlistId) {
+		return CURRENT_TRACKS.get(playlistId);
+	}
+
 	private boolean openNextTrack() {
 		AudioAddictTrackDto next = nextTrack();
 		if (next == null) {
@@ -95,22 +110,15 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		try {
 			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 64 * 1024);
 			currentTrack = next;
+			CURRENT_TRACKS.put(playlistId, next);
 			trackNumber++;
-			if (PMS.getConfiguration().isAudioAddictKeepOriginalId3()) {
-				// Diagnostic: serve the original stream (incl. its large cover-art ID3) untouched, to
-				// test whether that is what makes a renderer engage its metadata-aware decoder.
-				current = in;
-				LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (original ID3 kept, diagnostic)",
-					network.displayName, playlistId, trackNumber, next.id, next.artist, next.title);
-			} else {
-				// Strip the original ID3v2 tag (it carries large cover art that desyncs strict decoders at
-				// concatenated track boundaries) and prepend a tiny synthetic one.
-				stripId3v2(in);
-				byte[] id3 = buildId3v2(next.artist, next.title);
-				current = new SequenceInputStream(new ByteArrayInputStream(id3), in);
-				LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (prepended {} byte ID3v2)", network.displayName,
-					playlistId, trackNumber, next.id, next.artist, next.title, id3.length);
-			}
+			// Strip the original ID3v2 tag (it carries large cover art that desyncs strict decoders at
+			// concatenated track boundaries) and prepend a tiny synthetic one.
+			stripId3v2(in);
+			byte[] id3 = buildId3v2(next.artist, next.title);
+			current = new SequenceInputStream(new ByteArrayInputStream(id3), in);
+			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (prepended {} byte ID3v2)", network.displayName,
+				playlistId, trackNumber, next.id, next.artist, next.title, id3.length);
 			return true;
 		} catch (IOException e) {
 			LOGGER.warn("{} : cannot open playlist track {}", network.displayName, next.id, e);

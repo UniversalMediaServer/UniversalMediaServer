@@ -66,6 +66,8 @@ import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.DVDISOFile;
+import net.pms.store.container.audioaddict.AudioAddictBroadcastStream;
+import net.pms.store.container.audioaddict.AudioAddictPlaylistStream;
 import net.pms.store.container.audioaddict.AudioAddictRadioStream;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RealFolder;
@@ -572,9 +574,9 @@ public class StoreResourceHelper {
 			// DESC Metadata support: add ability for control point to identify
 			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels
 			// so a control point can look up live "now playing" info from the AudioAddict API.
-			boolean isAudioAddictChannel = item instanceof AudioAddictRadioStream;
+			boolean isAudioAddictBroadcast = item instanceof AudioAddictBroadcastStream;
 			boolean hasAudioMetadata = mediaInfo != null && mediaInfo.isAudio() && audioMetadata != null;
-			if (hasAudioMetadata || isAudioAddictChannel) {
+			if (hasAudioMetadata || isAudioAddictBroadcast) {
 				// TODO add real namespace
 				Desc desc = new Desc("http://ums/tags");
 				desc.setId("2");
@@ -600,6 +602,8 @@ public class StoreResourceHelper {
 					if (audioAddictStream.getNetworkShortName() != null) {
 						desc.addMetadata("audioaddictnetwork", audioAddictStream.getNetworkShortName());
 					}
+				} else if (item instanceof AudioAddictPlaylistStream audioAddictPlaylist) {
+					desc.addMetadata("audioaddictplaylistid", Integer.toString(audioAddictPlaylist.getPlaylistId()));
 				}
 				result.addDescription(desc);
 			}
