@@ -569,13 +569,6 @@ public class StoreResourceHelper {
 				result.addResource(res);
 			}
 
-			// DIAGNOSTIC (temporary): reveal the concrete class of web-audio items so we can confirm
-			// whether AudioAddict channels are served as AudioAddictRadioStream (which carries the id).
-			if (item instanceof net.pms.store.item.WebAudioStream) {
-				LOGGER.info("[AudioAddict-DIAG] StoreResourceHelper item='{}' class={} isAudio={} isAudioAddictRadio={}",
-					item.getName(), item.getClass().getName(), mediaInfo != null && mediaInfo.isAudio(), item instanceof AudioAddictRadioStream);
-			}
-
 			// DESC Metadata support: add ability for control point to identify
 			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels
 			// so a control point can look up live "now playing" info from the AudioAddict API.
