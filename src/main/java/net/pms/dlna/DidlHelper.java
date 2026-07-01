@@ -493,14 +493,15 @@ public class DidlHelper extends DlnaHelper {
 			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels so
 			// a control point can look up live "now playing" info from the AudioAddict API.
 			boolean isAudioAddictChannel = item instanceof AudioAddictRadioStream;
-			if (mediaInfo != null && mediaInfo.isAudio() && (audioMetadata != null || isAudioAddictChannel)) {
+			boolean hasAudioMetadata = mediaInfo != null && mediaInfo.isAudio() && audioMetadata != null;
+			if (hasAudioMetadata || isAudioAddictChannel) {
 				openTag(sb, "desc");
 				addAttribute(sb, "id", "2");
 				// TODO add real namespace
 				addAttribute(sb, "nameSpace", "http://ums/tags");
 				addAttribute(sb, "type", "ums-tags");
 				endTag(sb);
-				if (audioMetadata != null) {
+				if (hasAudioMetadata) {
 					addXMLTagAndAttribute(sb, "musicbrainztrackid", audioMetadata.getMbidTrack());
 					addXMLTagAndAttribute(sb, "musicbrainzreleaseid", audioMetadata.getMbidRecord());
 					if (audioMetadata.getDiscogsReleaseId() != null) {

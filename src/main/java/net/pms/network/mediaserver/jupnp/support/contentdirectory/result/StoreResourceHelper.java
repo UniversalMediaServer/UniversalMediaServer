@@ -580,12 +580,13 @@ public class StoreResourceHelper {
 			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels
 			// so a control point can look up live "now playing" info from the AudioAddict API.
 			boolean isAudioAddictChannel = item instanceof AudioAddictRadioStream;
-			if (mediaInfo != null && mediaInfo.isAudio() && (audioMetadata != null || isAudioAddictChannel)) {
+			boolean hasAudioMetadata = mediaInfo != null && mediaInfo.isAudio() && audioMetadata != null;
+			if (hasAudioMetadata || isAudioAddictChannel) {
 				// TODO add real namespace
 				Desc desc = new Desc("http://ums/tags");
 				desc.setId("2");
 				desc.setType("ums-tags");
-				if (audioMetadata != null) {
+				if (hasAudioMetadata) {
 					desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
 					desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
 					if (audioMetadata.getDiscogsReleaseId() != null) {
