@@ -64,7 +64,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - uses: actions/setup-node@v6
         with:
@@ -108,7 +108,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
@@ -140,7 +140,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
@@ -172,7 +172,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
@@ -204,7 +204,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
@@ -242,7 +242,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
@@ -278,7 +278,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Run tests
         run: |
