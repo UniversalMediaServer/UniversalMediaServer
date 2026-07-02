@@ -38,6 +38,13 @@ public class AudioAddictFileStream extends WebAudioStream {
 	 * air-time label when present.
 	 */
 	public static AudioAddictFileStream from(Renderer renderer, AudioAddictTrackDto track) {
+		return from(renderer, track, null);
+	}
+
+	/**
+	 * Prepends "titlePrefix" to the title (used for the "live now"/available badge on the current-episode event items).
+	 */
+	public static AudioAddictFileStream from(Renderer renderer, AudioAddictTrackDto track, String titlePrefix) {
 		MediaInfo mi = new MediaInfo();
 		mi.setMimeType("audio/mpeg");
 		mi.setMediaParser("STATIC");
@@ -56,6 +63,9 @@ public class AudioAddictFileStream extends WebAudioStream {
 		}
 
 		String title = track.startLabel != null ? (track.startLabel + "  " + track.title) : track.title;
+		if (titlePrefix != null && !titlePrefix.isEmpty()) {
+			title = titlePrefix + title;
+		}
 		AudioAddictFileStream sr = new AudioAddictFileStream(renderer, title, track.contentUrl, track.albumArt);
 		sr.setMediaInfo(mi);
 		return sr;
