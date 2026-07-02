@@ -682,8 +682,6 @@ public class RadioNetwork {
 				ev.showSlug = event.show.slug;
 				ev.showName = event.show.name;
 				ev.ondemandEpisodeCount = event.show.ondemandEpisodeCount;
-				ev.startAtMs = parseEpochMs(event.startAt);
-				ev.endAtMs = parseEpochMs(event.endAt);
 				if (event.tracks != null && !event.tracks.isEmpty()) {
 					PlaylistTrackJson t = event.tracks.get(0);
 					String contentUrl = firstContentUrl(t);
@@ -813,19 +811,6 @@ public class RadioNetwork {
 		}
 	}
 
-	/**
-	 * Used for the "live now" broadcast-window check.
-	 */
-	private static long parseEpochMs(String isoTime) {
-		if (isoTime == null) {
-			return 0;
-		}
-		try {
-			return OffsetDateTime.parse(isoTime).toInstant().toEpochMilli();
-		} catch (DateTimeException e) {
-			return 0;
-		}
-	}
 
 	/**
 	 * Requests the next window of a playlist play session. AudioAddict tracks the playback

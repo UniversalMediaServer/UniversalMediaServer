@@ -51,13 +51,12 @@ public class AudioAddictEvents extends StoreContainer {
 
 	private void addEvents() {
 		List<AudioAddictEventDto> events = AudioAddictService.get().getUpcomingEvents(network);
-		long now = System.currentTimeMillis();
 		LOGGER.debug("{} : adding {} events.", network.displayName, events.size());
 		for (AudioAddictEventDto event : events) {
-			// The current (already aired) episode is directly playable at the top level, badged
-			// "live now" while the show is actually on air, else just "available".
+			// Every event we list has a playable content stream (that is what makes currentEpisode
+			// non-null), so it is a directly playable top-level item.
 			if (event.currentEpisode != null) {
-				addChild(AudioAddictFileStream.from(renderer, event.currentEpisode, badge(event, now)));
+				addChild(AudioAddictFileStream.from(renderer, event.currentEpisode));
 			}
 			// Older episodes of the show go into their own (lazily filled) container.
 			if (event.showSlug != null && event.ondemandEpisodeCount > 0) {
@@ -65,16 +64,5 @@ public class AudioAddictEvents extends StoreContainer {
 				addChild(new AudioAddictShowEpisodes(renderer, network, event.showSlug, event.showName, thumb));
 			}
 		}
-	}
-
-	/**
-	 * Badge prefix for a current-episode item: "[red dot] LIVE" while the event is actually broadcasting,
-	 * otherwise "▶". Computed at build time (on every browse/refresh) so it stays accurate.
-	 */
-	private static String badge(AudioAddictEventDto event, long now) {
-		if (event.startAtMs > 0 && event.endAtMs > 0 && now >= event.startAtMs && now <= event.endAtMs) {
-			return "🔴 LIVE  ";
-		}
-		return "▶  ";
 	}
 }
