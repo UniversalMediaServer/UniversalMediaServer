@@ -18,7 +18,7 @@ import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Title, 
 import axios, { AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff, IconUpload, IconDownload } from '@tabler/icons-react'
+import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff, IconUpload, IconDownload, IconPhotoOff } from '@tabler/icons-react'
 
 import { ActionsValues, sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
@@ -35,6 +35,21 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
   const [restartServerOpened, setRestartServerOpened] = useState(false)
   const restartServer = async () => {
     await sendAction('Server.Restart')
+  }
+
+  const [deleteThumbnailsOpened, setDeleteThumbnailsOpened] = useState(false)
+  const deleteAllThumbnails = async () => {
+    const response = await sendAction('Server.DeleteAllThumbnails')
+    if (response && response.status === 200) {
+      showInfo({
+        message: i18n.get('Saved'),
+      })
+    }
+    else {
+      showError({
+        message: i18n.get('Error'),
+      })
+    }
   }
 
   const canShutdownComputer = session.havePermission(UmsPermission.computer_shutdown)
@@ -117,6 +132,31 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
                 onClick={() => {
                   setRestartServerOpened(false)
                   restartServer()
+                }}
+              >
+                {i18n.get('Confirm')}
+              </Button>
+            </Group>
+          </Modal>
+        )}
+      {canModify
+        && (
+          <Modal
+            centered
+            scrollAreaComponent={ScrollArea.Autosize}
+            opened={deleteThumbnailsOpened}
+            onClose={() => setDeleteThumbnailsOpened(false)}
+            title={(<Text c="red">{i18n.get('Warning')}</Text>)}
+          >
+            <Text fw={600}>{i18n.get('ThisDeletesAllThumbnails')}</Text>
+            <Text>{i18n.get('AreYouSureContinue')}</Text>
+            <Group justify="flex-end" mt="md">
+              <Button onClick={() => setDeleteThumbnailsOpened(false)} variant="default">{i18n.get('Cancel')}</Button>
+              <Button
+                color="red"
+                onClick={() => {
+                  setDeleteThumbnailsOpened(false)
+                  deleteAllThumbnails()
                 }}
               >
                 {i18n.get('Confirm')}
@@ -219,6 +259,11 @@ const Actions = ({ i18n, session }: { i18n: I18nInterface, session: SessionInter
         {canRestartServer && (
           <Tooltip label={i18n.get('ThisRestartsMediaServices')} {...defaultTooltipSettings}>
             <Button variant="default" leftSection={<IconRefresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get('RestartServer')}</Button>
+          </Tooltip>
+        )}
+        {canModify && (
+          <Tooltip label={i18n.get('ThisDeletesAllThumbnails')} {...defaultTooltipSettings}>
+            <Button variant="default" leftSection={<IconPhotoOff />} onClick={() => { setDeleteThumbnailsOpened(true) }}>{i18n.get('DeleteAllThumbnails')}</Button>
           </Tooltip>
         )}
         {canRestartApplication && (

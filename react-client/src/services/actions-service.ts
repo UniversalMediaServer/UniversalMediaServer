@@ -22,6 +22,7 @@ const PERMITTED_ACTIONS = [
   'Process.Exit',
   'Process.Reboot',
   'Process.Reboot.Trace',
+  'Server.DeleteAllThumbnails',
   'Server.ResetCache',
   'Server.Restart',
   'Server.RestoreBackup',
