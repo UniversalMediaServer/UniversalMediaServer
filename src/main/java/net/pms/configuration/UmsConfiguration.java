@@ -234,6 +234,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_AUDIO_ADDICT_ICY_METADATA = "audio_addict_icy_metadata";
 	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
 	private static final String KEY_AUDIO_ADDICT_PLAYLIST_LOOP = "audio_addict_playlist_loop";
+	private static final String KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES = "audio_addict_tree_cache_ttl_minutes";
 	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
 	public  static final String KEY_AUDIO_ARTIST_DIR = "audio_artist_dir";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
@@ -1123,6 +1124,18 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setAudioAddictPlaylistLoop(boolean loop) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_PLAYLIST_LOOP, loop);
+	}
+
+	/**
+	 * @return how long (in minutes) the fetched AudioAddict events/episodes trees are cached before
+	 * being refetched from the API. 0 disables the cache (not recommended !!!). Default 60.
+	 */
+	public int getAudioAddictTreeCacheTtlMinutes() {
+		return Math.max(0, getInt(KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES, 60));
+	}
+
+	public void setAudioAddictTreeCacheTtlMinutes(int minutes) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES, minutes);
 	}
 
 	public boolean isAudioUpdateTag() {
