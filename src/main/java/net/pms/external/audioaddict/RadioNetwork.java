@@ -48,6 +48,7 @@ import net.pms.external.audioaddict.mapper.ChannelJson;
 import net.pms.external.audioaddict.mapper.CurrentlyPlayingJson;
 import net.pms.external.audioaddict.mapper.EventJson;
 import net.pms.external.audioaddict.mapper.Favorite;
+import net.pms.external.audioaddict.mapper.Images;
 import net.pms.external.audioaddict.mapper.PlaylistJson;
 import net.pms.external.audioaddict.mapper.PlaylistPlayResponse;
 import net.pms.external.audioaddict.mapper.PlaylistTrackJson;
@@ -682,6 +683,9 @@ public class RadioNetwork {
 				ev.showSlug = event.show.slug;
 				ev.showName = event.show.name;
 				ev.ondemandEpisodeCount = event.show.ondemandEpisodeCount;
+				// The show folder is thumbnailed with the show's own artwork; this is available even
+				// for shows whose current episode has not aired yet (which have no episode cover).
+				ev.albumArt = imageUrlFromImages(event.show.images);
 				if (event.tracks != null && !event.tracks.isEmpty()) {
 					PlaylistTrackJson t = event.tracks.get(0);
 					String contentUrl = firstContentUrl(t);
@@ -697,7 +701,9 @@ public class RadioNetwork {
 						dto.genres = eventGenres(event, genreFilters);
 						dto.album = event.show.name;
 						ev.currentEpisode = dto;
-						ev.albumArt = dto.albumArt;
+						if (ev.albumArt == null) {
+							ev.albumArt = dto.albumArt;
+						}
 					}
 				}
 				result.add(ev);
@@ -978,6 +984,34 @@ public class RadioNetwork {
 			return null;
 		}
 		return normalizeUrl(track.content.assets.get(0).url);
+	}
+
+	/**
+	 * Picks a square-ish artwork URL from a show's {@link Images} (used as the show-folder thumbnail),
+	 * stripping the URL template. Prefers square, then the default/compact/vertical variants.
+	 */
+	private static String imageUrlFromImages(Images images) {
+		if (images == null) {
+			return null;
+		}
+		String image = images.square;
+		if (image == null) {
+			image = images.mydefault;
+		}
+		if (image == null) {
+			image = images.compact;
+		}
+		if (image == null) {
+			image = images.vertical;
+		}
+		if (image == null) {
+			return null;
+		}
+		int templateStart = image.indexOf('{');
+		if (templateStart > -1) {
+			image = image.substring(0, templateStart);
+		}
+		return normalizeUrl(image);
 	}
 
 	private static String imageUrlFromMap(Map<String, String> images) {
