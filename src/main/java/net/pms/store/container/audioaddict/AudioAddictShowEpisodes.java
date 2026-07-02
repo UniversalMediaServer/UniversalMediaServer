@@ -21,6 +21,7 @@ public class AudioAddictShowEpisodes extends StoreContainer {
 	private final Platform network;
 	private final String showSlug;
 	private final String thumb;
+	private volatile boolean populated = false;
 
 	public AudioAddictShowEpisodes(Renderer renderer, Platform network, String showSlug, String showName, String thumb) {
 		super(renderer, showName != null ? showName : showSlug, thumb);
@@ -30,8 +31,12 @@ public class AudioAddictShowEpisodes extends StoreContainer {
 	}
 
 	@Override
-	public void discoverChildren() {
+	public synchronized void discoverChildren() {
+		if (populated) {
+			return;
+		}
 		addEpisodes();
+		populated = true;
 	}
 
 	@Override
@@ -41,9 +46,10 @@ public class AudioAddictShowEpisodes extends StoreContainer {
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public synchronized void doRefreshChildren() {
 		clearChildren();
 		addEpisodes();
+		populated = true;
 	}
 
 	private void addEpisodes() {

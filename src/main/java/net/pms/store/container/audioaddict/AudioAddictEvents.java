@@ -20,6 +20,7 @@ public class AudioAddictEvents extends StoreContainer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictEvents.class.getName());
 
 	private final Platform network;
+	private volatile boolean populated = false;
 
 	public AudioAddictEvents(Renderer renderer, Platform network) {
 		super(renderer, "Events", network.albumArt);
@@ -27,8 +28,12 @@ public class AudioAddictEvents extends StoreContainer {
 	}
 
 	@Override
-	public void discoverChildren() {
+	public synchronized void discoverChildren() {
+		if (populated) {
+			return;
+		}
 		addEvents();
+		populated = true;
 	}
 
 	@Override
@@ -38,9 +43,10 @@ public class AudioAddictEvents extends StoreContainer {
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public synchronized void doRefreshChildren() {
 		clearChildren();
 		addEvents();
+		populated = true;
 	}
 
 	private void addEvents() {
