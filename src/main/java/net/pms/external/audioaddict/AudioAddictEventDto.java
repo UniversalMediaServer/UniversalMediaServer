@@ -20,6 +20,13 @@ public class AudioAddictEventDto {
 	public String albumArt;
 
 	/**
+	 * Broadcast window as epoch milliseconds (0 when unknown). Used to compute the "live now" badge
+	 * at item-build time (not at fetch time, which is cached), so it stays accurate across browses.
+	 */
+	public long startAtMs;
+	public long endAtMs;
+
+	/**
 	 * The current (most recent, already aired) episode as a directly playable item, or null when
 	 * the upcoming broadcast has not aired yet.
 	 */

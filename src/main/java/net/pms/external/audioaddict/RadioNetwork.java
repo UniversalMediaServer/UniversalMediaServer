@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +42,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import net.pms.PMS;
 import net.pms.external.audioaddict.mapper.ChannelFilter;
 import net.pms.external.audioaddict.mapper.ChannelJson;
 import net.pms.external.audioaddict.mapper.CurrentlyPlayingJson;
@@ -114,6 +116,17 @@ public class RadioNetwork {
 	private volatile long currentlyPlayingFetchedAt = 0;
 	private final AtomicBoolean currentlyPlayingRefreshInFlight = new AtomicBoolean(false);
 
+	// Cache for the events/episodes trees. The signed content URLs stay valid for hours,
+	// so a cached tree is safe. TTL is configurable.
+	private volatile List<AudioAddictEventDto> cachedEvents = null;
+	private volatile long cachedEventsAt = 0;
+	private final Map<String, List<AudioAddictTrackDto>> cachedEpisodes = new ConcurrentHashMap<>();
+	private final Map<String, Long> cachedEpisodesAt = new ConcurrentHashMap<>();
+
+	private static long treeCacheTtlMs() {
+		return PMS.getConfiguration().getAudioAddictTreeCacheTtlMinutes() * 60_000L;
+	}
+
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
 		this.network = network;
@@ -170,7 +183,6 @@ public class RadioNetwork {
 					try {
 						readNetworkBatch();
 						successBatchRead = true;
-						LOGGER.info("{} : initialized.", network.name());
 					} catch (Exception e) {
 						i++;
 						LOGGER.warn("{} : failed to read batch update network data. Waiting 5 seconds. Retry count {} of {}", network.displayName, i, maxRetryBatchCount);
@@ -484,7 +496,7 @@ public class RadioNetwork {
 
 	private void initFinished() {
 		successInit = true;
-		LOGGER.info("{} : Initialization finished. Calling callback handler ... ", network.displayName);
+		LOGGER.debug("{} : Initialization finished. Calling callback handler ... ", network.displayName);
 		for (INetworkInitialized callback : networkInitCallbacks) {
 			callback.networkInitialized();
 		}
@@ -629,15 +641,25 @@ public class RadioNetwork {
 	}
 
 	/**
-	 * Reads the upcoming events (scheduled show episodes), one per show. Events whose current
-	 * episode has already aired carry a directly playable {@link AudioAddictEventDto#currentEpisode}
-	 * (upcoming broadcasts that have not aired yet do not). The recent/older episodes of each show
-	 * are not read here; they are fetched lazily per show via {@link #getShowEpisodes(String)}.
-	 * The content URLs are signed and expire, so this must not be cached.
+	 * Reads the upcoming events (scheduled show episodes), one per show. The recent/older episodes of
+	 * each show are not read here; they are fetched lazily. The result is cached for a while.
 	 *
-	 * @return the upcoming events, or an empty list when unavailable.
+	 * @return the upcoming events
 	 */
-	public List<AudioAddictEventDto> getUpcomingEvents() {
+	public synchronized List<AudioAddictEventDto> getUpcomingEvents() {
+		long now = System.currentTimeMillis();
+		if (cachedEvents != null && now - cachedEventsAt < treeCacheTtlMs()) {
+			return cachedEvents;
+		}
+		List<AudioAddictEventDto> result = fetchUpcomingEvents();
+		if (!result.isEmpty()) {
+			cachedEvents = result;
+			cachedEventsAt = now;
+		}
+		return result;
+	}
+
+	private List<AudioAddictEventDto> fetchUpcomingEvents() {
 		List<AudioAddictEventDto> result = new ArrayList<>();
 		if (apiKey == null) {
 			LOGGER.warn("{} : cannot read events, not authenticated.", network.displayName);
@@ -660,6 +682,8 @@ public class RadioNetwork {
 				ev.showSlug = event.show.slug;
 				ev.showName = event.show.name;
 				ev.ondemandEpisodeCount = event.show.ondemandEpisodeCount;
+				ev.startAtMs = parseEpochMs(event.startAt);
+				ev.endAtMs = parseEpochMs(event.endAt);
 				if (event.tracks != null && !event.tracks.isEmpty()) {
 					PlaylistTrackJson t = event.tracks.get(0);
 					String contentUrl = firstContentUrl(t);
@@ -689,20 +713,33 @@ public class RadioNetwork {
 
 	/**
 	 * Reads the recent, playable on-demand episodes of a single show, newest first. The number of
-	 * episodes actually available for playback is server side and varies per show (from a handful
-	 * up to several hundred) and is independent of {@code ondemand_episode_count}. The signed
-	 * content URLs expire, so this must be called close to playback time and not be cached.
+	 * episodes actually available for playback is server side and varies per show.
 	 *
-	 * @param showSlug the show slug (e.g. "a-progressive-journey").
+	 * @param showSlug the show slug
 	 * @return the playable episodes as tracks, or an empty list when unavailable.
 	 */
-	public List<AudioAddictTrackDto> getShowEpisodes(String showSlug) {
+	public synchronized List<AudioAddictTrackDto> getShowEpisodes(String showSlug) {
+		if (showSlug == null) {
+			return new ArrayList<>();
+		}
+		long now = System.currentTimeMillis();
+		List<AudioAddictTrackDto> cached = cachedEpisodes.get(showSlug);
+		Long cachedAt = cachedEpisodesAt.get(showSlug);
+		if (cached != null && cachedAt != null && now - cachedAt < treeCacheTtlMs()) {
+			return cached;
+		}
+		List<AudioAddictTrackDto> result = fetchShowEpisodes(showSlug);
+		if (!result.isEmpty()) {
+			cachedEpisodes.put(showSlug, result);
+			cachedEpisodesAt.put(showSlug, now);
+		}
+		return result;
+	}
+
+	private List<AudioAddictTrackDto> fetchShowEpisodes(String showSlug) {
 		List<AudioAddictTrackDto> result = new ArrayList<>();
 		if (apiKey == null) {
 			LOGGER.warn("{} : cannot read episodes, not authenticated.", network.displayName);
-			return result;
-		}
-		if (showSlug == null) {
 			return result;
 		}
 		try {
@@ -763,7 +800,7 @@ public class RadioNetwork {
 
 	/**
 	 * Formats an episode air date (ISO-8601 with offset) as a local date "dd.MM.yyyy". Episodes can
-	 * span several years, so - unlike {@link #formatEventStart(String)} - the year is included.
+	 * span several years, so the year is included.
 	 */
 	private static String formatEpisodeDate(String startAt) {
 		if (startAt == null) {
@@ -777,10 +814,23 @@ public class RadioNetwork {
 	}
 
 	/**
+	 * Used for the "live now" broadcast-window check.
+	 */
+	private static long parseEpochMs(String isoTime) {
+		if (isoTime == null) {
+			return 0;
+		}
+		try {
+			return OffsetDateTime.parse(isoTime).toInstant().toEpochMilli();
+		} catch (DateTimeException e) {
+			return 0;
+		}
+	}
+
+	/**
 	 * Requests the next window of a playlist play session. AudioAddict tracks the playback
-	 * progress per member (identified by the "api_key"); "markPlayed" calls advance
-	 * it, so consecutive requests walk the playlist until "lastTracks" is set /
-	 * "remainingTracks" reaches 0.
+	 * progress per member. "markPlayed" calls advance it, so consecutive requests walk the playlist
+	 * until "lastTracks" is set "remainingTracks" reaches 0.
 	 *
 	 * @param playlistId the playlist id.
 	 */

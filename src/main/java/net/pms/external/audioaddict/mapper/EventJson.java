@@ -17,6 +17,8 @@ public class EventJson {
 	public String artistsTagline;
 	@JsonProperty("start_at")
 	public String startAt;
+	@JsonProperty("end_at")
+	public String endAt;
 	public Show show;
 	public List<PlaylistTrackJson> tracks;
 }
