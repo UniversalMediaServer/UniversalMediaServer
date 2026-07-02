@@ -20,6 +20,11 @@ public class AudioAddictTrackDto {
 	 * Short description / grouping shown as album (events: the show name); null otherwise.
 	 */
 	public String album;
+	/**
+	 * The episode number / slug of a show episode (e.g. "081"); null for playlist tracks and
+	 * the current-episode event item.
+	 */
+	public String episodeNumber;
 
 	public AudioAddictTrackDto() {
 	}

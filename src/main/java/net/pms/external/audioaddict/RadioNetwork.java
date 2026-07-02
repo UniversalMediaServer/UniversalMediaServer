@@ -65,9 +65,14 @@ public class RadioNetwork {
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern SESSION_KEY_PATTERN = Pattern.compile(".*session_key\":\\s*\"([\\w\\d]*)\",");
 	private static final DateTimeFormatter EVENT_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
+	private static final DateTimeFormatter EPISODE_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
 	// maybe we make it configurable in the future, but for now we limit the number of events to 500
 	private static final int EVENTS_LIMIT = 500;
+
+	// The episodes endpoint caps per_page at 100; we page through it until exhausted (bounded).
+	private static final int EPISODES_PER_PAGE = 100;
+	private static final int EPISODES_MAX_PAGES = 20;
 
 	// Basic auth for "ephemeron:dayeiph0ne@pp" - required by the play
 	private static final String BASIC_AUTH_HEADER = "Basic ZXBoZW1lcm9uOmRheWVpcGgwbmVAcHA=";
@@ -624,13 +629,16 @@ public class RadioNetwork {
 	}
 
 	/**
-	 * Reads the upcoming events (scheduled show episodes). Each event yields one playable
-	 * episode. The content URLs are signed and expire, so this must not be cached.
+	 * Reads the upcoming events (scheduled show episodes), one per show. Events whose current
+	 * episode has already aired carry a directly playable {@link AudioAddictEventDto#currentEpisode}
+	 * (upcoming broadcasts that have not aired yet do not). The recent/older episodes of each show
+	 * are not read here; they are fetched lazily per show via {@link #getShowEpisodes(String)}.
+	 * The content URLs are signed and expire, so this must not be cached.
 	 *
-	 * @return the upcoming events as playable tracks, or an empty list when unavailable.
+	 * @return the upcoming events, or an empty list when unavailable.
 	 */
-	public List<AudioAddictTrackDto> getUpcomingEvents() {
-		List<AudioAddictTrackDto> result = new ArrayList<>();
+	public List<AudioAddictEventDto> getUpcomingEvents() {
+		List<AudioAddictEventDto> result = new ArrayList<>();
 		if (apiKey == null) {
 			LOGGER.warn("{} : cannot read events, not authenticated.", network.displayName);
 			return result;
@@ -644,30 +652,96 @@ public class RadioNetwork {
 			EventJson[] events = om.readValue(response.getContentAsString(), EventJson[].class);
 			Map<Integer, String> genreFilters = buildGenreFilterMap();
 			for (EventJson event : events) {
-				if (event.tracks == null || event.tracks.isEmpty()) {
+				if (event.show == null || event.show.slug == null) {
 					continue;
 				}
-				PlaylistTrackJson t = event.tracks.get(0);
-				String contentUrl = firstContentUrl(t);
-				if (contentUrl == null) {
-					LOGGER.warn("{} : no playable content for event {}", network.displayName, event.id);
-					continue;
+				AudioAddictEventDto ev = new AudioAddictEventDto();
+				ev.showId = event.show.id;
+				ev.showSlug = event.show.slug;
+				ev.showName = event.show.name;
+				ev.ondemandEpisodeCount = event.show.ondemandEpisodeCount;
+				if (event.tracks != null && !event.tracks.isEmpty()) {
+					PlaylistTrackJson t = event.tracks.get(0);
+					String contentUrl = firstContentUrl(t);
+					if (contentUrl != null) {
+						AudioAddictTrackDto dto = new AudioAddictTrackDto();
+						dto.id = t.id;
+						dto.title = t.displayTitle != null ? t.displayTitle : (event.name != null ? event.name : t.track);
+						dto.artist = t.displayArtist;
+						dto.length = t.length;
+						dto.contentUrl = contentUrl;
+						dto.albumArt = normalizeUrl(t.assetUrl);
+						dto.startLabel = formatEventStart(event.startAt);
+						dto.genres = eventGenres(event, genreFilters);
+						dto.album = event.show.name;
+						ev.currentEpisode = dto;
+						ev.albumArt = dto.albumArt;
+					}
 				}
-				AudioAddictTrackDto dto = new AudioAddictTrackDto();
-				dto.id = t.id;
-				dto.title = t.displayTitle != null ? t.displayTitle : (event.name != null ? event.name : t.track);
-				dto.artist = t.displayArtist;
-				dto.length = t.length;
-				dto.contentUrl = contentUrl;
-				dto.albumArt = normalizeUrl(t.assetUrl);
-				dto.startLabel = formatEventStart(event.startAt);
-				dto.genres = eventGenres(event, genreFilters);
-				dto.album = event.show != null ? event.show.name : null;
-				result.add(dto);
+				result.add(ev);
 			}
 			LOGGER.info("{} : received {} upcoming events.", network.displayName, result.size());
 		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
 			LOGGER.error("{} : failed reading events", network.displayName, e);
+		}
+		return result;
+	}
+
+	/**
+	 * Reads the recent, playable on-demand episodes of a single show, newest first. The number of
+	 * episodes actually available for playback is server side and varies per show (from a handful
+	 * up to several hundred) and is independent of {@code ondemand_episode_count}. The signed
+	 * content URLs expire, so this must be called close to playback time and not be cached.
+	 *
+	 * @param showSlug the show slug (e.g. "a-progressive-journey").
+	 * @return the playable episodes as tracks, or an empty list when unavailable.
+	 */
+	public List<AudioAddictTrackDto> getShowEpisodes(String showSlug) {
+		List<AudioAddictTrackDto> result = new ArrayList<>();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot read episodes, not authenticated.", network.displayName);
+			return result;
+		}
+		if (showSlug == null) {
+			return result;
+		}
+		try {
+			for (int page = 1; page <= EPISODES_MAX_PAGES; page++) {
+				String url = String.format("https://api.audioaddict.com/v1/%s/shows/%s/episodes?per_page=%d&page=%d&api_key=%s",
+					network.shortName, showSlug, EPISODES_PER_PAGE, page, apiKey);
+				ContentResponse response = httpBlocking.GET(url);
+				EventJson[] episodes = om.readValue(response.getContentAsString(), EventJson[].class);
+				if (episodes.length == 0) {
+					break;
+				}
+				for (EventJson episode : episodes) {
+					if (episode.tracks == null || episode.tracks.isEmpty()) {
+						continue;
+					}
+					PlaylistTrackJson t = episode.tracks.get(0);
+					String contentUrl = firstContentUrl(t);
+					if (contentUrl == null) {
+						// Upcoming episode that has not aired yet - no playable content.
+						continue;
+					}
+					AudioAddictTrackDto dto = new AudioAddictTrackDto();
+					dto.id = t.id;
+					dto.title = t.displayTitle != null ? t.displayTitle : (episode.name != null ? episode.name : t.track);
+					dto.artist = t.displayArtist;
+					dto.length = t.length;
+					dto.contentUrl = contentUrl;
+					dto.albumArt = normalizeUrl(t.assetUrl);
+					dto.startLabel = formatEpisodeDate(episode.startAt);
+					dto.episodeNumber = episode.slug;
+					result.add(dto);
+				}
+				if (episodes.length < EPISODES_PER_PAGE) {
+					break;
+				}
+			}
+			LOGGER.info("{} : received {} episodes for show {}.", network.displayName, result.size(), showSlug);
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading episodes for show {}", network.displayName, showSlug, e);
 		}
 		return result;
 	}
@@ -682,6 +756,21 @@ public class RadioNetwork {
 		}
 		try {
 			return OffsetDateTime.parse(startAt).atZoneSameInstant(ZoneId.systemDefault()).format(EVENT_TIME_FORMAT);
+		} catch (DateTimeException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Formats an episode air date (ISO-8601 with offset) as a local date "dd.MM.yyyy". Episodes can
+	 * span several years, so - unlike {@link #formatEventStart(String)} - the year is included.
+	 */
+	private static String formatEpisodeDate(String startAt) {
+		if (startAt == null) {
+			return null;
+		}
+		try {
+			return OffsetDateTime.parse(startAt).atZoneSameInstant(ZoneId.systemDefault()).format(EPISODE_DATE_FORMAT);
 		} catch (DateTimeException e) {
 			return null;
 		}

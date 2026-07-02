@@ -6,6 +6,9 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.external.audioaddict.AudioAddictTrackDto;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.item.WebAudioStream;
 import net.pms.util.ByteRange;
@@ -30,6 +33,34 @@ public class AudioAddictFileStream extends WebAudioStream {
 
 	public AudioAddictFileStream(Renderer renderer, String fluxName, String url, String thumbURL) {
 		super(renderer, fluxName, url, thumbURL);
+	}
+
+	/**
+	 * Builds a playable file item from an AudioAddict track/episode DTO, carrying the audio
+	 * metadata (artist, genre, album) and prefixing the title with the air-time label when present.
+	 */
+	public static AudioAddictFileStream from(Renderer renderer, AudioAddictTrackDto track) {
+		MediaInfo mi = new MediaInfo();
+		mi.setMimeType("audio/mpeg");
+		mi.setMediaParser("STATIC");
+		if (track.artist != null || track.genres != null || track.album != null) {
+			MediaAudioMetadata md = new MediaAudioMetadata();
+			if (track.artist != null) {
+				md.setArtist(track.artist);
+			}
+			if (track.genres != null) {
+				md.setGenre(track.genres);
+			}
+			if (track.album != null) {
+				md.setAlbum(track.album);
+			}
+			mi.setAudioMetadata(md);
+		}
+		// The artist (DJ/host) is exposed via upnp:artist, so keep it out of the title.
+		String title = track.startLabel != null ? (track.startLabel + "  " + track.title) : track.title;
+		AudioAddictFileStream sr = new AudioAddictFileStream(renderer, title, track.contentUrl, track.albumArt);
+		sr.setMediaInfo(mi);
+		return sr;
 	}
 
 	@Override
