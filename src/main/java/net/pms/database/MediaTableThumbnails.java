@@ -76,6 +76,9 @@ public final class MediaTableThumbnails extends MediaTable {
 	private static final String SQL_CLEANUP = DELETE_FROM + TABLE_NAME + WHERE +
 		NOT + EXISTS + "(" + SELECT + MediaTableTVSeries.TABLE_COL_THUMBID + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + MediaTableTVSeries.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")" +
 		AND + NOT + EXISTS + "(" + SELECT + MediaTableFiles.TABLE_COL_THUMBID + FROM + MediaTableFiles.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")";
+	private static final String SQL_DELETE_ALL = DELETE_FROM + TABLE_NAME;
+	private static final String SQL_CLEAR_FILES_THUMBID = UPDATE + MediaTableFiles.TABLE_NAME + SET + MediaTableFiles.COL_THUMBID + EQUAL + NULL + WHERE + MediaTableFiles.COL_THUMBID + IS_NOT_NULL;
+	private static final String SQL_CLEAR_TVSERIES_THUMBID = UPDATE + MediaTableTVSeries.TABLE_NAME + SET + MediaTableFiles.COL_THUMBID + EQUAL + NULL + WHERE + MediaTableFiles.COL_THUMBID + IS_NOT_NULL;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -233,6 +236,27 @@ public final class MediaTableThumbnails extends MediaTable {
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN, DATABASE_NAME, "removing entries", TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Deletes ALL cached thumbnails and clears the references to them from the FILES and TV_SERIES
+	 * tables, so thumbnails are regenerated on demand.
+	 *
+	 * @param connection the db connection
+	 * @return the number of deleted thumbnail rows
+	 */
+	public static int deleteAll(final Connection connection) {
+		try (Statement statement = connection.createStatement()) {
+			int files = statement.executeUpdate(SQL_CLEAR_FILES_THUMBID);
+			int series = statement.executeUpdate(SQL_CLEAR_TVSERIES_THUMBID);
+			int rows = statement.executeUpdate(SQL_DELETE_ALL);
+			LOGGER.info("Deleted all {} thumbnails from \"{}\" (cleared {} file and {} TV series references)", rows, TABLE_NAME, files, series);
+			return rows;
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN, DATABASE_NAME, "deleting all thumbnails", TABLE_NAME, e.getMessage());
+			LOGGER.trace("", e);
+			return 0;
 		}
 	}
 
