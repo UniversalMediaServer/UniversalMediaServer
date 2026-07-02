@@ -8,18 +8,26 @@ public class AudioAddictTrackDto {
 	public int length;
 	public String contentUrl;
 	public String albumArt;
+
 	/**
-	 * Localized start time label for events (e.g. "16.06. 10:00"); null for playlist tracks.
+	 * Localized start time label for events (e.g. "16.06. 10:00");
 	 */
 	public String startLabel;
+
 	/**
-	 * Comma separated genre/category names (events only); null otherwise.
+	 * Comma separated genre/category names (events only);
 	 */
 	public String genres;
+
 	/**
-	 * Short description / grouping shown as album (events: the show name); null otherwise.
+	 * Short description / grouping shown as album.
 	 */
 	public String album;
+
+	/**
+	 * The episode number / slug of a show episode.
+	 */
+	public String episodeNumber;
 
 	public AudioAddictTrackDto() {
 	}

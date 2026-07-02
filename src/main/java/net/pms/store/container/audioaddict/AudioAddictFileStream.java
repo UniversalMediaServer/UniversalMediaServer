@@ -6,20 +6,21 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.external.audioaddict.AudioAddictTrackDto;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.item.WebAudioStream;
 import net.pms.util.ByteRange;
 import net.pms.util.Range;
 
 /**
- * A finite, seekable AudioAddict media file (event recording or curated-playlist track) that content.audioaddict.com serves as a
- * normal, seekable MP3 file (it supports HTTP byte ranges). It is therefore exposed as a regular
- * range-capable audio file, NOT as a radio-style unbounded stream: UMS reports the real length and
+ * A seekable AudioAddict media file serves as a normal. UMS reports the real length and
  * forwards Range requests to the origin, so the renderer can seek/probe and play it through to the
  * end and read the embedded ID3 title and cover art itself.
  * <p>
- * If the length cannot be determined, it falls back to the radio-style serving
- * ({@link #isUnboundedLiveStream()} == true) so playback still works without ranges.
+ * If the length cannot be determined, it falls back to the radio-style serving so playback still
+ * works without ranges.
  */
 public class AudioAddictFileStream extends WebAudioStream {
 
@@ -30,6 +31,34 @@ public class AudioAddictFileStream extends WebAudioStream {
 
 	public AudioAddictFileStream(Renderer renderer, String fluxName, String url, String thumbURL) {
 		super(renderer, fluxName, url, thumbURL);
+	}
+
+	/**
+	 * Builds a playable file item from an AudioAddict track DTO, prefixing the title with the
+	 * air-time label when present.
+	 */
+	public static AudioAddictFileStream from(Renderer renderer, AudioAddictTrackDto track) {
+		MediaInfo mi = new MediaInfo();
+		mi.setMimeType("audio/mpeg");
+		mi.setMediaParser("STATIC");
+		if (track.artist != null || track.genres != null || track.album != null) {
+			MediaAudioMetadata md = new MediaAudioMetadata();
+			if (track.artist != null) {
+				md.setArtist(track.artist);
+			}
+			if (track.genres != null) {
+				md.setGenre(track.genres);
+			}
+			if (track.album != null) {
+				md.setAlbum(track.album);
+			}
+			mi.setAudioMetadata(md);
+		}
+
+		String title = track.startLabel != null ? (track.startLabel + "  " + track.title) : track.title;
+		AudioAddictFileStream sr = new AudioAddictFileStream(renderer, title, track.contentUrl, track.albumArt);
+		sr.setMediaInfo(mi);
+		return sr;
 	}
 
 	@Override
@@ -46,9 +75,7 @@ public class AudioAddictFileStream extends WebAudioStream {
 	}
 
 	/**
-	 * The event is a real file, so it should be served with byte ranges (-> {@code musicTrack},
-	 * not a broadcast). This must NOT trigger the length probe: it is also called during browse for
-	 * the UPnP class, and we only want to probe when actually streaming. It therefore returns false
+	 * The event is a real file. We want to probe when actually streaming. It therefore returns false
 	 * until a probe has actually run and failed (cachedLength == TRANS_SIZE), in which case we fall
 	 * back to radio-style serving so playback still works without ranges.
 	 */
@@ -59,7 +86,7 @@ public class AudioAddictFileStream extends WebAudioStream {
 
 	/**
 	 * Opens the origin stream, forwarding the requested byte range so the renderer can seek without
-	 * UMS having to download-and-discard (the default {@code skip(low)} behaviour).
+	 * UMS having to download-and-discard behaviour).
 	 */
 	@Override
 	public InputStream getInputStream(Range range) throws IOException {

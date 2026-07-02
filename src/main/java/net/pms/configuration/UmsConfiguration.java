@@ -113,8 +113,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
-	private static final String ENV_HOSTNAME = "HOSTNAME";
-	private static final String ENV_COMPUTERNAME = "COMPUTERNAME";
 	private static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
 	private static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 	private static final String PORTABLE_PATH = "portable";
@@ -228,6 +226,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER = "audio_addict_episodes_per_container";
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
 	private static final String KEY_AUDIO_ADDICT_ICY_METADATA = "audio_addict_icy_metadata";
 	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
@@ -1058,6 +1057,17 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setAudioAddictPassword(String password) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_PASS, password);
+	}
+
+	/**
+	 * @return the maximum number of show episodes to group into one "recent episodes" container.
+	 */
+	public int getAudioAddictEpisodesPerContainer() {
+		return Math.max(1, getInt(KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER, 20));
+	}
+
+	public void setAudioAddictEpisodesPerContainer(int episodesPerContainer) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER, episodesPerContainer);
 	}
 
 	public boolean isAudioAddictEuropeanServer() {

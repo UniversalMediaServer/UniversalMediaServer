@@ -3,19 +3,17 @@ package net.pms.store.container.audioaddict;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.external.audioaddict.AudioAddictEventDto;
 import net.pms.external.audioaddict.AudioAddictService;
-import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.external.audioaddict.Platform;
-import net.pms.media.MediaInfo;
-import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreResource;
 import net.pms.store.StoreContainer;
 
 /**
- * Upcoming events (scheduled show episodes) of a network, listed as playable items. The
- * episode content URLs are signed and expire, so the children are (re)resolved on every
- * browse instead of being cached.
+ * Upcoming events (scheduled show episodes) of a network. Each event contributes the current,
+ * already aired episode as a directly playable item (when available) plus a container holding the
+ * show's older, on-demand episodes. The episode content URLs are signed and expire, so the children
+ * are (re)resolved on every browse instead of being cached.
  */
 public class AudioAddictEvents extends StoreContainer {
 
@@ -46,30 +44,18 @@ public class AudioAddictEvents extends StoreContainer {
 	}
 
 	private void addEvents() {
-		List<AudioAddictTrackDto> events = AudioAddictService.get().getUpcomingEvents(network);
+		List<AudioAddictEventDto> events = AudioAddictService.get().getUpcomingEvents(network);
 		LOGGER.debug("{} : adding {} events.", network.displayName, events.size());
-		for (AudioAddictTrackDto event : events) {
-			MediaInfo mi = new MediaInfo();
-			mi.setMimeType("audio/mpeg");
-			mi.setMediaParser("STATIC");
-			if (event.artist != null || event.genres != null || event.album != null) {
-				MediaAudioMetadata md = new MediaAudioMetadata();
-				if (event.artist != null) {
-					md.setArtist(event.artist);
-				}
-				if (event.genres != null) {
-					md.setGenre(event.genres);
-				}
-				if (event.album != null) {
-					md.setAlbum(event.album);
-				}
-				mi.setAudioMetadata(md);
+		for (AudioAddictEventDto event : events) {
+			// The current (already aired) episode is directly playable at the top level.
+			if (event.currentEpisode != null) {
+				addChild(AudioAddictFileStream.from(renderer, event.currentEpisode));
 			}
-			// The artist (DJ/host) is exposed via upnp:artist, so keep it out of the title.
-			String title = event.startLabel != null ? (event.startLabel + "  " + event.title) : event.title;
-			StoreResource sr = new AudioAddictFileStream(renderer, title, event.contentUrl, event.albumArt);
-			sr.setMediaInfo(mi);
-			addChild(sr);
+			// Older episodes of the show go into their own (lazily filled) container.
+			if (event.showSlug != null && event.ondemandEpisodeCount > 0) {
+				String thumb = event.albumArt != null ? event.albumArt : network.albumArt;
+				addChild(new AudioAddictShowEpisodes(renderer, network, event.showSlug, event.showName, thumb));
+			}
 		}
 	}
 }
