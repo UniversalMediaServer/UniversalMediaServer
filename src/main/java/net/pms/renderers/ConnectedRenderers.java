@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -50,7 +51,9 @@ import org.slf4j.LoggerFactory;
 public class ConnectedRenderers {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
-	private static final Map<InetAddress, Renderer> ADDRESS_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+
+	// A single socket address may host several distinct renderers at the same time.
+	private static final Map<InetAddress, List<Renderer>> ADDRESS_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, InetAddress> UUID_ADDRESS_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, WebGuiRenderer> REACT_CLIENT_RENDERERS = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, Renderer> UUID_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
@@ -146,7 +149,11 @@ public class ConnectedRenderers {
 	public static Collection<Renderer> getConnectedRenderers() {
 		// We need to check both UPnP and http sides to ensure a complete list
 		HashSet<Renderer> renderers = new HashSet<>(UUID_RENDERER_ASSOCIATION.values());
-		renderers.addAll(ADDRESS_RENDERER_ASSOCIATION.values());
+		synchronized (ADDRESS_RENDERER_ASSOCIATION) {
+			for (List<Renderer> addressRenderers : ADDRESS_RENDERER_ASSOCIATION.values()) {
+				renderers.addAll(addressRenderers);
+			}
+		}
 		renderers.addAll(REACT_CLIENT_RENDERERS.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
 		renderers.addAll(PMS.get().getFoundRenderers());
@@ -206,11 +213,63 @@ public class ConnectedRenderers {
 	}
 
 	public static Renderer getRendererBySocketAddress(InetAddress sa) {
-		Renderer r = ADDRESS_RENDERER_ASSOCIATION.get(sa);
+		// An address may host several renderers.
+		Renderer r = null;
+		synchronized (ADDRESS_RENDERER_ASSOCIATION) {
+			List<Renderer> list = ADDRESS_RENDERER_ASSOCIATION.get(sa);
+			if (list != null && !list.isEmpty()) {
+				for (Renderer candidate : list) {
+					if (candidate.isLoaded()) {
+						r = candidate;
+						break;
+					}
+				}
+				if (r == null) {
+					r = list.get(0);
+				}
+			}
+		}
 		if (r != null) {
 			LOGGER.trace("Matched media renderer \"{}\" based on address {}", r.getRendererName(), sa.getHostAddress());
 		}
 		return r;
+	}
+
+	/**
+	 * Finds the renderer already associated with the given address.
+	 *
+	 * @return the renderer to reuse, or "NULL" to create a new one.
+	 */
+	private static Renderer getRendererBySocketAddressAndConf(InetAddress ia, RendererConfiguration ref) {
+		synchronized (ADDRESS_RENDERER_ASSOCIATION) {
+			List<Renderer> list = ADDRESS_RENDERER_ASSOCIATION.get(ia);
+			if (list == null || list.isEmpty()) {
+				return null;
+			}
+			if (ref != null && ref.getConfName() != null) {
+				for (Renderer r : list) {
+					if (ref.getConfName().equals(r.getConfName())) {
+						return r;
+					}
+				}
+			}
+
+			for (Renderer r : list) {
+				if (!r.isLoaded()) {
+					return r;
+				}
+			}
+			// Reuse a lower-priority match for the same device.
+			if (ref != null) {
+				for (Renderer r : list) {
+					if (ref.getLoadingPriority() > r.getLoadingPriority()) {
+						return r;
+					}
+				}
+			}
+
+			return null;
+		}
 	}
 
 	public static Renderer getRendererByUUID(String uuid) {
@@ -256,9 +315,10 @@ public class ConnectedRenderers {
 			ref = RendererConfigurations.getDefaultConf();
 		}
 		try {
-			if (ADDRESS_RENDERER_ASSOCIATION.containsKey(ia)) {
-				// Already seen, finish configuration if required
-				renderer = ADDRESS_RENDERER_ASSOCIATION.get(ia);
+			Renderer associated = getRendererBySocketAddressAndConf(ia, ref);
+			if (associated != null) {
+				// Already seen this configuration at this address,
+				renderer = associated;
 				boolean higher = ref != null && ref.getLoadingPriority() > renderer.getLoadingPriority() && recognized;
 				if (!renderer.isLoaded() || higher) {
 					LOGGER.debug("Finishing configuration for {}", renderer);
@@ -266,11 +326,11 @@ public class ConnectedRenderers {
 						LOGGER.debug("Switching to higher priority renderer: {}", ref);
 					}
 					renderer.inherit(ref);
-					// update gui
+
 					renderer.updateRendererGui();
 				}
 			} else if (!JUPnPDeviceHelper.isNonRenderer(ia)) {
-				// It's brand new
+				// It's brand new, or a distinct renderer configuration sharing a known address
 				renderer = new Renderer(ref, ia);
 				if (renderer.associateIP(ia)) {
 					PMS.get().setRendererFound(renderer);
@@ -320,8 +380,11 @@ public class ConnectedRenderers {
 					renderer.deleteGuis();
 					PMS.get().getFoundRenderers().remove(renderer);
 					InetAddress ia = renderer.getAddress();
-					if (ADDRESS_RENDERER_ASSOCIATION.get(ia) == renderer) {
-						ADDRESS_RENDERER_ASSOCIATION.remove(ia);
+					synchronized (ADDRESS_RENDERER_ASSOCIATION) {
+						List<Renderer> list = ADDRESS_RENDERER_ASSOCIATION.get(ia);
+						if (list != null && list.remove(renderer) && list.isEmpty()) {
+							ADDRESS_RENDERER_ASSOCIATION.remove(ia);
+						}
 					}
 					String uuid = renderer.getUUID();
 					if (uuid != null) {
@@ -369,23 +432,45 @@ public class ConnectedRenderers {
 	}
 
 	public static void addRendererAssociation(InetAddress sa, Renderer r) {
-		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
-		Renderer prev = ADDRESS_RENDERER_ASSOCIATION.put(sa, r);
-		if (prev != null) {
-			// We've displaced a previous renderer at this address, so
-			// check  if it's a ghost instance that should be deleted.
-			verify(prev);
+		// Several clients may share one address.
+		Renderer displaced = null;
+		synchronized (ADDRESS_RENDERER_ASSOCIATION) {
+			List<Renderer> list = ADDRESS_RENDERER_ASSOCIATION.computeIfAbsent(sa, k -> new ArrayList<>());
+			for (Iterator<Renderer> it = list.iterator(); it.hasNext();) {
+				Renderer existing = it.next();
+				if (existing != r && existing.getConfName() != null && existing.getConfName().equals(r.getConfName())) {
+					displaced = existing;
+					it.remove();
+				}
+			}
+			if (!list.contains(r)) {
+				list.add(r);
+			}
+		}
+		if (displaced != null) {
+			// We've displaced a previous renderer with the same configuration at this address, so
+			// check if it's a ghost instance that should be deleted.
+			verify(displaced);
 		}
 	}
 
 	public static boolean hasInetAddressForRenderer(Renderer r) {
-		return ADDRESS_RENDERER_ASSOCIATION.containsValue(r);
+		synchronized (ADDRESS_RENDERER_ASSOCIATION) {
+			for (List<Renderer> list : ADDRESS_RENDERER_ASSOCIATION.values()) {
+				if (list.contains(r)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public static InetAddress getRendererInetAddress(Renderer r) {
-		for (Entry<InetAddress, Renderer> entry : ADDRESS_RENDERER_ASSOCIATION.entrySet()) {
-			if (entry.getValue() == r) {
-				return entry.getKey();
+		synchronized (ADDRESS_RENDERER_ASSOCIATION) {
+			for (Entry<InetAddress, List<Renderer>> entry : ADDRESS_RENDERER_ASSOCIATION.entrySet()) {
+				if (entry.getValue().contains(r)) {
+					return entry.getKey();
+				}
 			}
 		}
 		return null;
@@ -417,14 +502,19 @@ public class ConnectedRenderers {
 
 	public static void calculateAllSpeeds() {
 		Map<InetAddress, String> values = new HashMap<>();
-		for (Entry<InetAddress, Renderer> entry : ADDRESS_RENDERER_ASSOCIATION.entrySet()) {
-			InetAddress sa = entry.getKey();
-			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
-				continue;
-			}
-			Renderer r = entry.getValue();
-			if (!r.isOffline()) {
-				values.put(sa, r.getRendererName());
+		synchronized (ADDRESS_RENDERER_ASSOCIATION) {
+			for (Entry<InetAddress, List<Renderer>> entry : ADDRESS_RENDERER_ASSOCIATION.entrySet()) {
+				InetAddress sa = entry.getKey();
+				if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+					continue;
+				}
+				// The link speed is per address, so one online renderer per address is enough.
+				for (Renderer r : entry.getValue()) {
+					if (!r.isOffline()) {
+						values.put(sa, r.getRendererName());
+						break;
+					}
+				}
 			}
 		}
 		for (Map.Entry<InetAddress, String> entry : values.entrySet()) {
