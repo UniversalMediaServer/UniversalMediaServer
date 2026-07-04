@@ -177,4 +177,24 @@ public class ThumbnailStore {
 		}
 	}
 
+	/**
+	 * Deletes all cached thumbnails, both from this in-memory store and from the database (also
+	 * clearing the references to them from the FILES and TV_SERIES tables), so thumbnails are
+	 * regenerated on demand.
+	 */
+	public static void deleteAll() {
+		synchronized (STORE) {
+			STORE.clear();
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableThumbnails.deleteAll(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+	}
+
 }
