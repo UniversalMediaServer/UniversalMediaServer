@@ -1,0 +1,17 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="nextcpGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0891b2" />
+      <stop offset="100%" stop-color="#67e8f9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle frame -->
+  <rect x="3" y="3" width="34" height="34" rx="10" stroke="url(#nextcpGradient)" stroke-width="2" fill="none" />
+
+  <!-- N2 monogram: whole N+2 cluster optically centered, 2 as a small accent -->
+  <text x="16" y="27" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif"
+    font-weight="600" font-size="21" fill="url(#nextcpGradient)">N</text>
+  <text x="28" y="16" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif"
+    font-weight="600" font-size="10" fill="url(#nextcpGradient)">2</text>
+</svg>
