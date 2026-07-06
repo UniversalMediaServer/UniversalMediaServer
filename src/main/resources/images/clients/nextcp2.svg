@@ -1,4 +1,4 @@
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="nextcpGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0891b2" />
@@ -6,12 +6,10 @@
     </linearGradient>
   </defs>
 
-  <!-- Squircle frame -->
-  <rect x="3" y="3" width="34" height="34" rx="10" stroke="url(#nextcpGradient)" stroke-width="2" fill="none" />
-
-  <!-- N2 monogram: whole N+2 cluster optically centered, 2 as a small accent -->
-  <text x="16" y="27" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif"
-    font-weight="600" font-size="21" fill="url(#nextcpGradient)">N</text>
-  <text x="28" y="16" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif"
-    font-weight="600" font-size="10" fill="url(#nextcpGradient)">2</text>
+  <path d="M26 36 L26 92 L68 64 Z" fill="url(#nextcpGradient)" />
+  <g fill="none" stroke="url(#nextcpGradient)" stroke-width="7" stroke-linecap="round">
+    <path d="M76.3 51.7 A16 16 0 0 1 76.3 76.3" opacity="0.92" />
+    <path d="M82.7 44.1 A26 26 0 0 1 82.7 83.9" opacity="0.6" />
+    <path d="M89.1 36.4 A36 36 0 0 1 89.1 91.6" opacity="0.34" />
+  </g>
 </svg>
