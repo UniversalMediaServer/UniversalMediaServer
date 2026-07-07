@@ -101,7 +101,7 @@ public class RendererConfigurationTest {
 
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
-		testHeaders("Web Browser", "User-Agent: next_cp_webplayer/1.0");
+		testHeaders("NextCP/2 Web Player", "User-Agent: next_cp_webplayer/1.0");
 
 		testHeaders("NextCP2", "User-Agent: nextcp/2.0");
 
