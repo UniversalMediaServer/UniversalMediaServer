@@ -107,15 +107,52 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				return;
 			}
 
-			// Identify renderer by headers
-			SortedHeaderMap headerMap = getHeaderMapFromRequest(req);
+			if (CONFIGURATION.isAuthenticationEnabled()) {
+				// Authentication enabled: the renderer is bound to the browse UUID (2-box setup)
+				// and access is filtered per account/renderer.
+				renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
 
-			renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headerMap, getInetAddress(req));
+				if (renderer == null) {
+					renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
+					if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
+						}
+					}
+				}
 
-			if (renderer == null) {
-				LOGGER.debug("Renderer not identified by header. Using default.");
-				LOGGER.debug("Request headers were: {}", headerMap);
-				renderer = RendererConfigurations.getDefaultRenderer();
+				if (renderer == null) {
+					// If uuid not known, it mean the renderer is not registred
+					if (LOGGER.isTraceEnabled()) {
+						logHttpServletRequest(req, "");
+					}
+					//Forbidden
+					respondForbidden(req, resp);
+					return;
+				}
+
+				if (!renderer.isAllowed()) {
+					if (LOGGER.isTraceEnabled()) {
+						logHttpServletRequest(req, "", getRendererName(req, renderer));
+						LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+					}
+					//Unauthorized
+					respondUnauthorized(req, resp);
+					return;
+				}
+			} else {
+				// Authentication disabled: flexible 3-box UPnP setup. The browse UUID in the URL
+				// belongs to the control point, not the playback renderer, so identify the real
+				// renderer just-in-time from the request headers (User-Agent etc.) and IP.
+				// Transcoding is then resolved for that renderer via its own media store.
+				SortedHeaderMap headerMap = getHeaderMapFromRequest(req);
+				renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headerMap, getInetAddress(req));
+				if (renderer == null) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Renderer not identified by header, using default renderer. Request headers were: {}", headerMap);
+					}
+					renderer = RendererConfigurations.getDefaultRenderer();
+				}
 			}
 			LOGGER.trace("Using {} renderer for this request", renderer.getRendererName());
 

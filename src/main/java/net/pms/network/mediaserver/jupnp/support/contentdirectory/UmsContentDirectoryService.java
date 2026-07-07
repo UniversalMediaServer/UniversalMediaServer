@@ -51,11 +51,13 @@ import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+import net.pms.PMS;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.DbSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.LuceneSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
@@ -357,6 +359,42 @@ public class UmsContentDirectoryService {
 		}
 	}
 
+	/**
+	 * Resolves the renderer used to access the CDS object tree.
+	 * <p>
+	 * When authentication is enabled, the renderer is identified from the (browsing) control
+	 * point request and its account/allow-list is enforced: returns NULL if the
+	 * renderer is unknown or not allowed.
+	 * <p>
+	 * When authentication is disabled we support the flexible 3-box UPnP setup: renderers do not
+	 * browse the CDS, control points do. The object tree is (currently) held by a single neutral
+	 * "control point" renderer, so we return that. The real playback renderer is identified
+	 * just-in-time when the resource itself is requested (see MediaServerServlet).
+	 *
+	 * @param remoteClientInfo the client info of the browsing request
+	 * @return the renderer to use, or "null}" when authentication is enabled and the renderer is unrecognized or not allowed
+	 */
+	private static Renderer getBrowseRenderer(RemoteClientInfo remoteClientInfo) {
+		if (!PMS.getConfiguration().isAuthenticationEnabled()) {
+			return ControlPoint.getRenderer();
+		}
+		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+		Renderer renderer = info.renderer;
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
+		return renderer;
+	}
+
 	@UpnpAction(out = {
 		@UpnpOutputArgument(name = "Result",
 				stateVariable = "A_ARG_TYPE_Result",
@@ -371,7 +409,10 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			Renderer renderer = ControlPoint.getRenderer();
+			Renderer renderer = getBrowseRenderer(remoteClientInfo);
+			if (renderer == null) {
+				return null;
+			}
 
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
@@ -533,7 +574,11 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			Renderer renderer = ControlPoint.getRenderer();
+			Renderer renderer = getBrowseRenderer(remoteClientInfo);
+			if (renderer == null) {
+				return null;
+			}
+			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
@@ -580,8 +625,11 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			Renderer renderer = ControlPoint.getRenderer();
-
+			Renderer renderer = getBrowseRenderer(remoteClientInfo);
+			if (renderer == null) {
+				return;
+			}
+			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
@@ -624,8 +672,26 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			Renderer renderer = ControlPoint.getRenderer();
-
+			Renderer renderer;
+			if (!PMS.getConfiguration().isAuthenticationEnabled()) {
+				renderer = ControlPoint.getRenderer();
+			} else {
+				UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+				renderer = info.renderer;
+				if (renderer == null) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Unrecognized media renderer");
+					}
+					throw new ContentDirectoryException(714, "No such resource");
+				}
+				if (!renderer.isAllowed()) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+					}
+					throw new ContentDirectoryException(715, "Source resource access denied");
+				}
+			}
+			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
@@ -712,15 +778,8 @@ public class UmsContentDirectoryService {
 			SortCriterion[] sortCriteria,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		//
-		// Renderer do not browse the CDS but control points. However, the object tree is at the moment held by a renderer object.
-		// Therefore, we just take the "control point"-renderer for accessing CDS items.
-		//
-		Renderer renderer = ControlPoint.getRenderer();
+		Renderer renderer = getBrowseRenderer(remoteClientInfo);
 		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Control Point failed to initialize.");
-			}
 			return null;
 		}
 
@@ -828,7 +887,10 @@ public class UmsContentDirectoryService {
 			SearchRequest searchRequest,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		Renderer renderer = ControlPoint.getRenderer();
+		Renderer renderer = getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			return null;
+		}
 
 		try {
 			BaseSearchRequestHandler searchRequestHandler = null;
@@ -1062,7 +1124,11 @@ public class UmsContentDirectoryService {
 			String rId,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		Renderer renderer = ControlPoint.getRenderer();
+		Renderer renderer = getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			return null;
+		}
+
 		if (posSecond == 0) {
 			// Sometimes when Samsung device is starting to play the video
 			// it sends X_SetBookmark message immediatelly with the position=0.
@@ -1084,7 +1150,10 @@ public class UmsContentDirectoryService {
 	private static String samsungGetFeaturesList(
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		Renderer renderer = ControlPoint.getRenderer();
+		Renderer renderer = getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			return null;
+		}
 
 		StringBuilder features = new StringBuilder();
 		String mediaStoreId = renderer.getMediaStore().getResourceId();
