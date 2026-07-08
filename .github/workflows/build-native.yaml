@@ -1,0 +1,120 @@
+name: Build native packages
+
+# Builds native desktop packages of UMS, triggered by a version tag.
+#
+#   * push a tag         -> builds macOS (.app, zipped) and Windows (.exe installers)
+#                           and attaches them to a GitHub Release for that tag.
+#   * workflow_dispatch  -> builds both and uploads them as workflow artifacts only
+#                           (no release).
+#
+# jpackage-style cross-compilation is not possible here (macOS uses appbundler,
+# Windows uses NSIS), so each package is built on its own runner.
+#
+# NOTE: the build uses the <version> from pom.xml, NOT the git tag. For a real
+# release, set pom.xml <version> to the release version without "-SNAPSHOT"
+# before tagging (NSIS rejects -SNAPSHOT versions).
+#
+# macOS builds are UNSIGNED (no Apple Developer ID) -> users get a Gatekeeper
+# warning on first launch. Signing/notarization can be added later via secrets.
+
+on:
+  push:
+    tags:
+      # Version tags starting with X.Y.Z, with any optional suffix:
+      #   15.7.0        15.7.0.1        15.7.0-ik6666        15.7.0-b1
+      # GitHub tag filters are glob, not regex: [0-9]+ = one or more digits, the
+      # dots are literal, and the trailing * matches any (possibly empty) suffix.
+      - '[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+
+permissions:
+  contents: write # required to create the GitHub Release and upload assets
+
+jobs:
+  build:
+    name: ${{ matrix.title }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            title: macOS (Apple Silicon)
+          - os: windows-latest
+            title: Windows
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # The build compiles against maven.compiler.release = project.jre-version (25),
+      # and the macOS appbundler resolves its bundled runtime via `java_home -v 25`.
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: liberica
+          java-version: 25
+          cache: maven
+
+      # On a tag build, make the app's displayed version match the tag exactly,
+      # and set project.version.short to the bare X.Y.Z prefix (NSIS rejects
+      # suffixes / -SNAPSHOT). Skipped on workflow_dispatch (github.ref_name is
+      # then a branch, not a version). Runs via bash on both macOS and Windows.
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          SHORT="$(printf '%s' "$TAG" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+')"
+          echo "Setting version=$TAG, project.version.short=$SHORT"
+          mvn -B -q versions:set -DnewVersion="$TAG" -DgenerateBackupPoms=false
+          mvn -B -q versions:set-property -Dproperty=project.version.short -DnewVersion="$SHORT" -DgenerateBackupPoms=false
+
+      # ----- macOS -----------------------------------------------------------
+      # appbundler produces "Universal Media Server.app" in target/<finalName>-distribution/.
+      # Maven does not create a .dmg, so ship the app as a zip (ditto preserves
+      # macOS metadata / the bundle structure).
+      - name: Build macOS app
+        if: runner.os == 'macOS'
+        run: mvn -B -P macos-arm-ci -DskipTests package
+
+      - name: Package macOS app
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p dist
+          APP="$(find target -maxdepth 2 -name '*.app' -type d | head -n1)"
+          if [ -z "$APP" ]; then
+            echo "::error::No .app bundle was produced under target/"
+            exit 1
+          fi
+          echo "Packaging $APP"
+          ditto -c -k --keepParent "$APP" "dist/UMS-macos-arm64.zip"
+
+      # ----- Windows ---------------------------------------------------------
+      # NSIS (bundled makensis.exe) writes the installers to target/ (UMS.exe,
+      # UMS-x86_64.exe, UMS-x86.exe, UMS-update-*.exe).
+      - name: Build Windows installers
+        if: runner.os == 'Windows'
+        run: mvn -B -P windows -DskipTests package
+        shell: pwsh
+
+      - name: Package Windows installers
+        if: runner.os == 'Windows'
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item target/*.exe dist/
+          Get-ChildItem dist
+        shell: pwsh
+
+      # ----- Publish ---------------------------------------------------------
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: UMS-${{ runner.os }}
+          if-no-files-found: error
+          path: dist/*
+
+      - name: Attach to GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
