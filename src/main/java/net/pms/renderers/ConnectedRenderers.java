@@ -255,7 +255,9 @@ public class ConnectedRenderers {
 			}
 
 			for (Renderer r : list) {
-				if (!r.isLoaded()) {
+				// Only reuse a not-yet-identified HTTP placeholder here. Do not hijack a renderer
+				// that is already identified as its own UPnP device.
+				if (!r.isLoaded() && !r.isUpnp()) {
 					return r;
 				}
 			}
