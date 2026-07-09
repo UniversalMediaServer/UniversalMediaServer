@@ -10,7 +10,7 @@
 - Bump `ch.qos.logback:logback-core` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
 - Bump `com.auth0:java-jwt` from 4.5.1 to 4.5.2 ([#6221](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6221))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 2.0.0 to 2.0.1 ([#6222](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6222))
-- Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.3.0 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189), [#6205](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6205))
+- Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.3.2 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189), [#6205](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6205), [#6239](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6239))
 - Bump `com.google.code.gson:gson` from 2.13.2 to 2.14.0 ([#6188](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6188))
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.6 to 4.0.9 ([#6180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6180))
 - Bump `com.zaxxer:HikariCP` from 7.0.2 to 7.1.0 ([#6230](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6230))
