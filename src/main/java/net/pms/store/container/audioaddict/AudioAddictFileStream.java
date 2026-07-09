@@ -29,8 +29,20 @@ public class AudioAddictFileStream extends WebAudioStream {
 
 	private volatile long cachedLength = -1;
 
-	public AudioAddictFileStream(Renderer renderer, String fluxName, String url, String thumbURL) {
+	/**
+	 * Stable MediaStore identity. This name is derived from the stable AudioAddict track/episode, 
+	 * and keeps the ".mp3" suffix so format detection still recognizes it.
+	 */
+	private final String stableSystemName;
+
+	public AudioAddictFileStream(Renderer renderer, String fluxName, String url, String thumbURL, String stableSystemName) {
 		super(renderer, fluxName, url, thumbURL);
+		this.stableSystemName = stableSystemName;
+	}
+
+	@Override
+	public String getSystemName() {
+		return stableSystemName;
 	}
 
 	/**
@@ -56,7 +68,7 @@ public class AudioAddictFileStream extends WebAudioStream {
 		}
 
 		String title = track.startLabel != null ? (track.startLabel + "  " + track.title) : track.title;
-		AudioAddictFileStream sr = new AudioAddictFileStream(renderer, title, track.contentUrl, track.albumArt);
+		AudioAddictFileStream sr = new AudioAddictFileStream(renderer, title, track.contentUrl, track.albumArt, "audioaddict-" + track.id + ".mp3");
 		sr.setMediaInfo(mi);
 		return sr;
 	}
