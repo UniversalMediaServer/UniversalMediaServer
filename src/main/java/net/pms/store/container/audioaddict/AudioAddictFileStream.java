@@ -30,7 +30,7 @@ public class AudioAddictFileStream extends WebAudioStream {
 	private volatile long cachedLength = -1;
 
 	/**
-	 * Stable MediaStore identity. This name is derived from the stable AudioAddict track/episode, 
+	 * Stable MediaStore identity. This name is derived from the stable AudioAddict track/episode,
 	 * and keeps the ".mp3" suffix so format detection still recognizes it.
 	 */
 	private final String stableSystemName;
