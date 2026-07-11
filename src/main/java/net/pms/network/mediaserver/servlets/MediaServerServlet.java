@@ -28,10 +28,12 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnailInputStream;
@@ -62,6 +64,7 @@ import net.pms.store.StoreResource;
 import net.pms.util.ByteRange;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
+import net.pms.util.SortedHeaderMap;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.TimeRange;
@@ -103,43 +106,52 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				return;
 			}
 
-			//find renderer by uuid
-			renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
+			if (CONFIGURATION.isAuthenticationEnabled()) {
+				// Authentication enabled: the renderer is bound to the browse UUID (2-box setup)
+				// and access is filtered per account/renderer.
+				renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
 
-			if (renderer == null) {
-				//find renderer by uuid and ip for non registred upnp devices
-				renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
-				if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
+				if (renderer == null) {
+					renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
+					if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
+						}
 					}
-					/**
-					 * here, that mean the originated renderer advised is no more available.
-					 * It may be a caster/proxy control point, so let change to the real renderer.
-					 * fixme : non-renderer should advise a special uuid.
-					 * renderer = null;
-					 */
 				}
-			}
 
-			if (renderer == null) {
-				// If uuid not known, it mean the renderer is not registred
-				if (LOGGER.isTraceEnabled()) {
-					logHttpServletRequest(req, "");
+				if (renderer == null) {
+					// If uuid not known, it mean the renderer is not registred
+					if (LOGGER.isTraceEnabled()) {
+						logHttpServletRequest(req, "");
+					}
+					//Forbidden
+					respondForbidden(req, resp);
+					return;
 				}
-				//Forbidden
-				respondForbidden(req, resp);
-				return;
-			}
 
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					logHttpServletRequest(req, "", getRendererNameForLogging(req, renderer));
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				if (!renderer.isAllowed()) {
+					if (LOGGER.isTraceEnabled()) {
+						logHttpServletRequest(req, "", getRendererNameForLogging(req, renderer));
+						LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+					}
+					//Unauthorized
+					respondUnauthorized(req, resp);
+					return;
 				}
-				//Unauthorized
-				respondUnauthorized(req, resp);
-				return;
+			} else {
+				// Authentication disabled: flexible 3-box UPnP setup. The browse UUID in the URL
+				// belongs to the control point, not the playback renderer, so identify the real
+				// renderer just-in-time from the request headers (User-Agent etc.) and IP.
+				// Transcoding is then resolved for that renderer via its own media store.
+				SortedHeaderMap headerMap = getHeaderMapFromRequest(req);
+				renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headerMap, getInetAddress(req));
+				if (renderer == null) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Renderer not identified by header, using default renderer. Request headers were: {}", headerMap);
+					}
+					renderer = RendererConfigurations.getDefaultRenderer();
+				}
 			}
 
 			if (req.getHeader("X-PANASONIC-DMP-Profile") != null) {
@@ -189,6 +201,14 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				LOGGER.error("Http request error:", e);
 			}
 		}
+	}
+
+	private SortedHeaderMap getHeaderMapFromRequest(HttpServletRequest req) {
+		SortedHeaderMap headerMap = new SortedHeaderMap();
+		for (String headerField : Collections.list(req.getHeaderNames())) {
+			headerMap.put(headerField, req.getHeader(headerField));
+		}
+		return headerMap;
 	}
 
 	private static void sendResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, int code, String message, String contentType) throws IOException {

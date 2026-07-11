@@ -37,6 +37,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.SpeedStats;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.store.MediaInfoStore;
 import net.pms.util.SortedHeaderMap;
@@ -419,6 +420,12 @@ public class ConnectedRenderers {
 	public static void resetAllRenderers() {
 		for (Renderer r : getConnectedRenderers()) {
 			r.resetMediaStore();
+		}
+		// The control-point renderer holds the CDS object tree in the non-authenticated (3-box)
+		// mode but is not part of the connected renderers, so reset its media store explicitly.
+		Renderer controlPoint = ControlPoint.getRenderer();
+		if (controlPoint != null) {
+			controlPoint.resetMediaStore();
 		}
 	}
 
