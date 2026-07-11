@@ -697,6 +697,10 @@ public class RadioNetwork {
 						dto.length = t.length;
 						dto.contentUrl = contentUrl;
 						dto.albumArt = normalizeUrl(t.assetUrl);
+						if (dto.albumArt == null) {
+							// If no cover of its own; fall back to the show artwork so the event item still gets a thumbnail.
+							dto.albumArt = ev.albumArt;
+						}
 						dto.startLabel = formatEventStart(event.startAt);
 						dto.genres = eventGenres(event, genreFilters);
 						dto.album = event.show.name;
