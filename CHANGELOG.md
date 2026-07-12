@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### General
+- Added feature to backup and restore personal data including fully played statuses, bookmarks, playback positions and play counts
+- Added feature to delete thumbnails to allow them to be recreated
+- Improved speed of file hashing
+- Improved video filename parsing
+- Fixed advanced filtering via UPnP (#6183)
+
+### Media players
+- Added LG TV support for FLAC audio in videos and audio files
+- Added support for nextCP/2
+
 ### Dependencies
 - Bump `@babel/core` from 7.28.5 to 7.29.7 ([#6208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6208))
 - Bump `actions/cache` from 5 to 6 ([#6217](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6217))
@@ -35,7 +46,6 @@
 ## [15.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.6.0...15.7.0) (2026-06-02)
 
 ### General
-
 - Added support for webp thumbnail images, see the Knowledge Base article https://support.universalmediaserver.com/guides/how-to-add-artwork
 - Added option to flatten folder structure to files only (thanks, @kibermaks!)
 - Added Lucene search capabilities for audio files
@@ -75,7 +85,6 @@
 ## [15.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.5.0...15.6.0) (2026-04-24)
 
 ### General
-
 - Added Discogs integration for audio metadata and UPnP
 - Added new options for DNS resolution handling (thanks, @henry701 Henrique Campos!)
 - Added a loading indicator to the Shared Content area on the web settings (#6037)
