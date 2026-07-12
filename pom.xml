@@ -774,7 +774,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire-version}</version>
 					<configuration>
-						<argLine>-Dfile.encoding=${project.encoding} --add-opens java.base/sun.nio.ch=ALL-UNNAMED</argLine>
+						<argLine>-Dfile.encoding=${project.encoding}</argLine>
 					</configuration>
 				</plugin>
 
@@ -1800,7 +1800,6 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2037,7 +2036,6 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2277,7 +2275,6 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2514,7 +2511,6 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2745,7 +2741,6 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2973,7 +2968,6 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="--add-opens java.base/sun.nio.ch=ALL-UNNAMED"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
