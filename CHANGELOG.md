@@ -45,6 +45,7 @@
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.0.3 to 6.1.0 ([#6178](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6178))
 - Bump `org.slf4j:slf4j-api` from 2.0.17 to 2.0.18 ([#6197](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6197))
 - Bump `react-dom` from 19.2.4 to 19.2.7 ([#6218](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6218))
+- Bump `react-router-dom` from 7.13.1 to 7.18.0 ([#6231](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6231))
 - Bump `react` from 19.2.4 to 19.2.7 ([#6218](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6218))
 - Bump `tar` from 7.5.11 to 7.5.16 ([#6211](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6211))
 - Bump `vite` from 7.3.2 to 7.3.5 ([#6206](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6206))
