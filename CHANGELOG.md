@@ -2,9 +2,14 @@
 
 ## [Unreleased]
 
+## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-13)
+
 ### General
 - Added feature to backup and restore personal data including fully played statuses, bookmarks, playback positions and play counts
 - Added feature to delete thumbnails to allow them to be recreated
+- Improved design of the Tools section
+
+  ![a screenshot showing the backups and delete thumbnail features, and Tools section redesign](./changelog-images/15.8.0-tools-before-after.png)
 - Improved speed of file hashing
 - Improved video filename parsing
 - Fixed advanced filtering via UPnP (#6183)
@@ -24,8 +29,8 @@
 - Bump `@types/react` from 19.2.14 to 19.2.17 ([#6227](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6227))
 - Bump `actions/cache` from 5 to 6 ([#6217](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6217))
 - Bump `actions/checkout` from 6 to 7 ([#6216](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6216))
-- Bump `ch.qos.logback:logback-classic` from 1.5.32 to 1.5.35 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179), [#6226](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6226))
-- Bump `ch.qos.logback:logback-core` from 1.5.32 to 1.5.35 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179), [#6226](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6226))
+- Bump `ch.qos.logback:logback-classic` from 1.5.32 to 1.5.38 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179), [#6226](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6226))
+- Bump `ch.qos.logback:logback-core` from 1.5.32 to 1.5.38 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179), [#6226](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6226))
 - Bump `com.auth0:java-jwt` from 4.5.1 to 4.5.2 ([#6221](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6221))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 2.0.0 to 2.0.1 ([#6222](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6222))
 - Bump `com.github.oshi:oshi-core` from 7.1.0 to 7.3.2 ([#6189](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6189), [#6205](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6205), [#6239](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6239))
@@ -34,6 +39,7 @@
 - Bump `com.zaxxer:HikariCP` from 7.0.2 to 7.1.0 ([#6230](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6230))
 - Bump `esbuild` from 0.27.2 to 0.27.7 ([#6202](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6202))
 - Bump `eslint-plugin-react-hooks` from 7.0.1 to 7.1.1 ([#6219](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6219))
+- Bump `FFmpeg` from 8.1 to 8.1.2
 - Bump `form-data` from 4.0.5 to 4.0.6 ([#6209](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6209))
 - Bump `js-yaml` from 4.1.1 to 4.2.0 ([#6210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6210))
 - Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.6.2 to 3.6.3 ([#6198](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6198))
