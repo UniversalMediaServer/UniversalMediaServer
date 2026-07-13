@@ -13,6 +13,12 @@
 - Added LG TV support for FLAC audio in videos and audio files
 - Added support for nextCP/2
 
+### Translation updates via Crowdin
+- Czech (99%)
+- French (99%) (thanks, Fredo1650!)
+- Polish (67%) (thanks, hexhyperion!)
+- Slovak (43%)
+
 ### Dependencies
 - Bump `@babel/core` from 7.28.5 to 7.29.7 ([#6208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6208))
 - Bump `actions/cache` from 5 to 6 ([#6217](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6217))
