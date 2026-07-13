@@ -21,6 +21,7 @@
 
 ### Dependencies
 - Bump `@babel/core` from 7.28.5 to 7.29.7 ([#6208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6208))
+- Bump `@types/react` from 19.2.14 to 19.2.17 ([#6227](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6227))
 - Bump `actions/cache` from 5 to 6 ([#6217](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6217))
 - Bump `actions/checkout` from 6 to 7 ([#6216](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6216))
 - Bump `ch.qos.logback:logback-classic` from 1.5.32 to 1.5.34 ([#6179](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6179))
