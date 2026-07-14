@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-13)
+## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-15)
 
 ### General
 - Added feature to backup and restore personal data including fully played statuses, bookmarks, playback positions and play counts
@@ -19,10 +19,13 @@
 - Added support for nextCP/2
 
 ### Translation updates via Crowdin
-- Czech (99%)
-- French (99%) (thanks, Fredo1650!)
+- Arabic (37%) (thanks, waleed abdullwahed!)
+- Czech (100%)
+- Finnish (66%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Fredo1650!)
 - Polish (67%) (thanks, hexhyperion!)
 - Slovak (43%)
+- Turkish (95%) (thanks, Burak Yavuz!)
 
 ### Dependencies
 - Bump `@babel/core` from 7.28.5 to 7.29.7 ([#6208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6208))
@@ -41,6 +44,7 @@
 - Bump `eslint-plugin-react-hooks` from 7.0.1 to 7.1.1 ([#6219](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6219))
 - Bump `FFmpeg` from 8.1 to 8.1.2
 - Bump `form-data` from 4.0.5 to 4.0.6 ([#6209](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6209))
+- Bump `Java Runtime Environment` from 17.0.18 to 17.0.19
 - Bump `js-yaml` from 4.1.1 to 4.2.0 ([#6210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6210))
 - Bump `org.apache.maven.plugins:maven-enforcer-plugin` from 3.6.2 to 3.6.3 ([#6198](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6198))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.5 to 3.5.6 ([#6190](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6190))
