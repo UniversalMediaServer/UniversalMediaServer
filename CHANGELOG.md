@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `actions/setup-node` from 6 to 7 ([#6248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6248))
+
 ## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-15)
 
 ### General

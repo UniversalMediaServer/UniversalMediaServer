@@ -66,9 +66,10 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+          package-manager-cache: false
       - name: Enable corepack
         working-directory: ./react-client
         run: corepack enable
