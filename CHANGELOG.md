@@ -3,7 +3,8 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `actions/setup-node` from 6 to 7 ([#6248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6248))
+- Bump `brace-expansion` from 1.1.14 to 1.1.16 ([#6256](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6256))
 - Bump `actions/setup-node` from 6 to 7 ([#6248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6248))
 
 ## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-15)
