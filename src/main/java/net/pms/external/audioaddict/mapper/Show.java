@@ -7,6 +7,7 @@ public class Show {
 
 	public int id;
 	public String name;
+	public String slug;
 	public String description;
 	@JsonProperty("artists_tagline")
 	public String artistsTagline;

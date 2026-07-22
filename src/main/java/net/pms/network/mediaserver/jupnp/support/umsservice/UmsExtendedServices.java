@@ -23,6 +23,12 @@ import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
+import net.pms.store.container.audioaddict.AudioAddictPlaylistInputStream;
+import net.pms.external.audioaddict.AudioAddictTrackDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @UpnpService(
 	serviceId = @UpnpServiceId("UmsExtendedServices"),
@@ -37,7 +43,10 @@ import net.pms.store.StoreResource;
 	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictUser", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string")
+	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_PlaylistLoop", sendEvents = false, datatype = "boolean"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_PlaylistId", sendEvents = false, datatype = "ui4"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_NowPlaying", sendEvents = false, datatype = "string")
 	})
 public class UmsExtendedServices {
 
@@ -62,6 +71,9 @@ public class UmsExtendedServices {
 
 	@UpnpStateVariable(name = "PreferEuropeanServer", defaultValue = "false", sendEvents = true)
 	public boolean preferEuropeanServer = false;
+
+	@UpnpStateVariable(name = "PlaylistLoop", defaultValue = "false", sendEvents = true)
+	public boolean playlistLoop = false;
 
 	public UmsExtendedServices() {
 		readConfig();
@@ -92,8 +104,12 @@ public class UmsExtendedServices {
 			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
 		}
 		if (this.preferEuropeanServer != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
-			LOG.debug("prefer european srevers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
-			this.anonymousDevicesWrite = PMS.getConfiguration().isAudioAddictEuropeanServer();
+			LOG.debug("prefer european servers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
+			this.preferEuropeanServer = PMS.getConfiguration().isAudioAddictEuropeanServer();
+		}
+		if (this.playlistLoop != PMS.getConfiguration().isAudioAddictPlaylistLoop()) {
+			LOG.debug("playlistLoop has changed to {} ", PMS.getConfiguration().isAudioAddictPlaylistLoop());
+			this.playlistLoop = PMS.getConfiguration().isAudioAddictPlaylistLoop();
 		}
 	}
 
@@ -102,6 +118,36 @@ public class UmsExtendedServices {
 		LOG.debug("updating preferEuropeanServer to {}. Value changed from : {}", preferEuropeanServer, this.preferEuropeanServer);
 		PMS.getConfiguration().setAudioAddictEuropeanServer(preferEuropeanServer);
 		this.preferEuropeanServer = preferEuropeanServer;
+	}
+
+	@UpnpAction
+	public void setPlaylistLoop(@UpnpInputArgument(name = "PlaylistLoop") boolean playlistLoop) {
+		LOG.debug("updating playlistLoop to {}. Value changed from : {}", playlistLoop, this.playlistLoop);
+		PMS.getConfiguration().setAudioAddictPlaylistLoop(playlistLoop);
+		this.playlistLoop = playlistLoop;
+	}
+
+	/**
+	 * Returns the track currently playing on the given AudioAddict curated playlist as a small JSON
+	 * object, or an empty string when that playlist is not being streamed right now. Lets a control point
+	 * display the live playlist track, which is UMS-internal playback state.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "NowPlaying"))
+	public String getPlaylistNowPlaying(@UpnpInputArgument(name = "PlaylistId") UnsignedIntegerFourBytes playlistId) {
+		AudioAddictTrackDto track = AudioAddictPlaylistInputStream.getCurrentTrack(playlistId.getValue().intValue());
+		if (track == null) {
+			return "";
+		}
+		Map<String, String> nowPlaying = new LinkedHashMap<>();
+		nowPlaying.put("artist", track.artist != null ? track.artist : "");
+		nowPlaying.put("title", track.title != null ? track.title : "");
+		nowPlaying.put("artUrl", track.albumArt != null ? track.albumArt : "");
+		try {
+			return new ObjectMapper().writeValueAsString(nowPlaying);
+		} catch (JsonProcessingException e) {
+			LOG.warn("cannot serialize playlist now-playing for playlist {}", playlistId, e);
+			return "";
+		}
 	}
 
 	@UpnpAction

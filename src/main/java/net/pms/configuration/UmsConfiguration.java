@@ -113,8 +113,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
-	private static final String ENV_HOSTNAME = "HOSTNAME";
-	private static final String ENV_COMPUTERNAME = "COMPUTERNAME";
 	private static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
 	private static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 	private static final String PORTABLE_PATH = "portable";
@@ -228,8 +226,12 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER = "audio_addict_episodes_per_container";
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
+	private static final String KEY_AUDIO_ADDICT_ICY_METADATA = "audio_addict_icy_metadata";
 	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
+	private static final String KEY_AUDIO_ADDICT_PLAYLIST_LOOP = "audio_addict_playlist_loop";
+	private static final String KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES = "audio_addict_tree_cache_ttl_minutes";
 	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
@@ -1058,12 +1060,59 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_AUDIO_ADDICT_PASS, password);
 	}
 
+	/**
+	 * @return the maximum number of show episodes to group into one "recent episodes" container.
+	 */
+	public int getAudioAddictEpisodesPerContainer() {
+		return Math.max(1, getInt(KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER, 20));
+	}
+
+	public void setAudioAddictEpisodesPerContainer(int episodesPerContainer) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER, episodesPerContainer);
+	}
+
 	public boolean isAudioAddictEuropeanServer() {
 		return getBoolean(KEY_AUDIO_ADDICT_EUROPE, true);
 	}
 
 	public void setAudioAddictEuropeanServer(boolean europeServer) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_EUROPE, europeServer);
+	}
+
+	/**
+	 * @return whether SHOUTcast/Icecast (ICY) in-band metadata (current track title) should be
+	 * sent to renderers that request it.
+	 */
+	public boolean isAudioAddictIcyMetadata() {
+		return getBoolean(KEY_AUDIO_ADDICT_ICY_METADATA, true);
+	}
+
+	public void setAudioAddictIcyMetadata(boolean icyMetadata) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_ICY_METADATA, icyMetadata);
+	}
+
+	/**
+	 * @return whether curated playlists should loop endlessly instead of stopping after the
+	 * last track.
+	 */
+	public boolean isAudioAddictPlaylistLoop() {
+		return getBoolean(KEY_AUDIO_ADDICT_PLAYLIST_LOOP, false);
+	}
+
+	public void setAudioAddictPlaylistLoop(boolean loop) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_PLAYLIST_LOOP, loop);
+	}
+
+	/**
+	 * @return how long (in minutes) the fetched AudioAddict events/episodes trees are cached before
+	 * being refetched from the API. 0 disables the cache (not recommended !!!). Default 60.
+	 */
+	public int getAudioAddictTreeCacheTtlMinutes() {
+		return Math.max(0, getInt(KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES, 60));
+	}
+
+	public void setAudioAddictTreeCacheTtlMinutes(int minutes) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES, minutes);
 	}
 
 	public boolean isAudioUpdateTag() {

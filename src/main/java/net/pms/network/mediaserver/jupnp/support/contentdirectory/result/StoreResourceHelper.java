@@ -49,6 +49,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.MusicGenre;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.PlaylistContainer;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.StorageFolder;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.AudioBroadcast;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Movie;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.MusicTrack;
@@ -65,6 +66,9 @@ import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.DVDISOFile;
+import net.pms.store.container.audioaddict.AudioAddictBroadcastStream;
+import net.pms.store.container.audioaddict.AudioAddictPlaylistStream;
+import net.pms.store.container.audioaddict.AudioAddictRadioStream;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RealFolder;
 import net.pms.store.container.VirtualFolderDbId;
@@ -204,7 +208,7 @@ public class StoreResourceHelper {
 		} else if (mediaType == MediaType.IMAGE || mediaType == MediaType.UNKNOWN && format != null && format.isImage()) {
 			result = new Photo();
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
-			result = new MusicTrack();
+			result = item.isAudioBroadcast() ? new AudioBroadcast() : new MusicTrack();
 		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || mediaInfo.getVideoMetadata().getYear() != null)) {
 			// videoItem.movie is used for TV episodes and movies
 			result = new Movie();
@@ -568,23 +572,38 @@ public class StoreResourceHelper {
 			}
 
 			// DESC Metadata support: add ability for control point to identify
-			// songs by MusicBrainz TrackID or audiotrack-id
-			if (mediaInfo != null && audioMetadata != null && mediaInfo.isAudio()) {
+			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels
+			// so a control point can look up live "now playing" info from the AudioAddict API.
+			boolean isAudioAddictBroadcast = item instanceof AudioAddictBroadcastStream;
+			boolean hasAudioMetadata = mediaInfo != null && mediaInfo.isAudio() && audioMetadata != null;
+			if (hasAudioMetadata || isAudioAddictBroadcast) {
 				// TODO add real namespace
 				Desc desc = new Desc("http://ums/tags");
 				desc.setId("2");
 				desc.setType("ums-tags");
-				desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
-				desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
-				if (audioMetadata.getDiscogsReleaseId() != null) {
-					desc.addMetadata("discogsreleaseid", audioMetadata.getDiscogsReleaseId().toString());
+				if (hasAudioMetadata) {
+					desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
+					desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
+					if (audioMetadata.getDiscogsReleaseId() != null) {
+						desc.addMetadata("discogsreleaseid", audioMetadata.getDiscogsReleaseId().toString());
+					}
+					desc.addMetadata("resourceid", mediaInfo.getResourceId());
+					if (audioMetadata.getDisc() > 0) {
+						desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
+					}
+					if (audioMetadata.getRating() != null) {
+						desc.addMetadata("rating", Integer.toString(audioMetadata.getRating()));
+					}
 				}
-				desc.addMetadata("resourceid", mediaInfo.getResourceId());
-				if (audioMetadata.getDisc() > 0) {
-					desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
-				}
-				if (audioMetadata.getRating() != null) {
-					desc.addMetadata("rating", Integer.toString(audioMetadata.getRating()));
+				if (item instanceof AudioAddictRadioStream audioAddictStream) {
+					if (audioAddictStream.getChannelId() != null) {
+						desc.addMetadata("audioaddictchannelid", audioAddictStream.getChannelId().toString());
+					}
+					if (audioAddictStream.getNetworkShortName() != null) {
+						desc.addMetadata("audioaddictnetwork", audioAddictStream.getNetworkShortName());
+					}
+				} else if (item instanceof AudioAddictPlaylistStream audioAddictPlaylist) {
+					desc.addMetadata("audioaddictplaylistid", Integer.toString(audioAddictPlaylist.getPlaylistId()));
 				}
 				result.addDescription(desc);
 			}

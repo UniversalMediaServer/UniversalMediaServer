@@ -71,6 +71,45 @@ public class AudioAddictService implements EventListener<ConfigurationEvent> {
 		return network.getFilters();
 	}
 
+	public List<AudioAddictPlaylistDto> getPlaylists(Platform platform) {
+		RadioNetwork network = getNetwork(platform);
+		return network.getPlaylists();
+	}
+
+	public List<AudioAddictTrackDto> getPlaylistTracks(Platform platform, int playlistId) {
+		RadioNetwork network = getNetwork(platform);
+		return network.getPlaylistTracks(playlistId);
+	}
+
+	public List<AudioAddictEventDto> getUpcomingEvents(Platform platform) {
+		RadioNetwork network = getNetwork(platform);
+		return network.getUpcomingEvents();
+	}
+
+	public List<AudioAddictTrackDto> getShowEpisodes(Platform platform, String showSlug) {
+		RadioNetwork network = getNetwork(platform);
+		return network.getShowEpisodes(showSlug);
+	}
+
+	public AudioAddictPlayWindow playPlaylist(Platform platform, int playlistId) {
+		RadioNetwork network = getNetwork(platform);
+		return network.playPlaylist(playlistId);
+	}
+
+	public void markPlaylistTrackPlayed(Platform platform, int playlistId, long trackId) {
+		RadioNetwork network = getNetwork(platform);
+		network.markPlayed(playlistId, trackId);
+	}
+
+	/**
+	 * @return the track currently playing on the given channel as "Artist - Title", or NULL when
+	 * unknown.
+	 */
+	public String getCurrentTrackTitle(Platform platform, int channelId) {
+		RadioNetwork network = getNetwork(platform);
+		return network.getCurrentTrackTitle(channelId);
+	}
+
 	@Override
 	public void onEvent(ConfigurationEvent event) {
 		UmsConfiguration ums = PMS.getConfiguration();

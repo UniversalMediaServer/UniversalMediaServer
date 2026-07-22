@@ -4,18 +4,27 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
+import java.time.DateTimeException;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.eclipse.jetty.client.AuthenticationStore;
@@ -24,6 +33,8 @@ import org.eclipse.jetty.client.CompletableResponseListener;
 import org.eclipse.jetty.client.ContentResponse;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.Request;
+import org.eclipse.jetty.client.StringRequestContent;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +42,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import net.pms.PMS;
 import net.pms.external.audioaddict.mapper.ChannelFilter;
 import net.pms.external.audioaddict.mapper.ChannelJson;
+import net.pms.external.audioaddict.mapper.CurrentlyPlayingJson;
+import net.pms.external.audioaddict.mapper.EventJson;
 import net.pms.external.audioaddict.mapper.Favorite;
+import net.pms.external.audioaddict.mapper.Images;
+import net.pms.external.audioaddict.mapper.PlaylistJson;
+import net.pms.external.audioaddict.mapper.PlaylistPlayResponse;
+import net.pms.external.audioaddict.mapper.PlaylistTrackJson;
+import net.pms.external.audioaddict.mapper.PlaylistsResponse;
 import net.pms.external.audioaddict.mapper.Root;
 import net.pms.store.container.audioaddict.INetworkInitialized;
 
@@ -47,10 +66,27 @@ public class RadioNetwork {
 	private final static ExecutorService EXEC_SERVICE = Executors.newSingleThreadExecutor();
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
+	private static final Pattern SESSION_KEY_PATTERN = Pattern.compile(".*session_key\":\\s*\"([\\w\\d]*)\",");
+	private static final DateTimeFormatter EVENT_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
+	private static final DateTimeFormatter EPISODE_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+	// maybe we make it configurable in the future, but for now we limit the number of events to 500
+	private static final int EVENTS_LIMIT = 500;
+
+	// The episodes endpoint caps per_page at 100; we page through it until exhausted (bounded).
+	private static final int EPISODES_PER_PAGE = 100;
+	private static final int EPISODES_MAX_PAGES = 20;
+
+	// Basic auth for "ephemeron:dayeiph0ne@pp" - required by the play
+	private static final String BASIC_AUTH_HEADER = "Basic ZXBoZW1lcm9uOmRheWVpcGgwbmVAcHA=";
 
 	private static String apiKey = null;
 
 	private static String listenKey = null;
+
+	// Server-issued per login (in the member object next to api_key/listen_key). Not used in the
+	// current api_key streaming mode; kept for a possible future per-stream x-session-key mode.
+	private static String sessionKey = null;
 
 	private static boolean authenticated = false;
 
@@ -75,6 +111,23 @@ public class RadioNetwork {
 	private Platform network = null;
 	private volatile boolean successInit = false;
 
+	// Cache of the global "currently playing" track per channel id, refreshed at most every TTL.
+	private static final long CURRENTLY_PLAYING_TTL_MS = 15000;
+	private volatile Map<Integer, String> currentlyPlaying = new HashMap<>();
+	private volatile long currentlyPlayingFetchedAt = 0;
+	private final AtomicBoolean currentlyPlayingRefreshInFlight = new AtomicBoolean(false);
+
+	// Cache for the events/episodes trees. The signed content URLs stay valid for hours,
+	// so a cached tree is safe. TTL is configurable.
+	private volatile List<AudioAddictEventDto> cachedEvents = null;
+	private volatile long cachedEventsAt = 0;
+	private final Map<String, List<AudioAddictTrackDto>> cachedEpisodes = new ConcurrentHashMap<>();
+	private final Map<String, Long> cachedEpisodesAt = new ConcurrentHashMap<>();
+
+	private static long treeCacheTtlMs() {
+		return PMS.getConfiguration().getAudioAddictTreeCacheTtlMinutes() * 60_000L;
+	}
+
 	public RadioNetwork(Platform network, AudioAddictServiceConfig config) {
 		this.config = config;
 		this.network = network;
@@ -93,6 +146,11 @@ public class RadioNetwork {
 		AuthenticationStore auth = httpBatch.getAuthenticationStore();
 		URI uri = URI.create("http://api.audioaddict.com/v1");
 		auth.addAuthenticationResult(new BasicAuthentication.BasicResult(uri, "ephemeron", "dayeiph0ne@pp"));
+
+		// The playlist resources are served over HTTPS and require the same basic authentication.
+		URI secureUri = URI.create("https://api.audioaddict.com/v1");
+		httpBlocking.getAuthenticationStore().addAuthenticationResult(
+			new BasicAuthentication.BasicResult(secureUri, "ephemeron", "dayeiph0ne@pp"));
 
 		httpBatch.setConnectTimeout(30000);
 		httpBlocking.setConnectTimeout(10000);
@@ -181,6 +239,14 @@ public class RadioNetwork {
 		} else {
 			LOGGER.warn("listen-key not found!");
 		}
+		m = SESSION_KEY_PATTERN.matcher(resp);
+		if (m.find()) {
+			sessionKey = m.group(1);
+			LOGGER.info("{} : extracted session_key (length {}) - kept for possible future per-stream session use",
+				network.displayName, sessionKey.length());
+		} else {
+			LOGGER.warn("{} : session-key not found in authenticate response!", network.displayName);
+		}
 	}
 
 	public void updateConfig(AudioAddictServiceConfig config) {
@@ -238,6 +304,7 @@ public class RadioNetwork {
 	private void updateChannels() {
 		LOGGER.debug("{} : updating channels ...", this.network.displayName);
 		channels = new ArrayList<>();
+		Map<Integer, String> genreFilters = buildGenreFilterMap();
 		ChannelFilter allFilter = getChannelByName("all");
 		if (allFilter != null) {
 			for (net.pms.external.audioaddict.mapper.Channel c : allFilter.channels) {
@@ -246,6 +313,7 @@ public class RadioNetwork {
 				dto.id = c.id;
 				dto.key = c.key;
 				dto.name = c.name;
+				dto.genres = joinGenres(c.channelFilterIds, genreFilters);
 				Optional<Channel> s = Arrays.stream(channelUrls).filter(channel -> channel.id() == c.id).findAny();
 				if (s.isPresent()) {
 					dto.streamUrl = s.get().url();
@@ -261,6 +329,61 @@ public class RadioNetwork {
 		} else {
 			LOGGER.warn("ALL filter unavailable. [TODO] Adjust retrieving logic for channels of this notwork.");
 		}
+	}
+
+	/**
+	 * Builds a map of filter id to filter name for the genre filters only (the "genre"
+	 * flag distinguishes real genres from meta filters like "all" or "Favorites").
+	 */
+	private Map<Integer, String> buildGenreFilterMap() {
+		Map<Integer, String> genreFilters = new HashMap<>();
+		if (networkBatchRoot != null && networkBatchRoot.channelFilters != null) {
+			for (ChannelFilter filter : networkBatchRoot.channelFilters) {
+				if (filter.genre) {
+					genreFilters.put(filter.id, filter.name);
+				}
+			}
+		}
+		return genreFilters;
+	}
+
+	/**
+	 * Resolves the genre names of an event from the channels of its show.
+	 */
+	private static String eventGenres(EventJson event, Map<Integer, String> genreFilters) {
+		if (event.show == null || event.show.channels == null) {
+			return null;
+		}
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		for (net.pms.external.audioaddict.mapper.Channel c : event.show.channels) {
+			if (c.channelFilterIds == null) {
+				continue;
+			}
+			for (int id : c.channelFilterIds) {
+				String name = genreFilters.get(id);
+				if (name != null) {
+					names.add(name);
+				}
+			}
+		}
+		return names.isEmpty() ? null : String.join(", ", names);
+	}
+
+	private static String joinGenres(int[] filterIds, Map<Integer, String> genreFilters) {
+		if (filterIds == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int id : filterIds) {
+			String name = genreFilters.get(id);
+			if (name != null) {
+				if (sb.length() > 0) {
+					sb.append(", ");
+				}
+				sb.append(name);
+			}
+		}
+		return sb.length() > 0 ? sb.toString() : null;
 	}
 
 	private ChannelFilter getChannelByName(String filterName) {
@@ -435,5 +558,503 @@ public class RadioNetwork {
 
 	protected static String getListenKey() {
 		return listenKey;
+	}
+
+	protected static String getSessionKey() {
+		return sessionKey;
+	}
+
+	/**
+	 * Reads the list of curated playlists of this network.
+	 *
+	 * @return the available playlists, or an empty list when unavailable.
+	 */
+	public List<AudioAddictPlaylistDto> getPlaylists() {
+		List<AudioAddictPlaylistDto> result = new ArrayList<>();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot read playlists, not authenticated.", network.displayName);
+			return result;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/playlists?api_key=%s", network.shortName, apiKey);
+		try {
+			ContentResponse response = httpBlocking.GET(url);
+			PlaylistsResponse resp = om.readValue(response.getContentAsString(), PlaylistsResponse.class);
+			if (resp.results != null) {
+				for (PlaylistJson p : resp.results) {
+					AudioAddictPlaylistDto dto = new AudioAddictPlaylistDto();
+					dto.id = p.id;
+					dto.name = p.name;
+					dto.description = p.description;
+					dto.duration = p.duration;
+					dto.trackCount = p.trackCount;
+					dto.albumArt = imageUrlFromMap(p.images);
+					result.add(dto);
+				}
+			}
+			LOGGER.info("{} : received {} playlists.", network.displayName, result.size());
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading playlists", network.displayName, e);
+		}
+		return result;
+	}
+
+	/**
+	 * Reads the ordered tracks of a single playlist. The returned content URLs are signed,
+	 * IP bound and expire shortly, so this must be called close to playback time and the
+	 * result must not be cached.
+	 *
+	 * @param playlistId the playlist id.
+	 * @return the playlist tracks, or an empty list when unavailable.
+	 */
+	public List<AudioAddictTrackDto> getPlaylistTracks(int playlistId) {
+		List<AudioAddictTrackDto> result = new ArrayList<>();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot read playlist tracks, not authenticated.", network.displayName);
+			return result;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/playlists/%d/play?api_key=%s", network.shortName, playlistId,
+			apiKey);
+		try {
+			ContentResponse response = httpBlocking.POST(url).send();
+			PlaylistPlayResponse resp = om.readValue(response.getContentAsString(), PlaylistPlayResponse.class);
+			if (resp.tracks != null) {
+				for (PlaylistTrackJson t : resp.tracks) {
+					String contentUrl = firstContentUrl(t);
+					if (contentUrl == null) {
+						LOGGER.warn("{} : no playable content for track {}", network.displayName, t.id);
+						continue;
+					}
+					AudioAddictTrackDto dto = new AudioAddictTrackDto();
+					dto.id = t.id;
+					dto.title = t.displayTitle != null ? t.displayTitle : t.track;
+					dto.artist = t.displayArtist;
+					dto.length = t.length;
+					dto.contentUrl = contentUrl;
+					dto.albumArt = normalizeUrl(t.assetUrl);
+					result.add(dto);
+				}
+			}
+			LOGGER.info("{} : received {} tracks for playlist {}.", network.displayName, result.size(), playlistId);
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading tracks for playlist {}", network.displayName, playlistId, e);
+		}
+		return result;
+	}
+
+	/**
+	 * Reads the upcoming events (scheduled show episodes), one per show. The recent/older episodes of
+	 * each show are not read here; they are fetched lazily. The result is cached for a while.
+	 *
+	 * @return the upcoming events
+	 */
+	public synchronized List<AudioAddictEventDto> getUpcomingEvents() {
+		long now = System.currentTimeMillis();
+		if (cachedEvents != null && now - cachedEventsAt < treeCacheTtlMs()) {
+			return cachedEvents;
+		}
+		List<AudioAddictEventDto> result = fetchUpcomingEvents();
+		if (!result.isEmpty()) {
+			cachedEvents = result;
+			cachedEventsAt = now;
+		}
+		return result;
+	}
+
+	private List<AudioAddictEventDto> fetchUpcomingEvents() {
+		List<AudioAddictEventDto> result = new ArrayList<>();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot read events, not authenticated.", network.displayName);
+			return result;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/events/upcoming?limit=%d&api_key=%s", network.shortName,
+			EVENTS_LIMIT, apiKey);
+		try {
+			Request request = httpBlocking.newRequest(url);
+			CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
+			ContentResponse response = completable.get(30, TimeUnit.SECONDS);
+			EventJson[] events = om.readValue(response.getContentAsString(), EventJson[].class);
+			Map<Integer, String> genreFilters = buildGenreFilterMap();
+			for (EventJson event : events) {
+				if (event.show == null || event.show.slug == null) {
+					continue;
+				}
+				AudioAddictEventDto ev = new AudioAddictEventDto();
+				ev.showId = event.show.id;
+				ev.showSlug = event.show.slug;
+				ev.showName = event.show.name;
+				ev.ondemandEpisodeCount = event.show.ondemandEpisodeCount;
+				// The show folder is thumbnailed with the show's own artwork; this is available even
+				// for shows whose current episode has not aired yet (which have no episode cover).
+				ev.albumArt = imageUrlFromImages(event.show.images);
+				if (event.tracks != null && !event.tracks.isEmpty()) {
+					PlaylistTrackJson t = event.tracks.get(0);
+					String contentUrl = firstContentUrl(t);
+					if (contentUrl != null) {
+						AudioAddictTrackDto dto = new AudioAddictTrackDto();
+						dto.id = t.id;
+						dto.title = t.displayTitle != null ? t.displayTitle : (event.name != null ? event.name : t.track);
+						dto.artist = t.displayArtist;
+						dto.length = t.length;
+						dto.contentUrl = contentUrl;
+						dto.albumArt = normalizeUrl(t.assetUrl);
+						if (dto.albumArt == null) {
+							// If no cover of its own; fall back to the show artwork so the event item still gets a thumbnail.
+							dto.albumArt = ev.albumArt;
+						}
+						dto.startLabel = formatEventStart(event.startAt);
+						dto.genres = eventGenres(event, genreFilters);
+						dto.album = event.show.name;
+						ev.currentEpisode = dto;
+						if (ev.albumArt == null) {
+							ev.albumArt = dto.albumArt;
+						}
+					}
+				}
+				result.add(ev);
+			}
+			LOGGER.info("{} : received {} upcoming events.", network.displayName, result.size());
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading events", network.displayName, e);
+		}
+		return result;
+	}
+
+	/**
+	 * Reads the recent, playable on-demand episodes of a single show, newest first. The number of
+	 * episodes actually available for playback is server side and varies per show.
+	 *
+	 * @param showSlug the show slug
+	 * @return the playable episodes as tracks, or an empty list when unavailable.
+	 */
+	public synchronized List<AudioAddictTrackDto> getShowEpisodes(String showSlug) {
+		if (showSlug == null) {
+			return new ArrayList<>();
+		}
+		long now = System.currentTimeMillis();
+		List<AudioAddictTrackDto> cached = cachedEpisodes.get(showSlug);
+		Long cachedAt = cachedEpisodesAt.get(showSlug);
+		if (cached != null && cachedAt != null && now - cachedAt < treeCacheTtlMs()) {
+			return cached;
+		}
+		List<AudioAddictTrackDto> result = fetchShowEpisodes(showSlug);
+		if (!result.isEmpty()) {
+			cachedEpisodes.put(showSlug, result);
+			cachedEpisodesAt.put(showSlug, now);
+		}
+		return result;
+	}
+
+	private List<AudioAddictTrackDto> fetchShowEpisodes(String showSlug) {
+		List<AudioAddictTrackDto> result = new ArrayList<>();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot read episodes, not authenticated.", network.displayName);
+			return result;
+		}
+		try {
+			for (int page = 1; page <= EPISODES_MAX_PAGES; page++) {
+				String url = String.format("https://api.audioaddict.com/v1/%s/shows/%s/episodes?per_page=%d&page=%d&api_key=%s",
+					network.shortName, showSlug, EPISODES_PER_PAGE, page, apiKey);
+				ContentResponse response = httpBlocking.GET(url);
+				EventJson[] episodes = om.readValue(response.getContentAsString(), EventJson[].class);
+				if (episodes.length == 0) {
+					break;
+				}
+				for (EventJson episode : episodes) {
+					if (episode.tracks == null || episode.tracks.isEmpty()) {
+						continue;
+					}
+					PlaylistTrackJson t = episode.tracks.get(0);
+					String contentUrl = firstContentUrl(t);
+					if (contentUrl == null) {
+						// Upcoming episode that has not aired yet - no playable content.
+						continue;
+					}
+					AudioAddictTrackDto dto = new AudioAddictTrackDto();
+					dto.id = t.id;
+					dto.title = t.displayTitle != null ? t.displayTitle : (episode.name != null ? episode.name : t.track);
+					dto.artist = t.displayArtist;
+					dto.length = t.length;
+					dto.contentUrl = contentUrl;
+					dto.albumArt = normalizeUrl(t.assetUrl);
+					dto.startLabel = formatEpisodeDate(episode.startAt);
+					dto.episodeNumber = episode.slug;
+					result.add(dto);
+				}
+				if (episodes.length < EPISODES_PER_PAGE) {
+					break;
+				}
+			}
+			LOGGER.info("{} : received {} episodes for show {}.", network.displayName, result.size(), showSlug);
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading episodes for show {}", network.displayName, showSlug, e);
+		}
+		return result;
+	}
+
+	/**
+	 * Parses an event start time (ISO-8601 with offset "2026-06-16T04:00:00-04:00"
+	 * and formats it in the local time zone of the host running UMS.
+	 */
+	private static String formatEventStart(String startAt) {
+		if (startAt == null) {
+			return null;
+		}
+		try {
+			return OffsetDateTime.parse(startAt).atZoneSameInstant(ZoneId.systemDefault()).format(EVENT_TIME_FORMAT);
+		} catch (DateTimeException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Formats an episode air date (ISO-8601 with offset) as a local date "dd.MM.yyyy". Episodes can
+	 * span several years, so the year is included.
+	 */
+	private static String formatEpisodeDate(String startAt) {
+		if (startAt == null) {
+			return null;
+		}
+		try {
+			return OffsetDateTime.parse(startAt).atZoneSameInstant(ZoneId.systemDefault()).format(EPISODE_DATE_FORMAT);
+		} catch (DateTimeException e) {
+			return null;
+		}
+	}
+
+
+	/**
+	 * Requests the next window of a playlist play session. AudioAddict tracks the playback
+	 * progress per member. "markPlayed" calls advance it, so consecutive requests walk the playlist
+	 * until "lastTracks" is set "remainingTracks" reaches 0.
+	 *
+	 * @param playlistId the playlist id.
+	 */
+	public AudioAddictPlayWindow playPlaylist(int playlistId) {
+		AudioAddictPlayWindow window = new AudioAddictPlayWindow();
+		if (apiKey == null) {
+			LOGGER.warn("{} : cannot play playlist, not authenticated.", network.displayName);
+			return window;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/playlists/%d/play?api_key=%s", network.shortName, playlistId,
+			apiKey);
+		try {
+			ContentResponse response = httpBlocking.newRequest(url)
+				.method(HttpMethod.POST)
+				.headers(headers -> {
+					headers.put("Authorization", BASIC_AUTH_HEADER);
+					headers.put("Content-Type", "application/json");
+				})
+				.send();
+			String content = response.getContentAsString();
+			if (response.getStatus() != 200 || content == null || !content.startsWith("{")) {
+				LOGGER.warn("{} : play playlist {} returned HTTP {} : {}", network.displayName, playlistId, response.getStatus(),
+					abbreviate(content));
+				return window;
+			}
+			PlaylistPlayResponse resp = om.readValue(content, PlaylistPlayResponse.class);
+			window.lastTracks = resp.lastTracks;
+			if (resp.currentProgress != null) {
+				window.remainingTracks = resp.currentProgress.remainingTracks;
+			}
+			if (resp.tracks != null) {
+				for (PlaylistTrackJson t : resp.tracks) {
+					AudioAddictTrackDto dto = toTrackDto(t);
+					if (dto != null) {
+						window.tracks.add(dto);
+					}
+				}
+			}
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : play playlist {} failed", network.displayName, playlistId, e);
+		}
+		return window;
+	}
+
+	/**
+	 * Marks a track of a playlist as played to advance the member's playback progress for this
+	 * playlist.
+	 */
+	public void markPlayed(int playlistId, long trackId) {
+		if (apiKey == null) {
+			return;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/listen_history?api_key=%s", network.shortName, apiKey);
+		String body = String.format("{\"track_id\":%d,\"playlist_id\":%d}", trackId, playlistId);
+		try {
+			httpBlocking.newRequest(url)
+				.method(HttpMethod.POST)
+				.headers(headers -> {
+					headers.put("Authorization", BASIC_AUTH_HEADER);
+				})
+				.body(new StringRequestContent("application/json", body))
+				.send();
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			LOGGER.warn("{} : listen_history for track {} failed", network.displayName, trackId, e);
+		}
+	}
+
+	/**
+	 * @param channelId the channel id.
+	 * @return the currently playing track on that channel as "Artist - Title", or NULL when unknown.
+	 */
+	public String getCurrentTrackTitle(int channelId) {
+		triggerCurrentlyPlayingRefreshIfStale();
+		return currentlyPlaying.get(channelId);
+	}
+
+	private void triggerCurrentlyPlayingRefreshIfStale() {
+		if (System.currentTimeMillis() - currentlyPlayingFetchedAt < CURRENTLY_PLAYING_TTL_MS) {
+			return;
+		}
+		// Only one refresh at a time; mark the timestamp up front so failures don't hammer the API.
+		if (!currentlyPlayingRefreshInFlight.compareAndSet(false, true)) {
+			return;
+		}
+		currentlyPlayingFetchedAt = System.currentTimeMillis();
+		EXEC_SERVICE.submit(() -> {
+			try {
+				fetchCurrentlyPlaying();
+			} catch (Exception e) {
+				LOGGER.warn("{} : failed to refresh currently_playing", network.displayName, e);
+			} finally {
+				currentlyPlayingRefreshInFlight.set(false);
+			}
+		});
+	}
+
+	private void fetchCurrentlyPlaying() throws InterruptedException, ExecutionException, TimeoutException, JsonProcessingException {
+		String url = String.format("https://api.audioaddict.com/v1/%s/currently_playing", network.shortName);
+		ContentResponse response = httpBlocking.newRequest(url).method(HttpMethod.GET).send();
+		String content = response.getContentAsString();
+		if (response.getStatus() != 200 || content == null || !content.startsWith("[")) {
+			LOGGER.warn("{} : currently_playing returned HTTP {} : {}", network.displayName, response.getStatus(),
+				abbreviate(content));
+			return;
+		}
+		CurrentlyPlayingJson[] entries = om.readValue(content, CurrentlyPlayingJson[].class);
+		Map<Integer, String> map = new HashMap<>();
+		for (CurrentlyPlayingJson e : entries) {
+			if (e.channelId == null || e.track == null) {
+				continue;
+			}
+			String title = formatCurrentTitle(e.track);
+			if (title != null) {
+				map.put(e.channelId, title);
+			}
+		}
+		currentlyPlaying = map;
+		LOGGER.debug("{} : refreshed currently_playing for {} channels", network.displayName, map.size());
+	}
+
+	private static String formatCurrentTitle(CurrentlyPlayingJson.Track t) {
+		String artist = firstNonBlank(t.displayArtist, t.artist);
+		String title = firstNonBlank(t.displayTitle, t.title);
+		if (artist != null && title != null) {
+			return artist + " - " + title;
+		}
+		if (t.track != null && !t.track.isBlank()) {
+			return t.track;
+		}
+		return title;
+	}
+
+	private static String firstNonBlank(String a, String b) {
+		if (a != null && !a.isBlank()) {
+			return a;
+		}
+		if (b != null && !b.isBlank()) {
+			return b;
+		}
+		return null;
+	}
+
+	private static AudioAddictTrackDto toTrackDto(PlaylistTrackJson t) {
+		String contentUrl = firstContentUrl(t);
+		if (contentUrl == null) {
+			return null;
+		}
+		AudioAddictTrackDto dto = new AudioAddictTrackDto();
+		dto.id = t.id;
+		dto.title = t.displayTitle != null ? t.displayTitle : t.track;
+		dto.artist = t.displayArtist;
+		dto.length = t.length;
+		dto.contentUrl = contentUrl;
+		dto.albumArt = normalizeUrl(t.assetUrl);
+		return dto;
+	}
+
+	private static String firstContentUrl(PlaylistTrackJson track) {
+		if (track.content == null || track.content.assets == null || track.content.assets.isEmpty()) {
+			return null;
+		}
+		return normalizeUrl(track.content.assets.get(0).url);
+	}
+
+	/**
+	 * Picks a square-ish artwork URL from a show's {@link Images} (used as the show-folder thumbnail),
+	 * stripping the URL template. Prefers square, then the default/compact/vertical variants.
+	 */
+	private static String imageUrlFromImages(Images images) {
+		if (images == null) {
+			return null;
+		}
+		String image = images.square;
+		if (image == null) {
+			image = images.mydefault;
+		}
+		if (image == null) {
+			image = images.compact;
+		}
+		if (image == null) {
+			image = images.vertical;
+		}
+		if (image == null) {
+			return null;
+		}
+		int templateStart = image.indexOf('{');
+		if (templateStart > -1) {
+			image = image.substring(0, templateStart);
+		}
+		return normalizeUrl(image);
+	}
+
+	private static String imageUrlFromMap(Map<String, String> images) {
+		if (images == null) {
+			return null;
+		}
+		String image = images.get("square");
+		if (image == null) {
+			image = images.get("default");
+		}
+		if (image == null) {
+			return null;
+		}
+		int templateStart = image.indexOf('{');
+		if (templateStart > -1) {
+			image = image.substring(0, templateStart);
+		}
+		return normalizeUrl(image);
+	}
+
+	/**
+	 * AudioAddict serves protocol relative URLs (starting with "//"). Prepend the
+	 * scheme so the URL can be opened directly.
+	 */
+	private static String normalizeUrl(String url) {
+		if (url == null) {
+			return null;
+		}
+		if (url.startsWith("//")) {
+			return "https:" + url;
+		}
+		return url;
+	}
+
+	private static String abbreviate(String s) {
+		if (s == null) {
+			return "null";
+		}
+		String trimmed = s.strip();
+		return trimmed.length() <= 300 ? trimmed : trimmed.substring(0, 300) + "...";
 	}
 }
