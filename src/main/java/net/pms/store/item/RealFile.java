@@ -283,7 +283,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 					break;
 				}
 			}
-			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() instanceof VirtualFolder virtualFolder) {
+			if (cachedThumbnail == null && (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) && getParent() instanceof VirtualFolder virtualFolder) {
 				cachedThumbnail = virtualFolder.getPotentialCover();
 			}
 		}
