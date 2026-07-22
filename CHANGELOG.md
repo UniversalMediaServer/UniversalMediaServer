@@ -8,6 +8,7 @@
 - Bump `axios` from 1.16.0 to 1.18.1 ([#6249](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6249))
 - Bump `brace-expansion` from 1.1.14 to 1.1.16 ([#6256](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6256))
 - Bump `com.auth0:java-jwt` from 4.5.2 to 4.6.0 ([#6251](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6251))
+- Bump `js-yaml` from 4.2.0 to 4.3.0 ([#6257](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6257))
 - Bump `tar` from 7.5.16 to 7.5.20 ([#6258](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6258))
 
 ## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-15)
