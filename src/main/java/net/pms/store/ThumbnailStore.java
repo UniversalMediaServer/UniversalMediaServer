@@ -16,25 +16,31 @@
  */
 package net.pms.store;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
+import net.pms.dlna.DLNAProfileException;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.external.JavaHttpClient;
+import net.pms.network.HTTPResource;
 
 public class ThumbnailStore {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailStore.class.getName());
 
 	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new HashMap<>();
+	// Thumbnails already generated for a given remote image URL.
+	private static final Map<String, Long> URL_THUMBNAIL_IDS = new ConcurrentHashMap<>();
 
 	private static Long tempId = Long.MAX_VALUE;
 
@@ -175,6 +181,39 @@ public class ThumbnailStore {
 				MediaDatabase.close(connection);
 			}
 		}
+	}
+
+	/**
+	 * Returns a thumbnail for a remote image URL, generating it on first use and reusing it
+	 * afterwards. The thumbnail is stored (DB-backed) and remembered per URL.
+	 */
+	public static DLNAThumbnailInputStream getThumbnailInputStreamForUrl(String url) throws IOException {
+		if (url == null) {
+			return null;
+		}
+		Long cachedId = URL_THUMBNAIL_IDS.get(url);
+		if (cachedId != null) {
+			DLNAThumbnailInputStream cached = getThumbnailInputStream(cachedId);
+			if (cached != null) {
+				return cached;
+			}
+		}
+		long start = System.currentTimeMillis();
+		DLNAThumbnailInputStream generated = DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.downloadAndSend(url, true));
+		if (generated != null) {
+			try {
+				Long id = getId(generated.getThumbnail());
+				if (id != null) {
+					URL_THUMBNAIL_IDS.put(url, id);
+				}
+			} catch (DLNAProfileException e) {
+				LOGGER.trace("Could not cache thumbnail for {}: {}", url, e.getMessage());
+			}
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Prepared thumbnail from {} in {} ms", url, System.currentTimeMillis() - start);
+			}
+		}
+		return generated;
 	}
 
 }
