@@ -692,6 +692,9 @@ public class RadioNetwork {
 					if (contentUrl != null) {
 						AudioAddictTrackDto dto = new AudioAddictTrackDto();
 						dto.id = t.id;
+						// Tie the store-item identity to the scheduled event (show + start time).
+						// This keeps the resource id (and thus the thumbnail URL) stable across browses.
+						dto.stableSystemName = "audioaddict-event-" + event.show.slug + "-" + event.startAt + ".mp3";
 						dto.title = t.displayTitle != null ? t.displayTitle : (event.name != null ? event.name : t.track);
 						dto.artist = t.displayArtist;
 						dto.length = t.length;

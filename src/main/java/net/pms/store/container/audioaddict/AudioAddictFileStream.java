@@ -68,7 +68,8 @@ public class AudioAddictFileStream extends WebAudioStream {
 		}
 
 		String title = track.startLabel != null ? (track.startLabel + "  " + track.title) : track.title;
-		AudioAddictFileStream sr = new AudioAddictFileStream(renderer, title, track.contentUrl, track.albumArt, "audioaddict-" + track.id + ".mp3");
+		String systemName = track.stableSystemName != null ? track.stableSystemName : ("audioaddict-" + track.id + ".mp3");
+		AudioAddictFileStream sr = new AudioAddictFileStream(renderer, title, track.contentUrl, track.albumArt, systemName);
 		sr.setMediaInfo(mi);
 		return sr;
 	}

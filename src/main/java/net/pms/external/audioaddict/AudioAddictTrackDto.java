@@ -10,6 +10,13 @@ public class AudioAddictTrackDto {
 	public String albumArt;
 
 	/**
+	 * Stable system name for the store item, independent of the (per-fetch, time-limited)
+	 * content id. Used for events so the resource id stays the same across browses/refreshes
+	 * of the same scheduled event.
+	 */
+	public String stableSystemName;
+
+	/**
 	 * Localized start time label for events (e.g. "16.06. 10:00");
 	 */
 	public String startLabel;
