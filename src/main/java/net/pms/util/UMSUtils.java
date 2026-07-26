@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.OutputParams;
@@ -301,5 +302,33 @@ public class UMSUtils {
 		Pattern compiledPattern = Pattern.compile(pattern);
 		Matcher matcher = compiledPattern.matcher(youTubeUrl);
 		return matcher.find();
+	}
+
+	/**
+	 * Builds an HTML-formatted tooltip using translated labels.
+	 * 
+	 * @param defaultValue The default value string to display, or null if none.
+	 * @param notes The notes string to display, or null if none.
+	 * @return The HTML-formatted tooltip string, or null if both are null/empty.
+	 */
+	public static String buildTooltip(String defaultValue, String notes) {
+		if (StringUtils.isEmpty(defaultValue) && StringUtils.isEmpty(notes)) {
+			return null;
+		}
+
+		StringBuilder sb = new StringBuilder("<html>");
+		if (StringUtils.isNotEmpty(defaultValue)) {
+			sb.append("<strong>").append(Messages.getGuiString("Default")).append(":</strong> ").append(defaultValue);
+		}
+		
+		if (StringUtils.isNotEmpty(notes)) {
+			if (StringUtils.isNotEmpty(defaultValue)) {
+				sb.append("<br>");
+			}
+			sb.append("<strong>").append(Messages.getGuiString("Notes")).append(":</strong> ").append(notes);
+		}
+		
+		sb.append("</html>");
+		return sb.toString();
 	}
 }

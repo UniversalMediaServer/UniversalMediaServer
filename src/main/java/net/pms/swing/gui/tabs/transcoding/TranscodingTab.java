@@ -394,7 +394,7 @@ public class TranscodingTab {
 			builder.add(SwingUtil.getPreferredSizeComponent(disableTranscoding)).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			builder.add(new JLabel(Messages.getGuiString("SkipTranscodingFollowingExtensions"))).at(FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 			notranscode = new JTextField(configuration.getDisableTranscodeForExtensions());
-			notranscode.setToolTipText(Messages.getGuiString("ThisOverridesRendererConfiguration"));
+			notranscode.setToolTipText(UMSUtils.buildTooltip(null, Messages.getGuiString("ThisOverridesRendererConfiguration")));
 			notranscode.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -405,7 +405,7 @@ public class TranscodingTab {
 
 			builder.addLabel(Messages.getGuiString("ForceTranscodingFollowingExtensions")).at(FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 			forcetranscode = new JTextField(configuration.getForceTranscodeForExtensions());
-			forcetranscode.setToolTipText(Messages.getGuiString("ThisOverridesRendererConfiguration"));
+			forcetranscode.setToolTipText(UMSUtils.buildTooltip(null, Messages.getGuiString("ThisOverridesRendererConfiguration")));
 			forcetranscode.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -416,7 +416,7 @@ public class TranscodingTab {
 
 			builder.addLabel(Messages.getGuiString("MaximumTranscodeBufferSize")).at(FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
-			maxbuffer.setToolTipText(Messages.getGuiString("UsingSettingHigherThan200"));
+			maxbuffer.setToolTipText(UMSUtils.buildTooltip("200", Messages.getGuiString("UsingSettingHigherThan200")));
 			maxbuffer.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -480,7 +480,7 @@ public class TranscodingTab {
 		videoHWacceleration.setEnabled(false);
 
 		JCheckBox mpeg2remux = new JCheckBox(Messages.getGuiString("LosslessDvdVideoPlayback"), configuration.isMencoderRemuxMPEG2());
-		mpeg2remux.setToolTipText(Messages.getGuiString("WhenEnabledMuxesDvd") + (Platform.isWindows() ? " " + Messages.getGuiString("AviSynthNotSupported") : "") + "</html>");
+		mpeg2remux.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Enabled"), Messages.getGuiString("WhenEnabledMuxesDvd")) + (Platform.isWindows() ? " " + Messages.getGuiString("AviSynthNotSupported") : ""));
 		mpeg2remux.setContentAreaFilled(false);
 		mpeg2remux.addItemListener((ItemEvent e) -> configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(SwingUtil.getPreferredSizeComponent(mpeg2remux)).at(FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
@@ -524,7 +524,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 
 		vq = new JComboBox<>(mPEG2MainModel);
 		vq.setPreferredSize(getPreferredHeight(vq));
-		vq.setToolTipText(Messages.getGuiString("AutomaticWiredOrWireless"));
+		vq.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("AutomaticWiredOrWirelessTitle"), Messages.getGuiString("AutomaticWiredOrWireless")));
 		mPEG2MainModel.setSelectedKey(configuration.getMPEG2MainSettings());
 		vq.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		vq.addItemListener((ItemEvent e) -> {
@@ -553,7 +553,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 
 		x264Quality = new JComboBox<>(x264QualityModel);
 		x264Quality.setPreferredSize(getPreferredHeight(x264Quality));
-		x264Quality.setToolTipText(Messages.getGuiString("AutomaticSettingServeBestQuality"));
+		x264Quality.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Automatic"), Messages.getGuiString("AutomaticSettingServeBestQuality")));
 		x264QualityModel.setSelectedKey(configuration.getx264ConstantRateFactor());
 		x264Quality.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		x264Quality.addItemListener((ItemEvent e) -> {
@@ -593,26 +593,26 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 		builder.add(SwingUtil.getPreferredSizeComponent(channels)).at(FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
 		JCheckBox forcePCM = new JCheckBox(Messages.getGuiString("UseLpcmForAudio"), configuration.isAudioUsePCM());
-		forcePCM.setToolTipText(Messages.getGuiString("ThisOptionLosslessNotBest"));
+		forcePCM.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("ThisOptionLosslessNotBest")));
 		forcePCM.setContentAreaFilled(false);
 		forcePCM.addItemListener((ItemEvent e) -> configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(forcePCM)).at(FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
 		JCheckBox ac3remux = new JCheckBox(Messages.getGuiString("KeepAc3Tracks"), configuration.isAudioRemuxAC3());
-		ac3remux.setToolTipText(Messages.getGuiString("ThisOptionLosslessVeryStable") + (Platform.isWindows() ? " " + Messages.getGuiString("AviSynthNotSupported") : "") + "</html>");
+		ac3remux.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Enabled"), Messages.getGuiString("ThisOptionLosslessVeryStable")) + (Platform.isWindows() ? " " + Messages.getGuiString("AviSynthNotSupported") : ""));
 		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
 		ac3remux.addItemListener((ItemEvent e) -> configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(SwingUtil.getPreferredSizeComponent(ac3remux)).at(FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
 		JCheckBox forceDTSinPCM = new JCheckBox(Messages.getGuiString("KeepDtsTracks"), configuration.isAudioEmbedDtsInPcm());
-		forceDTSinPCM.setToolTipText(Messages.getGuiString("ThisOptionLosslessUnstable") + (Platform.isWindows() ? " " + Messages.getGuiString("AviSynthNotSupported") : "") + "</html>");
+		forceDTSinPCM.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("ThisOptionLosslessUnstable")) + (Platform.isWindows() ? " " + Messages.getGuiString("AviSynthNotSupported") : ""));
 		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener((ActionEvent e) -> configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected()));
 		builder.add(SwingUtil.getPreferredSizeComponent(forceDTSinPCM)).at(FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
 		JCheckBox encodedAudioPassthrough = new JCheckBox(Messages.getGuiString("EncodedAudioPassthrough"), configuration.isEncodedAudioPassthrough());
-		encodedAudioPassthrough.setToolTipText(Messages.getGuiString("ThisOptionLossless") + (Platform.isWindows() ? " " + Messages.getGuiString("AviSynthNotSupported") : "") + "</html>");
+		encodedAudioPassthrough.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("ThisOptionLossless")) + (Platform.isWindows() ? " " + Messages.getGuiString("AviSynthNotSupported") : ""));
 		encodedAudioPassthrough.setContentAreaFilled(false);
 		encodedAudioPassthrough.addItemListener((ItemEvent e) -> {
 			configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
@@ -638,7 +638,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 
 		builder.addLabel(Messages.getGuiString("AudioLanguagePriority")).at(FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
-		langs.setToolTipText(Messages.getGuiString("YouCanRearrangeOrderAudio"));
+		langs.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("DependsOnProgramLanguageUsually") + " \"eng,fre,jpn,ger,und\"", Messages.getGuiString("YouCanRearrangeOrderAudio")));
 		langs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -664,7 +664,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 
 		builder.addLabel(Messages.getGuiString("SubtitlesLanguagePriority")).at(FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
-		defaultsubs.setToolTipText(Messages.getGuiString("YouCanRearrangeOrderSubtitles"));
+		defaultsubs.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("DependsOnProgramLanguageUsually") + " \"eng,fre,jpn,ger,und\"", Messages.getGuiString("YouCanRearrangeOrderSubtitles")));
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -695,7 +695,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 
 		builder.addLabel(Messages.getGuiString("AudioSubtitlesLanguagePriority")).at(FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
-		defaultaudiosubs.setToolTipText(Messages.getGuiString("AnExplanationDefaultValueAudio"));
+		defaultaudiosubs.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("DependsOnProgramLanguageUsually") + " \"eng,off;*,eng;*,und\"", Messages.getGuiString("AnExplanationDefaultValueAudio")));
 		defaultaudiosubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -790,7 +790,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
 		JComboBox<String> subtitleCodePage = new JComboBox<>(subtitleCodePageModel);
 		subtitleCodePage.setPreferredSize(getPreferredHeight(subtitleCodePage));
-		subtitleCodePage.setToolTipText(Messages.getGuiString("YouFindListSupportedCharacter"));
+		subtitleCodePage.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("AutoDetect"), Messages.getGuiString("YouFindListSupportedCharacter")));
 		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -809,7 +809,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 
 		builder.addLabel(Messages.getGuiString("SpecifyTruetypeFont")).at(FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getFont());
-		defaultfont.setToolTipText(Messages.getGuiString("ToUseFontMustBeRegistered"));
+		defaultfont.setToolTipText(UMSUtils.buildTooltip(null, Messages.getGuiString("ToUseFontMustBeRegistered")));
 		defaultfont.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -887,7 +887,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 		builder.add(flowPanel).at(FormLayoutUtil.flip(cc.xyw(3, 16, 13), colSpec, orientation));
 
 		JCheckBox autoloadExternalSubtitles = new JCheckBox(Messages.getGuiString("AutomaticallyLoadSrtSubtitles"), configuration.isAutoloadExternalSubtitles());
-		autoloadExternalSubtitles.setToolTipText(Messages.getGuiString("IfEnabledExternalSubtitlesPrioritized"));
+		autoloadExternalSubtitles.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Enabled"), Messages.getGuiString("IfEnabledExternalSubtitlesPrioritized")));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
 		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 		autoloadExternalSubtitles.addItemListener((ItemEvent e) -> configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED)));
@@ -916,7 +916,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 		builder.add(subColor).at(FormLayoutUtil.flip(cc.xyw(11, 18, 5), colSpec, orientation));
 
 		JCheckBox forceExternalSubtitles = new JCheckBox(Messages.getGuiString("ForceExternalSubtitles"), configuration.isForceExternalSubtitles());
-		forceExternalSubtitles.setToolTipText(Messages.getGuiString("IfEnabledExternalSubtitlesAlways"));
+		forceExternalSubtitles.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Enabled"), Messages.getGuiString("IfEnabledExternalSubtitlesAlways")));
 		forceExternalSubtitles.setContentAreaFilled(false);
 		forceExternalSubtitles.addItemListener((ItemEvent e) -> {
 			configuration.setForceExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
@@ -928,7 +928,7 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 		builder.add(SwingUtil.getPreferredSizeComponent(forceExternalSubtitles)).at(FormLayoutUtil.flip(cc.xyw(1, 20, 6), colSpec, orientation));
 
 		JCheckBox useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getGuiString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle());
-		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getGuiString("IfEnabledWontModifySubtitlesStyling"));
+		useEmbeddedSubtitlesStyle.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Enabled"), Messages.getGuiString("IfEnabledWontModifySubtitlesStyling")));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
 		useEmbeddedSubtitlesStyle.addItemListener((ItemEvent e) -> configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle)).at(FormLayoutUtil.flip(cc.xyw(1, 22, 4), colSpec, orientation));
