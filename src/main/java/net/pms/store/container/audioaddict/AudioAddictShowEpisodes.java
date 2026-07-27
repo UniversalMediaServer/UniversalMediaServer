@@ -21,7 +21,7 @@ public class AudioAddictShowEpisodes extends StoreContainer {
 	private final Platform network;
 	private final String showSlug;
 	private final String thumb;
-	private volatile boolean populated = false;
+	private volatile long builtAt = 0;
 
 	public AudioAddictShowEpisodes(Renderer renderer, Platform network, String showSlug, String showName, String thumb) {
 		super(renderer, showName != null ? showName : showSlug, thumb);
@@ -32,11 +32,10 @@ public class AudioAddictShowEpisodes extends StoreContainer {
 
 	@Override
 	public synchronized void discoverChildren() {
-		if (populated) {
+		if (!needsRebuild()) {
 			return;
 		}
-		addEpisodes();
-		populated = true;
+		rebuild();
 	}
 
 	@Override
@@ -47,9 +46,17 @@ public class AudioAddictShowEpisodes extends StoreContainer {
 
 	@Override
 	public synchronized void doRefreshChildren() {
+		rebuild();
+	}
+
+	private void rebuild() {
 		clearChildren();
 		addEpisodes();
-		populated = true;
+		builtAt = System.currentTimeMillis();
+	}
+
+	private boolean needsRebuild() {
+		return getChildren().isEmpty() || builtAt < AudioAddictService.get().getShowEpisodesFetchedAt(network, showSlug);
 	}
 
 	private void addEpisodes() {

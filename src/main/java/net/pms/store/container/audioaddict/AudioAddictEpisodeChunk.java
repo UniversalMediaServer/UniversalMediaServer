@@ -13,7 +13,6 @@ import net.pms.store.StoreContainer;
 public class AudioAddictEpisodeChunk extends StoreContainer {
 
 	private final List<AudioAddictTrackDto> episodes;
-	private volatile boolean populated = false;
 
 	public AudioAddictEpisodeChunk(Renderer renderer, String label, String thumb, List<AudioAddictTrackDto> episodes) {
 		super(renderer, label, thumb);
@@ -22,12 +21,11 @@ public class AudioAddictEpisodeChunk extends StoreContainer {
 
 	@Override
 	public synchronized void discoverChildren() {
-		if (populated) {
+		if (!getChildren().isEmpty()) {
 			return;
 		}
 		for (AudioAddictTrackDto episode : episodes) {
 			addChild(AudioAddictFileStream.from(renderer, episode));
 		}
-		populated = true;
 	}
 }

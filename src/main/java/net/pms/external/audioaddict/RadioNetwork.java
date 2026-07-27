@@ -660,6 +660,15 @@ public class RadioNetwork {
 		return result;
 	}
 
+	public long getUpcomingEventsFetchedAt() {
+		return cachedEventsAt;
+	}
+
+	public long getShowEpisodesFetchedAt(String showSlug) {
+		Long at = cachedEpisodesAt.get(showSlug);
+		return at != null ? at : 0L;
+	}
+
 	private List<AudioAddictEventDto> fetchUpcomingEvents() {
 		List<AudioAddictEventDto> result = new ArrayList<>();
 		if (apiKey == null) {
