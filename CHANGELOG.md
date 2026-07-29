@@ -9,6 +9,10 @@
 - Bump `brace-expansion` from 1.1.14 to 1.1.16 ([#6256](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6256))
 - Bump `com.auth0:java-jwt` from 4.5.2 to 4.6.0 ([#6251](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6251))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.3.1 to 3.4.0 ([#6250](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6250))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
 - Bump `tar` from 7.5.16 to 7.5.20 ([#6258](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6258))
 
 ## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-15)
