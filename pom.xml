@@ -96,7 +96,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<slf4j-api-version>2.0.18</slf4j-api-version>
-		<lucene-version>9.12.3</lucene-version>
+		<lucene-version>10.5.0</lucene-version>
 		<surefire-version>3.5.6</surefire-version>
 
 		<!--
@@ -106,7 +106,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.18.1</jna-version>
+		<jna-version>5.19.1</jna-version>
 
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
@@ -496,11 +496,11 @@
 				</exclusion>
 				<exclusion>
 					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
+					<artifactId>jna-jpms</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna-platform</artifactId>
+					<artifactId>jna-platform-jpms</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
