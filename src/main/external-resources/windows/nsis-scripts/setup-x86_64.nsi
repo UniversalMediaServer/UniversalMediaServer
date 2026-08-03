@@ -578,6 +578,7 @@ Function un.DeleteCurrentRenderers
 	Delete /REBOOTOK "$INSTDIR\renderers\Naim-Mu-So.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Netgear-NeoTV.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Netgem-N7700.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\nextcp2webplayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Nokia-N900.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\OPPO-BDP.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\OPPO-BDP83.conf"
