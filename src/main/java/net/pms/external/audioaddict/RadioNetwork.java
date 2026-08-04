@@ -215,7 +215,7 @@ public class RadioNetwork {
 			String resp = response.getContentAsString();
 			if (response.getStatus() != 200) {
 				authenticated = false;
-				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.getStatus(), resp);
+				LOGGER.warn("{} : retuned code is {}. Body : {}", this.network.displayName, response.getStatus(), resp);
 			} else {
 				LOGGER.info("successfully authenticated user {}", config.user);
 				extractAuthInfo(resp);
@@ -526,13 +526,13 @@ public class RadioNetwork {
 	}
 
 	private void readNetworkBatch() {
-		String url = String.format("http://api.audioaddict.com/v1/%s/mobile/batch_update?stream_set_key=", network.shortName);
+		String url = String.format("http://api.audioaddict.com/v1/%s/mobile/batch_update?stream_set_key=%s", network.shortName, quality.path);
 		Request request = httpBatch.newRequest(url);
 		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
 		completable.whenComplete((response, failure) -> {
 			LOGGER.info("{} : analyzing batch update content ...", network.displayName);
 			if (response.getStatus() != 200) {
-				LOGGER.warn("{} : retuned code is {}. Body : ", this.network.displayName, response.getStatus(),
+				LOGGER.warn("{} : retuned code is {}. Body : {}", this.network.displayName, response.getStatus(),
 					response.getContentAsString());
 			} else {
 				try {
