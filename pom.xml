@@ -1030,6 +1030,10 @@
 									-->
 									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 								</manifest>
+								<manifestEntries>
+									<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
 							</archive>
 						</configuration>
 						<executions>
@@ -1440,6 +1444,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1460,6 +1468,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1578,6 +1590,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1598,6 +1614,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1716,6 +1736,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1736,6 +1760,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1853,6 +1881,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1873,6 +1905,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1998,6 +2034,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2018,6 +2058,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2290,6 +2334,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2312,6 +2360,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2528,6 +2580,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2550,6 +2606,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2769,6 +2829,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2791,6 +2855,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3007,6 +3075,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3029,6 +3101,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3244,6 +3320,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3266,6 +3346,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3478,6 +3562,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3500,6 +3588,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3548,6 +3640,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3747,6 +3843,10 @@
 									-->
 									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 								</manifest>
+								<manifestEntries>
+									<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
 							</archive>
 						</configuration>
 						<executions>
@@ -3885,6 +3985,10 @@
 									-->
 									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 								</manifest>
+								<manifestEntries>
+									<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
 							</archive>
 						</configuration>
 						<executions>
@@ -4023,6 +4127,10 @@
 									-->
 									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 								</manifest>
+								<manifestEntries>
+									<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
 							</archive>
 						</configuration>
 						<executions>
@@ -4136,6 +4244,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -4156,6 +4268,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -4389,6 +4505,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -4528,6 +4648,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
