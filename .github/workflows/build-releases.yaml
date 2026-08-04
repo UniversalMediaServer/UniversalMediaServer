@@ -9,12 +9,12 @@ jobs:
   appimage:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
       - name: Install MediaInfo
         run: |
           sudo apt-get -y install libmms0
@@ -23,7 +23,7 @@ jobs:
       - name: Build x86_64 release
         run: mvn package -P linux-x86_64 -DskipTests
       - name: Install AppImage dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.3
         with:
           packages: desktop-file-utils
       - name: Build AppImage
@@ -39,18 +39,18 @@ jobs:
   docker-ubuntu:
     runs-on: macos-26-intel
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JRE
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           java-package: jre
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
       - name: Set up Docker
         uses: docker/setup-docker-action@v5
       - name: Set up Docker Buildx
@@ -71,18 +71,18 @@ jobs:
   docker-alpine:
     runs-on: macos-26-intel
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JRE
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           java-package: jre
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
       - name: Set up Docker
         uses: docker/setup-docker-action@v5
       - name: Login to Docker Hub

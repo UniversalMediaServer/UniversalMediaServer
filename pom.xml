@@ -56,7 +56,7 @@
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
 		<project.version.short>15.7.0</project.version.short>
-		<project.jre-version>17</project.jre-version>
+		<project.jre-version>25</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
@@ -95,8 +95,8 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.17</slf4j-api-version>
-		<lucene-version>9.12.3</lucene-version>
+		<slf4j-api-version>2.0.18</slf4j-api-version>
+		<lucene-version>10.5.0</lucene-version>
 		<surefire-version>3.5.6</surefire-version>
 
 		<!--
@@ -106,7 +106,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.18.1</jna-version>
+		<jna-version>5.19.1</jna-version>
 
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
-			<version>4.5.1</version>
+			<version>4.5.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -488,7 +488,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>7.2.1</version>
+			<version>7.3.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -496,11 +496,11 @@
 				</exclusion>
 				<exclusion>
 					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
+					<artifactId>jna-jpms</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna-platform</artifactId>
+					<artifactId>jna-platform-jpms</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -534,7 +534,7 @@
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>7.0.2</version>
+			<version>7.1.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -577,7 +577,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10.websocket</groupId>
 			<artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
-			<version>12.1.9</version>
+			<version>12.1.10</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -592,7 +592,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.1.9</version>
+			<version>12.1.10</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -603,7 +603,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.1.9</version>
+			<version>12.1.10</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -614,7 +614,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.1.9</version>
+			<version>12.1.10</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -649,6 +649,13 @@
 			<version>26</version>
 		</dependency>
 		
+		<!-- xxh3 - fast hash algorithm-->
+		<dependency>
+		    <groupId>net.openhft</groupId>
+		    <artifactId>zero-allocation-hashing</artifactId>
+		    <version>2026.0</version>
+		    <scope>compile</scope>
+	    </dependency>
 		<!-- Lucene search support -->
 		<!-- Attention: Lucene 10+ requires JDK 21+ (i.e. 10.4.0) -->
 		<dependency>
@@ -943,7 +950,7 @@
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
-				<version>2.0.0</version>
+				<version>2.0.1</version>
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
@@ -1022,6 +1029,10 @@
 									-->
 									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 								</manifest>
+								<manifestEntries>
+									<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
 							</archive>
 						</configuration>
 						<executions>
@@ -1059,8 +1070,6 @@
 										<mkdir dir="${project.binaries}/windows/codecs" />
 										<mkdir dir="${project.binaries}/windows/fonts" />
 										<mkdir dir="${project.binaries}/windows/fonts/conf.d" />
-										<mkdir dir="${project.binaries}/windows/x86" />
-										<mkdir dir="${project.binaries}/windows/x86/jre${project.jre-version}" />
 										<mkdir dir="${project.binaries}/windows/x86_64" />
 										<mkdir dir="${project.binaries}/windows/x86_64/jre${project.jre-version}" />
 										<mkdir dir="${project.binaries}/windows/mplayer" />
@@ -1068,11 +1077,8 @@
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
 
 										<!-- MediaInfo binaries -->
-										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_i386_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x86.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/mediainfo-windows-x86.zip" dest="${project.basedir}/target/mediainfo-windows-x86-folder"></unzip>
 										<get src="https://mediaarea.net/download/binary/libmediainfo0/26.05/MediaInfo_DLL_26.05_Windows_x64_WithoutInstaller.zip" dest="${project.basedir}/target/mediainfo-windows-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/mediainfo-windows-x64.zip" dest="${project.basedir}/target/mediainfo-windows-x64-folder"></unzip>
-										<copy file="${project.basedir}/target/mediainfo-windows-x86-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86/MediaInfo.dll" overwrite="true" />
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/windows/x86_64/MediaInfo.dll" overwrite="true" />
 										<copy file="${project.basedir}/target/mediainfo-windows-x64-folder/MediaInfo.dll" tofile="${project.binaries}/bin/MediaInfo.dll" overwrite="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/windows/MediaInfo-License.html" usetimestamp="true" />
@@ -1081,7 +1087,6 @@
 										<get src="${project.binaries-base}/win32/builds.txt" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dcrawMS.exe" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
 
-										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
 										<get src="https://github.com/GyanD/codexffmpeg/releases/download/8.1/ffmpeg-8.1-essentials_build.zip" dest="${project.basedir}/target/ffmpeg-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-x64.zip" dest="${project.basedir}/target/ffmpeg-x64-folder">
 											<cutdirsmapper dirs="1" />
@@ -1127,12 +1132,8 @@
 										<get src="${project.binaries-base}/win32/mplayer/config" dest="${project.binaries}/windows/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf" dest="${project.binaries}/windows/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true" />
-										<get src="https://github.com/bell-sw/Liberica/releases/download/17.0.18%2B10/bellsoft-jdk17.0.18+10-windows-amd64.zip" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
+										<get src="https://github.com/bell-sw/Liberica/releases/download/25.0.3%2B11/bellsoft-jre25.0.3+11-windows-amd64.zip" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/windows/x86_64/jre${project.jre-version}">
-											<cutdirsmapper dirs="1" />
-										</unzip>
-										<get src="https://github.com/bell-sw/Liberica/releases/download/17.0.18%2B10/bellsoft-jdk17.0.18+10-windows-i586.zip" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/windows/x86/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
 										</unzip>
 									</target>
@@ -1157,10 +1158,6 @@
 												<exclude name="x86/"/>
 												<exclude name="x86_64/"/>
 											</fileset>
-										</copy>
-										<mkdir dir="${project.binaries}/windows/x86/service" />
-										<copy todir="${project.binaries}/windows/x86/service" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/wrapper/x86" />
 										</copy>
 										<mkdir dir="${project.binaries}/windows/x86_64/service" />
 										<copy todir="${project.binaries}/windows/x86_64/service" overwrite="true">
@@ -1187,12 +1184,6 @@
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
 											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins" />
 										</copy>
-										<copy file="${project.external-resources}/windows/avisynth/x86/AviSynth.dll" todir="${project.binaries}/windows/x86" />
-										<copy file="${project.external-resources}/windows/avisynth/x86/system/DevIL.dll" todir="${project.binaries}/windows/x86" />
-										<mkdir dir="${project.binaries}/windows/x86/avisynth" />
-										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/x86/plugins" />
-										</copy>
 
 										<!-- Copy convert2dto3d.avsi -->
 										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/windows/avisynth" />
@@ -1209,10 +1200,7 @@
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
 											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64" />
 										</copy>
-										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x86" />
-										</copy>
-										
+
 										<!-- Copy masktools2 to its destination -->
 										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
 											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64" />
@@ -1220,9 +1208,6 @@
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
 											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64" />
 										</copy>
-										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x86" />
-										</copy>										
 
 										<!-- Copy ffms2 to its destination -->
 										<copy todir="${project.binaries}/windows/avisynth" overwrite="true">
@@ -1242,9 +1227,6 @@
 										</copy>
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
 											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64" />
-										</copy>
-										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x86" />
 										</copy>
 									</target>
 								</configuration>
@@ -1352,17 +1334,6 @@
 									<goal>make</goal>
 								</goals>
 							</execution>
-							<execution>
-								<id>build-setup-windows-x86</id>
-								<configuration>
-									<outputFile>${project.build.directory}/${project.name.short}-x86.exe</outputFile>
-									<scriptFile>${project.build.directory}/setup-x86.nsi</scriptFile>
-								</configuration>
-								<phase>package</phase>
-								<goals>
-									<goal>make</goal>
-								</goals>
-							</execution>
 						</executions>
 					</plugin>
 				</plugins>
@@ -1432,6 +1403,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1452,6 +1427,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -1490,426 +1469,6 @@
 							</execution>
 							<execution>
 								<id>copy-jar-with-dependencies-linux-arm64</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>linux-armel</id>
-			<!--
-				this setting does the right thing on Linux
-				and is needed for the Hudson profile to work
-			-->
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.github.eirslett</groupId>
-						<artifactId>frontend-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>install node and corepack</id>
-								<goals>
-									<goal>install-node-and-corepack</goal>
-								</goals>
-							</execution>
-							<!-- download Node.js dependencies -->
-							<execution>
-								<id>yarn install</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn install</arguments>
-								</configuration>
-							</execution>
-							<!-- compile the react client to the web directory -->
-							<execution>
-								<id>yarn build</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn build</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<executions>
-							<!-- Assemble a jar with dependencies -->
-							<execution>
-								<id>make-jar-with-dependencies</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>${project.mainclass}</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-
-							<!-- Assemble the distribution file. -->
-							<execution>
-								<id>build-ums-linux-armel</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux-armel.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>${project.mainclass}</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<!--
-						Use the antrun plugin to:
-
-						Download the binaries to ${project.binaries}
-						Copy the ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>process-resources-linux-armel</id>
-								<phase>process-resources</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target unless="offline">
-										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/armel" />
-										<mkdir dir="${project.binaries}/linux/armel/ffmpeg" />
-
-										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp" dest="${project.binaries}/linux/armel/youtube-dl" usetimestamp="true" />
-									</target>
-								</configuration>
-							</execution>
-							<execution>
-								<id>copy-jar-with-dependencies-linux-armel</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>linux-armhf</id>
-			<!--
-				this setting does the right thing on Linux
-				and is needed for the Hudson profile to work
-			-->
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.github.eirslett</groupId>
-						<artifactId>frontend-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>install node and corepack</id>
-								<goals>
-									<goal>install-node-and-corepack</goal>
-								</goals>
-							</execution>
-							<!-- download Node.js dependencies -->
-							<execution>
-								<id>yarn install</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn install</arguments>
-								</configuration>
-							</execution>
-							<!-- compile the react client to the web directory -->
-							<execution>
-								<id>yarn build</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn build</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<executions>
-							<!-- Assemble a jar with dependencies -->
-							<execution>
-								<id>make-jar-with-dependencies</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>${project.mainclass}</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-
-							<!-- Assemble the distribution file. -->
-							<execution>
-								<id>build-ums-linux-armhf</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux-armhf.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>${project.mainclass}</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<!--
-						Use the antrun plugin to:
-
-						Download the binaries to ${project.binaries}
-						Copy the ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>process-resources-linux-armhf</id>
-								<phase>process-resources</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target unless="offline">
-										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/armhf" />
-										<mkdir dir="${project.binaries}/linux/armhf/ffmpeg" />
-
-										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true" />
-									</target>
-								</configuration>
-							</execution>
-							<execution>
-								<id>copy-jar-with-dependencies-linux-armhf</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>linux-x86</id>
-			<!--
-				this setting does the right thing on Linux
-				and is needed for the Hudson profile to work
-			-->
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.github.eirslett</groupId>
-						<artifactId>frontend-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>install node and corepack</id>
-								<goals>
-									<goal>install-node-and-corepack</goal>
-								</goals>
-							</execution>
-							<!-- download Node.js dependencies -->
-							<execution>
-								<id>yarn install</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn install</arguments>
-								</configuration>
-							</execution>
-							<!-- compile the react client to the web directory -->
-							<execution>
-								<id>yarn build</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn build</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<executions>
-							<!-- Assemble a jar with dependencies -->
-							<execution>
-								<id>make-jar-with-dependencies</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>${project.mainclass}</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-
-							<!-- Assemble the distribution file. -->
-							<execution>
-								<id>build-ums-linux-x86</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux-x86.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>${project.mainclass}</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<!--
-						Use the antrun plugin to:
-
-						Download the binaries to ${project.binaries}
-						Copy the ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>process-resources-linux-x86</id>
-								<phase>process-resources</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target unless="offline">
-										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/x86" />
-										<mkdir dir="${project.binaries}/linux/x86/ffmpeg" />
-										<mkdir dir="${project.binaries}/linux/x86/jre${project.jre-version}" />
-
-										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp" dest="${project.binaries}/linux/x86/youtube-dl" usetimestamp="true" />
-										<get src="https://github.com/bell-sw/Liberica/releases/download/17.0.18%2B10/bellsoft-jre17.0.18+10-linux-i586.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
-										<untar src="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}" compression="gzip">
-											<cutdirsmapper dirs="1" />
-										</untar>
-									</target>
-								</configuration>
-							</execution>
-							<execution>
-								<id>copy-jar-with-dependencies-linux-x86</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1990,6 +1549,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2010,6 +1573,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2046,7 +1613,7 @@
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
 										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_linux" dest="${project.binaries}/linux/x86_64/youtube-dl" usetimestamp="true" />
-										<get src="https://github.com/bell-sw/Liberica/releases/download/17.0.18%2B10/bellsoft-jre17.0.18+10-linux-amd64.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<get src="https://github.com/bell-sw/Liberica/releases/download/25.0.3%2B11/bellsoft-jre25.0.3+11-linux-amd64.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
 										<untar src="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}" compression="gzip">
 											<cutdirsmapper dirs="1" />
 										</untar>
@@ -2280,6 +1847,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2302,6 +1873,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2516,6 +2091,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2538,6 +2117,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2755,6 +2338,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2777,6 +2364,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -2991,6 +2582,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3013,6 +2608,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3221,6 +2820,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3243,6 +2846,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3448,6 +3055,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3470,6 +3081,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3518,6 +3133,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -3659,144 +3278,6 @@
 			For extra quickness, run with the skipTests and offline flags: mvn -P quickrun-windows package -DskipTests -Doffline
 		-->
 		<profile>
-			<id>quickrun-windows-x86</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.github.eirslett</groupId>
-						<artifactId>frontend-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>install node and corepack</id>
-								<goals>
-									<goal>install-node-and-corepack</goal>
-								</goals>
-							</execution>
-							<!-- download Node.js dependencies -->
-							<execution>
-								<id>yarn install</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn install</arguments>
-								</configuration>
-							</execution>
-							<!-- compile the react client to the web directory -->
-							<execution>
-								<id>yarn build</id>
-								<goals>
-									<goal>corepack</goal>
-								</goals>
-								<configuration>
-									<arguments>yarn build</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<!-- Plugin to assemble a jar with dependencies -->
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-							</descriptors>
-							<archive>
-								<manifest>
-									<mainClass>${project.mainclass}</mainClass>
-									<!--
-										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
-										without it, the following exception is thrown when UMS starts:
-
-										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
-											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
-												java.lang.IllegalArgumentException: vendorName == null!
-
-										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
-									-->
-									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-								</manifest>
-							</archive>
-						</configuration>
-						<executions>
-							<execution>
-								<id>make-jar-with-dependencies</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-
-					<!--
-						Plugin to move the ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>prepare-package-windows</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="C:/Program Files (x86)/Universal Media Server/${project.artifactId}.jar" overwrite="true" />
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-resources-plugin</artifactId>
-						<version>${maven-resources-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>copy-resources</id>
-								<phase>validate</phase>
-								<goals>
-									<goal>copy-resources</goal>
-								</goals>
-								<configuration>
-									<outputDirectory>C:/Program Files (x86)/Universal Media Server</outputDirectory>
-									<fileMode>0644</fileMode>
-									<directoryMode>0755</directoryMode>
-									<resources>
-										<resource>
-											<directory>${project.external-resources}</directory>
-										</resource>
-									</resources>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>exec-maven-plugin</artifactId>
-						<version>${exec-maven-plugin-version}</version>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>exec</goal>
-								</goals>
-								<configuration>
-									<executable>C:/Program Files (x86)/Universal Media Server/${project.name.short}.exe</executable>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
 			<id>quickrun-windows</id>
 			<build>
 				<plugins>
@@ -3855,6 +3336,10 @@
 									-->
 									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 								</manifest>
+								<manifestEntries>
+									<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
 							</archive>
 						</configuration>
 						<executions>
@@ -3993,6 +3478,10 @@
 									-->
 									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 								</manifest>
+								<manifestEntries>
+									<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
 							</archive>
 						</configuration>
 						<executions>
@@ -4106,6 +3595,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -4126,6 +3619,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -4359,6 +3856,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>
@@ -4498,6 +3999,10 @@
 											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
+										<manifestEntries>
+											<!-- Preserve Lucene's Multi-Release JAR so java.lang.foreign providers (e.g. MemorySegmentIndexInputProvider) are found on JDK 21+ inside the fat jar. -->
+											<Multi-Release>true</Multi-Release>
+										</manifestEntries>
 									</archive>
 								</configuration>
 							</execution>

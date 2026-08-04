@@ -186,6 +186,17 @@
 		}
 	},
 	{
+		"comment": "Video of a TV episode with no title but MULTi before the resolution",
+		"filename": "Universal.Media.Server.S01E23.MULTi.480p.WEBRip.AAC.2.0.x264-GROUPNAME.mp4",
+		"prettified": "Universal Media Server S01E23",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [23]
+		}
+	},
+	{
 		"comment": "Video of a TV episode titled Mysterious Wordplay with DUBBED",
 		"filename": "Universal.Media.Server.S04E41.Mysterious.Wordplay.DUBBED.480p.WEBRip.AAC.2.0.x264-GROUPNAME.mp4",
 		"prettified": "Universal Media Server S04E41 - Mysterious Wordplay",

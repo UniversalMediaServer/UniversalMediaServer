@@ -22,7 +22,7 @@ jobs:
       webfiles: ${{ steps.filter.outputs.webfiles }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
           fetch-depth: 2
@@ -59,16 +59,17 @@ jobs:
     name: macOS web browser tests
     runs-on: macos-26-intel
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+          package-manager-cache: false
       - name: Enable corepack
         working-directory: ./react-client
         run: corepack enable
@@ -103,16 +104,16 @@ jobs:
     name: macOS Intel Java tests
     runs-on: macos-26-intel
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             react-client/.yarn
@@ -135,16 +136,16 @@ jobs:
     name: macOS ARM Java tests
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             react-client/.yarn
@@ -167,16 +168,16 @@ jobs:
     name: Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             react-client/.yarn
@@ -199,16 +200,16 @@ jobs:
     name: Linux 22.04
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             react-client/.yarn
@@ -237,16 +238,16 @@ jobs:
     name: Linux 24.04
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Cache Node dependencies
         id: cache-node-dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             react-client/.yarn
@@ -273,12 +274,12 @@ jobs:
     name: Lint server files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: 'liberica'
-          java-version: 17
+          java-version: 25
           cache: 'maven'
       - name: Run tests
         run: |
@@ -293,7 +294,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: dangoslen/dependabot-changelog-helper@v4

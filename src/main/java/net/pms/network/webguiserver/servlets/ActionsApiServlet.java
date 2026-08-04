@@ -28,9 +28,11 @@ import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.FilesStatusBackupManager;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.platform.PlatformUtils;
 import net.pms.store.MediaScanner;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +80,14 @@ public class ActionsApiServlet extends GuiHttpServlet {
 									respondForbidden(req, resp);
 								}
 							}
+							case "Server.RestoreBackup" -> {
+								FilesStatusBackupManager.getInstance().restore();
+								respond(req, resp, "{}", 200, "application/json");
+							}
+							case "Server.SaveBackup" -> {
+								FilesStatusBackupManager.getInstance().backup();
+								respond(req, resp, "{}", 200, "application/json");
+							}
 							case "Computer.Shutdown" -> {
 								if (account.havePermission(Permissions.COMPUTER_SHUTDOWN)) {
 									respond(req, resp, "{}", 200, "application/json");
@@ -94,6 +104,14 @@ public class ActionsApiServlet extends GuiHttpServlet {
 									} catch (SQLException e) {
 										LOGGER.debug("Error when re-initializing after manual cache reset:", e);
 									}
+									respond(req, resp, "{}", 200, "application/json");
+								} else {
+									respondForbidden(req, resp);
+								}
+							}
+							case "Server.DeleteAllThumbnails" -> {
+								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
+									ThumbnailStore.deleteAll();
 									respond(req, resp, "{}", 200, "application/json");
 								} else {
 									respondForbidden(req, resp);

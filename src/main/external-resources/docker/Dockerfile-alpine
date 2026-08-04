@@ -1,8 +1,8 @@
-FROM alpine
+FROM bellsoft/liberica-openjre-alpine-musl:25.0.3-11
 
 LABEL org.opencontainers.image.title="Universal Media Server"
 
-RUN apk add --no-cache coreutils ffmpeg mediainfo openjdk17-jre iputils mplayer ttf-dejavu
+RUN apk add --no-cache coreutils ffmpeg mediainfo iputils mplayer ttf-dejavu
 
 WORKDIR /profile
 
