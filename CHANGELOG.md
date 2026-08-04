@@ -30,6 +30,7 @@
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
+- Bump `postcss` from 8.5.14 to 8.5.25 ([#6266](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6266))
 - Bump `tar` from 7.5.16 to 7.5.22 ([#6258](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6258), [#6267](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6267))
 
 ## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-15)
