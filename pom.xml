@@ -63,7 +63,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
-		<logback-version>1.5.38</logback-version>
+		<logback-version>1.6.1</logback-version>
 
 		<project.encoding>UTF-8</project.encoding>
 		<project.build.sourceEncoding>${project.encoding}</project.build.sourceEncoding>
