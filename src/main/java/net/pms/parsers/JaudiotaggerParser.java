@@ -40,10 +40,14 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.CannotWriteException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v11Tag;
@@ -429,6 +433,102 @@ public class JaudiotaggerParser {
 		} else {
 			return 5;
 		}
+	}
+
+	/**
+	 * Writes a 0-5 star rating into the tag of an audio file, or removes the
+	 * rating field when RATINGINSTARS is NULL.
+	 *
+	 * <pre>
+	 *
+	 * ID3v2 Tags support:
+	 * =======================================
+	 *
+	 * There is a "Popularimeter" frame in the ID3v2 specification meant for this purpose.
+	 * The frame is called POPM and Windows Explorer, Windows Media Player, Winamp, foobar2000, MediaMonkey,
+	 * and other software all map roughly the same ranges of 0–255 to a 0–5 stars value for display.
+	 *
+	 * The following list details how Windows Explorer reads and writes the POPM frame:
+	 *
+	 * 224–255 = 5 stars when READ with Windows Explorer, writes 255
+	 * 160–223 = 4 stars when READ with Windows Explorer, writes 196
+	 * 096-159 = 3 stars when READ with Windows Explorer, writes 128
+	 * 032-095 = 2 stars when READ with Windows Explorer, writes 64
+	 * 001-031 = 1 star when READ with Windows Explorer, writes 1
+	 *
+	 *
+	 * Vorbis
+	 * =======================================
+	 *
+	 *  Ratings are usually mapped as 1-5 stars with 20,40,60,80,100 as the actual string values.
+	 *
+	 * </pre>
+	 *
+	 * @param filename the audio file to update
+	 * @param ratingInStars the rating (0 - 5 stars), or NULL to remove the rating
+	 */
+	public static void writeRatingToFile(String filename, Integer ratingInStars) {
+		if (StringUtils.isEmpty(filename)) {
+			LOGGER.warn("cannot update rating in file. Filename is empty or NULL");
+			return;
+		}
+		try {
+			AudioFile audioFile = AudioFileIO.read(new File(filename));
+			Tag tag = audioFile.getTag();
+			if (tag == null) {
+				LOGGER.warn("cannot update rating in file \"{}\". No tag found.", filename);
+				return;
+			}
+			if (ratingInStars == null) {
+				tag.deleteField(FieldKey.RATING);
+			} else {
+				tag.setField(FieldKey.RATING, convertStarsToTagValue(tag, ratingInStars));
+			}
+			audioFile.commit();
+		} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | CannotWriteException e) {
+			LOGGER.warn("Error writing Tag info.", e);
+		}
+	}
+
+	/**
+	 * Converts a 0-5 star rating to the tag format specific value.
+	 *
+	 * @param tag the tag to update
+	 * @param stars number of stars (0 - 5)
+	 * @return the tag specific rating value
+	 */
+	private static String convertStarsToTagValue(Tag tag, Integer stars) {
+		int num;
+		if (tag instanceof FlacTag || tag instanceof VorbisCommentTag) {
+			num = convertStarsToVorbis(stars);
+		} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
+			num = convertStarsToID3(stars);
+		} else {
+			// Don't know ... maybe we use vorbis tags by default
+			num = convertStarsToVorbis(stars);
+		}
+		return Integer.toString(num);
+	}
+
+	/**
+	 * Converts 0-5 stars to the ID3 POPM value.
+	 */
+	private static int convertStarsToID3(int rating) {
+		return switch (rating) {
+			case 0 -> 0;
+			case 1 -> 1;
+			case 2 -> 64;
+			case 3 -> 128;
+			case 4 -> 196;
+			default -> 255;
+		};
+	}
+
+	/**
+	 * Converts 0-5 stars to the VORBIS tag value.
+	 */
+	private static int convertStarsToVorbis(int rating) {
+		return rating * 20;
 	}
 
 }

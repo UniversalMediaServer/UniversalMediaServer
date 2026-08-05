@@ -228,6 +228,15 @@ public class Feed extends StoreContainer {
 		return url;
 	}
 
+	/**
+	 * GETSYSTEMNAME() returns a file path or an URL, which identifies this
+	 * container globally, so GETRATINGKEY() can use it as is.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
+	}
+
 	protected void manageItem() {
 		FeedItem fi = new FeedItem(renderer, tempItemTitle, tempItemLink, tempItemThumbURL, null, childSpecificType);
 		addChild(fi);

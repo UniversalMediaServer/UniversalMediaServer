@@ -546,6 +546,16 @@ public class StoreContainer extends StoreResource {
 	}
 
 	/**
+	 * The default container name is only unique within its parent container, so
+	 * GETRATINGKEY() has to qualify it with the ancestor names. Containers
+	 * backed by a file path or an URL override this to return true.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return false;
+	}
+
+	/**
 	 * Returns a {@link InputStream} that represents the thumbnail used.
 	 *
 	 * @throws IOException

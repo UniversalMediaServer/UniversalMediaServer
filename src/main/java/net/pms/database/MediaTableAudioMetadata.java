@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -99,6 +100,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 */
 	private static final String SQL_GET_AUDIO_METADATA_BY_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + COL_FILEID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_RATING_BY_MBID_TRACK = SELECT + TABLE_COL_RATING + FROM + TABLE_NAME + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_RATING_BY_AUDIOTRACK_ID = SELECT + TABLE_COL_RATING + FROM + TABLE_NAME + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_UPDATE_RATING_BY_AUDIOTRACK_ID = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_RATING_BY_MBID_TRACK = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER;
 	private static final String SQL_GET_FILENAME_BY_AUDIOTRACK_ID = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_AUDIO_METADATA + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER + LIMIT_1;
@@ -338,7 +340,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 		if (connection == null || audiotrackId == null) {
 			return null;
 		}
-		try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_RATING_BY_MBID_TRACK)) {
+		try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_RATING_BY_AUDIOTRACK_ID)) {
 			selectStatement.setInt(1, audiotrackId);
 			try (ResultSet rs = selectStatement.executeQuery()) {
 				if (rs.next()) {
@@ -349,12 +351,24 @@ public class MediaTableAudioMetadata extends MediaTable {
 		return null;
 	}
 
-	public static void updateRatingByAudiotrackId(Connection connection, int ratingInStars, Integer audiotrackId) throws SQLException {
+	/**
+	 * Updates the rating of an audio track.
+	 *
+	 * @param connection the db connection
+	 * @param ratingInStars the rating (0 - 5 stars), or NULL to remove the rating
+	 * @param audiotrackId the audio track id
+	 * @throws SQLException
+	 */
+	public static void updateRatingByAudiotrackId(Connection connection, Integer ratingInStars, Integer audiotrackId) throws SQLException {
 		if (connection == null || audiotrackId == null) {
 			return;
 		}
 		try (PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_RATING_BY_AUDIOTRACK_ID)) {
-			ps.setInt(1, ratingInStars);
+			if (ratingInStars == null) {
+				ps.setNull(1, Types.INTEGER);
+			} else {
+				ps.setInt(1, ratingInStars);
+			}
 			ps.setInt(2, audiotrackId);
 			ps.executeUpdate();
 			connection.commit();

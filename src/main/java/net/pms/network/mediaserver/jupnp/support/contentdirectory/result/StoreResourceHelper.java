@@ -188,6 +188,12 @@ public class StoreResourceHelper {
 				}
 			}
 		}
+		//the user rating is supported by any kind of resource, containers as well as items
+		Integer userRating = container.getRating();
+		if (userRating != null) {
+			//not upnp
+			result.addProperty(new UPNP.Rating(userRating.toString()));
+		}
 		return result;
 	}
 
@@ -336,11 +342,13 @@ public class StoreResourceHelper {
 			if (audioMetadata.getTrack() > 0) {
 				musicTrack.setOriginalTrackNumber(audioMetadata.getTrack());
 			}
+		}
 
-			if (audioMetadata.getRating() != null) {
-				//not upnp
-				result.addProperty(new UPNP.Rating(audioMetadata.getRating().toString()));
-			}
+		//the user rating is supported by any kind of resource, items as well as containers
+		Integer userRating = item.getRating();
+		if (userRating != null) {
+			//not upnp
+			result.addProperty(new UPNP.Rating(userRating.toString()));
 		}
 
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata() && result instanceof Movie movie) {
@@ -591,8 +599,8 @@ public class StoreResourceHelper {
 					if (audioMetadata.getDisc() > 0) {
 						desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
 					}
-					if (audioMetadata.getRating() != null) {
-						desc.addMetadata("rating", Integer.toString(audioMetadata.getRating()));
+					if (userRating != null) {
+						desc.addMetadata("rating", Integer.toString(userRating));
 					}
 				}
 				if (item instanceof AudioAddictRadioStream audioAddictStream) {

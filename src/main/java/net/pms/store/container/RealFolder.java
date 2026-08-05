@@ -67,6 +67,15 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 		return ProcessUtil.getSystemPathName(directory.getAbsolutePath());
 	}
 
+	/**
+	 * GETSYSTEMNAME() returns a file path or an URL, which identifies this
+	 * container globally, so GETRATINGKEY() can use it as is.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
+	}
+
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File cachedThumbnail = SystemFilesHelper.getFolderThumbnail(directory);

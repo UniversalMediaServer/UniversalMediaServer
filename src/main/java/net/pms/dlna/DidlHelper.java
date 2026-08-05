@@ -253,10 +253,12 @@ public class DidlHelper extends DlnaHelper {
 			if (audioMetadata.getTrack() > 0) {
 				addXMLTagAndAttribute(sb, "upnp:originalTrackNumber", "" + audioMetadata.getTrack());
 			}
+		}
 
-			if (audioMetadata.getRating() != null) {
-				addXMLTagAndAttribute(sb, "upnp:rating", "" + audioMetadata.getRating());
-			}
+		//the user rating is supported by any kind of resource, items as well as containers
+		Integer userRating = resource.getRating();
+		if (userRating != null) {
+			addXMLTagAndAttribute(sb, "upnp:rating", "" + userRating);
 		}
 
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
@@ -508,8 +510,8 @@ public class DidlHelper extends DlnaHelper {
 					if (audioMetadata.getDisc() > 0) {
 						addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
 					}
-					if (audioMetadata.getRating() != null) {
-						addXMLTagAndAttribute(sb, "rating", Integer.toString(audioMetadata.getRating()));
+					if (userRating != null) {
+						addXMLTagAndAttribute(sb, "rating", Integer.toString(userRating));
 					}
 				}
 				if (item instanceof AudioAddictRadioStream audioAddictStream) {

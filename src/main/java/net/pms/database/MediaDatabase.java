@@ -19,6 +19,7 @@ package net.pms.database;
 import java.sql.Connection;
 import java.sql.SQLException;
 import net.pms.store.MediaScanner;
+import net.pms.store.StoreResourceRatings;
 import net.pms.swing.Splash;
 import net.pms.util.ProcessUtil;
 
@@ -97,6 +98,7 @@ public class MediaDatabase extends Database {
 				MediaTableMusicBrainzReleases.checkTable(connection);
 				MediaTableCoverArtArchive.checkTable(connection);
 				MediaTableFilesStatus.checkTable(connection);
+				MediaTableResourceRatings.checkTable(connection);
 				MediaTableThumbnails.checkTable(connection);
 
 				MediaTableTVSeries.checkTable(connection);
@@ -147,6 +149,8 @@ public class MediaDatabase extends Database {
 	public static synchronized void dropAllTables(Connection connection) {
 		dropAllTablesExceptFilesStatus(connection);
 		dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableResourceRatings.TABLE_NAME);
+		StoreResourceRatings.clearCache();
 		dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
 		try {
 			executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'FILES');");
