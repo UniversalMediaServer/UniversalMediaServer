@@ -20,7 +20,11 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.Connection;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.store.SystemFileResource;
@@ -33,6 +37,8 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFolder.class);
 	private final File directory;
+	private AlbumMetadata albumMetadata;
+	private boolean albumResolved;
 
 	public RealFolder(Renderer renderer, File directory) {
 		this(renderer, directory, null);
@@ -74,6 +80,50 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 	@Override
 	protected boolean hasGlobalRatingKey() {
 		return true;
+	}
+
+	/**
+	 * When every audio file in this folder belongs to one release, the folder is
+	 * that album, no matter that it was reached by browsing folders instead of the
+	 * media library.
+	 *
+	 * Resolved once per instance, because it costs a database query and is asked
+	 * for while rendering every browse response.
+	 *
+	 * @return the album metadata, or NULL if this folder is not a single album
+	 */
+	@Override
+	public AlbumMetadata getAlbumMetadata() {
+		if (!albumResolved) {
+			albumResolved = true;
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection == null) {
+					//without a database we cannot tell, try again later
+					albumResolved = false;
+					return null;
+				}
+				albumMetadata = MediaTableAudioMetadata.getAlbumMetadataForFolder(connection, getSystemName());
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return albumMetadata;
+	}
+
+	/**
+	 * An album folder is rated as the album it holds, so liking it in the file tree
+	 * and liking it in the media library end up on the same row, and the like shows
+	 * up in My Albums.
+	 */
+	@Override
+	public String getRatingKey() {
+		AlbumMetadata album = getAlbumMetadata();
+		if (album != null) {
+			return album.getTypeIdent().toString();
+		}
+		return super.getRatingKey();
 	}
 
 	@Override

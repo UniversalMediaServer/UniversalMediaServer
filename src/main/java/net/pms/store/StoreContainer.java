@@ -25,6 +25,7 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.TranscodingSettings;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.CodeEnter;
@@ -553,6 +554,17 @@ public class StoreContainer extends StoreResource {
 	@Override
 	protected boolean hasGlobalRatingKey() {
 		return false;
+	}
+
+	/**
+	 * Tells whether this container represents exactly one music album, and if so
+	 * supplies its metadata. Used to report a musicAlbum instead of a plain folder,
+	 * and to rate the album rather than the folder.
+	 *
+	 * @return the album metadata, or NULL when this container is not an album
+	 */
+	public AlbumMetadata getAlbumMetadata() {
+		return null;
 	}
 
 	/**

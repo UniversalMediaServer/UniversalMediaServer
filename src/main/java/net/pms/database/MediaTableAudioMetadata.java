@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import net.pms.media.MediaInfo;
+import java.io.File;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -101,6 +103,26 @@ public class MediaTableAudioMetadata extends MediaTable {
 	private static final String SQL_GET_AUDIO_METADATA_BY_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + COL_FILEID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_RATING_BY_MBID_TRACK = SELECT + TABLE_COL_RATING + FROM + TABLE_NAME + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_RATING_BY_AUDIOTRACK_ID = SELECT + TABLE_COL_RATING + FROM + TABLE_NAME + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER + LIMIT_1;
+	/**
+	 * Aggregates the audio files directly inside one folder, so a single query can
+	 * tell whether they all belong to the same album.
+	 */
+	private static final String SQL_GET_ALBUM_BY_FOLDER =
+		SELECT + "COUNT(*) AS TRACKS" + COMMA +
+			"COUNT(DISTINCT CAST(" + TABLE_COL_MBID_RECORD + " AS VARCHAR)) AS MBID_COUNT" + COMMA +
+			"COUNT(" + TABLE_COL_MBID_RECORD + ") AS MBID_SET" + COMMA +
+			"COUNT(DISTINCT " + TABLE_COL_DISCOGS_RELEASE_ID + ") AS DISCOGS_COUNT" + COMMA +
+			"COUNT(" + TABLE_COL_DISCOGS_RELEASE_ID + ") AS DISCOGS_SET" + COMMA +
+			"MIN(CAST(" + TABLE_COL_MBID_RECORD + " AS VARCHAR)) AS " + COL_MBID_RECORD + COMMA +
+			"MIN(" + TABLE_COL_DISCOGS_RELEASE_ID + ") AS " + COL_DISCOGS_RELEASE_ID + COMMA +
+			"MIN(" + TABLE_COL_ALBUM + ") AS " + COL_ALBUM + COMMA +
+			"MIN(" + TABLE_COL_ARTIST + ") AS " + COL_ARTIST + COMMA +
+			"MIN(" + TABLE_COL_MEDIA_YEAR + ") AS " + COL_MEDIA_YEAR + COMMA +
+			"MIN(" + TABLE_COL_GENRE + ") AS " + COL_GENRE +
+		FROM + TABLE_NAME +
+		" JOIN " + MediaTableFiles.TABLE_NAME + ON + MediaTableFiles.TABLE_COL_ID + EQUAL + TABLE_COL_FILEID +
+		WHERE + MediaTableFiles.TABLE_COL_FILENAME + LIKE + PARAMETER +
+		AND + MediaTableFiles.TABLE_COL_FILENAME + " NOT " + LIKE + PARAMETER;
 	private static final String SQL_UPDATE_RATING_BY_AUDIOTRACK_ID = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_RATING_BY_MBID_TRACK = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER;
 	private static final String SQL_GET_FILENAME_BY_AUDIOTRACK_ID = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_AUDIO_METADATA + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER + LIMIT_1;
@@ -323,6 +345,63 @@ public class MediaTableAudioMetadata extends MediaTable {
 		audioMetadata.setComposer(resultset.getString(COL_COMPOSER));
 		audioMetadata.setConductor(resultset.getString(COL_CONDUCTOR));
 		return audioMetadata;
+	}
+
+	/**
+	 * Resolves whether a folder holds exactly one album, and returns its metadata.
+	 *
+	 * Only the audio files directly inside the folder are considered. A folder
+	 * counts as an album when every one of those files carries the same MusicBrainz
+	 * release id, or, when no MusicBrainz id is present, the same Discogs release
+	 * id. This is what lets a folder browsed in the file tree be treated as the
+	 * same album that the media library exposes under its release id.
+	 *
+	 * @param connection the db connection
+	 * @param folderPath the folder, without a trailing separator
+	 * @return the album metadata, or NULL if the folder is not a single album
+	 */
+	public static AlbumMetadata getAlbumMetadataForFolder(final Connection connection, final String folderPath) {
+		if (connection == null || StringUtils.isBlank(folderPath)) {
+			return null;
+		}
+		String inFolder = folderPath + File.separator + "%";
+		String inSubFolder = folderPath + File.separator + "%" + File.separator + "%";
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALBUM_BY_FOLDER)) {
+			statement.setString(1, inFolder);
+			statement.setString(2, inSubFolder);
+			try (ResultSet rs = statement.executeQuery()) {
+				if (!rs.next()) {
+					return null;
+				}
+				long tracks = rs.getLong("TRACKS");
+				if (tracks == 0) {
+					return null;
+				}
+				String mbidRecord = null;
+				if (rs.getLong("MBID_COUNT") == 1 && rs.getLong("MBID_SET") == tracks) {
+					mbidRecord = rs.getString("MBID_RECORD");
+				}
+				Long discogsReleaseId = null;
+				if (rs.getLong("DISCOGS_COUNT") == 1 && rs.getLong("DISCOGS_SET") == tracks) {
+					discogsReleaseId = rs.getLong(COL_DISCOGS_RELEASE_ID);
+				}
+				if (mbidRecord == null && discogsReleaseId == null) {
+					return null;
+				}
+				return new AlbumMetadata(
+					mbidRecord,
+					discogsReleaseId,
+					rs.getString(COL_ALBUM),
+					rs.getString(COL_ARTIST),
+					Integer.toString(rs.getInt(COL_MEDIA_YEAR)),
+					rs.getString(COL_GENRE)
+				);
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "resolving the album", TABLE_NAME, folderPath, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 	public static void updateRatingByMusicbrainzTrackId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
