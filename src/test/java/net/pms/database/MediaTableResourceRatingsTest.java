@@ -6,6 +6,8 @@ import net.pms.PMS;
 import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaTableResourceRatings.ResourceRating;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.DbIdTypeAndIdent;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,6 +103,93 @@ public class MediaTableResourceRatingsTest {
 			//must not throw
 			MediaTableResourceRatings.deleteRating(connection, "/does/not/exist");
 			MediaTableResourceRatings.setRating(connection, null, "RealFile", 3);
+		}
+	}
+
+	/**
+	 * The rating key of an album container is its DBID system name, which embeds
+	 * the MusicBrainz release id. It must not contain any generated id, otherwise
+	 * album likes would not survive a database rebuild.
+	 */
+	@Test
+	public void testAlbumLikeIsKeyedOnReleaseId() throws Exception {
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
+		try (Connection connection = database.getConnection()) {
+			String mbid = "11111111-2222-3333-4444-555555555555";
+			String expectedKey = "$DBID$MUSICBRAINZALBUM$" + mbid;
+			assertEquals(expectedKey, DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.getResourceKey(mbid));
+			//the key must be exactly what the album container reports as system name
+			assertEquals(expectedKey, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid).toString());
+
+			assertFalse(MediaTableResourceRatings.isAlbumLiked(connection, DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+
+			MediaTableResourceRatings.setAlbumLiked(connection, DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid, true);
+			assertTrue(MediaTableResourceRatings.isAlbumLiked(connection, DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, expectedKey));
+
+			//unliking removes the rating, it does not store a dislike
+			MediaTableResourceRatings.setAlbumLiked(connection, DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid, false);
+			assertFalse(MediaTableResourceRatings.isAlbumLiked(connection, DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+			assertNull(MediaTableResourceRatings.getRating(connection, expectedKey));
+		}
+	}
+
+	/**
+	 * A dislike is a stored 0 and must be distinguishable from "not rated".
+	 */
+	@Test
+	public void testDislikeIsNotTheSameAsUnrated() throws Exception {
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
+		try (Connection connection = database.getConnection()) {
+			String key = "/media/music/testDislikeIsNotTheSameAsUnrated";
+			MediaTableResourceRatings.setRating(connection, key, "RealFolder", MediaTableResourceRatings.RATING_DISLIKED);
+			assertEquals(Integer.valueOf(0), MediaTableResourceRatings.getRating(connection, key));
+
+			MediaTableResourceRatings.setRating(connection, key, "RealFolder", null);
+			assertNull(MediaTableResourceRatings.getRating(connection, key));
+		}
+	}
+
+	/**
+	 * Existing likes of the legacy tables have to end up in this table, otherwise
+	 * the My Albums folder would look empty after the upgrade.
+	 */
+	@Test
+	public void testLegacyAlbumLikesAreMigrated() throws Exception {
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
+		try (Connection connection = database.getConnection()) {
+			String mbid = "99999999-8888-7777-6666-555555555555";
+			long discogs = 424242L;
+			String mbKey = DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.getResourceKey(mbid);
+			String discogsKey = DbIdMediaType.TYPE_DISCOGS_RELEASEID.getResourceKey(Long.toString(discogs));
+
+			MediaTableResourceRatings.deleteRating(connection, mbKey);
+			MediaTableResourceRatings.deleteRating(connection, discogsKey);
+			MediaDatabase.execute(connection,
+				"MERGE INTO " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " KEY (MBID_RELEASE) VALUES ('" + mbid + "')",
+				"MERGE INTO " + MediaTableDiscogsReleaseLike.TABLE_NAME + " KEY (DISCOGS_RELEASE_ID) VALUES (" + discogs + ")"
+			);
+
+			MediaTableResourceRatings.migrateAlbumLikes(connection);
+
+			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, mbKey));
+			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, discogsKey));
+
+			//running it twice must not fail on the unique key
+			MediaTableResourceRatings.migrateAlbumLikes(connection);
+			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, mbKey));
+
+			//and the export direction has to reproduce the legacy content
+			MediaTableResourceRatings.exportAlbumLikes(connection);
+			MediaTableResourceRatings.deleteRating(connection, mbKey);
+			MediaTableResourceRatings.migrateAlbumLikes(connection);
+			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, mbKey));
+
+			MediaTableResourceRatings.deleteRating(connection, mbKey);
+			MediaTableResourceRatings.deleteRating(connection, discogsKey);
 		}
 	}
 

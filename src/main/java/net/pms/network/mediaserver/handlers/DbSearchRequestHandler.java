@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableResourceRatings;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.store.DbIdMediaType;
 
@@ -72,7 +73,9 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select DISTINCT ON (album) mbid_release as liked, DISCOGS_RELEASE_ID, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
+				return "select DISTINCT ON (album) RR.RESOURCE_KEY as liked, DISCOGS_RELEASE_ID, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from AUDIO_METADATA as a left outer join " +
+					MediaTableResourceRatings.TABLE_NAME + " as RR on RR.RESOURCE_KEY = '" + DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID + "' || CAST(A.MBID_RECORD AS VARCHAR) and RR.RATING = " +
+					MediaTableResourceRatings.RATING_LIKED + " where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
@@ -111,7 +114,9 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select DISTINCT ON (album) mbid_release as liked, DISCOGS_RELEASE_ID, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
+				return "select DISTINCT ON (album) RR.RESOURCE_KEY as liked, DISCOGS_RELEASE_ID, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from AUDIO_METADATA as a left outer join " +
+					MediaTableResourceRatings.TABLE_NAME + " as RR on RR.RESOURCE_KEY = '" + DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID + "' || CAST(A.MBID_RECORD AS VARCHAR) and RR.RATING = " +
+					MediaTableResourceRatings.RATING_LIKED + " where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return getTreeStatement(subtreeId) + "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";

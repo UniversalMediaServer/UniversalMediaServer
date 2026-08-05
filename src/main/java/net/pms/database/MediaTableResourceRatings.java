@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import net.pms.store.DbIdMediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,22 @@ public final class MediaTableResourceRatings extends MediaTable {
 	 * Table version must be increased every time a change is done to the table definition. Table upgrade SQL must also be added to
 	 * upgradeTable(Connection, int)
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
+
+	/**
+	 * The rating that represents a "like". Used by the My Albums folder.
+	 */
+	public static final int RATING_LIKED = 5;
+
+	/**
+	 * The rating that represents a "dislike".
+	 */
+	public static final int RATING_DISLIKED = 0;
+
+	/**
+	 * OBJECT_TYPE stored for album containers.
+	 */
+	private static final String MUSIC_ALBUM_OBJECT_TYPE = "MusicAlbumFolder";
 
 	/**
 	 * COLUMNS NAMES
@@ -80,12 +96,70 @@ public final class MediaTableResourceRatings extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1 -> migrateAlbumLikes(connection);
 				default -> throw new IllegalStateException(
 					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 				);
 			}
 		}
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+	}
+
+	/**
+	 * Copies the album likes of the legacy like tables into this table, so the My
+	 * Albums folder keeps its content after the upgrade.
+	 *
+	 * A like becomes a rating of RATING_LIKED on the resource key of the album
+	 * container, which is the same identifier the legacy tables hold, only
+	 * prefixed with its type. The legacy tables are left untouched so the upgrade
+	 * stays reversible.
+	 *
+	 * @param connection the db connection
+	 */
+	public static void migrateAlbumLikes(final Connection connection) throws SQLException {
+		migrateAlbumLikes(connection, MediaTableMusicBrainzReleaseLike.TABLE_NAME, "MBID_RELEASE", DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID);
+		migrateAlbumLikes(connection, MediaTableDiscogsReleaseLike.TABLE_NAME, "DISCOGS_RELEASE_ID", DbIdMediaType.TYPE_DISCOGS_RELEASEID);
+	}
+
+	/**
+	 * Writes the album likes of this table back into the legacy like tables, so
+	 * the existing backup file format keeps working.
+	 *
+	 * @param connection the db connection
+	 */
+	public static void exportAlbumLikes(final Connection connection) throws SQLException {
+		exportAlbumLikes(connection, MediaTableMusicBrainzReleaseLike.TABLE_NAME, "MBID_RELEASE", DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID);
+		exportAlbumLikes(connection, MediaTableDiscogsReleaseLike.TABLE_NAME, "DISCOGS_RELEASE_ID", DbIdMediaType.TYPE_DISCOGS_RELEASEID);
+	}
+
+	private static void exportAlbumLikes(final Connection connection, final String likeTable, final String likeColumn, final DbIdMediaType type) throws SQLException {
+		if (!tableExists(connection, likeTable)) {
+			return;
+		}
+		String prefix = type.toString();
+		executeUpdate(connection, DELETE_FROM + likeTable);
+		String sql = INSERT_INTO + likeTable + "(" + likeColumn + ") " +
+			SELECT + "SUBSTRING(" + COL_RESOURCE_KEY + COMMA + (prefix.length() + 1) + ")" +
+			FROM + TABLE_NAME +
+			WHERE + COL_RESOURCE_KEY + LIKE + sqlQuote(prefix + "%") +
+			AND + COL_RATING + EQUAL + RATING_LIKED;
+		executeUpdate(connection, sql);
+		LOGGER.info("Database \"{}\" exported the album likes of \"{}\" into \"{}\"", DATABASE_NAME, TABLE_NAME, likeTable);
+	}
+
+	private static void migrateAlbumLikes(final Connection connection, final String likeTable, final String likeColumn, final DbIdMediaType type) throws SQLException {
+		if (!tableExists(connection, likeTable)) {
+			//nothing to migrate, for example after a cache reset
+			return;
+		}
+		String key = sqlQuote(type.toString()) + " || CAST(" + likeColumn + " AS VARCHAR)";
+		String sql = INSERT_INTO + TABLE_NAME + "(" + COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE + COMMA + COL_RATING + COMMA + COL_MODIFIED + ") " +
+			SELECT + key + COMMA + sqlQuote(MUSIC_ALBUM_OBJECT_TYPE) + COMMA + RATING_LIKED + COMMA + "CURRENT_TIMESTAMP" +
+			FROM + likeTable +
+			WHERE + likeColumn + IS_NOT_NULL +
+			AND + "NOT " + EXISTS + "(" + SELECT + "1" + FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + key + ")";
+		executeUpdate(connection, sql);
+		LOGGER.info("Database \"{}\" migrated the album likes of \"{}\" into \"{}\"", DATABASE_NAME, likeTable, TABLE_NAME);
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
@@ -179,6 +253,32 @@ public final class MediaTableResourceRatings extends MediaTable {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "deleting rating", TABLE_NAME, resourceKey, e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	/**
+	 * Tells whether an album is liked, that means rated with RATING_LIKED.
+	 *
+	 * @param connection the db connection
+	 * @param type the album type, either a MusicBrainz or a Discogs release
+	 * @param ident the release id
+	 * @return true if the album is liked
+	 */
+	public static boolean isAlbumLiked(final Connection connection, final DbIdMediaType type, final String ident) {
+		Integer rating = getRating(connection, type.getResourceKey(ident));
+		return rating != null && rating == RATING_LIKED;
+	}
+
+	/**
+	 * Likes or unlikes an album. Unliking removes the rating instead of storing a
+	 * dislike, to keep the behaviour of the legacy like tables.
+	 *
+	 * @param connection the db connection
+	 * @param type the album type, either a MusicBrainz or a Discogs release
+	 * @param ident the release id
+	 * @param liked true to like the album, false to remove the like
+	 */
+	public static void setAlbumLiked(final Connection connection, final DbIdMediaType type, final String ident, final boolean liked) {
+		setRating(connection, type.getResourceKey(ident), MUSIC_ALBUM_OBJECT_TYPE, liked ? RATING_LIKED : null);
 	}
 
 	/**
