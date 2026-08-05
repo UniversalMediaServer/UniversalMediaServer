@@ -216,9 +216,16 @@ public class DidlHelper extends DlnaHelper {
 			addBookmark(resource, sb, renderer.getDcTitle(title, resource.getDisplayNameSuffix(), resource));
 		}
 
+		AlbumMetadata containerAlbumMetadata = resource instanceof StoreContainer albumContainer ? albumContainer.getAlbumMetadata() : null;
 		if (audioMetadata != null && renderer.isSendDateMetadataYearForAudioTags() && audioMetadata.getYear() > 1000) {
 			addXMLTagAndAttribute(sb, "dc:date", Integer.toString(audioMetadata.getYear()));
-		} else if (resource.getLastModified() > 0 && renderer.isSendDateMetadata()) {
+		} else if (containerAlbumMetadata != null && StringUtils.isNotBlank(containerAlbumMetadata.getYear())) {
+			//an album is dated by its release year, not by when its folder was touched
+			addXMLTagAndAttribute(sb, "dc:date", encodeXML(containerAlbumMetadata.getYear()));
+		} else if (container == null && resource.getLastModified() > 0 && renderer.isSendDateMetadata()) {
+			//only an item may be dated by its file. The modification time of a folder
+			//says nothing about its content, and StoreResourceHelper never reported it
+			//for containers either.
 			addXMLTagAndAttribute(sb, "dc:date", formatDate(new Date(resource.getLastModified())));
 		}
 
@@ -269,9 +276,6 @@ public class DidlHelper extends DlnaHelper {
 			}
 			if (StringUtils.isNotBlank(albumMetadata.getGenre())) {
 				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(albumMetadata.getGenre()));
-			}
-			if (StringUtils.isNotBlank(albumMetadata.getYear())) {
-				addXMLTagAndAttribute(sb, "dc:date", encodeXML(albumMetadata.getYear()));
 			}
 		}
 

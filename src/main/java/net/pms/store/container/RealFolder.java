@@ -24,6 +24,8 @@ import java.sql.Connection;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
 import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -95,6 +97,10 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 	@Override
 	public AlbumMetadata getAlbumMetadata() {
 		if (!albumResolved) {
+			if (!canBeAlbum()) {
+				albumResolved = true;
+				return null;
+			}
 			albumResolved = true;
 			Connection connection = null;
 			try {
@@ -110,6 +116,33 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 			}
 		}
 		return albumMetadata;
+	}
+
+	/**
+	 * An album holds its tracks and nothing that browses further. A folder that
+	 * also contains sub folders or playlists is a place where music is filed, not
+	 * an album, even when the tracks in it happen to share a release id.
+	 *
+	 * Checked on the file system, so it does not force the children to be
+	 * discovered.
+	 *
+	 * @return false if this folder cannot be an album
+	 */
+	private boolean canBeAlbum() {
+		File[] entries = directory.listFiles();
+		if (entries == null) {
+			return false;
+		}
+		for (File entry : entries) {
+			if (entry.isDirectory()) {
+				return false;
+			}
+			Format format = FormatFactory.getAssociatedFormat(entry.getAbsolutePath());
+			if (format != null && format.getType() == Format.PLAYLIST) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

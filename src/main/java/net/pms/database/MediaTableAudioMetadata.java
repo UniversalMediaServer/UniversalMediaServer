@@ -388,12 +388,13 @@ public class MediaTableAudioMetadata extends MediaTable {
 				if (mbidRecord == null && discogsReleaseId == null) {
 					return null;
 				}
+				int mediaYear = rs.getInt(COL_MEDIA_YEAR);
 				return new AlbumMetadata(
 					mbidRecord,
 					discogsReleaseId,
 					rs.getString(COL_ALBUM),
 					rs.getString(COL_ARTIST),
-					Integer.toString(rs.getInt(COL_MEDIA_YEAR)),
+					mediaYear > 1000 ? Integer.toString(mediaYear) : null,
 					rs.getString(COL_GENRE)
 				);
 			}
