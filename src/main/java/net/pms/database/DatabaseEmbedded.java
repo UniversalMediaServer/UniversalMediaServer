@@ -136,16 +136,23 @@ public class DatabaseEmbedded {
 			migrateDatabase(197, true, dbName);
 			return true;
 		} else if (se.getErrorCode() == 90041) {
-			LOGGER.error("Database in inconsistent state. A trigger already exists. Stop the program and delete the folder \"" + dbDir + "\" manually", se);
-			return false;
-		} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
-			FileUtils.deleteQuietly(dbDirectory);
-			if (!dbDirectory.exists()) {
-				LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
+			// If DB was left behind in an inconsistent state remove the files/folders of this database
+			LOGGER.warn("Database \"{}\" in inconsistent state. A trigger already exists, deleting this database's cache and recreating it.", dbName, se);
+			if (deleteDatabaseFiles(dbDirectory, dbName)) {
+				LOGGER.info("The \"{}\" database has been deleted because it was in an inconsistent state", dbName);
 				return true;
 			} else {
 				Database.showMessageDialog("DamagedCacheCantBeDeleted", dbDir);
-				LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
+				LOGGER.error("Inconsistent cache can't be deleted. Stop the program and delete the files starting with \"" + dbName + "\" in the folder \"" + dbDir + "\" manually");
+				return false;
+			}
+		} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
+			if (deleteDatabaseFiles(dbDirectory, dbName)) {
+				LOGGER.info("The \"{}\" database has been deleted because it was corrupt or had the wrong version", dbName);
+				return true;
+			} else {
+				Database.showMessageDialog("DamagedCacheCantBeDeleted", dbDir);
+				LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the files starting with \"" + dbName + "\" in the folder \"" + dbDir + "\" manually");
 				return false;
 			}
 		} else {
@@ -153,6 +160,29 @@ public class DatabaseEmbedded {
 			UMSUtils.sleep(10000);
 			return true;
 		}
+	}
+
+	/**
+	 * Deletes all files and folders of a single database within the database directory. Other databases
+	 * sharing the same folder (e.g. USERS) are left untouched.
+	 *
+	 * @param dbDirectory the database directory
+	 * @param dbName the database name whose files should be removed
+	 * @return true if all matching entries were removed
+	 */
+	private static boolean deleteDatabaseFiles(File dbDirectory, String dbName) {
+		File[] entries = dbDirectory.listFiles((dir, name) -> name.startsWith(dbName));
+		if (entries == null) {
+			return false;
+		}
+		boolean allDeleted = true;
+		for (File entry : entries) {
+			FileUtils.deleteQuietly(entry);
+			if (entry.exists()) {
+				allDeleted = false;
+			}
+		}
+		return allDeleted;
 	}
 
 	/**
