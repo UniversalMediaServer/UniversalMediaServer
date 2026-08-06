@@ -513,8 +513,11 @@ public class UmsContentDirectoryService {
 				}
 
 				StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newItem);
+				if (newResource == null) {
+					throw new RuntimeException(String.format("cannot create a store resource for path : %s", newItem.getAbsolutePath()));
+				}
 				storeContainer.addChild(newResource);
-				if (newResource.getId() != null) {
+				if (newResource.getId() == null) {
 					LOGGER.error("created resource at {} got a NULL id!", newResource.getFileName());
 				}
 				return newResource;
@@ -533,8 +536,15 @@ public class UmsContentDirectoryService {
 		File newContainer = new File(storeContainer.getFileName(), title);
 		if (!newContainer.exists()) {
 			newContainer.mkdir();
-			StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newContainer);
+			//the folder was requested explicitly, so keep it even though it is still empty
+			StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newContainer, false, true);
+			if (newResource == null) {
+				throw new RuntimeException(String.format("cannot create a store resource for path : %s", newContainer.getAbsolutePath()));
+			}
 			storeContainer.addChild(newResource);
+			if (newResource.getId() == null) {
+				LOGGER.error("created folder at {} got a NULL id!", newResource.getFileName());
+			}
 			return newResource;
 		} else {
 			LOGGER.warn("file system resource already exists for path {}", newContainer.getAbsolutePath());

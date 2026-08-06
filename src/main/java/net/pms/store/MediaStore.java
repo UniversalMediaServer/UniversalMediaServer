@@ -864,15 +864,24 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public StoreResource createResourceFromFile(File file, boolean allowHidden) {
+		return createResourceFromFile(file, allowHidden, false);
+	}
+
+	/**
+	 * @param allowEmptyFolder keeps a directory that holds no media yet.
+	 */
+	public StoreResource createResourceFromFile(File file, boolean allowHidden, boolean allowEmptyFolder) {
+		if (file == null) {
+			LOGGER.trace("createResourceFromFile return null as file is null.");
+			return null;
+		}
+
 		String fileExt = FilenameUtils.getExtension(file.getName());
 		if (renderer.getUmsConfiguration().getIgnoredFileExtensions().contains(fileExt.toLowerCase())) {
 			return null;
 		}
 
-		if (file == null) {
-			LOGGER.trace("createResourceFromFile return null as file is null.");
-			return null;
-		} else if (!allowHidden && file.isHidden()) {
+		if (!allowHidden && file.isHidden()) {
 			LOGGER.trace("createResourceFromFile return null as {} is hidden.", file.toString());
 			return null;
 		} else if (!file.canRead()) {
@@ -916,7 +925,7 @@ public class MediaStore extends StoreContainer {
 			List<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
 
 			/* Optionally ignore empty directories */
-			if (file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
+			if (!allowEmptyFolder && file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
 				LOGGER.debug("Ignoring empty/non-relevant directory: " + file.toString());
 				return null;
 			} else if (file.isDirectory() && !"".equals(lcFilename) && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
