@@ -41,6 +41,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -403,23 +404,40 @@ public class FileWatcher {
 			return (ignoredFolderNames != null) ? ignoredFolderNames : List.of();
 		}
 
+		/**
+		 * Two watches are the same watchpoint when they notify the same listener
+		 * about the same file spec.
+		 */
 		@Override
 		public boolean equals(Object o) {
-			if (o instanceof Watch other) {
-				if (item == null || other.item == null) {
-					return false;
-				}
-				return listener.get() == other.listener.get() &&
-						(fspec != null && fspec.equals(other.fspec)) &&
-						(item == other.item || (item != null && other.item != null && (item.get() == other.item.get() || item.get().equals(other.item.get())))) &&
-						flag == other.flag;
+			if (!(o instanceof Watch other)) {
+				return false;
 			}
-			return false;
+			Listener thisListener = listener.get();
+			Listener otherListener = other.listener.get();
+			if (thisListener == null || thisListener != otherListener) {
+				//a collected listener cannot be matched anymore
+				return false;
+			}
+			if (flag != other.flag || fspec == null || !fspec.equals(other.fspec)) {
+				return false;
+			}
+			if (item == null || other.item == null) {
+				//without an item the listener and the file spec identify the watch
+				return item == other.item;
+			}
+			Object thisItem = item.get();
+			Object otherItem = other.item.get();
+			return thisItem == otherItem || (thisItem != null && thisItem.equals(otherItem));
 		}
 
+		/**
+		 * Only the fields that are always part of the identity are used. The listener is left out because it is held by a WeakReference,
+		 * whose hash is its own identity and therefore differs between two watches that are equal.
+		 */
 		@Override
 		public int hashCode() {
-			return fspec.hashCode() + listener.hashCode();
+			return Objects.hash(fspec, flag);
 		}
 
 		public static boolean isRecursive(Watch w) {
@@ -440,11 +458,14 @@ public class FileWatcher {
 
 		private static final long serialVersionUID = 66052264663459389L;
 
+		/**
+		 * Registering an already watched directory returns the same WatchKey to prevent copies.
+		 */
 		public void put(WatchKey k, Watch w) {
-			if (!containsKey(k)) {
-				put(k, new ArrayList<>());
+			ArrayList<Watch> watches = computeIfAbsent(k, key -> new ArrayList<>());
+			if (!watches.contains(w)) {
+				watches.add(w);
 			}
-			get(k).add(w);
 		}
 
 		public boolean contains(Watch w) {
