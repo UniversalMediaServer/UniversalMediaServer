@@ -309,13 +309,8 @@ public class MediaScanner implements SharedContentListener {
 			} else {
 				LOGGER.debug("Scanning folder \"{}\"", file.getAbsolutePath());
 			}
+
 			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-			if (systemFileResources.isEmpty()) {
-				if (isInSharedFolders(filename)) {
-					internalScanFileOrFolder(filename);
-					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-				}
-			}
 			if (!systemFileResources.isEmpty()) {
 				//if it is still empty, it mean the tree is no more accessible
 				for (StoreResource storeResource : systemFileResources) {
@@ -325,7 +320,9 @@ public class MediaScanner implements SharedContentListener {
 					}
 				}
 			} else {
-				LOGGER.warn("Given folder was not found in store : " + file.getAbsolutePath());
+				// A folder that is not in the store yet is a normal state during a scan,
+				// not something the user has to act on.
+				LOGGER.debug("Given folder was not found in store : " + file.getAbsolutePath());
 			}
 		} else {
 			LOGGER.warn("Given file or folder doesn't share same base path as this server : " + filename);
