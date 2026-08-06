@@ -73,7 +73,8 @@ public class DbIdResourceLocator {
 					return resource;
 				}
 			}
-			LOGGER.error("{} not found as RealFile in database.", realFileName);
+			//a resource that is not indexed yet is an expected state, not an error
+			LOGGER.debug("{} not found as RealFile in database.", realFileName);
 		}
 		return null;
 	}
