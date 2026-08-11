@@ -568,6 +568,19 @@ public class StoreContainer extends StoreResource {
 	}
 
 	/**
+	 * A container that holds exactly one album is rated as that album, so rating
+	 * it in the file tree and rating it in the media library end up on the same row.
+	 */
+	@Override
+	public String getRatingKey() {
+		AlbumMetadata album = getAlbumMetadata();
+		if (album != null) {
+			return album.getTypeIdent().toString();
+		}
+		return super.getRatingKey();
+	}
+
+	/**
 	 * Returns a {@link InputStream} that represents the thumbnail used.
 	 *
 	 * @throws IOException

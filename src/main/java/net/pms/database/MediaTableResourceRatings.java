@@ -41,9 +41,10 @@ public final class MediaTableResourceRatings extends MediaTable {
 	public static final int RATING_DISLIKED = 0;
 
 	/**
-	 * OBJECT_TYPE stored for album containers.
+	 * OBJECT_TYPE stored for album containers, whatever container class was used
+	 * to browse the album, see GETALBUMOBJECTTYPE().
 	 */
-	private static final String MUSIC_ALBUM_OBJECT_TYPE = "MusicAlbumFolder";
+	public static final String MUSIC_ALBUM_OBJECT_TYPE = "MusicAlbumFolder";
 
 	/**
 	 * COLUMNS NAMES
@@ -201,9 +202,6 @@ public final class MediaTableResourceRatings extends MediaTable {
 
 	/**
 	 * Sets the rating of a resource. A NULL rating removes the rating.
-	 *
-	 * @param resourceKey the resource key, see StoreResource.getRatingKey()
-	 * @param objectType the resource class simple name, stored for diagnostics only
 	 * @param rating the rating (0 - 5 stars) or NULL to remove it
 	 */
 	public static void setRating(final Connection connection, final String resourceKey, final String objectType, final Integer rating) {
@@ -214,18 +212,19 @@ public final class MediaTableResourceRatings extends MediaTable {
 			deleteRating(connection, resourceKey);
 			return;
 		}
+		final String storedObjectType = getAlbumObjectType(resourceKey, objectType);
 		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL_KEY, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 			statement.setString(1, resourceKey);
 			try (ResultSet result = statement.executeQuery()) {
 				if (result.next()) {
-					result.updateString(COL_OBJECT_TYPE, objectType);
+					result.updateString(COL_OBJECT_TYPE, storedObjectType);
 					updateInteger(result, COL_RATING, rating);
 					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
 					result.updateRow();
 				} else {
 					result.moveToInsertRow();
 					result.updateString(COL_RESOURCE_KEY, resourceKey);
-					result.updateString(COL_OBJECT_TYPE, objectType);
+					result.updateString(COL_OBJECT_TYPE, storedObjectType);
 					updateInteger(result, COL_RATING, rating);
 					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
 					result.insertRow();
@@ -235,6 +234,20 @@ public final class MediaTableResourceRatings extends MediaTable {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing rating", rating, TABLE_NAME, resourceKey, e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	/**
+	 * Check, if we have an music album.
+	 *
+	 * @return the object type to store
+	 */
+	private static String getAlbumObjectType(final String resourceKey, final String objectType) {
+		if (resourceKey.startsWith(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.toString()) ||
+			resourceKey.startsWith(DbIdMediaType.TYPE_DISCOGS_RELEASEID.toString()) ||
+			resourceKey.startsWith(DbIdMediaType.TYPE_ALBUM.toString())) {
+			return MUSIC_ALBUM_OBJECT_TYPE;
+		}
+		return objectType;
 	}
 
 	/**

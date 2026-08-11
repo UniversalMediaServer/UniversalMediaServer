@@ -145,20 +145,6 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 		return true;
 	}
 
-	/**
-	 * An album folder is rated as the album it holds, so liking it in the file tree
-	 * and liking it in the media library end up on the same row, and the like shows
-	 * up in My Albums.
-	 */
-	@Override
-	public String getRatingKey() {
-		AlbumMetadata album = getAlbumMetadata();
-		if (album != null) {
-			return album.getTypeIdent().toString();
-		}
-		return super.getRatingKey();
-	}
-
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File cachedThumbnail = SystemFilesHelper.getFolderThumbnail(directory);

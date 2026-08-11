@@ -194,6 +194,43 @@ public class MediaTableResourceRatingsTest {
 	}
 
 	/**
+	 * Test album rating, no matter whether it was rated, so we write always the same object type.
+	 */
+	@Test
+	public void testAlbumRowsCarryTheAlbumObjectType() throws Exception {
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
+		try (Connection connection = database.getConnection()) {
+			String mbKey = DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.getResourceKey("dcada7c8-5e32-427e-bb83-0711e9f24c03");
+			String discogsKey = DbIdMediaType.TYPE_DISCOGS_RELEASEID.getResourceKey("13804609");
+			String fileKey = "/media/music/testAlbumRowsCarryTheAlbumObjectType/01 - Dark.flac";
+
+			//an album folder rated in the file tree is stored as the album it holds
+			MediaTableResourceRatings.setRating(connection, mbKey, "RealFolder", 5);
+			MediaTableResourceRatings.setRating(connection, discogsKey, "MusicAlbumFolder", 5);
+			MediaTableResourceRatings.setRating(connection, fileKey, "RealFile", 5);
+
+			List<ResourceRating> all = MediaTableResourceRatings.getAllRatings(connection);
+			assertEquals(MediaTableResourceRatings.MUSIC_ALBUM_OBJECT_TYPE, objectTypeOf(all, mbKey));
+			assertEquals(MediaTableResourceRatings.MUSIC_ALBUM_OBJECT_TYPE, objectTypeOf(all, discogsKey));
+			//rows that are not albums keep their type
+			assertEquals("RealFile", objectTypeOf(all, fileKey));
+
+			MediaTableResourceRatings.deleteRating(connection, mbKey);
+			MediaTableResourceRatings.deleteRating(connection, discogsKey);
+			MediaTableResourceRatings.deleteRating(connection, fileKey);
+		}
+	}
+
+	private static String objectTypeOf(List<ResourceRating> ratings, String resourceKey) {
+		return ratings.stream()
+			.filter(rating -> resourceKey.equals(rating.resourceKey()))
+			.map(ResourceRating::objectType)
+			.findFirst()
+			.orElse(null);
+	}
+
+	/**
 	 * Ratings are user data and must survive the "Reset the cache" action, which
 	 * re-initializes every table except the ones holding user data.
 	 */
