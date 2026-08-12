@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@types/react` from 19.2.17 to 19.2.18 ([#6283](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6283))
 - Bump `actions/setup-node` from 6 to 7 ([#6248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6248))
 - Bump `actions/setup-node` from 6 to 7 ([#6248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6248))
 - Bump `axios` from 1.16.0 to 1.18.1 ([#6249](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6249))
@@ -33,6 +34,8 @@
 - Bump `org.junit.jupiter:junit-jupiter-api` from 6.1.1 to 6.1.2 ([#6264](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6264))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 6.1.1 to 6.1.2 ([#6264](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6264))
 - Bump `postcss` from 8.5.14 to 8.5.25 ([#6266](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6266))
+- Bump `react-dom` from 19.2.7 to 19.2.8 ([#6283](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6283))
+- Bump `react` from 19.2.7 to 19.2.8 ([#6283](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6283))
 - Bump `tar` from 7.5.16 to 7.5.22 ([#6258](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6258), [#6267](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6267))
 
 ## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-15)
