@@ -106,7 +106,7 @@ public class SearchRequestDatabaseTest {
 
 	@BeforeAll
 	public void setupTestDatabase() throws Exception {
-		System.setProperty("surefire.real.class.path", "/tmp");
+		System.setProperty(PMS.PROPERTY_RUNNING_TESTS, "true");
 
 		testMusicFolder = Files.createTempDirectory("music");
 		testMusicFolder.toFile().deleteOnExit();

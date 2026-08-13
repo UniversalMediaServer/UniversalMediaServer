@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
@@ -40,9 +41,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DatabaseEmbedded {
+	/**
+	 * System property to override the directory holding the databases while running tests.
+	 */
+	public static final String PROPERTY_TEST_DB_DIR = "ums.test.db.dir";
+
+	private static final String DEFAULT_TEST_DB_DIR = "target" + File.separator + "test-db";
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseEmbedded.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Profiler PROFILER = new Profiler();
+	private static final AtomicBoolean TEST_DB_DIR_CLEANED = new AtomicBoolean();
 	private static boolean collecting = false;
 
 	/**
@@ -92,8 +100,35 @@ public class DatabaseEmbedded {
 	}
 
 	private static String getDbDir() {
+		if (PMS.isRunningTests()) {
+			return getTestDbDir();
+		}
 		File profileDirectory = new File(UmsConfiguration.getProfileDirectory());
-		return new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? UmsConfiguration.getProfileDirectory() : null, "database").getAbsolutePath();
+		return new File(profileDirectory.isDirectory() ? UmsConfiguration.getProfileDirectory() : null, "database").getAbsolutePath();
+	}
+
+	/**
+	 * Returns the database directory used while running tests.
+	 *
+	 * The location is deliberately not derived from the profile directory: the
+	 * profile directory name is frozen when {@link UmsConfiguration} is class
+	 * loaded, so it depends on whether {@link PMS#isRunningTests()} was already
+	 * true at that moment. Resolving the test location here instead keeps tests
+	 * off the production database regardless of class loading order.
+	 *
+	 * The directory is emptied once per JVM so that every test run starts with
+	 * an empty database instead of inheriting the state - and the accumulated
+	 * H2 MVStore layout - of previous runs.
+	 *
+	 * @return The absolute path of the test database directory
+	 */
+	private static String getTestDbDir() {
+		File testDbDir = new File(System.getProperty(PROPERTY_TEST_DB_DIR, DEFAULT_TEST_DB_DIR)).getAbsoluteFile();
+		if (TEST_DB_DIR_CLEANED.compareAndSet(false, true) && testDbDir.exists()) {
+			LOGGER.info("Deleting test database directory \"{}\" to start this test run with an empty database", testDbDir);
+			FileUtils.deleteQuietly(testDbDir);
+		}
+		return testDbDir.getPath();
 	}
 
 	public static String getDbUser() {
