@@ -445,6 +445,13 @@
 			<version>6.1.2</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- Needed to register net.pms.UmsTestLauncherSessionListener, which keeps IDE test runs off the production database -->
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-launcher</artifactId>
+			<version>6.1.2</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
@@ -734,6 +741,13 @@
 
 				<!-- Enable the use of Maven properties -->
 				<filtering>true</filtering>
+			</testResource>
+			<!-- Registers net.pms.UmsTestLauncherSessionListener, which marks the JVM as a test run -->
+			<testResource>
+				<directory>src/test/resources</directory>
+				<includes>
+					<include>META-INF/services/*</include>
+				</includes>
 			</testResource>
 			<!--*.srt files to test charset detection-->
 			<testResource>
