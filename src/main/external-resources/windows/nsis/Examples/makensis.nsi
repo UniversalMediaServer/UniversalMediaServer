@@ -123,9 +123,24 @@ VIAddVersionKey "LegalCopyright" "http://nsis.sf.net/License"
 ;--------------------------------
 ;Installer Sections
 
+!macro OptionalFile src options eval
+  !if '${eval}' == ''
+    !define /ReDef eval 1
+  !endif
+  !if ${eval}
+    !if /FileExists "${src}"
+      File ${options} "${src}"
+    !endif
+  !endif
+!macroend
+
 !macro InstallPlugin pi
   !if ${BITS} >= 64
-    File "/oname=$InstDir\Plugins\amd64-unicode\${pi}.dll" ..\Plugins\amd64-unicode\${pi}.dll
+    File "/oname=$InstDir\Plugins\${NSIS_CPU}-unicode\${pi}.dll" ..\Plugins\${NSIS_CPU}-unicode\${pi}.dll
+    !insertmacro OptionalFile ..\Plugins\amd64-unicode\${pi}.dll "/oname=$InstDir\Plugins\amd64-unicode\${pi}.dll" 'amd64 != ${NSIS_CPU}'
+    !insertmacro OptionalFile ..\Plugins\arm64-unicode\${pi}.dll "/oname=$InstDir\Plugins\arm64-unicode\${pi}.dll" 'arm64 != ${NSIS_CPU}'
+    !insertmacro OptionalFile ..\Plugins\x86-ansi\${pi}.dll "/oname=$InstDir\Plugins\x86-ansi\${pi}.dll" ''
+    !insertmacro OptionalFile ..\Plugins\x86-unicode\${pi}.dll "/oname=$InstDir\Plugins\x86-unicode\${pi}.dll" ''
   !else
     File "/oname=$InstDir\Plugins\x86-ansi\${pi}.dll" ..\Plugins\x86-ansi\${pi}.dll
     File "/oname=$InstDir\Plugins\x86-unicode\${pi}.dll" ..\Plugins\x86-unicode\${pi}.dll
@@ -134,7 +149,9 @@ VIAddVersionKey "LegalCopyright" "http://nsis.sf.net/License"
 
 !macro InstallStub stub
   !if ${BITS} >= 64
-    File ..\Stubs\${stub}-amd64-unicode
+    File ..\Stubs\${stub}-${NSIS_CPU}-unicode
+    !insertmacro OptionalFile ..\Stubs\${stub}-amd64-unicode '' 'amd64 != ${NSIS_CPU}'
+    !insertmacro OptionalFile ..\Stubs\${stub}-arm64-unicode '' 'arm64 != ${NSIS_CPU}'
   !else
     File ..\Stubs\${stub}-x86-ansi
     File ..\Stubs\${stub}-x86-unicode
@@ -245,19 +262,24 @@ ${MementoSection} "NSIS Core Files (required)" SecCore
 
   SetOutPath $INSTDIR\Bin
   !if ${BITS} >= 64
-    File /NonFatal  ..\Bin\RegTool-x86.bin
-    File            ..\Bin\RegTool-amd64.bin
-  !else
-    File            ..\Bin\RegTool-x86.bin
-    !if /FileExists ..\Bin\RegTool-amd64.bin ; It is unlikely that this exists, avoid the /NonFatal warning.
-      File          ..\Bin\RegTool-amd64.bin
+    !insertmacro OptionalFile ..\Bin\RegTool-x86.bin '' ''
+    !ifdef NSIS_ARM64
+      File                    ..\Bin\RegTool-arm64.bin
+    !else
+      File                    ..\Bin\RegTool-amd64.bin
     !endif
+  !else
+    File                      ..\Bin\RegTool-x86.bin
+    !insertmacro OptionalFile ..\Bin\RegTool-amd64.bin '' '' ; It's unlikely that this exists, avoid the /NonFatal warning.
   !endif
 
   CreateDirectory $INSTDIR\Plugins\x86-ansi
   CreateDirectory $INSTDIR\Plugins\x86-unicode
   !if ${BITS} >= 64
     CreateDirectory $INSTDIR\Plugins\amd64-unicode
+    !ifdef NSIS_ARM64
+      CreateDirectory $INSTDIR\Plugins\arm64-unicode
+    !endif
   !endif
   !insertmacro InstallPlugin TypeLib
 

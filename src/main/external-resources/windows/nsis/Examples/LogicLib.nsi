@@ -566,6 +566,25 @@ Section /o "Run tests" TESTS
     DetailPrint "FAILED 64-bit integer test"
   ${EndIf}
 
+  ; Complex string tests
+  StrCpy $R2 ""
+  ${IfThen} "ABC" ${StartsWith} "a" ${|} StrCpy $R2 A$R2 ${|}
+  ${IfThen} "ABC" ${StartsWithS} "a" ${|} StrCpy $R2 A!1$R2 ${|}
+  ${IfThen} "ABC" ${StartsWith} "X" ${|} StrCpy $R2  A!2$R2 ${|}
+  ${IfThen} "ABC" ${StartsWith} "ABC" ${|} StrCpy $R2 B$R2 ${|}
+  ${IfThen} "ABC" ${EndsWith} "ABC" ${|} StrCpy $R2 C$R2 ${|}
+  ${IfThen} "ABC" ${EndsWithS} "BC" ${|} StrCpy $R2 D$R2 ${|}
+  ${IfThen} "ABC" ${EndsWithS} "bc" ${|} StrCpy $R2 D!1$R2 ${|}
+  ${IfThen} "ABCD" ${Contains} "AB" ${|} StrCpy $R2 E$R2 ${|}
+  ${IfThen} "ABCD" ${Contains} "bc" ${|} StrCpy $R2 F$R2 ${|}
+  ${IfThen} "ABCD" ${ContainsS} "bc" ${|} StrCpy $R2 F!1$R2 ${|}
+  ${IfThen} "ABCD" ${Contains} "CD" ${|} StrCpy $R2 G$R2 ${|}
+  ${If} $R2 == "GFEDCBA"
+    DetailPrint "PASSED complex string test"
+  ${Else}
+    DetailPrint "FAILED complex string test"
+  ${EndIf}
+
   ; Extra string tests (uses System.dll)
   StrCpy $R2 ""
   ${If} "A" S< "B"
