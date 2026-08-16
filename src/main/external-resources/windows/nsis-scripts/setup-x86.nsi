@@ -307,12 +307,12 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 
 	; Remove existing firewall rules in case they need updating
-	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
-	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
+	ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall delete rule name=UMS'
+	ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall delete rule name="UMS Service"'
 
 	; Add firewall rules
-	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
-	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
+	ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
+	ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -647,8 +647,8 @@ Section "Uninstall"
 		DeleteRegKey SHCTX "SYSTEM\CurrentControlSet\Services\${SERVICE_NAME}"
 	${EndIf}
 
-	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
-	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
+	ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall delete rule name=UMS'
+	ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall delete rule name="UMS Service"'
 
 SectionEnd
 

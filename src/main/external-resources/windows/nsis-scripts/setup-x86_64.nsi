@@ -508,12 +508,12 @@ Section "Program Files"
 
 	${IfNot} $InstallType == "PORTABLE"
 		; Remove existing firewall rules in case they need updating
-		ExecWait 'netsh advfirewall firewall delete rule name=UMS'
-		ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
+		ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall delete rule name=UMS'
+		ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall delete rule name="UMS Service"'
 
 		; Add firewall rules
-		ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
-		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
+		ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
+		ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
 		CreateDirectory "$SMPROGRAMS\${PROJECT_NAME}"
 		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
@@ -782,8 +782,8 @@ Section "Uninstall"
 	DeleteRegKey SHCTX "${REG_KEY_SOFTWARE}"
 
 	Call un.DeleteUmsService
-	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
-	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
+	ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall delete rule name=UMS'
+	ExecWait '"$SYSDIR\netsh.exe" advfirewall firewall delete rule name="UMS Service"'
 SectionEnd
 
 Function FixRegistryWow64
