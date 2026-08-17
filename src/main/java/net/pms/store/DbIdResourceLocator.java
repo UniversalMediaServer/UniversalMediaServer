@@ -145,7 +145,7 @@ public class DbIdResourceLocator {
 
 	public static StoreResource getLibraryResourceFolder(Renderer renderer, String realFolderName) {
 		if (renderer.hasShareAccess(new File(realFolderName))) {
-			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFolderName, "RealFolder", "RealFolder");
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFolderName, "RealFolder");
 			for (Long id : ids) {
 				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
 				if (resource != null) {

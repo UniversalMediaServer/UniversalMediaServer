@@ -71,6 +71,12 @@ import net.pms.store.DbIdMediaType;
 public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LuceneSearchRequestHandler.class.getName());
+
+	/**
+	 * Keeps folder searches to real filesystem folders
+	 */
+	private static final String PARENT_IS_FILESYSTEM = "parent.object_type in ('RealFolder', 'MediaStore')";
+
 	private String luceneQuery = null;
 	public LuceneSearchRequestHandler(SearchRequest requestMessage) {
 		super(requestMessage);
@@ -390,7 +396,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 			}
 			case TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				String sql = getTreeStatement(subtreeId) + "SELECT COUNT(DISTINCT F.ID) FROM FTL_SEARCH_DATA('%s', %d, %d) FT " +
-					"JOIN FILES F ON F.ID = FT.KEYS[1] JOIN tree ON F.FILENAME = tree.name " +
+					"JOIN FILES F ON F.ID = FT.KEYS[1] " +
 					getTreeWhereStatement("FILES", subtreeId, false);
 				return getFormattedLuceneString(luceneQuery, sql, false);
 			}
@@ -496,10 +502,10 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 				String title = tokenizer.getDcTitleValue();
 				// We could also add a lucene index in the table STORE_IDS, but I think this is sufficient for now, since we expect rather few folders searches
 				if (title != null) {
-					sb.append(String.format(" tree.name ilike '%%%%%s%%%%' and tree.object_type = 'RealFolder' and parent.object_type = 'RealFolder'",
-						title));
+					addSqlParameter("%" + title + "%");
+					sb.append(" REGEXP_REPLACE(tree.name, '.*[/\\\\]', '') ilike ? and tree.object_type = 'RealFolder' and ").append(PARENT_IS_FILESYSTEM);
 				} else {
-					sb.append(" tree.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
+					sb.append(" tree.object_type = 'RealFolder' and ").append(PARENT_IS_FILESYSTEM);
 				}
 			}
 			default -> {

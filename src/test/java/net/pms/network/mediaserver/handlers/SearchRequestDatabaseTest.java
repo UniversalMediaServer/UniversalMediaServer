@@ -9,6 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -116,11 +119,17 @@ public class SearchRequestDatabaseTest {
 		Path subDir2 = testMusicFolder.resolve("2");
 		Path subDir3 = testMusicFolder.resolve("3");
 		Path subSearchDir = subDir1.resolve("search_for_me");
+		// A folder search must match folder names, not paths, so "search_for_me" must not report this child as well
+		Path subSearchChildDir = subSearchDir.resolve("inner");
+		// A folder name holding a quote must not break the folder search statement
+		Path quotedDir = subDir2.resolve("Bob's Music");
 
 		Files.createDirectories(subDir1);
 		Files.createDirectories(subDir2);
 		Files.createDirectories(subDir3);
 		Files.createDirectories(subSearchDir);
+		Files.createDirectories(subSearchChildDir);
+		Files.createDirectories(quotedDir);
 
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration(false));
@@ -615,7 +624,7 @@ public class SearchRequestDatabaseTest {
 		sr.setStartingIndex(0);
 		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
-		assertEquals(1, results);
+		assertEquals(1, results, () -> describeVideoTreeState(dir1));
 
 		sr.setSearchCriteria("upnp:class = \"object.item.videoItem\" and dc:title contains \"Spider\"");
 		sr.setContainerId(dir2.getId());
@@ -623,7 +632,38 @@ public class SearchRequestDatabaseTest {
 		sr.setStartingIndex(0);
 		searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		results = searchRequestHandler.getSearchCountElements(sr);
-		assertEquals(0, results);
+		assertEquals(0, results, () -> describeVideoTreeState(dir2));
+	}
+
+	/**
+	 * Describes the state the tree scoped search depends on, for when it does
+	 * not find what it should.
+	 */
+	private String describeVideoTreeState(StoreContainer container) {
+		StringBuilder sb = new StringBuilder("\nsearch was scoped to container id=");
+		sb.append(container.getId()).append(" name=").append(container.getName()).append('\n');
+		try (Connection connection = MediaDatabase.get().getConnection(); Statement statement = connection.createStatement()) {
+			sb.append("STORE_IDS (files and folders):\n");
+			try (ResultSet rs = statement.executeQuery(
+				"SELECT ID, PARENT_ID, OBJECT_TYPE, NAME FROM STORE_IDS " +
+				"WHERE OBJECT_TYPE IN ('RealFolder', 'RealFile', 'PlaylistFolder') ORDER BY ID"
+			)) {
+				while (rs.next()) {
+					sb.append(String.format("  %s | parent %s | %s | %s%n", rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
+				}
+			}
+			sb.append("FILES with \"Spider\" in the name:\n");
+			try (ResultSet rs = statement.executeQuery(
+				"SELECT ID, FORMAT_TYPE, FILENAME FROM FILES WHERE FILENAME LIKE '%Spider%'"
+			)) {
+				while (rs.next()) {
+					sb.append(String.format("  %s | format type %s | %s%n", rs.getString(1), rs.getString(2), rs.getString(3)));
+				}
+			}
+		} catch (SQLException e) {
+			sb.append("could not read the tables: ").append(e);
+		}
+		return sb.toString();
 	}
 
 	@Test
@@ -669,6 +709,62 @@ public class SearchRequestDatabaseTest {
 
 		resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
 		assertEquals(0, resources.size());
+	}
+
+	/**
+	 * A folder search has to match the name of the folder. STORE_IDS holds absolute paths, so matching those would
+	 * report every folder below a matching folder as a hit as well - here the child "inner" of "search_for_me".
+	 */
+	@Test
+	public void testFolderSearchMatchesFolderNameAndNotPath() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"search_for_me\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		assertEquals(1, searchRequestHandler.getSearchCountElements(sr));
+
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		assertEquals("search_for_me", resources.get(0).getName());
+	}
+
+	/**
+	 * A shared folder is a child of the store itself, not of another folder, and has to be found nevertheless.
+	 */
+	@Test
+	public void testFolderSearchFindsSharedFolder() {
+		String sharedFolderName = testMusicFolder.getFileName().toString();
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"" + sharedFolderName + "\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		assertEquals(1, searchRequestHandler.getSearchCountElements(sr));
+
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		assertEquals(sharedFolderName, resources.get(0).getName());
+	}
+
+	/**
+	 * A folder name may hold a quote, which must reach the database as a value and not as part of the statement.
+	 */
+	@Test
+	public void testFolderSearchWithQuoteInFolderName() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"Bob's\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		assertEquals(1, searchRequestHandler.getSearchCountElements(sr));
+
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		assertEquals("Bob's Music", resources.get(0).getName());
 	}
 
 	public MediaInfo createMediaInfo() {
