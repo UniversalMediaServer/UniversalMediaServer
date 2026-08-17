@@ -1,9 +1,9 @@
 package net.pms.network.mediaserver.handlers;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +44,11 @@ public abstract class BaseSearchRequestHandler {
 	private DbIdMediaType requestType = null;
 	private List<SearchToken> tokens = null;
 	private MediaTypeHandler mediaTypeHandler = null;
+
+	/**
+	 * Values for the placeholders of the built statement, in order.
+	 */
+	private final List<String> sqlParameters = new ArrayList<>();
 
 	private static UmsConfiguration umsConfiguration;
 
@@ -266,13 +271,15 @@ public abstract class BaseSearchRequestHandler {
 		ArrayList<StoreResource> result = new ArrayList<>();
 
 		// SQL statements having 'FILENAME' as a result identifier.
+		sqlParameters.clear();
 		String query = convertToFilesSql();
 
 		LOGGER.debug("RequestType {} : {}", getRequestType().dbidPrefix, query);
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
-				try (Statement statement = connection.createStatement()) {
-					try (ResultSet resultSet = statement.executeQuery(query)) {
+				try (PreparedStatement statement = connection.prepareStatement(query)) {
+					setSqlParameters(statement);
+					try (ResultSet resultSet = statement.executeQuery()) {
 						Set<String> foundAlbums = new HashSet<>();
 						while (resultSet.next()) {
 							String filenameField = extractDisplayName(resultSet);
@@ -392,21 +399,37 @@ public abstract class BaseSearchRequestHandler {
 	}
 
 	public int getLibraryResourceCountFromSQL() {
+		sqlParameters.clear();
 		String query = convertToCountSql();
 
 		LOGGER.debug("SQL count : {}", query);
 
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable();
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(query)) {
-			if (resultSet.next()) {
-				return resultSet.getInt(1);
+			PreparedStatement statement = connection.prepareStatement(query)) {
+			setSqlParameters(statement);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getInt(1);
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.warn("getLibraryResourceCountFromSQL", e);
 			handleException(e);
 		}
 		return 0;
+	}
+
+	/**
+	 * Binds a value from the search request
+	 */
+	protected void addSqlParameter(String value) {
+		sqlParameters.add(value);
+	}
+
+	private void setSqlParameters(PreparedStatement statement) throws SQLException {
+		for (int i = 0; i < sqlParameters.size(); i++) {
+			statement.setString(i + 1, sqlParameters.get(i));
+		}
 	}
 
 

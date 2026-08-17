@@ -127,7 +127,7 @@ public class DatabaseEmbedded {
 			return;
 		}
 		String message = String.format(
-			"Database \"%s\" is opened in test mode at \"%s\", detected by %s. Production profile directory \"%s\" is left alone",
+			"Database \"%s\" is opened in test mode at \"%s\", detected by %s. Profile directory in use for configuration and logs: \"%s\"",
 			name,
 			dbDir,
 			testRunSignal,
