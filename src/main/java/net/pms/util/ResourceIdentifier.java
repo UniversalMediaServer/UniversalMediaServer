@@ -21,7 +21,6 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.net.URI;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -37,7 +36,17 @@ public class ResourceIdentifier {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceIdentifier.class);
 
-	private static final int SMALL_BYTES_THRESHOLD = 1024 * 1024 * 100; // 100 MB
+	/**
+	 * Number of bytes taken from the beginning and from the end of a file that is
+	 * not hashed completely.
+	 */
+	private static final int CHUNK_BYTES = 1024 * 256; // 256 kB
+
+	/**
+	 * Files up to this size are hashed completely, larger ones by size plus their
+	 * head and tail chunk.
+	 */
+	private static final long WHOLE_FILE_THRESHOLD = 2L * CHUNK_BYTES;
 
 	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
 	private static final String LOG_RUID_RESULTS = "RUID for \"{}\": {}";
@@ -50,101 +59,91 @@ public class ResourceIdentifier {
 	}
 
 	/**
-	 * Calculates the XXH3 hash and returns the value as a 16 character hex
-	 * string.
+	 * Calculates the XXH3 hash and returns the value as hex string.
 	 *
 	 * @param uri the file/url to identify
 	 * @return the pseudo unique file identifier.
-	 * @throws IOException
 	 */
 	public static String getResourceIdentifier(final String uri) {
 		if (StringUtils.isBlank(uri)) {
 			return null;
 		}
 		File file = getFile(uri);
-		if (file != null && file.exists() && file.isFile()) {
-			long fileSize = file.length();
-			if (fileSize < SMALL_BYTES_THRESHOLD) {
-				return getSmallFileIdentifier(file, fileSize);
-			}
-			return getBigFileIdentifier(file);
+		if (file != null && file.isFile()) {
+			return getFileIdentifier(file);
 		}
 		return getTextIdentifier(uri);
 	}
 
 	private static File getFile(final String uri) {
-		// try URI
-		try {
-			return new File(URI.create(uri));
-		} catch (IllegalArgumentException es) {
-			// not a file URI
-		}
-		// try path
-		try {
-			return Path.of(uri).toFile();
-		} catch (InvalidPathException e) {
-			// not a path
+		// The scheme decides how to read it. Trying URI.create() first, as it was done
+		// before, threw for every plain path containing a character that is not allowed
+		// in a URI - a space for example - which happens for most files of a library.
+		if (StringUtils.startsWithIgnoreCase(uri, "file:")) {
+			try {
+				return new File(URI.create(uri));
+			} catch (IllegalArgumentException e) {
+				// not a usable file URI
+			}
+		} else if (!uri.contains("://")) {
+			try {
+				return Path.of(uri).toFile();
+			} catch (InvalidPathException e) {
+				// not a path
+			}
 		}
 		return null;
 	}
 
 	/**
-	 * Calculates the XXH3 hash and returns the value as a 16 character hex. It can be applied to files larger than 2 GB, as
-	 * it uses the Foreign Function & Memory (FFM) API to map the file into memory.
+	 * Calculates the XXH3 hash of a file and returns the value as hex string.
+	 *
+	 * Files larger than {@link #WHOLE_FILE_THRESHOLD} are identified by their size
+	 * plus a chunk from the beginning and one from the end. Hashing every byte made
+	 * the initial scan read the whole library, which dominated its runtime.
+	 *
+	 * The content is mapped through the Foreign Function &amp; Memory API, so nothing
+	 * is copied to the heap and files larger than 2 GB are handled as well.
 	 *
 	 * @param file the file to identify
 	 * @return the pseudo unique file identifier.
-	 * @throws IOException
 	 */
-	private static String getBigFileIdentifier(final File file) {
+	private static String getFileIdentifier(final File file) {
 		try (Arena arena = Arena.ofConfined(); FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
-
-			MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size(), arena);
-
-			long hash = LongHashFunction.xx3().hashMemory(segment.address(), segment.byteSize());
-
+			LongHashFunction xx3 = LongHashFunction.xx3();
+			long size = channel.size();
+			long hash;
+			if (size == 0) {
+				hash = xx3.hashVoid();
+			} else if (size <= WHOLE_FILE_THRESHOLD) {
+				MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, 0, size, arena);
+				hash = xx3.hashMemory(segment.address(), size);
+			} else {
+				MemorySegment head = channel.map(FileChannel.MapMode.READ_ONLY, 0, CHUNK_BYTES, arena);
+				MemorySegment tail = channel.map(FileChannel.MapMode.READ_ONLY, size - CHUNK_BYTES, CHUNK_BYTES, arena);
+				hash = xx3.hashLongs(new long[] {
+					size,
+					xx3.hashMemory(head.address(), CHUNK_BYTES),
+					xx3.hashMemory(tail.address(), CHUNK_BYTES)
+				});
+			}
 			String ruid = Long.toHexString(hash);
 			LOGGER.trace(LOG_RUID_RESULTS, file.getAbsolutePath(), ruid);
 			return ruid;
 		} catch (Exception ex) {
-			LOGGER.error(LOG_RUID_ERROR, "big file", file.getAbsolutePath());
+			LOGGER.error(LOG_RUID_ERROR, "file", file.getAbsolutePath());
 			LOGGER.trace("", ex);
 		}
 		return null;
 	}
 
 	/**
-	 * Calculates the XXH3 hash and returns the value as a 16 character hex
-	 * string.
-	 *
-	 * Will process the entire file bytes.
-	 *
-	 * @param file the file to identify
-	 * @return the pseudo unique file identifier.
-	 * @throws IOException
-	 */
-	private static String getSmallFileIdentifier(final File file, final long fileSize) {
-		String pathname = file.getAbsolutePath();
-		try {
-			String ruid = Long.toHexString(LongHashFunction.xx3().hashBytes(Files.readAllBytes(file.toPath())));
-			LOGGER.trace(LOG_RUID_RESULTS, pathname, ruid);
-			return ruid;
-		} catch (Exception e) {
-			LOGGER.error(LOG_RUID_ERROR, "small file", pathname);
-			LOGGER.trace("", e);
-		}
-		return null;
-	}
-
-	/**
-	 * Calculates the XXH3 hash and returns the value as a 16 character hex
-	 * string.
+	 * Calculates the XXH3 hash and returns the value as 16 character hex string.
 	 *
 	 * Will process the entire text bytes.
 	 *
 	 * @param text the text to identify
 	 * @return the pseudo unique file identifier.
-	 * @throws IOException
 	 */
 	private static String getTextIdentifier(final String text) {
 		try {

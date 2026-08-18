@@ -103,8 +103,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 44: added DATEADDED and RUID
 	 * - 45: added lucene column and index
 	 * - 46: implemented new ruid algorithm
+	 * - 47: new ruid algorithm, all RUID are dropped and recalculated on the next scan
 	 */
-	private static final int TABLE_VERSION = 46;
+	private static final int TABLE_VERSION = 47;
 
 	/**
 	 * COLUMNS NAMES
