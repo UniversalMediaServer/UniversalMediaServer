@@ -47,12 +47,17 @@ import org.h2.store.fs.FileUtils;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * COPIED from h2 version 2.2.240 - Moved all references from FullTextLucene to
- * UmsFullTextLucene - Added UmsAnalyzer for indexing
+ * UmsFullTextLucene - Added UmsAnalyzer for indexing.
+ *
  */
 public class UmsFullTextLucene extends FullText {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(UmsFullTextLucene.class.getName());
 
 	/**
 	 * Whether the text content should be stored in the Lucene index.
@@ -66,6 +71,11 @@ public class UmsFullTextLucene extends FullText {
 	private static final String LUCENE_FIELD_QUERY = "_QUERY";
 	private static final String LUCENE_FIELD_MODIFIED = "_modified";
 	private static final String LUCENE_FIELD_COLUMN_PREFIX = "_";
+
+	/**
+	 * Nano timestamp of the last finished reindex
+	 */
+	private static long lastReindexFinished = 0;
 
 	/**
 	 * The prefix for a in-memory path. This prefix is only used internally
@@ -175,22 +185,32 @@ public class UmsFullTextLucene extends FullText {
 	}
 
 	/**
-	 * Re-creates the full text index for this database. Calling this method is
-	 * usually not needed, as the index is kept up-to-date automatically.
-	 *
-	 * @param conn the connection
-	 * @throws SQLException on failure
+	 * Re-creates the full text index for this database. Calling this method is usually not needed, as the index is kept up-to-date
+	 * automatically.
 	 */
 	public static void reindex(Connection conn) throws SQLException {
-		init(conn);
-		removeAllTriggers(conn, TRIGGER_PREFIX);
-		removeIndexFiles(conn);
-		try (Statement stat = conn.createStatement(); ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES")) {
-			while (rs.next()) {
-				String schema = rs.getString("SCHEMA");
-				String table = rs.getString("TABLE");
-				createTrigger(conn, schema, table);
-				indexExistingRows(conn, schema, table);
+		/*
+		 * Do not run concurrently with itself: parallel calls used to fail with "this IndexWriter is
+		 * closed".
+		 */
+		long requested = System.nanoTime();
+		synchronized (INDEX_ACCESS) {
+			if (lastReindexFinished - requested > 0) {
+				LOGGER.debug("Skipping full text reindex, the index has just been rebuilt by another request");
+				return;
+			}
+			init(conn);
+			removeAllTriggers(conn, TRIGGER_PREFIX);
+			removeIndexFiles(conn);
+			try (Statement stat = conn.createStatement(); ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES")) {
+				while (rs.next()) {
+					String schema = rs.getString("SCHEMA");
+					String table = rs.getString("TABLE");
+					createTrigger(conn, schema, table);
+					indexExistingRows(conn, schema, table);
+				}
+			} finally {
+				lastReindexFinished = System.nanoTime();
 			}
 		}
 	}

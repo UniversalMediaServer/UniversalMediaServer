@@ -265,4 +265,44 @@ public class SearchRequestHandlerTest {
 		LOG.info("===================================================================");
 		LOG.info("\r\n" + response.toString());
 	}
+
+	/**
+	 * If a control points send their own placeholder instead of an object id as
+	 * ContainerID, that value must not be built into the SQL statement.
+	 */
+	@Test
+	public void testNonNumericContainerIdSearchesWholeStore() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.album\" and dc:title contains \"dark\"");
+		// illegal containerID
+		sr.setContainerId("search_result");
+		sr.setRequestedCount(100);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
+		LOG.info(sql);
+		assertFalse(sql.contains("search_result"), "the ContainerID must not be part of the statement");
+		assertFalse(sql.contains("WITH RECURSIVE"), "no subtree statement shall be built");
+
+		String countSql = searchRequestHandler.convertToCountSql();
+		LOG.info(countSql);
+		assertFalse(countSql.contains("search_result"), "the ContainerID must not be part of the count statement");
+		assertFalse(countSql.contains("WITH RECURSIVE"), "no subtree statement shall be built for the count");
+	}
+
+	@Test
+	public void testNumericContainerIdSearchesSubtree() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class derivedfrom \"object.container.album\" and dc:title contains \"dark\"");
+		sr.setContainerId("140");
+		sr.setRequestedCount(100);
+		sr.setStartingIndex(0);
+
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		String sql = searchRequestHandler.convertToFilesSql();
+		LOG.info(sql);
+		assertTrue(sql.contains("WITH RECURSIVE"), "a subtree statement shall be built");
+		assertTrue(sql.contains("WHERE id = 140"), "the subtree shall start at the requested container");
+	}
 }

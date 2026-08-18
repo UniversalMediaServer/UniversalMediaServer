@@ -16,9 +16,11 @@
  */
 package net.pms.network.mediaserver.handlers;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.h2.api.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
@@ -412,8 +414,8 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 
 	protected String convertToFilesSql() {
 		StringBuilder sb = new StringBuilder();
-		String subtreeId = getRequestMessage().getContainerId();
-		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+		String subtreeId = getSubtreeId();
+		if (subtreeId == null) {
 			sb.append(addSqlSelectByType());
 		} else {
 			sb.append(addSqlSelectByType(subtreeId));
@@ -482,8 +484,8 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 
 	protected String convertToCountSql() {
 		StringBuilder sb = new StringBuilder();
-		String subtreeId = getRequestMessage().getContainerId();
-		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+		String subtreeId = getSubtreeId();
+		if (subtreeId == null) {
 			sb.append(addSqlSelectCountByType());
 		} else {
 			sb.append(addSqlSelectCountByType(subtreeId));
@@ -526,11 +528,6 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 
 	/**
 	 * SubtreeId not used yet on purpose
-	 *
-	 * @param tableName
-	 * @param subtreeId
-	 * @param addAnd
-	 * @return
 	 */
 	private String getTreeWhereStatement(String tableName, String subtreeId, boolean addAnd) {
 		String tree = String.format(" WHERE EXISTS (\n" +
@@ -544,8 +541,29 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 		return tree;
 	}
 
+	/**
+	 * A failing search does not mean that the full text index is broken. Rebuilding the index is only necessary if the failure was caused
+	 * by the full text index itself, which is indicated by a specific error code in the exception.
+	 */
 	@Override
 	protected void handleException(Exception e) {
-		MediaDatabase.recreateFtlIndex();
+		if (isFullTextIndexFailure(e)) {
+			LOGGER.warn("Recreating the full text search index because the search function failed : {}", e.getMessage());
+			MediaDatabase.recreateFtlIndex();
+		} else {
+			LOGGER.debug("Leaving the full text search index untouched, the failure was not caused by it", e);
+		}
+	}
+
+	/**
+	 * The index is only rebuilt if the error came out of the lucene functions themselves.
+	 */
+	private static boolean isFullTextIndexFailure(Exception e) {
+		for (Throwable throwable = e; throwable != null; throwable = throwable.getCause()) {
+			if (throwable instanceof SQLException sqlException && sqlException.getErrorCode() == ErrorCode.EXCEPTION_IN_FUNCTION_1) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

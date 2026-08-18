@@ -212,6 +212,22 @@ public abstract class BaseSearchRequestHandler {
 		return requestMessage;
 	}
 
+	/**
+	 * Returns the ContainerID of the request as validated subtree id.
+	 */
+	protected String getSubtreeId() {
+		String containerId = getRequestMessage().getContainerId();
+		if (StringUtils.isAllBlank(containerId) || "0".equals(containerId.trim())) {
+			return null;
+		}
+		try {
+			return Long.toString(Long.parseLong(containerId.trim()));
+		} catch (NumberFormatException e) {
+			LOGGER.debug("Searching the whole store because the ContainerID \"{}\" is not an object id", containerId);
+			return null;
+		}
+	}
+
 	protected DbIdMediaType getRequestType() {
 		return requestType;
 	}

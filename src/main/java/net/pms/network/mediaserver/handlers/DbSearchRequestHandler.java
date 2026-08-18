@@ -206,8 +206,8 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 
 	public String convertToFilesSql() {
 		StringBuilder sb = new StringBuilder();
-		String subtreeId = getRequestMessage().getContainerId();
-		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+		String subtreeId = getSubtreeId();
+		if (subtreeId == null) {
 			sb.append(addSqlSelectByType());
 		} else {
 			sb.append(addSqlSelectByType(subtreeId));
@@ -260,9 +260,9 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 
 	public String convertToCountSql() {
 		StringBuilder sb = new StringBuilder();
-		String subtreeId = getRequestMessage().getContainerId();
+		String subtreeId = getSubtreeId();
 		String upnpSearch = getRequestMessage().getSearchCriteria();
-		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+		if (subtreeId == null) {
 			sb.append(addSqlSelectCountByType());
 		} else {
 			sb.append(addSqlSelectCountByType(subtreeId));
