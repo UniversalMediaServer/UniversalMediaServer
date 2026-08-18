@@ -172,6 +172,8 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_DELETE_BY_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
+	private static final String SQL_GET_RESOURCE_UID_BY_FILENAME = SELECT + COL_RESOURCE_UID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_FILENAMES_BY_RESOURCE_UID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + COL_RESOURCE_UID + EQUAL + PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
 
 	/**
@@ -1380,6 +1382,47 @@ public class MediaTableFiles extends MediaTable {
 			LOGGER.error(null, se);
 		}
 		return null;
+	}
+
+	/**
+	 * Returns the resource identifier of a file, which is derived from its content.
+	 */
+	public static String getResourceUidForFilename(final Connection connection, final String filename) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return null;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_RESOURCE_UID_BY_FILENAME)) {
+			statement.setString(1, filename);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getString(1);
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the files that hold the content identified by a resource identifier.
+	 */
+	public static List<String> getFilenamesForResourceUid(final Connection connection, final String resourceUid) {
+		List<String> result = new ArrayList<>();
+		if (connection == null || StringUtils.isBlank(resourceUid)) {
+			return result;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FILENAMES_BY_RESOURCE_UID)) {
+			statement.setString(1, resourceUid);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				while (resultSet.next()) {
+					result.add(resultSet.getString(COL_FILENAME));
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		}
+		return result;
 	}
 
 	public static List<String> getFilenamesInFolder(final Connection connection, final String fullPathToFolder) {

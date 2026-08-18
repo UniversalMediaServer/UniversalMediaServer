@@ -125,6 +125,9 @@ public class MediaTableAudioMetadata extends MediaTable {
 		AND + MediaTableFiles.TABLE_COL_FILENAME + " NOT " + LIKE + PARAMETER;
 	private static final String SQL_UPDATE_RATING_BY_AUDIOTRACK_ID = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_RATING_BY_MBID_TRACK = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_RATING_BY_FILENAME = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER +
+		WHERE + COL_FILEID + IN + "(" + SELECT + MediaTableFiles.TABLE_COL_ID + FROM + MediaTableFiles.TABLE_NAME +
+		WHERE + MediaTableFiles.TABLE_COL_FILENAME + EQUAL + PARAMETER + ")";
 	private static final String SQL_GET_FILENAME_BY_AUDIOTRACK_ID = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_AUDIO_METADATA + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_FILENAMES_BY_MBID_TRACK = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_AUDIO_METADATA + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER;
 
@@ -452,6 +455,26 @@ public class MediaTableAudioMetadata extends MediaTable {
 			ps.setInt(2, audiotrackId);
 			ps.executeUpdate();
 			connection.commit();
+		}
+	}
+
+	/**
+	 * Updates the rating of the audio track of a file. Used to mirror a restored
+	 * resource rating into the audio metadata, so that searching on upnp:rating
+	 * keeps working.
+	 */
+	public static int updateRatingByFilename(Connection connection, Integer ratingInStars, String filename) throws SQLException {
+		if (connection == null || StringUtils.isEmpty(filename)) {
+			return 0;
+		}
+		try (PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_RATING_BY_FILENAME)) {
+			if (ratingInStars == null) {
+				ps.setNull(1, Types.INTEGER);
+			} else {
+				ps.setInt(1, ratingInStars);
+			}
+			ps.setString(2, filename);
+			return ps.executeUpdate();
 		}
 	}
 
