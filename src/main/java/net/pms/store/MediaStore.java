@@ -20,6 +20,9 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -88,6 +91,21 @@ public class MediaStore extends StoreContainer {
 	 */
 	private static final AtomicInteger WORKERS = new AtomicInteger(0);
 	private static final String TEMP_TAG = "$Temp$";
+
+	/**
+	 * Bounded pool used to resolve the files of a folder ahead of their sequential handling.
+	 */
+	private static final ExecutorService RESOLVE_EXECUTOR = Executors.newFixedThreadPool(
+		Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())),
+		runnable -> {
+			Thread thread = new Thread(runnable, "MediaStore Resolver");
+			thread.setDaemon(true);
+			thread.setPriority(Thread.MIN_PRIORITY);
+			return thread;
+		});
+
+	// Set while a thread runs a resolve task, so a nested call resolves inline instead of waiting for a pool that it occupies itself.
+	private static final ThreadLocal<Boolean> IN_RESOLVER = ThreadLocal.withInitial(() -> false);
 
 	private final Map<Long, WeakReference<StoreResource>> weakResources = new HashMap<>();
 	private final Map<Long, Object> idLocks = new HashMap<>();
@@ -661,6 +679,26 @@ public class MediaStore extends StoreContainer {
 				}
 			}
 		}
+
+		if (systemFileResources.isEmpty()) {
+			StoreResource sr = null;
+			if (file.isDirectory()) {
+				sr = DbIdResourceLocator.getLibraryResourceRealFolder(renderer, file.getAbsolutePath());
+			} else {
+				sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
+			}
+			if (sr != null) {
+				systemFileResources.add(sr);
+			} else {
+				LOGGER.debug("resource not in database {}", file.getAbsolutePath());
+				sr = createResourceFromFile(file, false);
+				if (sr != null) {
+					systemFileResources.add(sr);
+				} else {
+					LOGGER.debug("findSystemFileResources has failed for {}", file.getAbsolutePath());
+				}
+			}
+		}
 		return systemFileResources;
 	}
 
@@ -855,6 +893,60 @@ public class MediaStore extends StoreContainer {
 			if (resourceClass.isInstance(resource) && resource instanceof SystemFileResource systemFileResource && file.equals(systemFileResource.getSystemFile())) {
 				return resource;
 			}
+		}
+		return null;
+	}
+
+	/**
+	 * Resolves the given files concurrently, so that the sequential handling of a
+	 * folder finds their metadata in the MediaInfoStore instead of parsing one file
+	 * after another.
+	 */
+	public void prepareResources(Collection<File> files) {
+		if (files == null || files.size() < 2) {
+			return;
+		}
+		List<Callable<Void>> tasks = new ArrayList<>(files.size());
+		for (File file : files) {
+			if (file != null && file.isFile()) {
+				tasks.add(() -> resolveAhead(file));
+			}
+		}
+		if (tasks.isEmpty()) {
+			return;
+		}
+		if (Boolean.TRUE.equals(IN_RESOLVER.get())) {
+			// nested call: running it here keeps us from waiting on a pool we occupy
+			for (Callable<Void> task : tasks) {
+				try {
+					task.call();
+				} catch (Exception e) {
+					LOGGER.trace("Resolving ahead failed", e);
+				}
+			}
+			return;
+		}
+		try {
+			// a barrier per folder: its files are handled right after this returns
+			RESOLVE_EXECUTOR.invokeAll(tasks);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	private Void resolveAhead(File file) {
+		IN_RESOLVER.set(true);
+		try {
+			StoreResource resource = createResourceFromFile(file);
+			if (resource instanceof StoreItem item) {
+				item.resolveFormat();
+				item.syncResolve();
+			}
+		} catch (Exception e) {
+			// the sequential pass resolves it again and reports what went wrong
+			LOGGER.trace("Could not resolve {} ahead of time : {}", file, e.getMessage());
+		} finally {
+			IN_RESOLVER.set(false);
 		}
 		return null;
 	}

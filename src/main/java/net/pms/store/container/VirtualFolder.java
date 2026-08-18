@@ -239,6 +239,8 @@ public class VirtualFolder extends StoreContainer {
 			StoreContainer parent = getSharedContentParent(virtualFolder.getParent());
 			parent.addChild(new VirtualFolder(renderer, virtualFolder), true, true);
 		}
+		// resolve this folder's files concurrently
+		renderer.getMediaStore().prepareResources(discoverable);
 		while (!discoverable.isEmpty()) {
 			manageFile(discoverable.remove(0));
 		}

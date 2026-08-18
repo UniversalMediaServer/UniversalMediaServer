@@ -102,6 +102,10 @@ public class Renderer extends RendererDeviceConfiguration {
 	private String automaticVideoQuality = "Automatic (Wireless)";
 
 	private volatile MediaStore mediaStore;
+
+	private final Object mediaStoreLock = new Object();
+
+	private volatile boolean mediaStoreInitialized;
 	private List<String> sharedPath;
 	protected Account account;
 
@@ -256,16 +260,22 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	/**
 	 * Returns the MediaStore.
-	 *
-	 * @return The MediaStore.
 	 */
-	public synchronized MediaStore getMediaStore() {
-		if (mediaStore == null) {
-			mediaStore = new MediaStore(this);
-			mediaStore.discoverChildren();
+	public MediaStore getMediaStore() {
+		if (mediaStoreInitialized) {
+			return mediaStore;
 		}
-
-		return mediaStore;
+		synchronized (mediaStoreLock) {
+			if (mediaStore == null) {
+				mediaStore = new MediaStore(this);
+				try {
+					mediaStore.discoverChildren();
+				} finally {
+					mediaStoreInitialized = true;
+				}
+			}
+			return mediaStore;
+		}
 	}
 
 	public synchronized void clearMediaStore() {
