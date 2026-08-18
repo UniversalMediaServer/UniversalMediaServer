@@ -33,9 +33,17 @@ public class ResourceIdentifierTest {
 	private static final Class<?> CLASS = ResourceIdentifierTest.class;
 
 	/**
-	 * Bigger than the threshold up to which a file is hashed completely.
+	 * Bigger than the threshold up to which a file is hashed completely, which is
+	 * 5 segments of 256 kB.
 	 */
-	private static final int BIG = 1024 * 1024;
+	private static final int BIG = 1024 * 1024 * 2;
+
+	/**
+	 * An offset inside the gap between the first and the second segment of a file of
+	 * {@link #BIG} bytes: the first segment ends at 256 kB, the second one starts at
+	 * (BIG - 256 kB) / 4 = 448 kB.
+	 */
+	private static final int UNREAD_OFFSET = 1024 * 300;
 
 	@TempDir
 	private Path tempDir;
@@ -54,11 +62,11 @@ public class ResourceIdentifierTest {
 		//test with file
 		File file = getTestFile("/net/pms/parsers/video-h264-aac.mp4");
 		String filePath = file.getAbsolutePath();
-		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "f0bd366f830b5f47");
+		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "bd153798588a561");
 		//test with file url
 		try {
 			String fileUrl = file.toURI().toURL().toString();
-			testResourceIdentifier("file url: " + fileUrl, fileUrl, "f0bd366f830b5f47");
+			testResourceIdentifier("file url: " + fileUrl, fileUrl, "bd153798588a561");
 		} catch (MalformedURLException ex) {
 			// Can't happen
 		}
@@ -142,7 +150,7 @@ public class ResourceIdentifierTest {
 	}
 
 	@Test
-	public void testBigFileUsesSizeAndBorders() throws IOException {
+	public void testBigFileUsesSizeAndSegments() throws IOException {
 		String expected = ruid(write("original.bin", content(BIG, (byte) 7)));
 		assertNotNull(expected);
 
@@ -156,10 +164,14 @@ public class ResourceIdentifierTest {
 
 		assertNotEquals(expected, ruid(write("size.bin", content(BIG + 1, (byte) 7))), "a changed size must change the identifier");
 
-		// documents the trade-off: the middle of a big file is deliberately not read
-		byte[] changedMiddle = content(BIG, (byte) 7);
-		changedMiddle[BIG / 2] = (byte) 9;
-		assertEquals(expected, ruid(write("middle.bin", changedMiddle)), "the middle of a big file is not part of the identifier");
+		byte[] changedInside = content(BIG, (byte) 7);
+		changedInside[BIG / 2] = (byte) 9;
+		assertNotEquals(expected, ruid(write("inside.bin", changedInside)), "a changed byte inside a segment must change the identifier");
+
+		// documents the trade-off: a big file is not read completely
+		byte[] changedGap = content(BIG, (byte) 7);
+		changedGap[UNREAD_OFFSET] = (byte) 9;
+		assertEquals(expected, ruid(write("gap.bin", changedGap)), "bytes between two segments are not part of the identifier");
 	}
 
 	@Test

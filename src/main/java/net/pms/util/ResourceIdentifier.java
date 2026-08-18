@@ -37,16 +37,19 @@ public class ResourceIdentifier {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceIdentifier.class);
 
 	/**
-	 * Number of bytes taken from the beginning and from the end of a file that is
-	 * not hashed completely.
+	 * Number of segments read from a file that is not hashed completely.
 	 */
-	private static final int CHUNK_BYTES = 1024 * 256; // 256 kB
+	private static final int SEGMENTS = 5;
 
 	/**
-	 * Files up to this size are hashed completely, larger ones by size plus their
-	 * head and tail chunk.
+	 * Number of bytes of a single segment.
 	 */
-	private static final long WHOLE_FILE_THRESHOLD = 2L * CHUNK_BYTES;
+	private static final int SEGMENT_BYTES = 1024 * 256; // 256 kB
+
+	/**
+	 * Files up to this size are hashed completely, which is the size at which the segments cover the file without a gap anyway.
+	 */
+	private static final long WHOLE_FILE_THRESHOLD = (long) SEGMENTS * SEGMENT_BYTES;
 
 	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
 	private static final String LOG_RUID_RESULTS = "RUID for \"{}\": {}";
@@ -98,12 +101,8 @@ public class ResourceIdentifier {
 	/**
 	 * Calculates the XXH3 hash of a file and returns the value as hex string.
 	 *
-	 * Files larger than {@link #WHOLE_FILE_THRESHOLD} are identified by their size
-	 * plus a chunk from the beginning and one from the end. Hashing every byte made
-	 * the initial scan read the whole library, which dominated its runtime.
-	 *
-	 * The content is mapped through the Foreign Function &amp; Memory API, so nothing
-	 * is copied to the heap and files larger than 2 GB are handled as well.
+	 * Files larger than WHOLE_FILE_THRESHOLD are identified by their size plus #SEGMENTS, the first one at the beginning, the last one at
+	 * the end and the others spread evenly in between.
 	 *
 	 * @param file the file to identify
 	 * @return the pseudo unique file identifier.
@@ -119,13 +118,16 @@ public class ResourceIdentifier {
 				MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, 0, size, arena);
 				hash = xx3.hashMemory(segment.address(), size);
 			} else {
-				MemorySegment head = channel.map(FileChannel.MapMode.READ_ONLY, 0, CHUNK_BYTES, arena);
-				MemorySegment tail = channel.map(FileChannel.MapMode.READ_ONLY, size - CHUNK_BYTES, CHUNK_BYTES, arena);
-				hash = xx3.hashLongs(new long[] {
-					size,
-					xx3.hashMemory(head.address(), CHUNK_BYTES),
-					xx3.hashMemory(tail.address(), CHUNK_BYTES)
-				});
+				long[] hashes = new long[SEGMENTS + 1];
+				hashes[0] = size;
+				long lastOffset = size - SEGMENT_BYTES;
+				for (int i = 0; i < SEGMENTS; i++) {
+					// i = 0 starts at the beginning, i = SEGMENTS - 1 ends at the end of the file
+					long offset = lastOffset * i / (SEGMENTS - 1);
+					MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, offset, SEGMENT_BYTES, arena);
+					hashes[i + 1] = xx3.hashMemory(segment.address(), SEGMENT_BYTES);
+				}
+				hash = xx3.hashLongs(hashes);
 			}
 			String ruid = Long.toHexString(hash);
 			LOGGER.trace(LOG_RUID_RESULTS, file.getAbsolutePath(), ruid);
