@@ -176,7 +176,10 @@ public class DatabaseEmbedded {
 	public static void shutdown(Connection connection) {
 		logProfilerIfNeeded();
 		try (Statement stmt = connection.createStatement()) {
+			LOGGER.info("Compacting the database on shutdown, this may take several minutes");
+			long start = System.currentTimeMillis();
 			stmt.execute("SHUTDOWN COMPACT");
+			LOGGER.info("Database compacted and shut down in {} ms", System.currentTimeMillis() - start);
 		} catch (SQLException e1) {
 			LOGGER.error("compacting DB ", e1);
 		}

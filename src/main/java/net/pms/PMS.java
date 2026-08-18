@@ -1112,17 +1112,6 @@ public class PMS {
 		Services.destroy();
 
 		LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
-		/**
-		 * Stopping logging gracefully (flushing logs) No logging is available
-		 * after this point
-		 */
-		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
-		if (iLoggerContext instanceof LoggerContext loggerContext) {
-			loggerContext.stop();
-		} else {
-			LOGGER.error("Unable to shut down logging gracefully");
-			System.err.println("Unable to shut down logging gracefully");
-		}
 
 		// Shut down media scanner
 		if (MediaScanner.isMediaScanRunning()) {
@@ -1141,6 +1130,18 @@ public class PMS {
 			LOGGER.debug("Shutting down user database");
 			UserDatabase.shutdown();
 			UserDatabase.createDatabaseReportIfNeeded();
+		}
+
+		/**
+		 * Stopping logging gracefully (flushing logs). This has to be the last step of the shutdown, otherwise everything above
+		 * (especially the database shutdown) happens silently. No logging is available after this point.
+		 */
+		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
+		if (iLoggerContext instanceof LoggerContext loggerContext) {
+			loggerContext.stop();
+		} else {
+			LOGGER.error("Unable to shut down logging gracefully");
+			System.err.println("Unable to shut down logging gracefully");
 		}
 	}
 
