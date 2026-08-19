@@ -61,6 +61,9 @@
 ;         ${ShellVarContextAll}
 ;       Built-in NSIS other tests:
 ;         ${FileExists} a
+;       Complex string tests:
+;         a ${StartsWith} b; a ${StartsWithS} b; a ${EndsWith} b; a ${EndsWithS} b;
+;         a ${Contains} b; a ${ContainsS} b; ${IsLowerCase} b; ${IsUpperCase} b
 ;       Any conditional NSIS instruction test:
 ;         ${Cmd} a
 ;       Section flag tests:
@@ -69,7 +72,7 @@
 ;         ${SectionIsReadOnly} a; ${SectionIsExpanded} a;
 ;         ${SectionIsPartiallySelected} a
 ;       Additional tests:
-;         HK RegKeyIsEmpty SubKey
+;         HK ${RegKeyIsEmpty} SubKey
 ;
 ; Examples:
 ;   See LogicLib.nsi in the Examples folder for lots of example usage.
@@ -84,7 +87,7 @@
 !verbose ${_LOGICLIB_VERBOSITY}
 
 !ifndef LOGICLIB
-  !define LOGICLIB
+  !define LOGICLIB 20260419
   !define | "'"
   !define || "' '"
   !define LOGICLIB_COUNTER 0
@@ -360,6 +363,59 @@
   !macroend
   !define AltRegView `"" AltRegView ""`
 
+  ; Complex string tests
+  !macro _LL_StartsWith _op _a _b _t _f
+    !insertmacro _LOGICLIB_TEMP
+    StrLen $_LOGICLIB_TEMP `${_b}`
+    StrCpy $_LOGICLIB_TEMP `${_a}` $_LOGICLIB_TEMP
+    ${_op} $_LOGICLIB_TEMP `${_b}` `${_t}` `${_f}`
+  !macroend
+  !define StartsWith `"LL_StartsWith StrCmp"`
+  !define StartsWithS `"LL_StartsWith StrCmpS"`
+
+  !macro _LL_EndsWith _op _a _b _t _f
+    !insertmacro _LOGICLIB_TEMP
+    StrLen $_LOGICLIB_TEMP `${_b}`
+    StrCpy $_LOGICLIB_TEMP `${_a}` "" -$_LOGICLIB_TEMP
+    ${_op} $_LOGICLIB_TEMP `${_b}` `${_t}` `${_f}`
+  !macroend
+  !define EndsWith `"LL_EndsWith StrCmp"`
+  !define EndsWithS `"LL_EndsWith StrCmpS"`
+
+  !macro _LL_StrContains _op _a _b _t _f
+    !insertmacro _LOGICLIB_TEMP
+    Push $0
+    Push $1
+    Push $2
+    StrCpy $0 `${_b}`
+    StrCpy $1 `${_a}`
+    StrLen $_LOGICLIB_TEMP $0
+    _LL${LOGICLIB_COUNTER}_Loop:
+      StrCpy $2 $1 $_LOGICLIB_TEMP
+      StrCmp $2 "" _LL${LOGICLIB_COUNTER}_Done
+      StrCpy $1 $1 "" 1
+      ${_op} $2 $0 ""_LL${LOGICLIB_COUNTER}_Loop
+      StrCpy $_LOGICLIB_TEMP ""
+    _LL${LOGICLIB_COUNTER}_Done:
+    Pop $2
+    Pop $1
+    Pop $0
+    StrCmp $_LOGICLIB_TEMP "" `${_t}` `${_f}`
+    !insertmacro _IncreaseCounter
+  !macroend
+  !define Contains `"LL_StrContains StrCmp"`
+  !define ContainsS `"LL_StrContains StrCmpS"`
+
+  !macro _LL_IsCase _func _a _b _t _f
+    !insertmacro _LOGICLIB_TEMP
+    System::Call USER32::${_func}(tss) `${_b}`
+    Pop $_LOGICLIB_TEMP
+    StrCmpS $_LOGICLIB_TEMP `${_b}` `${_t}` `${_f}`
+  !macroend
+  !define IsLowerCase `"" "LL_IsCase CharLower"`
+  !define IsUpperCase `"" "LL_IsCase CharUpper"`
+
+  ; Registry tests
   !macro _RegKeyIsEmpty _a _b _t _f
     !insertmacro _LOGICLIB_TEMP
     ClearErrors
