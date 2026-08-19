@@ -49,6 +49,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.parsers.WebStreamParser;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaInfoStore;
 import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
@@ -57,6 +58,7 @@ import net.pms.store.ThumbnailStore;
 import net.pms.store.item.FeedItem;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
+import net.pms.store.item.WebStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.FileUtil;
@@ -363,6 +365,9 @@ public final class PlaylistFolder extends StoreContainer {
 		StoreResource d = createWebResource(entry, u, type);
 		if (d == null) {
 			throw new WebEntryResolveException(entry, "Unsupported web stream type for entry");
+		}
+		if (d instanceof WebStream) {
+			MediaInfoStore.getWebStreamMediaInfo(u, type);
 		}
 		return new ResolvedWebEntry(entry, u, type, d);
 	}

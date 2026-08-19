@@ -85,6 +85,9 @@ public class RendererConfigurations {
 		return r1.getConfName().compareToIgnoreCase(r2.getConfName());
 	};
 	private static final SortedSet<RendererConfiguration> ENABLED_RENDERERS_CONFS = Collections.synchronizedSortedSet(new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR));
+
+	// Immutable view of ENABLED_RENDERERS_CONFS in loading priority order.
+	private static volatile List<RendererConfiguration> enabledRenderersSnapshot = List.of();
 	private static final Map<String, ManagedPropertiesConfiguration> DEVICES_CONFS = Collections.synchronizedMap(new HashMap<>());
 
 	private static RendererConfiguration defaultConf;
@@ -116,6 +119,13 @@ public class RendererConfigurations {
 
 	private static void addRendererConfiguration(RendererConfiguration r) {
 		ENABLED_RENDERERS_CONFS.add(r);
+		refreshEnabledRenderersSnapshot();
+	}
+
+	private static void refreshEnabledRenderersSnapshot() {
+		synchronized (ENABLED_RENDERERS_CONFS) {
+			enabledRenderersSnapshot = List.copyOf(ENABLED_RENDERERS_CONFS);
+		}
 	}
 
 	/**
@@ -129,8 +139,8 @@ public class RendererConfigurations {
 	 *
 	 * @since 1.50.1
 	 */
-	public static synchronized RendererConfiguration getRendererConfigurationByName(String name) {
-		for (RendererConfiguration conf : ENABLED_RENDERERS_CONFS) {
+	public static RendererConfiguration getRendererConfigurationByName(String name) {
+		for (RendererConfiguration conf : enabledRenderersSnapshot) {
 			if (conf.getConfName().toLowerCase().contains(name.toLowerCase())) {
 				return conf;
 			}
@@ -138,14 +148,14 @@ public class RendererConfigurations {
 		return null;
 	}
 
-	public static synchronized RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
 		if (PMS.getConfiguration().isRendererForceDefault()) {
 			// Force default renderer
 			RendererConfiguration r = getDefaultConf();
 			LOGGER.debug("Forcing renderer match to \"" + r.getRendererName() + "\"");
 			return r;
 		}
-		for (RendererConfiguration r : ENABLED_RENDERERS_CONFS) {
+		for (RendererConfiguration r : enabledRenderersSnapshot) {
 			if (r.match(sortedHeaders)) {
 				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 				return r;
@@ -154,8 +164,8 @@ public class RendererConfigurations {
 		return null;
 	}
 
-	public static synchronized RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
-		for (RendererConfiguration r : ENABLED_RENDERERS_CONFS) {
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
+		for (RendererConfiguration r : enabledRenderersSnapshot) {
 			if (r.matchUPNPDetails(details)) {
 				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
 				return r;
@@ -366,6 +376,7 @@ public class RendererConfigurations {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
 			ALL_RENDERERS_NAMES.clear();
 			ENABLED_RENDERERS_CONFS.clear();
+			refreshEnabledRenderersSnapshot();
 			try {
 				defaultConf = new RendererConfiguration(null);
 				defaultRenderer = new Renderer(defaultConf);
@@ -448,7 +459,7 @@ public class RendererConfigurations {
 		}
 
 		if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(ALL_RENDERERS_KEY)) {
-			ENABLED_RENDERERS_CONFS.add(rendererConf);
+			addRendererConfiguration(rendererConf);
 		} else {
 			LOGGER.debug("Ignored \"{}\" configuration", rendererName);
 		}
