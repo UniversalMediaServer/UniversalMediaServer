@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * COPIED from h2 version 2.2.240 - Moved all references from FullTextLucene to
- * UmsFullTextLucene - Added UmsAnalyzer for indexing.
+ * UmsFullTextLucene - Added UmsAnalyzer for indexing & batch index writer.
  *
  */
 public class UmsFullTextLucene extends FullText {
@@ -71,6 +71,9 @@ public class UmsFullTextLucene extends FullText {
 	private static final String LUCENE_FIELD_QUERY = "_QUERY";
 	private static final String LUCENE_FIELD_MODIFIED = "_modified";
 	private static final String LUCENE_FIELD_COLUMN_PREFIX = "_";
+
+	// Number of documents a trigger may add before the index is committed.
+	private static final int PENDING_DOCUMENTS_BEFORE_COMMIT = 100;
 
 	/**
 	 * Nano timestamp of the last finished reindex
@@ -640,6 +643,21 @@ public class UmsFullTextLucene extends FullText {
 		}
 
 		/**
+		 * Leaves the changes to the Lucene index uncommitted until enough of them have
+		 * piled up. A search commits whatever is pending, so this is not visible to
+		 * readers.
+		 *
+		 * @throws SQLException on failure
+		 */
+		void commitIndexIfDue() throws SQLException {
+			try {
+				indexAccess.commitIfDue();
+			} catch (IOException e) {
+				throw convertException(e);
+			}
+		}
+
+		/**
 		 * Add a row to the index.
 		 *
 		 * @param row the row
@@ -687,7 +705,7 @@ public class UmsFullTextLucene extends FullText {
 			try {
 				indexAccess.writer.addDocument(doc);
 				if (commitIndex) {
-					commitIndex();
+					commitIndexIfDue();
 				}
 			} catch (IOException e) {
 				throw convertException(e);
@@ -713,7 +731,7 @@ public class UmsFullTextLucene extends FullText {
 				Term term = new Term(LUCENE_FIELD_QUERY, query);
 				indexAccess.writer.deleteDocuments(term);
 				if (commitIndex) {
-					commitIndex();
+					commitIndexIfDue();
 				}
 			} catch (IOException e) {
 				throw convertException(e);
@@ -758,6 +776,11 @@ public class UmsFullTextLucene extends FullText {
 		 */
 		private IndexSearcher searcher;
 
+		/**
+		 * Documents added since the last commit.
+		 */
+		private int pendingDocuments;
+
 		IndexAccess(IndexWriter writer) throws IOException {
 			this.writer = writer;
 			initializeSearcher();
@@ -766,14 +789,33 @@ public class UmsFullTextLucene extends FullText {
 		/**
 		 * Start using the searcher.
 		 *
+		 * Commits first if a trigger left documents uncommitted, because a commit is
+		 * what makes them visible to a search. That keeps the batching below invisible
+		 * to readers: they always get the current state.
+		 *
 		 * @return the searcher
 		 * @throws IOException on failure
 		 */
 		synchronized IndexSearcher getSearcher() throws IOException {
+			if (pendingDocuments > 0) {
+				commit();
+			}
 			if (!searcher.getIndexReader().tryIncRef()) {
 				initializeSearcher();
 			}
 			return searcher;
+		}
+
+		/**
+		 * Commits the changes if enough documents have piled up since the last commit.
+		 *
+		 * @throws IOException on failure
+		 */
+		synchronized void commitIfDue() throws IOException {
+			pendingDocuments++;
+			if (pendingDocuments >= PENDING_DOCUMENTS_BEFORE_COMMIT) {
+				commit();
+			}
 		}
 
 		private void initializeSearcher() throws IOException {
@@ -797,6 +839,7 @@ public class UmsFullTextLucene extends FullText {
 		 * @throws IOException on failure
 		 */
 		public synchronized void commit() throws IOException {
+			pendingDocuments = 0;
 			writer.commit();
 			IndexReader oldReader = searcher.getIndexReader();
 			searcher = new IndexSearcher(DirectoryReader.open(writer));
