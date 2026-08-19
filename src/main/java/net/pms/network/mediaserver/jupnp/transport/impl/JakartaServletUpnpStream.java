@@ -18,6 +18,7 @@ package net.pms.network.mediaserver.jupnp.transport.impl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -80,6 +81,16 @@ public abstract class JakartaServletUpnpStream extends UpnpStream {
 					HttpServletHelper.logHttpServletResponse(getRequest(), getResponse(), null, false);
 				}
 			}
+		} catch (EOFException e) {
+			/*
+			 * The client hung up while its request was being read - jetty reports that as
+			 * an "Early EOF". A control point that sends an action and closes without
+			 * waiting for the answer is not our error, so it does not belong in the log as
+			 * one. There is nobody left to send a status to either.
+			 */
+			LOGGER.debug("Client closed the connection during UPnP stream processing : {}", e.getMessage());
+			LOGGER.trace("", e);
+			responseException(e);
 		} catch (IOException e) {
 			LOGGER.error("Exception occurred during UPnP stream processing", e);
 			if (!getResponse().isCommitted()) {
