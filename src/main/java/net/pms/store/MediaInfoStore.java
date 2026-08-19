@@ -245,7 +245,8 @@ public class MediaInfoStore {
 					MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
 				}
 			} catch (Exception e) {
-				LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", url, e.getMessage());
+				LOGGER.error("Error while trying to add parsed information for \"{}\" to the cache: {}", url, e.getMessage());
+				LOGGER.trace("", e);
 			}
 			if (mediaInfo != null) {
 				storeMediaInfo(url, mediaInfo);
