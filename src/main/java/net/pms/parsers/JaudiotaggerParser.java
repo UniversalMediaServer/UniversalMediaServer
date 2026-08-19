@@ -122,6 +122,7 @@ public class JaudiotaggerParser {
 					}
 					audioMetadata.setAlbum(extractAudioTagKeyValue(t, FieldKey.ALBUM));
 					audioMetadata.setArtist(extractAudioTagKeyValue(t, FieldKey.ARTIST));
+					audioMetadata.setAlbumArtist(extractAudioTagKeyValue(t, FieldKey.ALBUM_ARTIST));
 					audioMetadata.setComposer(extractAudioTagKeyValue(t, FieldKey.COMPOSER));
 					audioMetadata.setConductor(extractAudioTagKeyValue(t, FieldKey.CONDUCTOR));
 					audioMetadata.setSongname(extractAudioTagKeyValue(t, FieldKey.TITLE));
