@@ -20,9 +20,9 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -92,17 +92,22 @@ public class MediaStore extends StoreContainer {
 	private static final AtomicInteger WORKERS = new AtomicInteger(0);
 	private static final String TEMP_TAG = "$Temp$";
 
-	/**
-	 * Bounded pool used to resolve the files of a folder ahead of their sequential handling.
-	 */
-	private static final ExecutorService RESOLVE_EXECUTOR = Executors.newFixedThreadPool(
-		Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())),
+	// Bounded pool used to resolve the files of a folder ahead of their sequential handling.
+	private static final int RESOLVE_THREADS = Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors()));
+
+	// Bound of the queue in front of the resolver pool.
+	private static final int RESOLVE_QUEUE_CAPACITY = 256;
+
+	private static final ThreadPoolExecutor RESOLVE_EXECUTOR = new ThreadPoolExecutor(
+		RESOLVE_THREADS, RESOLVE_THREADS, 0L, TimeUnit.MILLISECONDS,
+		new ArrayBlockingQueue<>(RESOLVE_QUEUE_CAPACITY),
 		runnable -> {
 			Thread thread = new Thread(runnable, "MediaStore Resolver");
 			thread.setDaemon(true);
 			thread.setPriority(Thread.MIN_PRIORITY);
 			return thread;
-		});
+		},
+		new ThreadPoolExecutor.CallerRunsPolicy());
 
 	// Set while a thread runs a resolve task, so a nested call resolves inline instead of waiting for a pool that it occupies itself.
 	private static final ThreadLocal<Boolean> IN_RESOLVER = ThreadLocal.withInitial(() -> false);
@@ -903,38 +908,31 @@ public class MediaStore extends StoreContainer {
 	 * after another.
 	 */
 	public void prepareResources(Collection<File> files) {
-		if (files == null || files.size() < 2) {
+		if (files == null || files.isEmpty()) {
 			return;
 		}
-		List<Callable<Void>> tasks = new ArrayList<>(files.size());
+		// On purpose no sync: the per filename lock in MediaInfoStore makes sure it is parsed once either way.
 		for (File file : files) {
 			if (file != null && file.isFile()) {
-				tasks.add(() -> resolveAhead(file));
-			}
-		}
-		if (tasks.isEmpty()) {
-			return;
-		}
-		if (Boolean.TRUE.equals(IN_RESOLVER.get())) {
-			// nested call: running it here keeps us from waiting on a pool we occupy
-			for (Callable<Void> task : tasks) {
-				try {
-					task.call();
-				} catch (Exception e) {
-					LOGGER.trace("Resolving ahead failed", e);
+				if (Boolean.TRUE.equals(IN_RESOLVER.get())) {
+					resolveAhead(file);
+				} else {
+					RESOLVE_EXECUTOR.execute(() -> resolveAhead(file));
 				}
 			}
-			return;
-		}
-		try {
-			// a barrier per folder: its files are handled right after this returns
-			RESOLVE_EXECUTOR.invokeAll(tasks);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
 		}
 	}
 
-	private Void resolveAhead(File file) {
+	/**
+	 * Waits until the resolver pool finished processing submitted tasks.
+	 */
+	public static void awaitPendingResources() throws InterruptedException {
+		while (!RESOLVE_EXECUTOR.getQueue().isEmpty() || RESOLVE_EXECUTOR.getActiveCount() > 0) {
+			Thread.sleep(50);
+		}
+	}
+
+	private void resolveAhead(File file) {
 		IN_RESOLVER.set(true);
 		try {
 			StoreResource resource = createResourceFromFile(file);
@@ -943,12 +941,10 @@ public class MediaStore extends StoreContainer {
 				item.syncResolve();
 			}
 		} catch (Exception e) {
-			// the sequential pass resolves it again and reports what went wrong
 			LOGGER.trace("Could not resolve {} ahead of time : {}", file, e.getMessage());
 		} finally {
 			IN_RESOLVER.set(false);
 		}
-		return null;
 	}
 
 	public StoreResource createResourceFromFile(File file) {

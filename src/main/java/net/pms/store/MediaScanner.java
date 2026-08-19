@@ -137,6 +137,12 @@ public class MediaScanner implements SharedContentListener {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
 					scan(RENDERER.getMediaStore());
+					try {
+						MediaStore.awaitPendingResources();
+					} catch (InterruptedException ex) {
+						running = false;
+						Thread.currentThread().interrupt();
+					}
 					// Running might have been set false during scan
 					if (running) {
 						MediaTableFiles.cleanup(connection);
