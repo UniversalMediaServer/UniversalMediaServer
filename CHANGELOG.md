@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@types/lodash` from 4.17.24 to 4.17.25 ([#6290](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6290))
 - Bump `@types/react` from 19.2.17 to 19.2.18 ([#6283](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6283))
 - Bump `actions/setup-node` from 6 to 7 ([#6248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6248))
 - Bump `actions/setup-node` from 6 to 7 ([#6248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6248))
