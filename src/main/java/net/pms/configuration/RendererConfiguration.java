@@ -154,7 +154,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	public static final File NOFILE = new File("NOFILE");
 	public static final String UNKNOWN_ICON = "unknown.png";
 
-	protected Matcher sortedHeaderMatcher;
+	protected Pattern sortedHeaderPattern;
 
 	protected UmsConfiguration umsConfiguration = PMS.getConfiguration();
 	protected boolean loaded = false;
@@ -285,7 +285,7 @@ public class RendererConfiguration extends BaseConfiguration {
 			searchMap.put("User-Agent", getUserAgent());
 			searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
 			String re = searchMap.toRegex();
-			sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
+			sortedHeaderPattern = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE) : null;
 
 			boolean addWatch = file != f;
 			file = f;
@@ -386,6 +386,8 @@ public class RendererConfiguration extends BaseConfiguration {
 			LOGGER.info("Reloading renderer configuration: {}", f);
 			loaded = false;
 			init(f);
+			// init() recompiles the header pattern, so remembered matches may be wrong now
+			RendererConfigurations.clearHeaderMatches();
 		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
 		}
@@ -1496,9 +1498,9 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return True if the pattern matches or false if no match, no headers, or no matcher.
 	 */
 	public boolean match(SortedHeaderMap headers) {
-		if (headers != null && !headers.isEmpty() && sortedHeaderMatcher != null) {
+		if (headers != null && !headers.isEmpty() && sortedHeaderPattern != null) {
 			try {
-				return sortedHeaderMatcher.reset(headers.joined()).find();
+				return sortedHeaderPattern.matcher(headers.joined()).find();
 			} catch (Exception e) {
 				return false;
 			}

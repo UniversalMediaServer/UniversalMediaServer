@@ -42,8 +42,8 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.external.JavaHttpClient;
 import net.pms.image.BufferedImageFilterChain;
+import net.openhft.hashing.LongHashFunction;
 import net.pms.network.HTTPResource;
-import org.apache.commons.codec.digest.DigestUtils;
 
 public class ThumbnailStore {
 
@@ -73,19 +73,21 @@ public class ThumbnailStore {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailStore.class.getName());
 
 	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new HashMap<>();
-	
+
 	// Thumbnails already generated for a given remote image URL.
 	private static final Map<String, Long> URL_THUMBNAIL_IDS = new ConcurrentHashMap<>();
-	
+
 	// Thumbnails already generated for a given image file, by absolute path.
 	private static final Map<String, CachedFileThumbnail> FILE_THUMBNAIL_IDS = new ConcurrentHashMap<>();
 
 	// A JPEG_TN variant is around 15 kB, the large profiles are a lot bigger, so this is a few tens of MB in the worst case.
 	private static final int MAX_TRANSCODED_THUMBNAILS = 500;
 
+	private static final LongHashFunction THUMBNAIL_HASH = LongHashFunction.xx3();
+
 	// Variants of a thumbnail converted to the DLNA profile a renderer asked for.
 	private static final Map<String, DLNAThumbnail> TRANSCODED_THUMBNAILS = Collections.synchronizedMap(new TranscodedThumbnailCache());
-	
+
 	private static final BlockingQueue<ThumbnailUpdateRequest> THUMBNAIL_UPDATE_QUEUE = new LinkedBlockingQueue<>();
 	private static final AtomicBoolean QUEUE_WORKER_RUNNING = new AtomicBoolean(false);
 	private static final String QUEUE_WORKER_THREAD_NAME = "thumbnail-update-worker";
@@ -362,7 +364,7 @@ public class ThumbnailStore {
 		if (filterChain != null || outputProfile == null) {
 			return source.transcode(outputProfile, padToSize, filterChain);
 		}
-		String key = DigestUtils.md5Hex(source.getBytes(false)) + "|" + outputProfile +
+		String key = Long.toHexString(THUMBNAIL_HASH.hashBytes(source.getBytes(false))) + "|" + outputProfile +
 				"|" + outputProfile.getH() + "x" + outputProfile.getV() + "|" + padToSize;
 		DLNAThumbnail cached = TRANSCODED_THUMBNAILS.get(key);
 		if (cached != null) {
