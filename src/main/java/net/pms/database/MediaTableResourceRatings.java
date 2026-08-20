@@ -66,6 +66,8 @@ public final class MediaTableResourceRatings extends MediaTable {
 	/**
 	 * SQL Queries
 	 */
+	private static final String SQL_MERGE_KEY = "MERGE INTO " + TABLE_NAME + " (" + COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE +
+		COMMA + COL_RATING + COMMA + COL_MODIFIED + ") KEY(" + COL_RESOURCE_KEY + ") VALUES (?, ?, ?, ?)";
 	private static final String SQL_GET_ALL_KEY = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_RATING_KEY = SELECT + COL_RATING + FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ALL_ROWS = SELECT + COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE + COMMA + COL_RATING + FROM + TABLE_NAME + WHERE + COL_RATING + IS_NOT_NULL;
@@ -204,6 +206,7 @@ public final class MediaTableResourceRatings extends MediaTable {
 
 	/**
 	 * Sets the rating of a resource. A NULL rating removes the rating.
+	 *
 	 * @param rating the rating (0 - 5 stars) or NULL to remove it
 	 */
 	public static void setRating(final Connection connection, final String resourceKey, final String objectType, final Integer rating) {
@@ -214,27 +217,45 @@ public final class MediaTableResourceRatings extends MediaTable {
 			deleteRating(connection, resourceKey);
 			return;
 		}
-		final String storedObjectType = getAlbumObjectType(resourceKey, objectType);
-		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL_KEY, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-			statement.setString(1, resourceKey);
-			try (ResultSet result = statement.executeQuery()) {
-				if (result.next()) {
-					result.updateString(COL_OBJECT_TYPE, storedObjectType);
-					updateInteger(result, COL_RATING, rating);
-					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
-					result.updateRow();
-				} else {
-					result.moveToInsertRow();
-					result.updateString(COL_RESOURCE_KEY, resourceKey);
-					result.updateString(COL_OBJECT_TYPE, storedObjectType);
-					updateInteger(result, COL_RATING, rating);
-					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
-					result.insertRow();
-				}
-			}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_MERGE_KEY)) {
+			setMergeParameters(statement, resourceKey, objectType, rating);
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing rating", rating, TABLE_NAME, resourceKey, e.getMessage());
 			LOGGER.trace("", e);
+		}
+	}
+
+	private static void setMergeParameters(PreparedStatement statement, String resourceKey, String objectType, Integer rating) throws SQLException {
+		statement.setString(1, resourceKey);
+		statement.setString(2, getAlbumObjectType(resourceKey, objectType));
+		statement.setInt(3, rating);
+		statement.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+	}
+
+	/*
+	 * writes many ratings over one statement
+	 */
+	public static final class RatingWriter implements AutoCloseable {
+
+		private final PreparedStatement statement;
+
+		public RatingWriter(Connection connection) throws SQLException {
+			statement = connection.prepareStatement(SQL_MERGE_KEY);
+		}
+
+		public void write(String resourceKey, String objectType, Integer rating) throws SQLException {
+			setMergeParameters(statement, resourceKey, objectType, rating);
+			statement.executeUpdate();
+		}
+
+		@Override
+		public void close() {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				LOGGER.trace("closing the rating writer failed : {}", e.getMessage());
+			}
 		}
 	}
 

@@ -459,22 +459,31 @@ public class MediaTableAudioMetadata extends MediaTable {
 	}
 
 	/**
-	 * Updates the rating of the audio track of a file. Used to mirror a restored
-	 * resource rating into the audio metadata, so that searching on upnp:rating
-	 * keeps working.
+	 * Updates the rating of the audio track of a file. Used to mirror a restored resource rating into the audio metadata.
 	 */
+	public static int updateRatingByFilename(PreparedStatement statement, Integer ratingInStars, String filename) throws SQLException {
+		if (statement == null || StringUtils.isEmpty(filename)) {
+			return 0;
+		}
+		if (ratingInStars == null) {
+			statement.setNull(1, Types.INTEGER);
+		} else {
+			statement.setInt(1, ratingInStars);
+		}
+		statement.setString(2, filename);
+		return statement.executeUpdate();
+	}
+
+	public static PreparedStatement prepareRatingUpdate(Connection connection) throws SQLException {
+		return connection.prepareStatement(SQL_UPDATE_RATING_BY_FILENAME);
+	}
+
 	public static int updateRatingByFilename(Connection connection, Integer ratingInStars, String filename) throws SQLException {
 		if (connection == null || StringUtils.isEmpty(filename)) {
 			return 0;
 		}
 		try (PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_RATING_BY_FILENAME)) {
-			if (ratingInStars == null) {
-				ps.setNull(1, Types.INTEGER);
-			} else {
-				ps.setInt(1, ratingInStars);
-			}
-			ps.setString(2, filename);
-			return ps.executeUpdate();
+			return updateRatingByFilename(ps, ratingInStars, filename);
 		}
 	}
 
