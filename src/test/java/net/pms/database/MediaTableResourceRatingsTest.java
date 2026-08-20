@@ -211,7 +211,7 @@ public class MediaTableResourceRatingsTest {
 			assertNull(MediaTableResourceRatings.getRating(connection, goneKey));
 
 			//an empty key set must not wipe the table
-			int deletedByEmpty = MediaTableResourceRatings.deleteRatingsNotIn(connection, List.of());
+			int deletedByEmpty = MediaTableResourceRatings.deleteRatingsNotIn(connection, List.<String>of());
 			assertEquals(0, deletedByEmpty);
 			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, keptKey));
 
