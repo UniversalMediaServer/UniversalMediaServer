@@ -93,6 +93,17 @@ public class MediaScanner implements SharedContentListener {
 			});
 
 	/**
+	 * media file watchers executor for walking the whole shared folder tree.
+	 */
+	private static final ExecutorService FILEWATCHER_EXECUTOR = Executors.newSingleThreadExecutor(
+			runnable -> {
+				Thread thread = new Thread(runnable, "MediaScanner FileWatcher Registrar");
+				thread.setPriority(Thread.MIN_PRIORITY);
+				thread.setDaemon(true);
+				return thread;
+			});
+
+	/**
 	 * Upper bound for the wait on a file that is still being written.
 	 */
 	private static final int MAX_FILE_SETTLE_WAITS = 120;
@@ -112,7 +123,7 @@ public class MediaScanner implements SharedContentListener {
 
 	@Override
 	public synchronized void updateSharedContent() {
-		setMediaFileWatchers();
+		FILEWATCHER_EXECUTOR.execute(MediaScanner::setMediaFileWatchers);
 		setSharedFolders();
 	}
 
