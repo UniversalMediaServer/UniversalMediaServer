@@ -182,14 +182,41 @@ public class MediaTableResourceRatingsTest {
 			MediaTableResourceRatings.migrateAlbumLikes(connection);
 			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, mbKey));
 
-			//and the export direction has to reproduce the legacy content
-			MediaTableResourceRatings.exportAlbumLikes(connection);
-			MediaTableResourceRatings.deleteRating(connection, mbKey);
-			MediaTableResourceRatings.migrateAlbumLikes(connection);
-			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, mbKey));
-
 			MediaTableResourceRatings.deleteRating(connection, mbKey);
 			MediaTableResourceRatings.deleteRating(connection, discogsKey);
+		}
+	}
+
+	/*
+	 * a restore keeps what the backup names and drops the rest
+	 */
+	@Test
+	public void testDeleteRatingsNotInKeepsOnlyTheGivenKeys() throws Exception {
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
+		try (Connection connection = database.getConnection()) {
+			String keptKey = DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.getResourceKey("11111111-1111-1111-1111-111111111111");
+			String goneKey = DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID.getResourceKey("22222222-2222-2222-2222-222222222222");
+			String fileKey = "/media/music/testDeleteRatingsNotIn/01 - Kept.flac";
+
+			MediaTableResourceRatings.setRating(connection, keptKey, "MusicAlbumFolder", 5);
+			MediaTableResourceRatings.setRating(connection, goneKey, "MusicAlbumFolder", 5);
+			MediaTableResourceRatings.setRating(connection, fileKey, "RealFile", 3);
+
+			int deleted = MediaTableResourceRatings.deleteRatingsNotIn(connection, List.of(keptKey, fileKey));
+
+			assertTrue(deleted >= 1, "the rating the backup does not name has to go");
+			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, keptKey));
+			assertEquals(Integer.valueOf(3), MediaTableResourceRatings.getRating(connection, fileKey));
+			assertNull(MediaTableResourceRatings.getRating(connection, goneKey));
+
+			//an empty key set must not wipe the table
+			int deletedByEmpty = MediaTableResourceRatings.deleteRatingsNotIn(connection, List.of());
+			assertEquals(0, deletedByEmpty);
+			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, keptKey));
+
+			MediaTableResourceRatings.deleteRating(connection, keptKey);
+			MediaTableResourceRatings.deleteRating(connection, fileKey);
 		}
 	}
 

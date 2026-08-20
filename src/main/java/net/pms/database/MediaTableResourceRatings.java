@@ -6,7 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import net.pms.store.DbIdMediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,45 +110,11 @@ public final class MediaTableResourceRatings extends MediaTable {
 	}
 
 	/**
-	 * Copies the album likes of the legacy like tables into this table, so the My
-	 * Albums folder keeps its content after the upgrade.
-	 *
-	 * A like becomes a rating of RATING_LIKED on the resource key of the album
-	 * container, which is the same identifier the legacy tables hold, only
-	 * prefixed with its type. The legacy tables are left untouched so the upgrade
-	 * stays reversible.
-	 *
-	 * @param connection the db connection
+	 * Copies the album likes of the legacy like tables into this table, so the My Albums folder keeps its content after the upgrade.
 	 */
 	public static void migrateAlbumLikes(final Connection connection) throws SQLException {
 		migrateAlbumLikes(connection, MediaTableMusicBrainzReleaseLike.TABLE_NAME, "MBID_RELEASE", DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID);
 		migrateAlbumLikes(connection, MediaTableDiscogsReleaseLike.TABLE_NAME, "DISCOGS_RELEASE_ID", DbIdMediaType.TYPE_DISCOGS_RELEASEID);
-	}
-
-	/**
-	 * Writes the album likes of this table back into the legacy like tables, so
-	 * the existing backup file format keeps working.
-	 *
-	 * @param connection the db connection
-	 */
-	public static void exportAlbumLikes(final Connection connection) throws SQLException {
-		exportAlbumLikes(connection, MediaTableMusicBrainzReleaseLike.TABLE_NAME, "MBID_RELEASE", DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID);
-		exportAlbumLikes(connection, MediaTableDiscogsReleaseLike.TABLE_NAME, "DISCOGS_RELEASE_ID", DbIdMediaType.TYPE_DISCOGS_RELEASEID);
-	}
-
-	private static void exportAlbumLikes(final Connection connection, final String likeTable, final String likeColumn, final DbIdMediaType type) throws SQLException {
-		if (!tableExists(connection, likeTable)) {
-			return;
-		}
-		String prefix = type.toString();
-		executeUpdate(connection, DELETE_FROM + likeTable);
-		String sql = INSERT_INTO + likeTable + "(" + likeColumn + ") " +
-			SELECT + "SUBSTRING(" + COL_RESOURCE_KEY + COMMA + (prefix.length() + 1) + ")" +
-			FROM + TABLE_NAME +
-			WHERE + COL_RESOURCE_KEY + LIKE + sqlQuote(prefix + "%") +
-			AND + COL_RATING + EQUAL + RATING_LIKED;
-		executeUpdate(connection, sql);
-		LOGGER.info("Database \"{}\" exported the album likes of \"{}\" into \"{}\"", DATABASE_NAME, TABLE_NAME, likeTable);
 	}
 
 	private static void migrateAlbumLikes(final Connection connection, final String likeTable, final String likeColumn, final DbIdMediaType type) throws SQLException {
@@ -161,6 +130,39 @@ public final class MediaTableResourceRatings extends MediaTable {
 			AND + "NOT " + EXISTS + "(" + SELECT + "1" + FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + key + ")";
 		executeUpdate(connection, sql);
 		LOGGER.info("Database \"{}\" migrated the album likes of \"{}\" into \"{}\"", DATABASE_NAME, likeTable, TABLE_NAME);
+	}
+
+	/*
+	 * a restore brings back the state of the backup, so what it does not name goes away
+	 */
+	public static int deleteRatingsNotIn(final Connection connection, final Collection<String> keys) throws SQLException {
+		if (keys.isEmpty()) {
+			//an empty backup must not wipe the table
+			LOGGER.warn("Database \"{}\" kept the ratings of \"{}\", the restore knows no keys at all", DATABASE_NAME, TABLE_NAME);
+			return 0;
+		}
+		String tempTable = TABLE_NAME + "_RESTORE_KEYS";
+		executeUpdate(connection, "CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS " + tempTable + "(" + COL_RESOURCE_KEY + VARCHAR_1024 + PRIMARY_KEY + ")");
+		try {
+			executeUpdate(connection, DELETE_FROM + tempTable);
+			try (PreparedStatement insert = connection.prepareStatement(INSERT_INTO + tempTable + "(" + COL_RESOURCE_KEY + ") VALUES (?)")) {
+				Set<String> distinct = new HashSet<>(keys);
+				for (String key : distinct) {
+					insert.setString(1, key);
+					insert.addBatch();
+				}
+				insert.executeBatch();
+			}
+			int deleted;
+			try (PreparedStatement delete = connection.prepareStatement(
+					DELETE_FROM + TABLE_NAME + WHERE + COL_RESOURCE_KEY + " NOT IN (" + SELECT + COL_RESOURCE_KEY + FROM + tempTable + ")")) {
+				deleted = delete.executeUpdate();
+			}
+			LOGGER.info("Database \"{}\" deleted {} ratings of \"{}\" that the backup does not contain", DATABASE_NAME, deleted, TABLE_NAME);
+			return deleted;
+		} finally {
+			executeUpdate(connection, "DROP TABLE IF EXISTS " + tempTable);
+		}
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {

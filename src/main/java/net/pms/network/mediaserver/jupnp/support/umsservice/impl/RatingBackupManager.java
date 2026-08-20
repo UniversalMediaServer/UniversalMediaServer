@@ -141,13 +141,23 @@ public class RatingBackupManager {
 				throw new IllegalStateException("Database is not available");
 			}
 			RestoreCounters counters = new RestoreCounters();
+			boolean autoCommit = true;
 			try {
-				restoreRatings(c, p, counters);
+				autoCommit = c.getAutoCommit();
+				c.setAutoCommit(false);
+				Set<String> restored = restoreRatings(c, p, counters);
+				counters.deleted = MediaTableResourceRatings.deleteRatingsNotIn(c, restored);
+				c.commit();
+			} catch (SQLException e) {
+				rollback(c);
+				LOGGER.error("restore rating failed, nothing was changed", e);
+				return;
 			} finally {
+				resetAutoCommit(c, autoCommit);
 				MediaDatabase.close(c);
 			}
 			StoreResourceRatings.clearCache();
-			LOGGER.info("Updated {} items. Skipped {} items.", counters.updated, counters.skipped);
+			LOGGER.info("Updated {} items. Skipped {} items. Deleted {} items.", counters.updated, counters.skipped, counters.deleted);
 			LOGGER.info("Restored {} ratings on their stored path, {} on the content of a moved file, {} below another mount point. " +
 				"{} stored paths do not exist any more.",
 				counters.byPath, counters.byContent, counters.byRelativePath, counters.missingPaths);
@@ -156,10 +166,26 @@ public class RatingBackupManager {
 		}
 	}
 
+	private static void rollback(Connection c) {
+		try {
+			c.rollback();
+		} catch (SQLException e) {
+			LOGGER.error("rollback failed", e);
+		}
+	}
+
+	private static void resetAutoCommit(Connection c, boolean autoCommit) {
+		try {
+			c.setAutoCommit(autoCommit);
+		} catch (SQLException e) {
+			LOGGER.error("could not reset autoCommit", e);
+		}
+	}
+
 	/**
 	 * Restores every entry of a backup file, absolute paths first.
 	 */
-	private static void restoreRatings(Connection c, Properties p, RestoreCounters counters) {
+	private static Set<String> restoreRatings(Connection c, Properties p, RestoreCounters counters) {
 		Map<Integer, String> recordedRoots = new HashMap<>();
 		List<Entry> resourceEntries = new ArrayList<>();
 		List<Entry> contentEntries = new ArrayList<>();
@@ -205,6 +231,11 @@ public class RatingBackupManager {
 		for (Entry entry : portableEntries) {
 			restorePortableRating(entry, c, sharedFolders, recordedRoots, restored, counters);
 		}
+		//keys of entries whose file is gone belong to the backup as well, they must survive
+		for (Entry entry : resourceEntries) {
+			restored.add(entry.value());
+		}
+		return restored;
 	}
 
 	/**
@@ -383,6 +414,7 @@ public class RatingBackupManager {
 	private static class RestoreCounters {
 		private int updated;
 		private int skipped;
+		private int deleted;
 		private int byPath;
 		private int byContent;
 		private int byRelativePath;
