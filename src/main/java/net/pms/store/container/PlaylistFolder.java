@@ -192,7 +192,7 @@ public final class PlaylistFolder extends StoreContainer {
 			DLNAThumbnailInputStream result = null;
 			try {
 				if (diskThumbnail != null) {
-					result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(diskThumbnail));
+					result = ThumbnailStore.getThumbnailInputStreamForFile(diskThumbnail);
 				}
 			} catch (IOException e) {
 				LOGGER.trace("getThumbnailInputStream", e);
@@ -203,7 +203,7 @@ public final class PlaylistFolder extends StoreContainer {
 				diskThumbnail = SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile());
 				if (diskThumbnail != null) {
 					try {
-						result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(diskThumbnail));
+						result = ThumbnailStore.getThumbnailInputStreamForFile(diskThumbnail);
 					} catch (IOException e) {
 						LOGGER.trace("getThumbnailInputStream", e);
 					}

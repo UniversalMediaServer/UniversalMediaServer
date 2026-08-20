@@ -43,6 +43,7 @@ import net.pms.store.MediaStatusStore;
 import net.pms.store.StoreItem;
 import net.pms.store.SystemFileResource;
 import net.pms.store.SystemFilesHelper;
+import net.pms.store.ThumbnailStore;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
@@ -292,7 +293,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		DLNAThumbnailInputStream result = null;
 		try {
 			if (cachedThumbnail != null && !hasAlreadyEmbeddedCoverArt) {
-				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
+				result = ThumbnailStore.getThumbnailInputStreamForFile(cachedThumbnail);
 			} else if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 				result = getMediaInfo().getThumbnailInputStream();
 			}
