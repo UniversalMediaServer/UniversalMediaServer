@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,11 +36,14 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
+import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAProfileException;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.external.JavaHttpClient;
+import net.pms.image.BufferedImageFilterChain;
 import net.pms.network.HTTPResource;
+import org.apache.commons.codec.digest.DigestUtils;
 
 public class ThumbnailStore {
 
@@ -48,13 +53,39 @@ public class ThumbnailStore {
 	private record CachedFileThumbnail(long lastModified, long length, long id) {
 	}
 
+	/**
+	 * Access ordered map that drops the least recently used variant once it is full.
+	 */
+	private static class TranscodedThumbnailCache extends LinkedHashMap<String, DLNAThumbnail> {
+
+		private static final long serialVersionUID = 1L;
+
+		TranscodedThumbnailCache() {
+			super(16, 0.75f, true);
+		}
+
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<String, DLNAThumbnail> eldest) {
+			return size() > MAX_TRANSCODED_THUMBNAILS;
+		}
+	}
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailStore.class.getName());
 
 	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new HashMap<>();
+	
 	// Thumbnails already generated for a given remote image URL.
 	private static final Map<String, Long> URL_THUMBNAIL_IDS = new ConcurrentHashMap<>();
+	
 	// Thumbnails already generated for a given image file, by absolute path.
 	private static final Map<String, CachedFileThumbnail> FILE_THUMBNAIL_IDS = new ConcurrentHashMap<>();
+
+	// A JPEG_TN variant is around 15 kB, the large profiles are a lot bigger, so this is a few tens of MB in the worst case.
+	private static final int MAX_TRANSCODED_THUMBNAILS = 500;
+
+	// Variants of a thumbnail converted to the DLNA profile a renderer asked for.
+	private static final Map<String, DLNAThumbnail> TRANSCODED_THUMBNAILS = Collections.synchronizedMap(new TranscodedThumbnailCache());
+	
 	private static final BlockingQueue<ThumbnailUpdateRequest> THUMBNAIL_UPDATE_QUEUE = new LinkedBlockingQueue<>();
 	private static final AtomicBoolean QUEUE_WORKER_RUNNING = new AtomicBoolean(false);
 	private static final String QUEUE_WORKER_THREAD_NAME = "thumbnail-update-worker";
@@ -229,6 +260,7 @@ public class ThumbnailStore {
 	public static void resetLanguage() {
 		synchronized (STORE) {
 			STORE.clear();
+			TRANSCODED_THUMBNAILS.clear();
 			tempId = Long.MAX_VALUE;
 			Connection connection = null;
 			try {
@@ -316,6 +348,38 @@ public class ThumbnailStore {
 	}
 
 	/**
+	 * Converts a thumbnail to the DLNA profile a renderer asked for and keeps the result for the next request.
+	 */
+	public static DLNAThumbnailInputStream getTranscodedThumbnailInputStream(
+		DLNAThumbnailInputStream source,
+		DLNAImageProfile outputProfile,
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
+	) throws IOException {
+		if (source == null) {
+			return null;
+		}
+		if (filterChain != null || outputProfile == null) {
+			return source.transcode(outputProfile, padToSize, filterChain);
+		}
+		String key = DigestUtils.md5Hex(source.getBytes(false)) + "|" + outputProfile +
+				"|" + outputProfile.getH() + "x" + outputProfile.getV() + "|" + padToSize;
+		DLNAThumbnail cached = TRANSCODED_THUMBNAILS.get(key);
+		if (cached != null) {
+			return new DLNAThumbnailInputStream(cached);
+		}
+		DLNAThumbnailInputStream transcoded = source.transcode(outputProfile, padToSize, null);
+		if (transcoded != null) {
+			try {
+				TRANSCODED_THUMBNAILS.put(key, transcoded.getThumbnail());
+			} catch (DLNAProfileException e) {
+				LOGGER.trace("Could not cache the thumbnail converted to {} : {}", outputProfile, e.getMessage());
+			}
+		}
+		return transcoded;
+	}
+
+	/**
 	 * Deletes all cached thumbnails, both from this in-memory store and from the database (also
 	 * clearing the references to them from the FILES and TV_SERIES tables), so thumbnails are
 	 * regenerated on demand.
@@ -326,6 +390,7 @@ public class ThumbnailStore {
 			// the ids these remember are about to be deleted
 			URL_THUMBNAIL_IDS.clear();
 			FILE_THUMBNAIL_IDS.clear();
+			TRANSCODED_THUMBNAILS.clear();
 			Connection connection = null;
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();

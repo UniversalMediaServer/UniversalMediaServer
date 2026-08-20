@@ -62,6 +62,7 @@ import net.pms.store.IcyMetadataSource;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.ByteRange;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
@@ -791,7 +792,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		filterChain = resource.addFlagFilters(filterChain);
 
 		if (thumbInputStream != null) {
-			inputStream = thumbInputStream.transcode(
+			inputStream = ThumbnailStore.getTranscodedThumbnailInputStream(
+					thumbInputStream,
 					imageProfile,
 					renderer.isThumbnailPadding(),
 					filterChain
