@@ -226,6 +226,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_ADDICT_CAPTURE_STREAM = "audio_addict_capture_stream";
 	private static final String KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER = "audio_addict_episodes_per_container";
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
 	private static final String KEY_AUDIO_ADDICT_ICY_METADATA = "audio_addict_icy_metadata";
@@ -233,6 +234,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_AUDIO_ADDICT_PLAYLIST_LOOP = "audio_addict_playlist_loop";
 	private static final String KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES = "audio_addict_tree_cache_ttl_minutes";
 	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
+	public  static final String KEY_AUDIO_ARTIST_DIR = "audio_artist_dir";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
@@ -452,6 +454,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_UPNP_JUPNP_DIDL = "upnp_jupnp_didl";
 	public static final String KEY_UPNP_LOG_LEVEL = "upnp_log_level";
 	private static final String KEY_UPNP_PORT = "upnp_port";
+	private static final String KEY_UPNP_SUBSCRIBE_SERVICES = "upnp_subscribe_services";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	private static final String KEY_USE_API_INFO = "use_api_info";
 	private static final String KEY_USE_TMDB_INFO = "use_tmdb_info";
@@ -1045,6 +1048,14 @@ public class UmsConfiguration extends BaseConfiguration {
 		return programPaths instanceof ConfigurableProgramPaths;
 	}
 
+	public String getAudioArtistDir() {
+		return getString(KEY_AUDIO_ARTIST_DIR, null);
+	}
+
+	public void setAudioArtistDir(String dir) {
+		configuration.setProperty(KEY_AUDIO_ARTIST_DIR, dir);
+	}
+
 	public String getAudioAddictUser() {
 		return getString(KEY_AUDIO_ADDICT_USER, null);
 	}
@@ -1062,7 +1073,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * @return the maximum number of show episodes to group into one "recent episodes" container.
+	 * @return the maximum number of show episodes to group into one "recent episodes" container in
+	 * the DI.fm Events folder. Shows with more available episodes are split into several containers,
+	 * each labelled with its episode/date range. Minimum 1, default 20.
 	 */
 	public int getAudioAddictEpisodesPerContainer() {
 		return Math.max(1, getInt(KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER, 20));
@@ -1090,6 +1103,15 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setAudioAddictIcyMetadata(boolean icyMetadata) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_ICY_METADATA, icyMetadata);
+	}
+
+	/**
+	 * Diagnostic: when true, the first chunk of each served AudioAddict stream is written to a file
+	 * (aa-capture-*.bin) in the profile directory, to compare what differs between playlist, radio
+	 * and event streams. Diagnostic only.
+	 */
+	public boolean isAudioAddictCaptureStream() {
+		return getBoolean(KEY_AUDIO_ADDICT_CAPTURE_STREAM, false);
 	}
 
 	/**
@@ -5580,6 +5602,16 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public boolean isUpnpJupnpDidl() {
 		return getBoolean(KEY_UPNP_JUPNP_DIDL, false);
+	}
+
+	/**
+	 * Whether UMS subscribes to the AVTransport and RenderingControl services of a discovered
+	 * renderer. Subscribing is what gives UMS playback control over the device, but in a setup where
+	 * an external control point drives playback the subscriptions are unwanted traffic and can make
+	 * UMS fight the control point over the device state.
+	 */
+	public boolean isUpnpSubscribeServices() {
+		return getBoolean(KEY_UPNP_SUBSCRIBE_SERVICES, true);
 	}
 
 	/**

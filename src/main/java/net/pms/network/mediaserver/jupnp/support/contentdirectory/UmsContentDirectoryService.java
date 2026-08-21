@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -430,6 +431,7 @@ public class UmsContentDirectoryService {
 
 				StoreResource resource = null;
 				if (!modelObjectToAdd.getItems().isEmpty()) {
+					LOGGER.debug("Creating item resource {} in container {}", modelObjectToAdd.getItems().get(0).getTitle(), parentContainer.getName());
 					resource = createItemResource(storeContainer, modelObjectToAdd.getItems().get(0), resource);
 				}
 				if (!modelObjectToAdd.getContainers().isEmpty()) {
@@ -478,8 +480,10 @@ public class UmsContentDirectoryService {
 	private StoreResource createItemResource(StoreContainer storeContainer, Item itemToCreate, StoreResource resource) throws Exception {
 		if (itemToCreate != null) {
 			if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				LOGGER.debug("Creating empty playlist {}", itemToCreate.getTitle());
 				resource = PlaylistManager.createPlaylist(storeContainer, itemToCreate.getTitle());
 			} else if ("object.item".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				LOGGER.debug("Creating empty item {}", itemToCreate.getTitle());
 				resource = createEmptyItem(storeContainer, itemToCreate.getTitle());
 			} else {
 				LOGGER.error("CreateObject of unknown upnp:class : " + itemToCreate.getUpnpClassName());
@@ -512,7 +516,7 @@ public class UmsContentDirectoryService {
 					fileWriter.write(EMPTY_FILE_CONTENT);
 				}
 
-				StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newItem);
+				StoreResource newResource = ControlPoint.getRenderer().getMediaStore().createResourceFromFile(newItem);
 				if (newResource == null) {
 					throw new RuntimeException(String.format("cannot create a store resource for path : %s", newItem.getAbsolutePath()));
 				}
@@ -526,7 +530,25 @@ public class UmsContentDirectoryService {
 				return null;
 			}
 		} else {
-			LOGGER.warn("Folder or file already exists for path {}", newItem.getAbsolutePath());
+			try {
+				if (newItem.isFile() && Files.size(newItem.toPath()) == EMPTY_FILE_CONTENT.length()) {
+					// A stub of the same name is already on disk from an earlier create, so hand the
+					// caller the store id it belongs to instead of failing the upload.
+					LOGGER.info("File stub {} already exists, identifying its store id", newItem.getAbsolutePath());
+					StoreResource existing = storeContainer.getChildren().stream()
+						.filter(child -> child.getFileName().equals(newItem.getAbsolutePath()))
+						.findFirst()
+						.orElse(null);
+					if (existing != null) {
+						return existing;
+					}
+					LOGGER.warn("File stub {} exists on the file system, but its object id is unknown to the media store", newItem.getAbsolutePath());
+					return null;
+				}
+				LOGGER.info("Cannot create file {} because it already exists with a size of {}", newItem.getAbsolutePath(), Files.size(newItem.toPath()));
+			} catch (IOException e) {
+				LOGGER.warn("cannot access file item size", e);
+			}
 			return null;
 		}
 	}
@@ -537,7 +559,7 @@ public class UmsContentDirectoryService {
 		if (!newContainer.exists()) {
 			newContainer.mkdir();
 			//the folder was requested explicitly, so keep it even though it is still empty
-			StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newContainer, false, true);
+			StoreResource newResource = ControlPoint.getRenderer().getMediaStore().createResourceFromFile(newContainer, false, true);
 			if (newResource == null) {
 				throw new RuntimeException(String.format("cannot create a store resource for path : %s", newContainer.getAbsolutePath()));
 			}

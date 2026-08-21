@@ -345,6 +345,11 @@ public class JUPnPDeviceHelper {
 
 	private static void subscribeAll(Device d, Renderer renderer) {
 		String name = getFriendlyName(d);
+		if (!CONFIGURATION.isUpnpSubscribeServices()) {
+			// An external control point drives playback here, so UMS neither subscribes nor claims controls.
+			LOGGER.debug("Not subscribing to the services on {}, upnp_subscribe_services is disabled", name);
+			return;
+		}
 		int ctrl = 0;
 		for (Service s : d.getServices()) {
 			String sid = s.getServiceId().getId();

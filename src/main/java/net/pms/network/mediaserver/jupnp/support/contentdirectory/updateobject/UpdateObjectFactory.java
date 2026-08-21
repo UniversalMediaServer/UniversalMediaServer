@@ -2,6 +2,8 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,7 +24,6 @@ import org.xml.sax.SAXException;
 public class UpdateObjectFactory {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateObjectFactory.class.getName());
-	private static final String QUOTED_COMMA_PLACEHOLDER = "XXX1122334455XXX";
 
 	public static IUpdateObjectHandler getUpdateObjectHandler(StoreResource objectResource, String currentTagValue, String newTagValue)
 		throws ContentDirectoryException {
@@ -91,23 +92,48 @@ public class UpdateObjectFactory {
 	}
 
 	/**
-	 * Split CSV list around "," while handling escaped \, comma.
+	 * Split CSV list around "," while handling escaped \, comma and commas
+	 * inside XML element content (e.g. base64 data URIs).
 	 */
 	public static String[] getFragments(String tagValue) {
 		if (tagValue == null) {
-			//handle null string (unique add/remove)
 			return new String[]{""};
 		}
 
-		tagValue = tagValue.replaceAll("\\\\,", QUOTED_COMMA_PLACEHOLDER);
+		List<String> fragments = new ArrayList<>();
+		int depth = 0;
+		int start = 0;
+		boolean inDataUri = StringUtils.trim(tagValue).startsWith("data:");
 
-		String[] fragments = tagValue.split(",", -1);
-		for (int i = 0; i < fragments.length; i++) {
-			fragments[i] = fragments[i].replaceAll(QUOTED_COMMA_PLACEHOLDER, ",");
-			fragments[i] = fragments[i].replaceAll("\\\\\\\\", "\\\\");
-			fragments[i] = StringUtils.trim(fragments[i]);
+		for (int i = 0; i < tagValue.length(); i++) {
+			char c = tagValue.charAt(i);
+			if (c == '<') {
+				if (i + 1 < tagValue.length() && tagValue.charAt(i + 1) == '/') {
+					depth--;
+				} else {
+					depth++;
+				}
+			} else if (c == ',' && depth == 0) {
+				if (i > 0 && tagValue.charAt(i - 1) == '\\') {
+					continue;
+				}
+				// Skip the comma that separates mediatype from data in a data: URI
+				if (inDataUri) {
+					inDataUri = false;
+					continue;
+				}
+				fragments.add(unescape(StringUtils.trim(tagValue.substring(start, i))));
+				start = i + 1;
+				// Check if the next fragment starts with "data:"
+				inDataUri = StringUtils.trim(tagValue.substring(start)).startsWith("data:");
+			}
 		}
-		return fragments;
+		fragments.add(unescape(StringUtils.trim(tagValue.substring(start))));
+		return fragments.toArray(new String[0]);
+	}
+
+	private static String unescape(String value) {
+		return value.replace("\\,", ",").replace("\\\\", "\\");
 	}
 
 }

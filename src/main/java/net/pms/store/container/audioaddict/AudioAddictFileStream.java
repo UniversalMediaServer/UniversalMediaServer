@@ -15,12 +15,9 @@ import net.pms.util.ByteRange;
 import net.pms.util.Range;
 
 /**
- * A seekable AudioAddict media file serves as a normal. UMS reports the real length and
+ * A seekable AudioAddict media file (event recording or curated-playlist track) . UMS reports the real length and
  * forwards Range requests to the origin, so the renderer can seek/probe and play it through to the
  * end and read the embedded ID3 title and cover art itself.
- * <p>
- * If the length cannot be determined, it falls back to the radio-style serving so playback still
- * works without ranges.
  */
 public class AudioAddictFileStream extends WebAudioStream {
 
@@ -46,8 +43,8 @@ public class AudioAddictFileStream extends WebAudioStream {
 	}
 
 	/**
-	 * Builds a playable file item from an AudioAddict track DTO, prefixing the title with the
-	 * air-time label when present.
+	 * Builds a playable file item from an AudioAddict track/episode DTO, carrying the audio
+	 * metadata (artist, genre, album) and prefixing the title with the air-time label when present.
 	 */
 	public static AudioAddictFileStream from(Renderer renderer, AudioAddictTrackDto track) {
 		MediaInfo mi = new MediaInfo();
@@ -66,7 +63,7 @@ public class AudioAddictFileStream extends WebAudioStream {
 			}
 			mi.setAudioMetadata(md);
 		}
-
+		// The artist (DJ/host) is exposed via upnp:artist, so keep it out of the title.
 		String title = track.startLabel != null ? (track.startLabel + "  " + track.title) : track.title;
 		String systemName = track.stableSystemName != null ? track.stableSystemName : ("audioaddict-" + track.id + ".mp3");
 		AudioAddictFileStream sr = new AudioAddictFileStream(renderer, title, track.contentUrl, track.albumArt, systemName);
@@ -88,9 +85,7 @@ public class AudioAddictFileStream extends WebAudioStream {
 	}
 
 	/**
-	 * The event is a real file. We want to probe when actually streaming. It therefore returns false
-	 * until a probe has actually run and failed (cachedLength == TRANS_SIZE), in which case we fall
-	 * back to radio-style serving so playback still works without ranges.
+	 * The event is a real file, so it should be served with byte ranges.
 	 */
 	@Override
 	public boolean isUnboundedLiveStream() {

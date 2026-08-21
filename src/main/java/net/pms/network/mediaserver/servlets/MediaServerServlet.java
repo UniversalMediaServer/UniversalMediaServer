@@ -53,9 +53,11 @@ import net.pms.network.HTTPResource;
 import net.pms.network.StartStopListener;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.MediaServerRequest;
+import net.pms.network.mediaserver.MediaServerRequestType;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.service.Services;
 import net.pms.service.sleep.SleepManager;
 import net.pms.store.IcyMetadataSource;
@@ -168,7 +170,15 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 
 			if (GET.equals(method) || HEAD.equals(method)) {
 				// Get resource
-				StoreResource resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
+				StoreResource resource = null;
+				if (!CONFIGURATION.isAuthenticationEnabled() &&
+						mediaServerRequest.getRequestType() == MediaServerRequestType.THUMBNAIL &&
+						ControlPoint.getRenderer() != null) {
+					resource = ControlPoint.getRenderer().getMediaStore().getResource(mediaServerRequest.getResourceId());
+				}
+				if (resource == null) {
+					resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
+				}
 				if (resource == null) {
 					// resource not found
 					respondNotFound(req, resp);

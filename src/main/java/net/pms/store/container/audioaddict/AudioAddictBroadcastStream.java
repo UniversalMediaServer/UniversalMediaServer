@@ -62,4 +62,14 @@ public abstract class AudioAddictBroadcastStream extends WebAudioStream implemen
 		return null;
 	}
 
+	/**
+	 * Diagnostic
+	 */
+	protected InputStream maybeCapture(InputStream in, String label) {
+		if (renderer != null && renderer.getUmsConfiguration().isAudioAddictCaptureStream()) {
+			return CapturingInputStream.wrap(in, label);
+		}
+		return in;
+	}
+
 }

@@ -8,7 +8,6 @@ public class AudioAddictTrackDto {
 	public int length;
 	public String contentUrl;
 	public String albumArt;
-
 	/**
 	 * Stable system name for the store item, independent of the (per-fetch, time-limited)
 	 * content id. Used for events so the resource id stays the same across browses/refreshes
@@ -17,22 +16,20 @@ public class AudioAddictTrackDto {
 	public String stableSystemName;
 
 	/**
-	 * Localized start time label for events (e.g. "16.06. 10:00");
+	 * Localized start time label for events (e.g. "16.06. 10:00"); null for playlist tracks.
 	 */
 	public String startLabel;
-
 	/**
-	 * Comma separated genre/category names (events only);
+	 * Comma separated genre/category names (events only); null otherwise.
 	 */
 	public String genres;
-
 	/**
-	 * Short description / grouping shown as album.
+	 * Short description / grouping shown as album (events: the show name); null otherwise.
 	 */
 	public String album;
-
 	/**
-	 * The episode number / slug of a show episode.
+	 * The episode number / slug of a show episode (e.g. "081"); null for playlist tracks and
+	 * the current-episode event item.
 	 */
 	public String episodeNumber;
 

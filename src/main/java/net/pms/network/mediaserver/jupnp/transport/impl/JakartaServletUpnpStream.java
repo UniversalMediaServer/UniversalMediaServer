@@ -91,7 +91,7 @@ public abstract class JakartaServletUpnpStream extends UpnpStream {
 			LOGGER.debug("Client closed the connection during UPnP stream processing : {}", e.getMessage());
 			LOGGER.trace("", e);
 			responseException(e);
-		} catch (IOException e) {
+		} catch (IOException | RuntimeException e) {
 			LOGGER.error("Exception occurred during UPnP stream processing", e);
 			if (!getResponse().isCommitted()) {
 				LOGGER.trace("Response hasn't been committed, returning INTERNAL SERVER ERROR to client");

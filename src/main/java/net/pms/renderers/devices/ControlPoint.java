@@ -56,7 +56,7 @@ public class ControlPoint extends Renderer {
 	static {
 		try {
 			cPoint = new ControlPoint();
-		} catch (Exception e) {
+		} catch (ConfigurationException | InterruptedException e) {
 			LOGGER.error("ControlPoint", e);
 		}
 	}
