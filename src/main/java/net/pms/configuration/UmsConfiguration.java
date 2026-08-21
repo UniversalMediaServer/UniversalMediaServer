@@ -350,6 +350,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	private static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
+	private static final String KEY_MEDIA_RESOLVE_THREADS = "media_resolve_threads";
 	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
 	private static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
@@ -2740,6 +2741,15 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public int getNumberOfCpuCores() {
 		return getInt(KEY_NUMBER_OF_CPU_CORES, getNumberOfSystemCpuCores());
+	}
+
+	/**
+	 * The number of threads used to resolve the files of a folder ahead of their sequential handling.
+	 * Resolving waits on disk seeks and metadata lookups far more than it computes, so on slow storage
+	 * (spinning disks, encrypted volumes, network shares) more threads than CPU cores pay off.
+	 */
+	public int getMediaResolveThreads() {
+		return Math.max(1, Math.min(64, getInt(KEY_MEDIA_RESOLVE_THREADS, 4)));
 	}
 
 	/**

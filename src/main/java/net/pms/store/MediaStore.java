@@ -92,8 +92,7 @@ public class MediaStore extends StoreContainer {
 	private static final AtomicInteger WORKERS = new AtomicInteger(0);
 	private static final String TEMP_TAG = "$Temp$";
 
-	// Bounded pool used to resolve the files of a folder ahead of their sequential handling.
-	private static final int RESOLVE_THREADS = Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors()));
+	private static final int RESOLVE_THREADS = CONFIGURATION.getMediaResolveThreads();
 
 	// Bound of the queue in front of the resolver pool.
 	private static final int RESOLVE_QUEUE_CAPACITY = 256;
