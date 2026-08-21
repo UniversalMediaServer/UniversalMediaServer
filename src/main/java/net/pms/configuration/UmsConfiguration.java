@@ -226,7 +226,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
-	private static final String KEY_AUDIO_ADDICT_CAPTURE_STREAM = "audio_addict_capture_stream";
 	private static final String KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER = "audio_addict_episodes_per_container";
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
 	private static final String KEY_AUDIO_ADDICT_ICY_METADATA = "audio_addict_icy_metadata";
@@ -1103,15 +1102,6 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setAudioAddictIcyMetadata(boolean icyMetadata) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_ICY_METADATA, icyMetadata);
-	}
-
-	/**
-	 * Diagnostic: when true, the first chunk of each served AudioAddict stream is written to a file
-	 * (aa-capture-*.bin) in the profile directory, to compare what differs between playlist, radio
-	 * and event streams. Diagnostic only.
-	 */
-	public boolean isAudioAddictCaptureStream() {
-		return getBoolean(KEY_AUDIO_ADDICT_CAPTURE_STREAM, false);
 	}
 
 	/**
