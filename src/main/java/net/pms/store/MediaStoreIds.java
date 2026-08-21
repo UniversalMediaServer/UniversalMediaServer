@@ -45,27 +45,28 @@ public class MediaStoreIds {
 	private MediaStoreIds() {
 	}
 
-	public static synchronized Long getMediaStoreResourceId(StoreResource resource) {
+	public static Long getMediaStoreResourceId(StoreResource resource) {
 		if (resource == null) {
 			return null;
 		}
-		//parse db
-		Connection connection = null;
+		// The connection is taken before the monitor on purpose.
+		Connection connection = MediaDatabase.getConnectionIfAvailable();
 		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				//bump systemUpdateId
-				MediaStoreId mediaStoreId = MediaTableStoreIds.getResourceMediaStoreId(connection, resource);
-				if (mediaStoreId != null) {
-					long id = mediaStoreId.getId();
-					resource.setLongId(id);
-					if (mediaStoreId.getUpdateId() == 0) {
-						//brand new object : set its updateid to next systemUpdateId
-						long updateId = incrementUpdateId(id);
-						mediaStoreId.setUpdateId(updateId);
+			synchronized (MediaStoreIds.class) {
+				if (connection != null) {
+					//parse db
+					MediaStoreId mediaStoreId = MediaTableStoreIds.getResourceMediaStoreId(connection, resource);
+					if (mediaStoreId != null) {
+						long id = mediaStoreId.getId();
+						resource.setLongId(id);
+						if (mediaStoreId.getUpdateId() == 0) {
+							//brand new object : set its updateid to next systemUpdateId, reusing this connection
+							long updateId = applyUpdateId(connection, id);
+							mediaStoreId.setUpdateId(updateId);
+						}
+						UPDATE_IDS.put(id, new UnsignedIntegerFourBytes(mediaStoreId.getUpdateId()));
+						return id;
 					}
-					UPDATE_IDS.put(id, new UnsignedIntegerFourBytes(mediaStoreId.getUpdateId()));
-					return id;
 				}
 			}
 		} finally {
@@ -277,36 +278,53 @@ public class MediaStoreIds {
 	 * @param id
 	 * @return
 	 */
-	public static synchronized Long incrementUpdateId(Long id) {
-		long updateId = getSystemUpdateId().increment(false).getValue();
-		if (id != null && id != -1 && UPDATE_IDS.containsKey(id)) {
-			UPDATE_IDS.put(id, new UnsignedIntegerFourBytes(updateId));
-		}
-		Connection connection = null;
+	public static Long incrementUpdateId(Long id) {
+		// Same reason as in getMediaStoreResourceId: never wait for a connection under the monitor.
+		Connection connection = MediaDatabase.getConnectionIfAvailable();
 		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				MediaTableStoreIds.setMediaStoreUpdateId(connection, -1, updateId);
-				if (id != null && id != -1) {
-					MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
+			synchronized (MediaStoreIds.class) {
+				long updateId = getSystemUpdateId().increment(false).getValue();
+				if (id != null && id != -1 && UPDATE_IDS.containsKey(id)) {
+					UPDATE_IDS.put(id, new UnsignedIntegerFourBytes(updateId));
 				}
+				if (connection != null) {
+					MediaTableStoreIds.setMediaStoreUpdateId(connection, -1, updateId);
+					if (id != null && id != -1) {
+						MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
+					}
+				}
+				return updateId;
 			}
 		} finally {
 			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Bumps the system update id and persists it for the system and the given store id, reusing the
+	 * connection the caller already holds.
+	 *
+	 * Callers hold the class monitor and pass a valid id.
+	 *
+	 * @param connection the db connection, may be NULL when the database is unavailable
+	 * @param id the store id to bump
+	 * @return the new update id
+	 */
+	private static long applyUpdateId(Connection connection, long id) {
+		long updateId = getSystemUpdateId().increment(false).getValue();
+		if (UPDATE_IDS.containsKey(id)) {
+			UPDATE_IDS.put(id, new UnsignedIntegerFourBytes(updateId));
+		}
+		if (connection != null) {
+			MediaTableStoreIds.setMediaStoreUpdateId(connection, -1, updateId);
+			MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
 		}
 		return updateId;
 	}
 
 	private static synchronized void incrementUpdateId(Connection connection, Long id) {
 		if (id != null && id != -1) {
-			long updateId = getSystemUpdateId().increment(false).getValue();
-			if (UPDATE_IDS.containsKey(id)) {
-				UPDATE_IDS.put(id, new UnsignedIntegerFourBytes(updateId));
-			}
-			if (connection != null) {
-				MediaTableStoreIds.setMediaStoreUpdateId(connection, -1, updateId);
-				MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
-			}
+			applyUpdateId(connection, id);
 		}
 	}
 

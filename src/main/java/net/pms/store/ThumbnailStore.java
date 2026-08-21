@@ -105,22 +105,22 @@ public class ThumbnailStore {
 		if (thumbnail == null) {
 			return null;
 		}
-		synchronized (STORE) {
-			Connection connection = null;
-			Long id = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					id = MediaTableThumbnails.setThumbnail(connection, thumbnail);
-					if (id != null) {
-						STORE.put(id, new WeakReference<>(thumbnail));
-					}
-				}
-			} finally {
-				MediaDatabase.close(connection);
+		Connection connection = null;
+		Long id = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				id = MediaTableThumbnails.setThumbnail(connection, thumbnail);
 			}
-			return id;
+		} finally {
+			MediaDatabase.close(connection);
 		}
+		if (id != null) {
+			synchronized (STORE) {
+				STORE.put(id, new WeakReference<>(thumbnail));
+			}
+		}
+		return id;
 	}
 
 	public static void enqueueThumbnailUpdate(ThumbnailUpdateRequest request) {

@@ -18,6 +18,7 @@ package net.pms.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import net.pms.PMS;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResourceRatings;
 import net.pms.swing.Splash;
@@ -49,8 +50,11 @@ public class MediaDatabase extends Database {
 	 * there if it doesn't exist, in order to prevent overwriting real
 	 * databases.
 	 */
+	private static final int MINIMUM_POOL_SIZE = 10;
+
 	public MediaDatabase() {
 		super(DATABASE_NAME);
+		setMaximumPoolSize(Math.max(MINIMUM_POOL_SIZE, PMS.getConfiguration().getMediaResolveThreads() * 2));
 	}
 
 	@Override
@@ -267,6 +271,10 @@ public class MediaDatabase extends Database {
 			try {
 				return instance.getConnection();
 			} catch (SQLException ex) {
+				// Callers read NULL as "database not available", so an exhausted pool would silently
+				// drop writes (a thumbnail id that is never stored, an update id that is never bumped).
+				LOGGER.warn("No database connection available: {}", ex.getMessage());
+				LOGGER.trace("", ex);
 			}
 		}
 		return null;
