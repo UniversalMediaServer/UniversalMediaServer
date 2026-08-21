@@ -18,7 +18,9 @@ package net.pms.parsers;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
@@ -60,6 +62,7 @@ public class JaudiotaggerParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(JaudiotaggerParser.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final String PARSER_NAME = "JAUDIO";
+	private static final String MULTI_VALUE_SEPARATOR = " / ";
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -133,7 +136,7 @@ public class JaudiotaggerParser {
 					audioMetadata.setMbidRecord(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_RELEASEID));
 					audioMetadata.setMbidTrack(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_TRACK_ID));
 					audioMetadata.setRating(convertTagRatingToStar(t));
-					audioMetadata.setGenre(extractAudioTagKeyValue(t, FieldKey.GENRE));
+					audioMetadata.setGenre(extractAudioTagKeyValues(t, FieldKey.GENRE));
 					audioMetadata.setDisc(extractAudioTagKeyIntegerValue(t, FieldKey.DISC_NO, 1));
 
 					String keyyear = extractAudioTagKeyValue(t, FieldKey.YEAR);
@@ -286,11 +289,23 @@ public class JaudiotaggerParser {
 	}
 
 	/**
-	 * Extracts key value.
-	 *
-	 * @param key
-	 * @return If key is not available or blanc, NULL will be returned, otherwise string key value
+	 * Joins all values of a repeated field, a tag with GENRE=Baroque and GENRE=Classical keeps both.
 	 */
+	private static String extractAudioTagKeyValues(Tag t, FieldKey key) {
+		try {
+			Set<String> values = new LinkedHashSet<>();
+			for (String value : t.getAll(key)) {
+				if (StringUtils.isNotBlank(value)) {
+					values.add(value.trim());
+				}
+			}
+			return values.isEmpty() ? null : String.join(MULTI_VALUE_SEPARATOR, values);
+		} catch (KeyNotFoundException e) {
+			LOGGER.trace("tag field not found", e);
+			return null;
+		}
+	}
+
 	private static String extractAudioTagKeyValue(Tag t, FieldKey key) {
 		try {
 			String value = t.getFirst(key);
