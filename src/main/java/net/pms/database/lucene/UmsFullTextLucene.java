@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
@@ -73,7 +74,7 @@ public class UmsFullTextLucene extends FullText {
 	private static final String LUCENE_FIELD_COLUMN_PREFIX = "_";
 
 	// Number of documents a trigger may add before the index is committed.
-	private static final int PENDING_DOCUMENTS_BEFORE_COMMIT = 100;
+	private static final int PENDING_DOCUMENTS_BEFORE_COMMIT = 1000;
 
 	/**
 	 * Nano timestamp of the last finished reindex
@@ -779,7 +780,12 @@ public class UmsFullTextLucene extends FullText {
 		/**
 		 * Documents added since the last commit.
 		 */
-		private int pendingDocuments;
+		private final AtomicInteger pendingDocuments = new AtomicInteger();
+
+		/**
+		 * Whether the searcher still shows the state of a previous commit.
+		 */
+		private boolean searcherStale;
 
 		IndexAccess(IndexWriter writer) throws IOException {
 			this.writer = writer;
@@ -797,8 +803,11 @@ public class UmsFullTextLucene extends FullText {
 		 * @throws IOException on failure
 		 */
 		synchronized IndexSearcher getSearcher() throws IOException {
-			if (pendingDocuments > 0) {
+			if (pendingDocuments.get() > 0) {
 				commit();
+			}
+			if (searcherStale) {
+				refreshSearcher();
 			}
 			if (!searcher.getIndexReader().tryIncRef()) {
 				initializeSearcher();
@@ -808,12 +817,17 @@ public class UmsFullTextLucene extends FullText {
 
 		/**
 		 * Commits the changes if enough documents have piled up since the last commit.
-		 *
-		 * @throws IOException on failure
 		 */
-		synchronized void commitIfDue() throws IOException {
-			pendingDocuments++;
-			if (pendingDocuments >= PENDING_DOCUMENTS_BEFORE_COMMIT) {
+		void commitIfDue() throws IOException {
+			// Counting is lock free on purpose
+			if (pendingDocuments.incrementAndGet() >= PENDING_DOCUMENTS_BEFORE_COMMIT) {
+				commitIfStillDue();
+			}
+		}
+
+		private synchronized void commitIfStillDue() throws IOException {
+			// Another thread may have committed while this one waited for the monitor.
+			if (pendingDocuments.get() >= PENDING_DOCUMENTS_BEFORE_COMMIT) {
 				commit();
 			}
 		}
@@ -821,13 +835,21 @@ public class UmsFullTextLucene extends FullText {
 		private void initializeSearcher() throws IOException {
 			IndexReader reader = DirectoryReader.open(writer);
 			searcher = new IndexSearcher(reader);
+			searcherStale = false;
+		}
+
+		/**
+		 * Replaces the searcher with one that sees the committed state and releases the old reader.
+		 */
+		private void refreshSearcher() throws IOException {
+			IndexReader oldReader = searcher.getIndexReader();
+			searcher = new IndexSearcher(DirectoryReader.open(writer));
+			searcherStale = false;
+			oldReader.close();
 		}
 
 		/**
 		 * Stop using the searcher.
-		 *
-		 * @param searcher the searcher
-		 * @throws IOException on failure
 		 */
 		synchronized void returnSearcher(IndexSearcher searcher) throws IOException {
 			searcher.getIndexReader().decRef();
@@ -835,21 +857,16 @@ public class UmsFullTextLucene extends FullText {
 
 		/**
 		 * Commit the changes.
-		 *
-		 * @throws IOException on failure
 		 */
 		public synchronized void commit() throws IOException {
-			pendingDocuments = 0;
+			pendingDocuments.set(0);
 			writer.commit();
-			IndexReader oldReader = searcher.getIndexReader();
-			searcher = new IndexSearcher(DirectoryReader.open(writer));
-			oldReader.close();
+			// The searcher is rebuilt when somebody actually searches.
+			searcherStale = true;
 		}
 
 		/**
 		 * Close the index.
-		 *
-		 * @throws IOException on failure
 		 */
 		public synchronized void close() throws IOException {
 			if (searcher != null) {
