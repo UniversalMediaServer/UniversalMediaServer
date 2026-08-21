@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -120,6 +121,7 @@ public class RatingBackupManager {
 			p.store(fs, "ratings backup from " + formatter.format(LocalDateTime.now()));
 		} catch (IOException e) {
 			LOGGER.error("backup rating failed", e);
+			throw new UncheckedIOException("writing the backup file failed : " + backupFilename, e);
 		}
 		LOGGER.info("save {} items into backup file {} ", items, backupFilename);
 		LOGGER.info("{} ratings can be restored below another mount point, {} after a move of the file", portableItems, contentItems);

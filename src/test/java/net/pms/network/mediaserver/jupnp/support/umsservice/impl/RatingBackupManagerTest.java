@@ -2,6 +2,7 @@ package net.pms.network.mediaserver.jupnp.support.umsservice.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,6 +22,8 @@ import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -35,6 +38,25 @@ public class RatingBackupManagerTest {
 		TestHelper.setLoggingOff();
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration(false));
+	}
+
+	/*
+	 * a backup that cannot be written must not report success
+	 */
+	@Test
+	public void testFailedWriteIsReported() throws Exception {
+		MediaDatabase.init();
+		File backupDir = new File(UmsConfiguration.getProfileDirectory(), "database_backup");
+		assertTrue(backupDir.exists() || backupDir.mkdirs());
+		File blocker = new File(backupDir, "ratings_backup");
+		Files.deleteIfExists(blocker.toPath());
+		//a directory in place of the file makes the FileOutputStream fail on every platform
+		assertTrue(blocker.mkdir());
+		try {
+			assertThrows(UncheckedIOException.class, RatingBackupManager::backupRatings);
+		} finally {
+			Files.delete(blocker.toPath());
+		}
 	}
 
 	/**
