@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableResourceRatings;
 import net.pms.database.MediaTableStoreIds;
 import net.pms.media.audio.metadata.DoubleRecordFilter;
 import net.pms.media.audio.metadata.AlbumMetadata;
@@ -63,6 +64,21 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	@Override
 	public String getSystemName() {
 		return this.typeIdent.toString();
+	}
+
+	/**
+	 * The system name is the type prefix followed by an intrinsic identifier, for
+	 * example $DBID$MUSICBRAINZALBUM$ and a MusicBrainz release id. That is
+	 * globally unique and independent of the store tree, of the UI language and
+	 * of any generated database id, so it must not be qualified with the ancestor
+	 * names. This is what lets an album keep its rating across a database
+	 * rebuild.
+	 *
+	 * @see net.pms.store.StoreResource GETRATINGKEY()
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
 	}
 
 	public String getMediaIdent() {
@@ -213,6 +229,11 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 						}
 						case TYPE_MYMUSIC_ALBUM -> {
 							clearChildren();
+							// Liked albums are the album containers rated with 5 stars in
+							// RESOURCE_RATINGS. Their RESOURCE_KEY is the system name of the
+							// album container, so the release id prefixed with its DBID type.
+							// That key is independent of any generated id and survives a
+							// database rebuild.
 							sql = "SELECT DISTINCT ON (MBID_RELEASE, DISCOGS_RELEASE_ID) " +
 								"    AM.DISCOGS_RELEASE_ID, " +
 								"    AM.MBID_RECORD AS MBID_RELEASE, " +
@@ -222,12 +243,14 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								"    AM.MEDIA_YEAR " +
 								"FROM AUDIO_METADATA AM " +
 								"WHERE EXISTS ( " +
-								"    SELECT 1 FROM MUSIC_BRAINZ_RELEASE_LIKE MBRL " +
-								"    WHERE MBRL.MBID_RELEASE = AM.MBID_RECORD " +
+								"    SELECT 1 FROM " + MediaTableResourceRatings.TABLE_NAME + " RR " +
+								"    WHERE RR.RESOURCE_KEY = '" + DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID + "' || CAST(AM.MBID_RECORD AS VARCHAR) " +
+								"      AND RR.RATING = " + MediaTableResourceRatings.RATING_LIKED + " " +
 								") " +
 								"OR EXISTS ( " +
-								"    SELECT 1 FROM DISCOGS_RELEASE_LIKE DRL " +
-								"    WHERE DRL.DISCOGS_RELEASE_ID = AM.DISCOGS_RELEASE_ID " +
+								"    SELECT 1 FROM " + MediaTableResourceRatings.TABLE_NAME + " RR " +
+								"    WHERE RR.RESOURCE_KEY = '" + DbIdMediaType.TYPE_DISCOGS_RELEASEID + "' || CAST(AM.DISCOGS_RELEASE_ID AS VARCHAR) " +
+								"      AND RR.RATING = " + MediaTableResourceRatings.RATING_LIKED + " " +
 								");";
 
 							LOGGER.debug("VirtualFolderDbid TYPE_MYMUSIC_ALBUM.");

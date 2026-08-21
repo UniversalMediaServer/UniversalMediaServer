@@ -20,10 +20,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import net.pms.media.MediaInfo;
+import java.io.File;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -99,8 +102,30 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 */
 	private static final String SQL_GET_AUDIO_METADATA_BY_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + COL_FILEID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_RATING_BY_MBID_TRACK = SELECT + TABLE_COL_RATING + FROM + TABLE_NAME + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_RATING_BY_AUDIOTRACK_ID = SELECT + TABLE_COL_RATING + FROM + TABLE_NAME + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER + LIMIT_1;
+
+	// Aggregates the audio files directly inside one folder, so a single query can tell whether they all belong to the same album.
+	private static final String SQL_GET_ALBUM_BY_FOLDER =
+		SELECT + "COUNT(*) AS TRACKS" + COMMA +
+			"COUNT(DISTINCT CAST(" + TABLE_COL_MBID_RECORD + " AS VARCHAR)) AS MBID_COUNT" + COMMA +
+			"COUNT(" + TABLE_COL_MBID_RECORD + ") AS MBID_SET" + COMMA +
+			"COUNT(DISTINCT " + TABLE_COL_DISCOGS_RELEASE_ID + ") AS DISCOGS_COUNT" + COMMA +
+			"COUNT(" + TABLE_COL_DISCOGS_RELEASE_ID + ") AS DISCOGS_SET" + COMMA +
+			"MIN(CAST(" + TABLE_COL_MBID_RECORD + " AS VARCHAR)) AS " + COL_MBID_RECORD + COMMA +
+			"MIN(" + TABLE_COL_DISCOGS_RELEASE_ID + ") AS " + COL_DISCOGS_RELEASE_ID + COMMA +
+			"MIN(" + TABLE_COL_ALBUM + ") AS " + COL_ALBUM + COMMA +
+			"MIN(" + TABLE_COL_ARTIST + ") AS " + COL_ARTIST + COMMA +
+			"MIN(" + TABLE_COL_MEDIA_YEAR + ") AS " + COL_MEDIA_YEAR + COMMA +
+			"MIN(" + TABLE_COL_GENRE + ") AS " + COL_GENRE +
+		FROM + TABLE_NAME +
+		" JOIN " + MediaTableFiles.TABLE_NAME + ON + MediaTableFiles.TABLE_COL_ID + EQUAL + TABLE_COL_FILEID +
+		WHERE + MediaTableFiles.TABLE_COL_FILENAME + LIKE + PARAMETER +
+		AND + MediaTableFiles.TABLE_COL_FILENAME + " NOT " + LIKE + PARAMETER;
 	private static final String SQL_UPDATE_RATING_BY_AUDIOTRACK_ID = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_RATING_BY_MBID_TRACK = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_RATING_BY_FILENAME = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER +
+		WHERE + COL_FILEID + IN + "(" + SELECT + MediaTableFiles.TABLE_COL_ID + FROM + MediaTableFiles.TABLE_NAME +
+		WHERE + MediaTableFiles.TABLE_COL_FILENAME + EQUAL + PARAMETER + ")";
 	private static final String SQL_GET_FILENAME_BY_AUDIOTRACK_ID = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_AUDIO_METADATA + WHERE + COL_AUDIOTRACK_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_FILENAMES_BY_MBID_TRACK = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_AUDIO_METADATA + WHERE + COL_MBID_TRACK + EQUAL + PARAMETER;
 
@@ -323,6 +348,54 @@ public class MediaTableAudioMetadata extends MediaTable {
 		return audioMetadata;
 	}
 
+	/**
+	 * Resolves whether a folder holds exactly one album, and returns its metadata.
+	 */
+	public static AlbumMetadata getAlbumMetadataForFolder(final Connection connection, final String folderPath) {
+		if (connection == null || StringUtils.isBlank(folderPath)) {
+			return null;
+		}
+		String inFolder = folderPath + File.separator + "%";
+		String inSubFolder = folderPath + File.separator + "%" + File.separator + "%";
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALBUM_BY_FOLDER)) {
+			statement.setString(1, inFolder);
+			statement.setString(2, inSubFolder);
+			try (ResultSet rs = statement.executeQuery()) {
+				if (!rs.next()) {
+					return null;
+				}
+				long tracks = rs.getLong("TRACKS");
+				if (tracks == 0) {
+					return null;
+				}
+				String mbidRecord = null;
+				if (rs.getLong("MBID_COUNT") == 1 && rs.getLong("MBID_SET") == tracks) {
+					mbidRecord = rs.getString("MBID_RECORD");
+				}
+				Long discogsReleaseId = null;
+				if (rs.getLong("DISCOGS_COUNT") == 1 && rs.getLong("DISCOGS_SET") == tracks) {
+					discogsReleaseId = rs.getLong(COL_DISCOGS_RELEASE_ID);
+				}
+				if (mbidRecord == null && discogsReleaseId == null) {
+					return null;
+				}
+				int mediaYear = rs.getInt(COL_MEDIA_YEAR);
+				return new AlbumMetadata(
+					mbidRecord,
+					discogsReleaseId,
+					rs.getString(COL_ALBUM),
+					rs.getString(COL_ARTIST),
+					mediaYear > 1000 ? Integer.toString(mediaYear) : null,
+					rs.getString(COL_GENRE)
+				);
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "resolving the album", TABLE_NAME, folderPath, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
 	public static void updateRatingByMusicbrainzTrackId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
 		if (connection == null || StringUtils.isEmpty(musicBrainzTrackId)) {
 			return;
@@ -338,7 +411,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 		if (connection == null || audiotrackId == null) {
 			return null;
 		}
-		try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_RATING_BY_MBID_TRACK)) {
+		try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_RATING_BY_AUDIOTRACK_ID)) {
 			selectStatement.setInt(1, audiotrackId);
 			try (ResultSet rs = selectStatement.executeQuery()) {
 				if (rs.next()) {
@@ -349,15 +422,51 @@ public class MediaTableAudioMetadata extends MediaTable {
 		return null;
 	}
 
-	public static void updateRatingByAudiotrackId(Connection connection, int ratingInStars, Integer audiotrackId) throws SQLException {
+	/**
+	 * Updates the rating of an audio track.
+	 */
+	public static void updateRatingByAudiotrackId(Connection connection, Integer ratingInStars, Integer audiotrackId) throws SQLException {
 		if (connection == null || audiotrackId == null) {
 			return;
 		}
 		try (PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_RATING_BY_AUDIOTRACK_ID)) {
-			ps.setInt(1, ratingInStars);
+			if (ratingInStars == null) {
+				ps.setNull(1, Types.INTEGER);
+			} else {
+				ps.setInt(1, ratingInStars);
+			}
 			ps.setInt(2, audiotrackId);
 			ps.executeUpdate();
 			connection.commit();
+		}
+	}
+
+	/**
+	 * Updates the rating of the audio track of a file. Used to mirror a restored resource rating into the audio metadata.
+	 */
+	public static int updateRatingByFilename(PreparedStatement statement, Integer ratingInStars, String filename) throws SQLException {
+		if (statement == null || StringUtils.isEmpty(filename)) {
+			return 0;
+		}
+		if (ratingInStars == null) {
+			statement.setNull(1, Types.INTEGER);
+		} else {
+			statement.setInt(1, ratingInStars);
+		}
+		statement.setString(2, filename);
+		return statement.executeUpdate();
+	}
+
+	public static PreparedStatement prepareRatingUpdate(Connection connection) throws SQLException {
+		return connection.prepareStatement(SQL_UPDATE_RATING_BY_FILENAME);
+	}
+
+	public static int updateRatingByFilename(Connection connection, Integer ratingInStars, String filename) throws SQLException {
+		if (connection == null || StringUtils.isEmpty(filename)) {
+			return 0;
+		}
+		try (PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_RATING_BY_FILENAME)) {
+			return updateRatingByFilename(ps, ratingInStars, filename);
 		}
 	}
 

@@ -125,6 +125,15 @@ public final class PlaylistFolder extends StoreContainer {
 		return isweb ? uri : ProcessUtil.getSystemPathName(uri);
 	}
 
+	/**
+	 * GETSYSTEMNAME() returns a file path or an URL, which identifies this
+	 * container globally, so GETRATINGKEY() can use it as is.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
+	}
+
 	@Override
 	public boolean isValid() {
 		return true;

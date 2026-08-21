@@ -1,7 +1,5 @@
 package net.pms.network.mediaserver.jupnp.support.umsservice;
 
-import java.io.FileNotFoundException;
-import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 import jakarta.annotation.Nullable;
@@ -218,34 +216,19 @@ public class UmsExtendedServices {
 	}
 
 	/*
-	 * Backup audio likes to a file.
+	 * kept for older control points, album likes are part of the ratings backup
 	 */
 	@UpnpAction
 	public void backupAudioLikes() throws UmsExtendedServicesException {
-		LOG.debug("backing up audio likes table ... ");
-		try {
-			likeMusic.backupLikedAlbums();
-		} catch (SQLException e) {
-			LOG.error("failed backup audio likes table", e);
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
-		}
+		backupRatings();
 	}
 
-	/**
-	 * Restore audio likes from a backup file created by the backupAudioLikes action.
+	/*
+	 * kept for older control points
 	 */
 	@UpnpAction
 	public void restoreAudioLikes() throws UmsExtendedServicesException {
-		LOG.debug("restoring audio likes table ... ");
-		try {
-			likeMusic.restoreLikedAlbums();
-		} catch (SQLException e) {
-			LOG.error("failed backup audio likes table", e);
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
-		} catch (FileNotFoundException e) {
-			LOG.error("Backup file couldn't be found", e);
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Backup file not found : " + e.getMessage());
-		}
+		restoreRatings();
 	}
 
 	/**
@@ -323,7 +306,7 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * Backup audio ratings to a file.
+	 * Backup the ratings of all resource types to a file.
 	 */
 	@UpnpAction
 	public void backupRatings() throws UmsExtendedServicesException {
@@ -337,7 +320,7 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * Restores audio ratings from a backup file created by the backupRatings action.
+	 * Restores the ratings of all resource types from a backup file created by the backupRatings action.
 	 */
 	@UpnpAction
 	public void restoreRatings() throws UmsExtendedServicesException {

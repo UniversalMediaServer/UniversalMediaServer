@@ -82,6 +82,15 @@ public class DVDISOFile extends StoreContainer {
 		return file == null ? "Unknown" : file.getAbsolutePath();
 	}
 
+	/**
+	 * GETSYSTEMNAME() returns a file path or an URL, which identifies this
+	 * container globally, so GETRATINGKEY() can use it as is.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
+	}
+
 	@Override
 	protected void resolveOnce() {
 		Map<Integer, Double> titles = new HashMap<>();

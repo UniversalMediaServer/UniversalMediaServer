@@ -30,6 +30,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
 import net.pms.media.audio.MediaAudio;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
@@ -215,9 +216,13 @@ public class DidlHelper extends DlnaHelper {
 			addBookmark(resource, sb, renderer.getDcTitle(title, resource.getDisplayNameSuffix(), resource));
 		}
 
+		AlbumMetadata containerAlbumMetadata = resource instanceof StoreContainer albumContainer ? albumContainer.getAlbumMetadata() : null;
 		if (audioMetadata != null && renderer.isSendDateMetadataYearForAudioTags() && audioMetadata.getYear() > 1000) {
 			addXMLTagAndAttribute(sb, "dc:date", Integer.toString(audioMetadata.getYear()));
-		} else if (resource.getLastModified() > 0 && renderer.isSendDateMetadata()) {
+		} else if (containerAlbumMetadata != null && StringUtils.isNotBlank(containerAlbumMetadata.getYear())) {
+			//an album is dated by its release year, not by when its folder was touched
+			addXMLTagAndAttribute(sb, "dc:date", encodeXML(containerAlbumMetadata.getYear()));
+		} else if (container == null && resource.getLastModified() > 0 && renderer.isSendDateMetadata()) {
 			addXMLTagAndAttribute(sb, "dc:date", formatDate(new Date(resource.getLastModified())));
 		}
 
@@ -253,10 +258,27 @@ public class DidlHelper extends DlnaHelper {
 			if (audioMetadata.getTrack() > 0) {
 				addXMLTagAndAttribute(sb, "upnp:originalTrackNumber", "" + audioMetadata.getTrack());
 			}
+		}
 
-			if (audioMetadata.getRating() != null) {
-				addXMLTagAndAttribute(sb, "upnp:rating", "" + audioMetadata.getRating());
+		//an album folder has no MediaInfo of its own, so its album metadata is reported from the resolved album instead
+		if (resource instanceof StoreContainer albumContainer && albumContainer.getAlbumMetadata() != null) {
+			AlbumMetadata albumMetadata = albumContainer.getAlbumMetadata();
+			if (StringUtils.isNotBlank(albumMetadata.getAlbum())) {
+				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(albumMetadata.getAlbum()));
 			}
+			if (StringUtils.isNotBlank(albumMetadata.getArtist())) {
+				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(albumMetadata.getArtist()));
+				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(albumMetadata.getArtist()));
+			}
+			if (StringUtils.isNotBlank(albumMetadata.getGenre())) {
+				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(albumMetadata.getGenre()));
+			}
+		}
+
+		//the user rating is supported by any kind of resource, items as well as containers
+		Integer userRating = resource.getRating();
+		if (userRating != null) {
+			addXMLTagAndAttribute(sb, "upnp:rating", "" + userRating);
 		}
 
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
@@ -508,8 +530,8 @@ public class DidlHelper extends DlnaHelper {
 					if (audioMetadata.getDisc() > 0) {
 						addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
 					}
-					if (audioMetadata.getRating() != null) {
-						addXMLTagAndAttribute(sb, "rating", Integer.toString(audioMetadata.getRating()));
+					if (userRating != null) {
+						addXMLTagAndAttribute(sb, "rating", Integer.toString(userRating));
 					}
 				}
 				if (item instanceof AudioAddictRadioStream audioAddictStream) {
@@ -558,6 +580,9 @@ public class DidlHelper extends DlnaHelper {
 				uclass = "object.container.playlistContainer";
 			} else if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
 				uclass = virtualFolderDbId.getMediaTypeUclass();
+			} else if (resource instanceof StoreContainer storeContainer && storeContainer.getAlbumMetadata() != null) {
+				//a folder whose files all belong to one release is that album
+				uclass = "object.container.album.musicAlbum";
 			} else {
 				//FIXME : it break upnp standard
 				//object.container.storageFolder require the upnp:storageUsed property set

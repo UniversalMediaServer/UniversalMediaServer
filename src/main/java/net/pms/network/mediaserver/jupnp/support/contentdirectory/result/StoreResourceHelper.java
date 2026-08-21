@@ -31,6 +31,7 @@ import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
 import net.pms.media.audio.MediaAudio;
@@ -126,6 +127,9 @@ public class StoreResourceHelper {
 				result = new PlaylistContainer();
 			} else if (container instanceof VirtualFolderDbId virtualFolderDbId) {
 				result = newContainerFromUpnpClass(virtualFolderDbId.getMediaTypeUclass());
+			} else if (container.getAlbumMetadata() != null) {
+				//a folder whose files all belong to one release is that album
+				result = new MusicAlbum();
 			} else {
 				result = new StorageFolder();
 			}
@@ -181,12 +185,38 @@ public class StoreResourceHelper {
 				}
 			}
 		} else if (result instanceof MusicAlbum) {
+			// An album container carries its cover even when folder thumbnails are
+			// off, the same way DidlHelper appends them for
+			// object.container.album.* regardless of isSendFolderThumbnails().
 			for (DLNAImageResElement resElement : getThumbnailResElements(container, mediaType)) {
+				result.addResource(getImageRes(container, resElement));
 				AlbumArtURI albumArtURI = getAlbumArtURI(container, resElement);
 				if (albumArtURI != null) {
 					result.addProperty(albumArtURI);
 				}
 			}
+		}
+		//an album folder has no MediaInfo of its own, so its album metadata is
+		//reported from the resolved album instead
+		AlbumMetadata albumMetadata = container.getAlbumMetadata();
+		if (albumMetadata != null && result instanceof MusicAlbum musicAlbum) {
+			if (StringUtils.isNotBlank(albumMetadata.getArtist())) {
+				musicAlbum.setCreator(albumMetadata.getArtist());
+				musicAlbum.setArtists(new UPNP.Artist[] {new UPNP.Artist(albumMetadata.getArtist())});
+			}
+			if (StringUtils.isNotBlank(albumMetadata.getGenre())) {
+				musicAlbum.setGenres(new String[] {albumMetadata.getGenre()});
+			}
+			if (StringUtils.isNotBlank(albumMetadata.getYear())) {
+				musicAlbum.setDate(albumMetadata.getYear());
+			}
+		}
+
+		//the user rating is supported by any kind of resource, containers as well as items
+		Integer userRating = container.getRating();
+		if (userRating != null) {
+			//not upnp
+			result.addProperty(new UPNP.Rating(userRating.toString()));
 		}
 		return result;
 	}
@@ -336,11 +366,13 @@ public class StoreResourceHelper {
 			if (audioMetadata.getTrack() > 0) {
 				musicTrack.setOriginalTrackNumber(audioMetadata.getTrack());
 			}
+		}
 
-			if (audioMetadata.getRating() != null) {
-				//not upnp
-				result.addProperty(new UPNP.Rating(audioMetadata.getRating().toString()));
-			}
+		//the user rating is supported by any kind of resource, items as well as containers
+		Integer userRating = item.getRating();
+		if (userRating != null) {
+			//not upnp
+			result.addProperty(new UPNP.Rating(userRating.toString()));
 		}
 
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata() && result instanceof Movie movie) {
@@ -591,8 +623,8 @@ public class StoreResourceHelper {
 					if (audioMetadata.getDisc() > 0) {
 						desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
 					}
-					if (audioMetadata.getRating() != null) {
-						desc.addMetadata("rating", Integer.toString(audioMetadata.getRating()));
+					if (userRating != null) {
+						desc.addMetadata("rating", Integer.toString(userRating));
 					}
 				}
 				if (item instanceof AudioAddictRadioStream audioAddictStream) {

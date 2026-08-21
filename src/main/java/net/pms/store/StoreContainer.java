@@ -25,6 +25,7 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.TranscodingSettings;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.CodeEnter;
@@ -543,6 +544,40 @@ public class StoreContainer extends StoreResource {
 	@Override
 	public String getSystemName() {
 		return getName();
+	}
+
+	/**
+	 * The default container name is only unique within its parent container, so
+	 * GETRATINGKEY() has to qualify it with the ancestor names. Containers
+	 * backed by a file path or an URL override this to return true.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return false;
+	}
+
+	/**
+	 * Tells whether this container represents exactly one music album, and if so
+	 * supplies its metadata. Used to report a musicAlbum instead of a plain folder,
+	 * and to rate the album rather than the folder.
+	 *
+	 * @return the album metadata, or NULL when this container is not an album
+	 */
+	public AlbumMetadata getAlbumMetadata() {
+		return null;
+	}
+
+	/**
+	 * A container that holds exactly one album is rated as that album, so rating
+	 * it in the file tree and rating it in the media library end up on the same row.
+	 */
+	@Override
+	public String getRatingKey() {
+		AlbumMetadata album = getAlbumMetadata();
+		if (album != null) {
+			return album.getTypeIdent().toString();
+		}
+		return super.getRatingKey();
 	}
 
 	/**
