@@ -105,7 +105,7 @@ public class MediaTableFiles extends MediaTable {
 	 * - 46: implemented new ruid algorithm
 	 * - 47: new ruid algorithm, all RUID are dropped and recalculated on the next scan
 	 */
-	private static final int TABLE_VERSION = 47;
+	private static final int TABLE_VERSION = 48;
 
 	/**
 	 * COLUMNS NAMES
@@ -524,6 +524,9 @@ public class MediaTableFiles extends MediaTable {
 					case 46 -> {
 						executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_RESOURCE_UID + " = NULL");
 					}
+					case 47 -> {
+						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_RESOURCE_UID + IDX_MARKER + ON + TABLE_NAME + " (" + COL_RESOURCE_UID + ")");
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -611,6 +614,9 @@ public class MediaTableFiles extends MediaTable {
 
 		LOGGER.trace("Creating index on " + COL_FILENAME);
 		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + ")");
+
+		LOGGER.trace("Creating index on " + COL_RESOURCE_UID);
+		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_RESOURCE_UID + IDX_MARKER + ON + TABLE_NAME + " (" + COL_RESOURCE_UID + ")");
 
 		LOGGER.trace("Creating view for indexing computed column ONLYFILENAME");
 		executeUpdate(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'net.pms.database.lucene.UmsFullTextLucene.init';");
