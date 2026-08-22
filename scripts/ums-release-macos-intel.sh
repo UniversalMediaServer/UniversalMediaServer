@@ -16,36 +16,20 @@
 cd ..
 
 # Clear the folder for a clean build
-rm UMS-macOS-*
-rm -fr target/ums*
-rm -rf target/antrun
-rm -rf target/archive-tmp
-rm -rf target/classes
-rm -rf target/generated-sources
-rm -rf target/generated-test-sources
-rm -rf target/maven-archiver
-rm -rf target/surefire-reports
-rm -rf target/test-classes
+rm -rf target
 
 mvn -P macos package -DskipTests=true
 
-mvn -P docker prepare-package -DskipTests=true
-mvn -P docker package -DskipTests=true
-mvn -P docker install -DskipTests=true
+# Uncomment to publish to Docker manually. Currently it happens via GitHub Actions.
+# mvn -P docker prepare-package -DskipTests=true
+# mvn -P docker package -DskipTests=true
+# mvn -P docker install -DskipTests=true
 
 ./scripts/dependencies/gon ./gon-config-prebuild.json
 ./scripts/dependencies/gon ./gon-config-build-intel.json
 
 # Clear the folder for a clean build
-rm -fr target/ums*
-rm -rf target/antrun
-rm -rf target/archive-tmp
-rm -rf target/classes
-rm -rf target/generated-sources
-rm -rf target/generated-test-sources
-rm -rf target/maven-archiver
-rm -rf target/surefire-reports
-rm -rf target/test-classes
+rm -rf target
 
 mvn -P macos-pre1015 package -DskipTests=true
 
