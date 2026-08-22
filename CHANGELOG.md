@@ -32,6 +32,7 @@
 - Bump `com.twelvemonkeys.imageio:imageio-tga` from 3.13.1 to 3.14.0 ([#6265](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6265))
 - Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.13.1 to 3.14.0 ([#6265](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6265))
 - Bump `com.twelvemonkeys.imageio:imageio-webp` from 3.13.1 to 3.14.0 ([#6265](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6265))
+- Bump `commons-logging:commons-logging` from 1.3.6 to 1.4.0 ([#6277](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6277))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.3.1 to 3.4.0 ([#6250](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6250))
 - Bump `js-yaml` from 4.2.0 to 4.3.1 ([#6272](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6272))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
