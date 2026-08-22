@@ -46,8 +46,8 @@ import net.pms.configuration.RendererConfigurations;
 import net.pms.renderers.Renderer;
 import net.pms.swing.components.CustomJButton;
 import net.pms.swing.gui.UmsFormBuilder;
-import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

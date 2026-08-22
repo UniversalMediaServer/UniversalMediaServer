@@ -26,7 +26,7 @@ import net.pms.network.HTTPResource;
 import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Implements a container that when browsed, an action will be performed.

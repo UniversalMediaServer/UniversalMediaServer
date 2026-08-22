@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import net.pms.network.HttpServletHelper;
 import net.pms.store.MediaScanner;
 import net.pms.store.MediaStoreIds;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.IO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

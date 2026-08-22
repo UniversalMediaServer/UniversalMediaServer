@@ -31,7 +31,7 @@ import net.pms.renderers.devices.players.LogicalPlayer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.swing.SwingUtil;
 import net.pms.util.UMSUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class PlayerControlPanel extends JPanel {
 
