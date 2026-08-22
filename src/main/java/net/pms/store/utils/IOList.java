@@ -244,7 +244,7 @@ public class IOList extends ArrayList<StoreResource> {
 			String str;
 
 			while ((str = in.readLine()) != null) {
-				if (org.apache.commons.lang.StringUtils.isEmpty(str)) {
+				if (org.apache.commons.lang3.StringUtils.isEmpty(str)) {
 					continue;
 				}
 				if (str.startsWith("#")) {

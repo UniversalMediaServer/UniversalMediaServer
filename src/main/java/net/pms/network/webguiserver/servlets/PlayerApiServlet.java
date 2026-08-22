@@ -83,7 +83,7 @@ import net.pms.util.FullyPlayed;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -38,7 +38,7 @@ import net.pms.configuration.old.OldConfigurationImporter;
 import net.pms.network.webguiserver.WebSocketDispatcher;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.FileWatcher;
-import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
