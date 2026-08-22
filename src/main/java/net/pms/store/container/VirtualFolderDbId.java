@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +37,7 @@ import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.StoreResource;
+import net.pms.util.StringUtil;
 
 /**
  * This StoreContainer implements support for RealFileDbId's database backed
@@ -102,7 +102,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 									", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " +
 									MediaTableAudioMetadata.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " +
 									MediaTableAudioMetadata.TABLE_COL_FILEID + " WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE +
-									" = 1  AND  " + MediaTableAudioMetadata.TABLE_COL_ALBUM + " = '%s')", StringEscapeUtils.escapeSql(typeIdent.ident));
+									" = 1  AND  " + MediaTableAudioMetadata.TABLE_COL_ALBUM + " = '%s')", StringUtil.escapeSql(typeIdent.ident));
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));
 							}
@@ -140,7 +140,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 											MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudioMetadata.TABLE_NAME + " ON " +
 											MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudioMetadata.TABLE_COL_FILEID + " " + "WHERE ( " +
 											MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 and " + MediaTableAudioMetadata.TABLE_COL_MBID_RECORD +
-											" = '%s' ) ORDER BY ID ", StringEscapeUtils.escapeSql(typeIdent.ident));
+											" = '%s' ) ORDER BY ID ", StringUtil.escapeSql(typeIdent.ident));
 								if (LOGGER.isTraceEnabled()) {
 									LOGGER.trace(String.format("SQL TYPE_MUSICBRAINZ_RECORDID : %s", sql));
 								}
@@ -361,7 +361,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 				.append(MediaTableFiles.TABLE_COL_MODIFIED).append(" FROM ").append(MediaTableFiles.TABLE_NAME).append(" LEFT OUTER JOIN ")
 				.append(MediaTableAudioMetadata.TABLE_NAME).append(" ON ").append(MediaTableFiles.TABLE_COL_ID).append(" = ")
 				.append(MediaTableAudioMetadata.TABLE_COL_FILEID).append(" ").append("WHERE (").append(MediaTableAudioMetadata.TABLE_COL_ALBUM)
-				.append(" = '").append(StringEscapeUtils.escapeSql(typeAndIdent.getIdentUnprefixed())).append("') AND ( ");
+				.append(" = '").append(StringUtil.escapeSql(typeAndIdent.getIdentUnprefixed())).append("') AND ( ");
 		wherePartPersonByType(typeAndIdent, sb);
 		sb.append(")");
 		LOGGER.debug("personAlbumFilesSql : {}", sb.toString());
@@ -380,7 +380,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	}
 
 	private static void wherePartPersonByType(DbIdTypeAndIdent typeAndIdent, StringBuilder sb) {
-		String ident = StringEscapeUtils.escapeSql(typeAndIdent.getIdentUnprefixed());
+		String ident = StringUtil.escapeSql(typeAndIdent.getIdentUnprefixed());
 		if (typeAndIdent.ident.startsWith(DbIdMediaType.PERSON_COMPOSER_PREFIX)) {
 			sb.append(MediaTableAudioMetadata.TABLE_COL_COMPOSER);
 			LOGGER.trace("WHERE PERSON COMPOSER");

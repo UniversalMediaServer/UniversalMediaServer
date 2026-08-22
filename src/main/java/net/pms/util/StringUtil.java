@@ -27,6 +27,9 @@ import java.util.Formatter;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.JEditorPane;
+import javax.swing.JTextPane;
+import javax.swing.text.html.HTMLEditorKit;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -38,6 +41,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
@@ -1185,5 +1189,19 @@ public class StringUtil {
 
 		/** Lower-case, lowercase or minuscule */
 		LOWER
+	}
+
+	/**
+	 * From commons-lang 2.6
+	 *
+	 * @see https://commons.apache.org/proper/commons-lang/javadocs/api-2.6/org/apache/commons/lang/StringEscapeUtils.html#escapeSql%28java.lang.String%29
+	 * @param str
+	 * @return
+	 */
+	public static String escapeSql(String str) {
+		if (str == null) {
+			return null;
+		}
+		return  Strings.CS.replace(str, "'", "''");
 	}
 }
