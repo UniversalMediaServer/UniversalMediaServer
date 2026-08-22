@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [15.8.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.0...15.8.1) (2026-08-23)
+
+### General
+- Fixed folder.jpg not being used as default thumbnail for video files (#1440) (thanks, @mmustafasenoglu!)
+- Fixed startup on Linux with JDK 21+
+- Improved security of Windows installer (thanks, @pl4nty!)
+
 ### Translation updates via Crowdin
 - Dutch (100%) (thanks, Lefteye!)
 - English (United Kingdom) (71%) (thanks, Andi Chandler!)
@@ -38,6 +45,7 @@
 - Bump `commons-logging:commons-logging` from 1.3.6 to 1.4.0 ([#6277](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6277))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.3.1 to 3.4.0 ([#6250](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6250))
 - Bump `js-yaml` from 4.2.0 to 4.3.1 ([#6272](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6272))
+- Bump `NSIS` from 3.11 to 3.12
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.10 to 12.1.11 ([#6247](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6247))
@@ -49,6 +57,7 @@
 - Bump `react-dom` from 19.2.7 to 19.2.8 ([#6283](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6283))
 - Bump `react` from 19.2.7 to 19.2.8 ([#6283](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6283))
 - Bump `tar` from 7.5.16 to 7.5.22 ([#6258](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6258), [#6267](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6267))
+- Removed Apache commons-lang v2
 
 ## [15.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.7.0...15.8.0) (2026-07-15)
 
