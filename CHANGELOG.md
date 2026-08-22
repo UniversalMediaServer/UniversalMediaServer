@@ -15,6 +15,8 @@
 - Bump `actions/setup-node` from 6 to 7 ([#6248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6248))
 - Bump `axios` from 1.16.0 to 1.18.1 ([#6249](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6249))
 - Bump `brace-expansion` from 1.1.14 to 1.1.18 ([#6256](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6256), [#6271](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6271))
+- Bump `ch.qos.logback:logback-classic` from 1.5.38 to 1.6.1 ([#6275](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6275))
+- Bump `ch.qos.logback:logback-core` from 1.5.38 to 1.6.1 ([#6275](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6275))
 - Bump `com.auth0:java-jwt` from 4.5.2 to 4.6.0 ([#6251](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6251))
 - Bump `com.github.oshi:oshi-core` from 7.3.2 to 7.4.2 ([#6276](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6276))
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.13.1 to 3.14.0 ([#6265](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6265))
