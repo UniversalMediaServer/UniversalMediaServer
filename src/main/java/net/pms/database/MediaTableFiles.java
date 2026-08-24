@@ -45,6 +45,7 @@ import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
+import net.pms.store.MediaScanner;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
@@ -948,8 +949,9 @@ public class MediaTableFiles extends MediaTable {
 			MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
 			MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
 		}
-		if (fileId != null) {
-			//let store know that we change media metadata
+		if (fileId != null && !MediaScanner.isMediaScanRunning()) {
+			// A full scan touches every file, and the bumps it would make are covered by the single
+			// system bump once the scan is done, so they only cost lock contention here.
 			MediaStoreIds.incrementUpdateIdForFilename(connection, name);
 		}
 		return fileId;

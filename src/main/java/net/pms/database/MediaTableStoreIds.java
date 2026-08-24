@@ -60,6 +60,7 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String TABLE_COL_PARENT_ID = TABLE_NAME + "." + COL_PARENT_ID;
 	private static final String TABLE_COL_NAME = TABLE_NAME + "." + COL_NAME;
 	private static final String TABLE_COL_OBJECT_TYPE = TABLE_NAME + "." + COL_OBJECT_TYPE;
+	private static final String TABLE_COL_UPDATE_ID = TABLE_NAME + "." + COL_UPDATE_ID;
 
 	/**
 	 * SQL Queries
@@ -73,6 +74,7 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String SQL_GET_ID_NAME_TYPE = SQL_GET_ID_NAME + AND + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME_TYPE_PARENTTYPE = SQL_GET_ID_NAME_TYPE + AND + TABLE_COL_PARENT_ID + IN + "(" + SQL_GET_ID_TYPE + ")";
 	private static final String SQL_UPDATE_UPDATEID_ID = UPDATE + TABLE_NAME + SET + COL_UPDATE_ID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_UPDATEID_ID_IF_HIGHER = SQL_UPDATE_UPDATEID_ID + AND + TABLE_COL_UPDATE_ID + LESS_THAN + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -244,6 +246,26 @@ public class MediaTableStoreIds extends MediaTable {
 		try (PreparedStatement stmt = connection.prepareStatement(SQL_UPDATE_UPDATEID_ID)) {
 			stmt.setLong(1, updateId);
 			stmt.setLong(2, id);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", id, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Stores the update id only when it is higher than the one already there.
+	 *
+	 * Writers are no longer serialised, so a slower thread must not persist an older value.
+	 */
+	public static void setMediaStoreUpdateIdIfHigher(Connection connection, long id, long updateId) {
+		if (connection == null) {
+			return;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_UPDATE_UPDATEID_ID_IF_HIGHER)) {
+			stmt.setLong(1, updateId);
+			stmt.setLong(2, id);
+			stmt.setLong(3, updateId);
 			stmt.executeUpdate();
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", id, e.getMessage());

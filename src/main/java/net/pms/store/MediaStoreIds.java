@@ -19,9 +19,10 @@ package net.pms.store;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableStoreIds;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
@@ -37,7 +38,24 @@ import org.slf4j.LoggerFactory;
 public class MediaStoreIds {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStoreIds.class);
-	private static final Map<Long, UnsignedIntegerFourBytes> UPDATE_IDS = new HashMap<>();
+	private static final Map<Long, UnsignedIntegerFourBytes> UPDATE_IDS = new ConcurrentHashMap<>();
+
+	/** Guards the shared system update id counter only, never a database call. */
+	private static final Object SYSTEM_UPDATE_ID_LOCK = new Object();
+
+	/**
+	 * Looking up the store id of a resource inserts the row when it is missing, so it has to be
+	 * atomic per resource. Striping keeps unrelated resources from waiting on each other, which is
+	 * what serialised the whole media scan before.
+	 */
+	private static final int STORE_ID_STRIPES = 64;
+	private static final Object[] STORE_ID_LOCKS = new Object[STORE_ID_STRIPES];
+
+	static {
+		for (int i = 0; i < STORE_ID_STRIPES; i++) {
+			STORE_ID_LOCKS[i] = new Object();
+		}
+	}
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -52,7 +70,7 @@ public class MediaStoreIds {
 		// The connection is taken before the monitor on purpose.
 		Connection connection = MediaDatabase.getConnectionIfAvailable();
 		try {
-			synchronized (MediaStoreIds.class) {
+			synchronized (getStoreIdLock(resource)) {
 				if (connection != null) {
 					//parse db
 					MediaStoreId mediaStoreId = MediaTableStoreIds.getResourceMediaStoreId(connection, resource);
@@ -73,6 +91,12 @@ public class MediaStoreIds {
 			MediaDatabase.close(connection);
 		}
 		return null;
+	}
+
+	private static Object getStoreIdLock(StoreResource resource) {
+		Long parentId = resource.getParent() != null ? resource.getParent().getLongId() : null;
+		int hash = Objects.hash(parentId, resource.getSystemName());
+		return STORE_ID_LOCKS[Math.floorMod(hash, STORE_ID_STRIPES)];
 	}
 
 	public static List<MediaStoreId> getMediaStoreResourceTree(long id) {
@@ -190,29 +214,30 @@ public class MediaStoreIds {
 	 *
 	 * @return The system updated id.
 	 */
-	public static synchronized UnsignedIntegerFourBytes getSystemUpdateId() {
-		if (!UPDATE_IDS.containsKey(-1L)) {
-			UnsignedIntegerFourBytes value = null;
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					MediaStoreId mediaStoreId = MediaTableStoreIds.getMediaStoreId(connection, -1L);
-					if (mediaStoreId != null) {
-						value = new UnsignedIntegerFourBytes(mediaStoreId.getUpdateId());
-					} else {
-						value = new UnsignedIntegerFourBytes(0);
-					}
-				}
-				if (value == null) {
-					value = new UnsignedIntegerFourBytes(0);
-				}
-				UPDATE_IDS.put(-1L, value);
-			} finally {
-				MediaDatabase.close(connection);
-			}
+	public static UnsignedIntegerFourBytes getSystemUpdateId() {
+		UnsignedIntegerFourBytes known = UPDATE_IDS.get(-1L);
+		if (known != null) {
+			return known;
 		}
-		return UPDATE_IDS.get(-1L);
+		UnsignedIntegerFourBytes value = null;
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaStoreId mediaStoreId = MediaTableStoreIds.getMediaStoreId(connection, -1L);
+				if (mediaStoreId != null) {
+					value = new UnsignedIntegerFourBytes(mediaStoreId.getUpdateId());
+				}
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		if (value == null) {
+			value = new UnsignedIntegerFourBytes(0);
+		}
+		// Whoever gets there first defines the counter, so every caller shares the same instance.
+		UnsignedIntegerFourBytes previous = UPDATE_IDS.putIfAbsent(-1L, value);
+		return previous != null ? previous : value;
 	}
 
 	/**
@@ -220,7 +245,7 @@ public class MediaStoreIds {
 	 *
 	 * @return The object updated id.
 	 */
-	private static synchronized UnsignedIntegerFourBytes getObjectUpdateId(Long id) {
+	private static UnsignedIntegerFourBytes getObjectUpdateId(Long id) {
 		if (id == null || id == -1) {
 			return getSystemUpdateId();
 		}
@@ -266,7 +291,7 @@ public class MediaStoreIds {
 	 * potentially outdated and has to be refreshed.
 	 * </p>
 	 */
-	public static synchronized void incrementSystemUpdateId() {
+	public static void incrementSystemUpdateId() {
 		incrementUpdateId(null);
 	}
 
@@ -282,19 +307,17 @@ public class MediaStoreIds {
 		// Same reason as in getMediaStoreResourceId: never wait for a connection under the monitor.
 		Connection connection = MediaDatabase.getConnectionIfAvailable();
 		try {
-			synchronized (MediaStoreIds.class) {
-				long updateId = getSystemUpdateId().increment(false).getValue();
-				if (id != null && id != -1 && UPDATE_IDS.containsKey(id)) {
-					UPDATE_IDS.put(id, new UnsignedIntegerFourBytes(updateId));
-				}
-				if (connection != null) {
-					MediaTableStoreIds.setMediaStoreUpdateId(connection, -1, updateId);
-					if (id != null && id != -1) {
-						MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
-					}
-				}
-				return updateId;
+			long updateId = nextSystemUpdateId();
+			if (id != null && id != -1) {
+				UPDATE_IDS.computeIfPresent(id, (key, value) -> new UnsignedIntegerFourBytes(updateId));
 			}
+			if (connection != null) {
+				MediaTableStoreIds.setMediaStoreUpdateIdIfHigher(connection, -1, updateId);
+				if (id != null && id != -1) {
+					MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
+				}
+			}
+			return updateId;
 		} finally {
 			MediaDatabase.close(connection);
 		}
@@ -304,25 +327,32 @@ public class MediaStoreIds {
 	 * Bumps the system update id and persists it for the system and the given store id, reusing the
 	 * connection the caller already holds.
 	 *
-	 * Callers hold the class monitor and pass a valid id.
+	 * Callers pass a valid id.
 	 *
 	 * @param connection the db connection, may be NULL when the database is unavailable
 	 * @param id the store id to bump
 	 * @return the new update id
 	 */
 	private static long applyUpdateId(Connection connection, long id) {
-		long updateId = getSystemUpdateId().increment(false).getValue();
-		if (UPDATE_IDS.containsKey(id)) {
-			UPDATE_IDS.put(id, new UnsignedIntegerFourBytes(updateId));
-		}
+		long updateId = nextSystemUpdateId();
+		UPDATE_IDS.computeIfPresent(id, (key, value) -> new UnsignedIntegerFourBytes(updateId));
 		if (connection != null) {
-			MediaTableStoreIds.setMediaStoreUpdateId(connection, -1, updateId);
+			MediaTableStoreIds.setMediaStoreUpdateIdIfHigher(connection, -1, updateId);
 			MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
 		}
 		return updateId;
 	}
 
-	private static synchronized void incrementUpdateId(Connection connection, Long id) {
+	/**
+	 * Bumps the shared counter. Only the arithmetic is guarded, so nothing waits on a database call.
+	 */
+	private static long nextSystemUpdateId() {
+		synchronized (SYSTEM_UPDATE_ID_LOCK) {
+			return getSystemUpdateId().increment(false).getValue();
+		}
+	}
+
+	private static void incrementUpdateId(Connection connection, Long id) {
 		if (id != null && id != -1) {
 			applyUpdateId(connection, id);
 		}

@@ -30,6 +30,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
@@ -79,6 +80,9 @@ public class ThumbnailStore {
 
 	// Thumbnails already generated for a given image file, by absolute path.
 	private static final Map<String, CachedFileThumbnail> FILE_THUMBNAIL_IDS = new ConcurrentHashMap<>();
+
+	// Thumbnails already generated for cover bytes kept under a key, e.g. a MusicBrainz release id.
+	private static final Map<String, Long> KEY_THUMBNAIL_IDS = new ConcurrentHashMap<>();
 
 	// A JPEG_TN variant is around 15 kB, the large profiles are a lot bigger, so this is a few tens of MB in the worst case.
 	private static final int MAX_TRANSCODED_THUMBNAILS = 500;
@@ -316,6 +320,45 @@ public class ThumbnailStore {
 			}
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Prepared thumbnail from {} in {} ms", url, System.currentTimeMillis() - start);
+			}
+		}
+		return generated;
+	}
+
+	/**
+	 * Returns the id of the thumbnail already made for a key
+	 */
+	public static Long getCachedIdForKey(String key) {
+		return key == null ? null : KEY_THUMBNAIL_IDS.get(key);
+	}
+
+	/**
+	 * Returns a thumbnail for cover bytes that are kept under a key, decoding them only once.
+	 */
+	public static DLNAThumbnailInputStream getThumbnailInputStreamForKey(String key, Supplier<byte[]> coverSupplier) throws IOException {
+		if (key == null || coverSupplier == null) {
+			return null;
+		}
+		Long cachedId = KEY_THUMBNAIL_IDS.get(key);
+		if (cachedId != null) {
+			DLNAThumbnailInputStream cached = getThumbnailInputStream(cachedId);
+			if (cached != null) {
+				return cached;
+			}
+		}
+		byte[] cover = coverSupplier.get();
+		if (cover == null || cover.length == 0) {
+			return null;
+		}
+		DLNAThumbnailInputStream generated = DLNAThumbnailInputStream.toThumbnailInputStream(cover);
+		if (generated != null) {
+			try {
+				Long id = getId(generated.getThumbnail());
+				if (id != null) {
+					KEY_THUMBNAIL_IDS.put(key, id);
+				}
+			} catch (DLNAProfileException e) {
+				LOGGER.trace("Could not cache thumbnail for {}: {}", key, e.getMessage());
 			}
 		}
 		return generated;

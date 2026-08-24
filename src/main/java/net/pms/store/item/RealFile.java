@@ -263,6 +263,14 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		File cachedThumbnail = null;
 		MediaType mediaType = getMediaInfo() != null ? getMediaInfo().getMediaType() : MediaType.UNKNOWN;
 
+		// An audio track with a stored cover uses it anyway
+		if (getType() == Format.AUDIO && getMediaInfo() != null && getMediaInfo().getThumbnailId() != null) {
+			DLNAThumbnailInputStream stored = getMediaInfo().getThumbnailInputStream();
+			if (stored != null) {
+				return stored;
+			}
+		}
+
 		if (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) {
 			String alternativeFolder = renderer.getUmsConfiguration().getAlternateThumbFolder();
 			ArrayList<File> folders = new ArrayList<>(2);

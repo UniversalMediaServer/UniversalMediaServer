@@ -1403,6 +1403,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			return;
 		}
 		StoreResource resource = renderer.getMediaStore().getResource(pathData[3]);
+		String eTag = getThumbnailETag(resource);
+		if (eTag != null && eTag.equals(req.getHeader("If-None-Match"))) {
+			setThumbnailCacheHeaders(resp, eTag);
+			respondNotModified(req, resp);
+			return;
+		}
 		DLNAThumbnailInputStream thumb = getMediaThumbImage(resource);
 		if (thumb != null) {
 			AsyncContext async = req.startAsync();
@@ -1410,12 +1416,35 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Accept-Ranges", "bytes");
 			resp.setHeader("Connection", "keep-alive");
+			// Resolving the picture may have been what stored it, so ask again for the tag.
+			setThumbnailCacheHeaders(resp, eTag != null ? eTag : getThumbnailETag(resource));
 			resp.setStatus(200);
 			resp.setContentLengthLong(thumb.getSize());
 			OutputStream os = resp.getOutputStream();
 			copyStreamAsync(thumb, os, async);
 		} else {
 			respondNotFound(req, resp);
+		}
+	}
+
+	/**
+	 * The stored thumbnail id is the hash of the picture itself, so it changes exactly when the picture does.
+	 */
+	private static String getThumbnailETag(StoreResource resource) {
+		if (resource == null || resource.getMediaInfo() == null || resource.getMediaInfo().getThumbnailId() == null) {
+			return null;
+		}
+		return "\"t" + resource.getMediaInfo().getThumbnailId() + "\"";
+	}
+
+	private static void setThumbnailCacheHeaders(HttpServletResponse resp, String eTag) {
+		if (eTag != null) {
+			resp.setHeader("ETag", eTag);
+			// Short enough that a replaced cover shows up on its own
+			resp.setHeader("Cache-Control", "private, max-age=300, must-revalidate");
+		} else {
+			// A pending cover or a generated picture: reuse it briefly
+			resp.setHeader("Cache-Control", "private, max-age=60");
 		}
 	}
 

@@ -13,7 +13,6 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.ControlPoint;
 import net.pms.store.DbIdResourceLocator;
-import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 
@@ -43,7 +42,7 @@ public class UmsArtistImageProvider implements IArtistImageProvider, EventListen
 	}
 
 	public DLNAThumbnailInputStream getThumbnail(Renderer renderer, String artistName) {
-		LOGGER.info("Getting thumbnail for artist: " + artistName);
+		LOGGER.trace("Getting thumbnail for artist: {}", artistName);
 		DLNAThumbnailInputStream thumb = null;
 		if (!StringUtils.isBlank(artistName)) {
 			try {
@@ -54,9 +53,8 @@ public class UmsArtistImageProvider implements IArtistImageProvider, EventListen
 							.findFirst();
 					if (match.isPresent()) {
 						try {
-							MediaStoreIds.incrementUpdateId(match.get().getLongId());
 							thumb = match.get().getThumbnailInputStream();
-							LOGGER.info("Thumbnail retrieved for artist: " + artistName);
+							LOGGER.trace("Thumbnail retrieved for artist: {}", artistName);
 						} catch (Exception e) {
 							LOGGER.error("Error retrieving thumbnail for artist: " + artistName, e);
 						}

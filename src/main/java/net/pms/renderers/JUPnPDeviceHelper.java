@@ -382,8 +382,9 @@ public class JUPnPDeviceHelper {
 		String uuid = getUUID(d);
 		if (ConnectedRenderers.hasUuidRenderer(uuid)) {
 			Renderer renderer = ConnectedRenderers.getUuidRenderer(uuid);
-			if (renderer.needsRenewal() || getDeviceControls(d) != renderer.getControls()) {
-				LOGGER.debug("Renewing subscriptions to ", getFriendlyName(d));
+			if (CONFIGURATION.isUpnpSubscribeServices() &&
+				(renderer.needsRenewal() || getDeviceControls(d) != renderer.getControls())) {
+				LOGGER.debug("Renewing subscriptions to {}", getFriendlyName(d));
 				subscribeAll(d, renderer);
 			}
 			renderer.setActive(true);
