@@ -76,7 +76,6 @@ public class RadioNetwork {
 	private final static long RETRY_DELAY_SECONDS = 5;
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
-	private static final Pattern SESSION_KEY_PATTERN = Pattern.compile(".*session_key\":\\s*\"([\\w\\d]*)\",");
 	private static final DateTimeFormatter EVENT_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
 	private static final DateTimeFormatter EPISODE_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -94,15 +93,13 @@ public class RadioNetwork {
 
 	private static String listenKey = null;
 
-	// Server-issued per login (in the member object next to api_key/listen_key). Not used in the
-	// current api_key streaming mode; kept for a possible future per-stream x-session-key mode.
-	private static String sessionKey = null;
-
 	private static boolean authenticated = false;
 
-	private HttpClient httpNonBlocking = new HttpClient();
-	private HttpClient httpBlocking = new HttpClient();
-	private HttpClient httpBatch = new HttpClient();
+	// Every network talks to the same api with the same credentials.
+	private static final Object HTTP_CLIENT_LOCK = new Object();
+	private static HttpClient httpNonBlocking;
+	private static HttpClient httpBlocking;
+	private static HttpClient httpBatch;
 	private static int maxRetryBatchCount = 5;
 	private static int maxResponseSize = 10 * 1024 * 1024; // 10 MB
 
@@ -143,6 +140,44 @@ public class RadioNetwork {
 		this.network = network;
 	}
 
+	/**
+	 * Starts the shared http clients on first use.
+	 */
+	private static void startHttpClients() {
+		synchronized (HTTP_CLIENT_LOCK) {
+			if (httpBatch != null) {
+				return;
+			}
+			HttpClient batch = new HttpClient();
+			HttpClient blocking = new HttpClient();
+			HttpClient nonBlocking = new HttpClient();
+			AuthenticationStore auth = batch.getAuthenticationStore();
+			URI uri = URI.create("http://api.audioaddict.com/v1");
+			auth.addAuthenticationResult(new BasicAuthentication.BasicResult(uri, "ephemeron", "dayeiph0ne@pp"));
+
+			// The playlist resources are served over HTTPS and require the same basic authentication.
+			URI secureUri = URI.create("https://api.audioaddict.com/v1");
+			blocking.getAuthenticationStore().addAuthenticationResult(
+				new BasicAuthentication.BasicResult(secureUri, "ephemeron", "dayeiph0ne@pp"));
+
+			batch.setConnectTimeout(30000);
+			blocking.setConnectTimeout(10000);
+			nonBlocking.setConnectTimeout(10000);
+
+			try {
+				nonBlocking.start();
+				batch.start();
+				blocking.start();
+			} catch (Exception e) {
+				LOGGER.error("cannot start http clients", e);
+				return;
+			}
+			httpNonBlocking = nonBlocking;
+			httpBlocking = blocking;
+			httpBatch = batch;
+		}
+	}
+
 	public void addInitCallbackHandler(INetworkInitialized callback) {
 		networkInitCallbacks.add(callback);
 	}
@@ -153,26 +188,7 @@ public class RadioNetwork {
 
 	public void start() {
 		LOGGER.debug("{} : start() called ...", network.displayName);
-		AuthenticationStore auth = httpBatch.getAuthenticationStore();
-		URI uri = URI.create("http://api.audioaddict.com/v1");
-		auth.addAuthenticationResult(new BasicAuthentication.BasicResult(uri, "ephemeron", "dayeiph0ne@pp"));
-
-		// The playlist resources are served over HTTPS and require the same basic authentication.
-		URI secureUri = URI.create("https://api.audioaddict.com/v1");
-		httpBlocking.getAuthenticationStore().addAuthenticationResult(
-			new BasicAuthentication.BasicResult(secureUri, "ephemeron", "dayeiph0ne@pp"));
-
-		httpBatch.setConnectTimeout(30000);
-		httpBlocking.setConnectTimeout(10000);
-		httpNonBlocking.setConnectTimeout(10000);
-
-		try {
-			httpNonBlocking.start();
-			httpBatch.start();
-			httpBlocking.start();
-		} catch (Exception e) {
-			LOGGER.error("cannot start http clients", e);
-		}
+		startHttpClients();
 
 		om = JsonMapper.builder().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build();
 		if (apiKey == null) {
@@ -243,14 +259,6 @@ public class RadioNetwork {
 			listenKey = m.group(1);
 		} else {
 			LOGGER.warn("listen-key not found!");
-		}
-		m = SESSION_KEY_PATTERN.matcher(resp);
-		if (m.find()) {
-			sessionKey = m.group(1);
-			LOGGER.info("{} : extracted session_key (length {}) - kept for possible future per-stream session use",
-				network.displayName, sessionKey.length());
-		} else {
-			LOGGER.warn("{} : session-key not found in authenticate response!", network.displayName);
 		}
 	}
 
@@ -574,10 +582,6 @@ public class RadioNetwork {
 
 	protected static String getListenKey() {
 		return listenKey;
-	}
-
-	protected static String getSessionKey() {
-		return sessionKey;
 	}
 
 	/**

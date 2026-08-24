@@ -85,9 +85,6 @@ public final class PlaylistFolder extends StoreContainer {
 
 	public static final String DIRECTIVE_ALBUMART_URI = "#EXTIMG:";
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
-	// How long a browse waits for web entries before answering with what is resolved.
-	private static final long WEB_ENTRY_BUDGET_SECONDS = 3;
-
 	// Set once the browse has been answered, so entries that resolve later make renderers refresh.
 	private final AtomicBoolean webEntriesResponded = new AtomicBoolean(false);
 
@@ -309,7 +306,6 @@ public final class PlaylistFolder extends StoreContainer {
 		List<Entry> entries = getPlaylistEntries();
 		prefetchLocalEntries(entries);
 		webEntriesResponded.set(false);
-		List<CompletableFuture<ResolvedWebEntry>> webEntryFutures = new ArrayList<>();
 		for (Entry entry : entries) {
 			if (entry == null) {
 				continue;
@@ -354,13 +350,14 @@ public final class PlaylistFolder extends StoreContainer {
 					MediaTableContainerFiles.addContainerEntry(containerId, entryId);
 				} else {
 					LOGGER.debug("Web playlist entry queued for async resolve: {}", u);
-					webEntryFutures.add(CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR)
-						.whenComplete((resolved, failure) -> addResolvedWebEntry(containerId, resolved, failure)));
+					CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR)
+						.whenComplete((resolved, failure) -> addResolvedWebEntry(containerId, resolved, failure));
 				}
 			}
 		}
 
-		collectWebFutures(containerId, webEntryFutures);
+		// Everything still in flight announces itself through the update id from here on.
+		webEntriesResponded.set(true);
 
 		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == StoreResourceSorter.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
@@ -369,34 +366,6 @@ public final class PlaylistFolder extends StoreContainer {
 		for (StoreResource r : new ArrayList<>(getChildren())) {
 			r.syncResolve();
 		}
-	}
-
-	/**
-	 * Asynchronously collects resolved web entries, adds them as children and updates the database. Waits max. up to 3 seconds for resolution,
-	 * then adds any remaining unresolved entries to the failedEntries list for later retry or other error handling.
-	 *
-	 * @param containerId
-	 * @param webEntryFutures
-	 */
-	private void collectWebFutures(Long containerId, List<CompletableFuture<ResolvedWebEntry>> webEntryFutures) {
-		if (webEntryFutures.isEmpty()) {
-			webEntriesResponded.set(true);
-			return;
-		}
-
-		try {
-			CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]))
-				.get(WEB_ENTRY_BUDGET_SECONDS, TimeUnit.SECONDS);
-		} catch (java.util.concurrent.TimeoutException e) {
-			LOGGER.debug("Web playlist entry resolution is taking longer than {} s, answering with what is resolved so far",
-				WEB_ENTRY_BUDGET_SECONDS);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		} catch (Exception e) {
-			// Individual failures are reported by the completion handler
-		}
-		// From here on every entry that still arrives has to announce itself.
-		webEntriesResponded.set(true);
 	}
 
 	/**

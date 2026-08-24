@@ -23,11 +23,17 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.external.radiobrowser.RadioBrowser4j;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
+import net.pms.store.MediaStore;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreItem;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
@@ -39,6 +45,16 @@ import org.slf4j.LoggerFactory;
 public class WebStream extends StoreItem {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebStream.class);
+
+	// Probing a stream is an HTTP round trip, so a browse hands it over here instead of waiting for it.
+	private static final ExecutorService RESOLVE_EXECUTOR = Executors.newFixedThreadPool(4, r -> {
+		Thread thread = new Thread(r, "web-stream-resolve");
+		thread.setDaemon(true);
+		return thread;
+	});
+
+	// Urls with a probe in flight, so the same stream is not probed by several browses at once.
+	private static final Set<String> RESOLVING = ConcurrentHashMap.newKeySet();
 
 	private String url;
 	private String fluxName;
@@ -174,6 +190,26 @@ public class WebStream extends StoreItem {
 		return true;
 	}
 
+	/**
+	 * Puts the stream away from the request that asked for it.
+	 */
+	private void resolveInBackground() {
+		if (!RESOLVING.add(url)) {
+			return;
+		}
+		RESOLVE_EXECUTOR.execute(() -> {
+			try {
+				setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
+				MediaStoreIds.incrementUpdateId(getLongId());
+			} catch (Exception e) {
+				LOGGER.debug("Could not resolve the web stream \"{}\": {}", url, e.getMessage());
+				LOGGER.trace("", e);
+			} finally {
+				RESOLVING.remove(url);
+			}
+		});
+	}
+
 	@Override
 	public synchronized void resolve() {
 		if (url == null) {
@@ -182,7 +218,12 @@ public class WebStream extends StoreItem {
 		}
 
 		if (getMediaInfo() == null || !getMediaInfo().isMediaParsed()) {
-			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
+			if (MediaStore.isServingRequest()) {
+				// Same trade-off as the audio covers: answer now, fill in the details afterwards.
+				resolveInBackground();
+			} else {
+				setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
+			}
 		}
 		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID)) {
 			// Attempt to enhance the metadata via RADIOBROWSER API.
