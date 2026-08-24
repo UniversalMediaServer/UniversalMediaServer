@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.media.MediaInfo;
 import net.pms.external.radiobrowser.RadioBrowser4j;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.renderers.Renderer;
@@ -113,6 +114,18 @@ public class WebStream extends StoreItem {
 			LOGGER.error("cannot read input stream from {}", url, e);
 		}
 		return null;
+	}
+
+	/**
+	 * A radio stream has neither a size nor a duration, a hosted file has both.
+	 */
+	@Override
+	public boolean isUnboundedLiveStream() {
+		MediaInfo media = getMediaInfo();
+		if (media == null || !media.isMediaParsed()) {
+			return true;
+		}
+		return media.getSize() <= 0 && media.getDurationInSeconds() <= 0;
 	}
 
 	@Override
