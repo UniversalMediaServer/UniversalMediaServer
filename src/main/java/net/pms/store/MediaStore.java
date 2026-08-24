@@ -98,6 +98,10 @@ public class MediaStore extends StoreContainer {
 	// Bound of the queue in front of the resolver pool.
 	private static final int RESOLVE_QUEUE_CAPACITY = 256;
 
+	// Set while a thread answers a UPnP request (browse or playback lookup), so work that would make
+	// the caller wait can be moved off that thread.
+	private static final ThreadLocal<Boolean> SERVING_REQUEST = ThreadLocal.withInitial(() -> false);
+
 	// Set on the pool threads only, so the caller runs path can be told apart from a real worker.
 	private static final ThreadLocal<Boolean> IS_RESOLVER_THREAD = ThreadLocal.withInitial(() -> false);
 
@@ -529,6 +533,7 @@ public class MediaStore extends StoreContainer {
 		// have been discovered by someone first (unless it's a Temp item)
 		try {
 			WORKERS.incrementAndGet();
+			SERVING_REQUEST.set(true);
 			if (StringUtils.isEmpty(objectId)) {
 				return null;
 			}
@@ -568,6 +573,7 @@ public class MediaStore extends StoreContainer {
 			String[] ids = objectId.split("\\.");
 			return getWeakResource(ids[ids.length - 1]);
 		} finally {
+			SERVING_REQUEST.set(false);
 			WORKERS.decrementAndGet();
 		}
 	}
@@ -735,6 +741,7 @@ public class MediaStore extends StoreContainer {
 	public List<StoreResource> getResources(String objectId, boolean returnChildren) {
 		try {
 			WORKERS.incrementAndGet();
+			SERVING_REQUEST.set(true);
 			ArrayList<StoreResource> resources = new ArrayList<>();
 			if (StringUtils.isEmpty(objectId)) {
 				return resources;
@@ -805,6 +812,7 @@ public class MediaStore extends StoreContainer {
 
 			return resources;
 		} finally {
+			SERVING_REQUEST.set(false);
 			WORKERS.decrementAndGet();
 		}
 	}
@@ -1174,6 +1182,13 @@ public class MediaStore extends StoreContainer {
 			return res.getMediaInfo().getAudioMetadata().getDisc();
 		}
 		return 0;
+	}
+
+	/**
+	 * @return whether the current thread is answering a UPnP request right now.
+	 */
+	public static boolean isServingRequest() {
+		return Boolean.TRUE.equals(SERVING_REQUEST.get());
 	}
 
 	public static void waitWorkers() throws InterruptedException {

@@ -36,6 +36,8 @@ import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
+import net.pms.store.AudioCoverResolver;
+import net.pms.store.MediaStore;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.CoverSupplier;
@@ -146,7 +148,7 @@ public class JaudiotaggerParser {
 
 				Tag t = af.getTag();
 				if (t != null) {
-					Long thumbId = getThumbnailId(media, t);
+					Long thumbId = getThumbnailId(media, t, file);
 					if (thumbId != null) {
 						media.setThumbnailId(thumbId);
 					}
@@ -267,7 +269,7 @@ public class JaudiotaggerParser {
 	 * The hashing inside the thumbnail table happen once per cover instead of once per track. Hashing the raw bytes rather than the album
 	 * name keeps that exact - equal bytes are the same picture, whatever the tags say.
 	 */
-	private static Long getThumbnailId(MediaInfo media, Tag t) {
+	private static Long getThumbnailId(MediaInfo media, Tag t, File file) {
 		Cover cover = getCover(t, false);
 		if (cover == null) {
 			return null;
@@ -277,6 +279,11 @@ public class JaudiotaggerParser {
 		if (cachedId != null) {
 			media.setThumbnailSource(cover.source());
 			return cachedId;
+		}
+		if (MediaStore.isServingRequest()) {
+			media.setThumbnailPending(true);
+			AudioCoverResolver.enqueueCover(file);
+			return null;
 		}
 		DLNAThumbnail thumbnail = toThumbnail(media, cover.bytes());
 		if (thumbnail == null) {

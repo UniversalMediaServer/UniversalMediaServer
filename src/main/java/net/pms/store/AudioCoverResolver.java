@@ -22,7 +22,9 @@ public class AudioCoverResolver {
 	private static final String WORKER_THREAD_NAME = "cover-lookup-worker";
 	private static final int QUEUE_CAPACITY = 20000;
 	private static final BlockingQueue<File> QUEUE = new LinkedBlockingQueue<>(QUEUE_CAPACITY);
-	private static final AtomicBoolean WORKER_RUNNING = new AtomicBoolean(false);
+	/** Two of them, so covers appear reasonably fast without taking the machine away from the scan. */
+	private static final int WORKER_COUNT = 2;
+	private static final AtomicBoolean WORKERS_STARTED = new AtomicBoolean(false);
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -34,22 +36,34 @@ public class AudioCoverResolver {
 	 * Queues an audio file whose cover has to be looked up remotely.
 	 */
 	public static void enqueue(File file) {
-		if (file == null || !CoverSupplier.COVER_ART_ARCHIVE.equals(PMS.getConfiguration().getAudioThumbnailMethod())) {
+		if (!CoverSupplier.COVER_ART_ARCHIVE.equals(PMS.getConfiguration().getAudioThumbnailMethod())) {
+			return;
+		}
+		enqueueCover(file);
+	}
+
+	/**
+	 * Queues an audio file whose cover still has to be turned into a thumbnail.
+	 */
+	public static void enqueueCover(File file) {
+		if (file == null) {
 			return;
 		}
 		if (!QUEUE.offer(file)) {
-			LOGGER.trace("Cover lookup queue is full, skipping \"{}\"", file.getName());
+			LOGGER.trace("Cover queue is full, skipping \"{}\"", file.getName());
 			return;
 		}
-		startWorkerIfNeeded();
+		startWorkersIfNeeded();
 	}
 
-	private static void startWorkerIfNeeded() {
-		if (WORKER_RUNNING.compareAndSet(false, true)) {
-			Thread worker = new Thread(AudioCoverResolver::runWorker, WORKER_THREAD_NAME);
-			worker.setDaemon(true);
-			worker.setPriority(Thread.MIN_PRIORITY);
-			worker.start();
+	private static void startWorkersIfNeeded() {
+		if (WORKERS_STARTED.compareAndSet(false, true)) {
+			for (int i = 1; i <= WORKER_COUNT; i++) {
+				Thread worker = new Thread(AudioCoverResolver::runWorker, WORKER_THREAD_NAME + "-" + i);
+				worker.setDaemon(true);
+				worker.setPriority(Thread.MIN_PRIORITY);
+				worker.start();
+			}
 		}
 	}
 
@@ -66,8 +80,6 @@ public class AudioCoverResolver {
 			}
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-		} finally {
-			WORKER_RUNNING.set(false);
 		}
 	}
 
@@ -78,7 +90,10 @@ public class AudioCoverResolver {
 			LOGGER.trace("No cover found for \"{}\"", file.getName());
 			return;
 		}
-		if (ThumbnailStore.updateFileThumbnail(file.getAbsolutePath(), thumbnail, media.getThumbnailSource()) != null) {
+		Long id = ThumbnailStore.updateFileThumbnail(file.getAbsolutePath(), thumbnail, media.getThumbnailSource());
+		if (id != null) {
+			// The resources of a running browse hold the media info that was parsed without a picture, so it has to get the new id
+			MediaInfoStore.updateThumbnail(file.getAbsolutePath(), id, media.getThumbnailSource());
 			LOGGER.debug("Stored the cover of \"{}\" found at {}", file.getName(), media.getThumbnailSource());
 		}
 	}

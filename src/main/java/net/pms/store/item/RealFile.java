@@ -47,6 +47,7 @@ import net.pms.store.ThumbnailStore;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
+import net.pms.util.GenericIcons;
 import net.pms.util.InputFile;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -301,7 +302,13 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
 			LOGGER.trace("", e);
 		}
-		return result != null ? result : super.getThumbnailInputStream();
+		if (result != null) {
+			return result;
+		}
+		if (getMediaInfo() != null && getMediaInfo().isThumbnailPending()) {
+			return GenericIcons.INSTANCE.getCoverPendingIcon(this);
+		}
+		return super.getThumbnailInputStream();
 	}
 
 	@Override

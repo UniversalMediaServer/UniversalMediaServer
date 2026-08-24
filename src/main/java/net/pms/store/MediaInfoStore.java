@@ -78,6 +78,18 @@ public class MediaInfoStore {
 		return null;
 	}
 
+	/**
+	 * Hands a thumbnail made after the file was parsed to the media info that is still in memory.
+	 */
+	public static void updateThumbnail(String filename, Long thumbnailId, ThumbnailSource thumbnailSource) {
+		MediaInfo mediaInfo = getMediaInfoStored(filename);
+		if (mediaInfo != null) {
+			mediaInfo.setThumbnailId(thumbnailId);
+			mediaInfo.setThumbnailSource(thumbnailSource);
+			mediaInfo.setThumbnailPending(false);
+		}
+	}
+
 	private static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
 		synchronized (STORE) {
 			STORE.put(filename, new WeakReference<>(mediaInfo));
