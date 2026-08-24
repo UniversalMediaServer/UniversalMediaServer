@@ -42,6 +42,7 @@ import net.pms.dlna.DLNAProfileException;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.external.JavaHttpClient;
+import net.pms.image.BufferedImageFilter;
 import net.pms.image.BufferedImageFilterChain;
 import net.openhft.hashing.LongHashFunction;
 import net.pms.network.HTTPResource;
@@ -414,16 +415,16 @@ public class ThumbnailStore {
 		if (source == null) {
 			return null;
 		}
-		if (filterChain != null || outputProfile == null) {
+		if (outputProfile == null) {
 			return source.transcode(outputProfile, padToSize, filterChain);
 		}
 		String key = Long.toHexString(THUMBNAIL_HASH.hashBytes(source.getBytes(false))) + "|" + outputProfile +
-				"|" + outputProfile.getH() + "x" + outputProfile.getV() + "|" + padToSize;
+				"|" + outputProfile.getH() + "x" + outputProfile.getV() + "|" + padToSize + "|" + getFilterKey(filterChain);
 		DLNAThumbnail cached = TRANSCODED_THUMBNAILS.get(key);
 		if (cached != null) {
 			return new DLNAThumbnailInputStream(cached);
 		}
-		DLNAThumbnailInputStream transcoded = source.transcode(outputProfile, padToSize, null);
+		DLNAThumbnailInputStream transcoded = source.transcode(outputProfile, padToSize, filterChain);
 		if (transcoded != null) {
 			try {
 				TRANSCODED_THUMBNAILS.put(key, transcoded.getThumbnail());
@@ -435,9 +436,22 @@ public class ThumbnailStore {
 	}
 
 	/**
-	 * Deletes all cached thumbnails, both from this in-memory store and from the database (also
-	 * clearing the references to them from the FILES and TV_SERIES tables), so thumbnails are
-	 * regenerated on demand.
+	 * Identifies the filters applied to a thumbnail.
+	 */
+	private static String getFilterKey(BufferedImageFilterChain filterChain) {
+		if (filterChain == null || filterChain.isEmpty()) {
+			return "-";
+		}
+		StringBuilder key = new StringBuilder();
+		for (BufferedImageFilter filter : filterChain) {
+			key.append(filter.getDescription()).append(',');
+		}
+		return key.toString();
+	}
+
+	/**
+	 * Deletes all cached thumbnails, both from this in-memory store and from the database (also clearing the references to them from the
+	 * FILES and TV_SERIES tables), so thumbnails are regenerated on demand.
 	 */
 	public static void deleteAll() {
 		synchronized (STORE) {

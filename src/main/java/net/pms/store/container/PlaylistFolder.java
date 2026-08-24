@@ -36,6 +36,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +52,7 @@ import net.pms.parsers.WebStreamParser;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStore;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
@@ -83,6 +85,12 @@ public final class PlaylistFolder extends StoreContainer {
 
 	public static final String DIRECTIVE_ALBUMART_URI = "#EXTIMG:";
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
+	// How long a browse waits for web entries before answering with what is resolved.
+	private static final long WEB_ENTRY_BUDGET_SECONDS = 3;
+
+	// Set once the browse has been answered, so entries that resolve later make renderers refresh.
+	private final AtomicBoolean webEntriesResponded = new AtomicBoolean(false);
+
 	private static final ExecutorService WEB_ENTRY_EXECUTOR =
 		Executors.newFixedThreadPool(Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())));
 
@@ -300,6 +308,7 @@ public final class PlaylistFolder extends StoreContainer {
 
 		List<Entry> entries = getPlaylistEntries();
 		prefetchLocalEntries(entries);
+		webEntriesResponded.set(false);
 		List<CompletableFuture<ResolvedWebEntry>> webEntryFutures = new ArrayList<>();
 		for (Entry entry : entries) {
 			if (entry == null) {
@@ -345,7 +354,8 @@ public final class PlaylistFolder extends StoreContainer {
 					MediaTableContainerFiles.addContainerEntry(containerId, entryId);
 				} else {
 					LOGGER.debug("Web playlist entry queued for async resolve: {}", u);
-					webEntryFutures.add(CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR));
+					webEntryFutures.add(CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR)
+						.whenComplete((resolved, failure) -> addResolvedWebEntry(containerId, resolved, failure)));
 				}
 			}
 		}
@@ -370,38 +380,45 @@ public final class PlaylistFolder extends StoreContainer {
 	 */
 	private void collectWebFutures(Long containerId, List<CompletableFuture<ResolvedWebEntry>> webEntryFutures) {
 		if (webEntryFutures.isEmpty()) {
+			webEntriesResponded.set(true);
 			return;
 		}
 
 		try {
 			CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]))
-				.get(3, TimeUnit.SECONDS);
+				.get(WEB_ENTRY_BUDGET_SECONDS, TimeUnit.SECONDS);
 		} catch (java.util.concurrent.TimeoutException e) {
-			LOGGER.debug("Web playlist entry resolution timed out — collecting completed entries");
+			LOGGER.debug("Web playlist entry resolution is taking longer than {} s, answering with what is resolved so far",
+				WEB_ENTRY_BUDGET_SECONDS);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		} catch (Exception e) {
-			// Individual failures are handled per-future below
+			// Individual failures are reported by the completion handler
 		}
+		// From here on every entry that still arrives has to announce itself.
+		webEntriesResponded.set(true);
+	}
 
-		// Collect whichever futures completed within the budget
-		List<ResolvedWebEntry> resolvedWebEntries = new ArrayList<>();
-		for (CompletableFuture<ResolvedWebEntry> future : webEntryFutures) {
-			if (!future.isDone() || future.isCompletedExceptionally() || future.isCancelled()) {
-				continue;
-			}
-			try {
-				ResolvedWebEntry resolved = future.getNow(null);
-				if (resolved != null && resolved.resource() != null) {
-					resolvedWebEntries.add(resolved);
-				}
-			} catch (Exception e) {
-				Throwable cause = (e instanceof CompletionException && e.getCause() != null) ? e.getCause() : e;
+	/**
+	 * Adds a resolved web entry and stores it. A late entry bumps the update id of this folder, so renderers ask again and see it.
+	 */
+	private void addResolvedWebEntry(Long containerId, ResolvedWebEntry resolved, Throwable failure) {
+		if (failure != null) {
+			Throwable cause = (failure instanceof CompletionException && failure.getCause() != null) ? failure.getCause() : failure;
+			if (cause instanceof WebEntryResolveException re && re.entry != null) {
+				LOGGER.warn("Web playlist entry resolve failed for: {}", re.entry);
+			} else {
 				LOGGER.debug("Web playlist entry resolve failed", cause);
 			}
+			return;
 		}
-
-		for (ResolvedWebEntry resolved : resolvedWebEntries) {
+		if (resolved == null || resolved.resource() == null) {
+			return;
+		}
+		try {
 			LOGGER.debug("Web playlist entry async resolved: {} type {}", resolved.url(), resolved.type());
 			addChild(resolved.resource());
+			resolved.resource().syncResolve();
 			Long entryId;
 			if (resolved.resource() instanceof StoreContainer storeContainer) {
 				entryId = MediaTableFiles.getOrInsertFileId(resolved.url(), storeContainer.getLastModified(), resolved.type());
@@ -409,21 +426,13 @@ public final class PlaylistFolder extends StoreContainer {
 				entryId = MediaTableFiles.getOrInsertFileId(resolved.url(), 0L, resolved.type());
 			}
 			MediaTableContainerFiles.addContainerEntry(containerId, entryId);
-		}
-
-		for (CompletableFuture<ResolvedWebEntry> future : webEntryFutures) {
-			if (!future.isDone()) {
-				continue;
+			if (webEntriesResponded.get()) {
+				// The browse is already answered, so the renderer only learns about this entry through the update id.
+				MediaStoreIds.incrementUpdateId(getLongId());
 			}
-			if (future.isCompletedExceptionally()) {
-				try {
-					future.join();
-				} catch (CompletionException e) {
-					if (e.getCause() instanceof WebEntryResolveException re && re.entry != null) {
-						LOGGER.warn("Web playlist entry resolve failed for: {}", re.entry);
-					}
-				}
-			}
+		} catch (Exception e) {
+			LOGGER.debug("Could not add the resolved web playlist entry {}: {}", resolved.url(), e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 

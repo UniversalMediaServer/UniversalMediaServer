@@ -21,7 +21,6 @@ import com.universalmediaserver.coverartarchive.api.endpoint.ThumbnailSize;
 import com.universalmediaserver.coverartarchive.api.schema.ResultSchema;
 import java.sql.Connection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -58,7 +57,15 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverArtArchiveUtil.class);
 	private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000L; // 24 hours
-	private static final Map<String, Object> LOCKS = new HashMap<>();
+
+	private static final int LOCK_STRIPES = 64;
+	private static final Object[] LOCKS = new Object[LOCK_STRIPES];
+
+	static {
+		for (int i = 0; i < LOCK_STRIPES; i++) {
+			LOCKS[i] = new Object();
+		}
+	}
 
 	// Resolved release MBID per album, so the tracks of an album share one MusicBrainz search.
 	private static final int ALBUM_CACHE_SIZE = 1000;
@@ -70,15 +77,8 @@ public class CoverArtArchiveUtil extends CoverUtil {
 	protected CoverArtArchiveUtil() {
 	}
 
-	private static Object getLock(String filename) {
-		synchronized (LOCKS) {
-			if (LOCKS.containsKey(filename)) {
-				return LOCKS.get(filename);
-			}
-			Object lock = new Object();
-			LOCKS.put(filename, lock);
-			return lock;
-		}
+	private static Object getLock(String key) {
+		return LOCKS[Math.floorMod(key.hashCode(), LOCK_STRIPES)];
 	}
 
 	@Override

@@ -34,16 +34,20 @@ public class ResourceIdentifierTest {
 
 	/**
 	 * Bigger than the threshold up to which a file is hashed completely, which is
-	 * 5 segments of 256 kB.
+	 * 2 segments of 128 kB.
 	 */
 	private static final int BIG = 1024 * 1024 * 2;
 
 	/**
-	 * An offset inside the gap between the first and the second segment of a file of
-	 * {@link #BIG} bytes: the first segment ends at 256 kB, the second one starts at
-	 * (BIG - 256 kB) / 4 = 448 kB.
+	 * An offset inside the gap between the two segments of a file of {@link #BIG} bytes: the
+	 * first segment ends at 128 kB, the second one starts at BIG - 128 kB = 1920 kB.
 	 */
 	private static final int UNREAD_OFFSET = 1024 * 300;
+
+	/**
+	 * An offset in the middle of the first segment, so neither the first nor the last byte.
+	 */
+	private static final int READ_OFFSET = 1024 * 64;
 
 	@TempDir
 	private Path tempDir;
@@ -62,11 +66,11 @@ public class ResourceIdentifierTest {
 		//test with file
 		File file = getTestFile("/net/pms/parsers/video-h264-aac.mp4");
 		String filePath = file.getAbsolutePath();
-		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "bd153798588a561");
+		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "b040d7724244cf44");
 		//test with file url
 		try {
 			String fileUrl = file.toURI().toURL().toString();
-			testResourceIdentifier("file url: " + fileUrl, fileUrl, "bd153798588a561");
+			testResourceIdentifier("file url: " + fileUrl, fileUrl, "b040d7724244cf44");
 		} catch (MalformedURLException ex) {
 			// Can't happen
 		}
@@ -165,7 +169,7 @@ public class ResourceIdentifierTest {
 		assertNotEquals(expected, ruid(write("size.bin", content(BIG + 1, (byte) 7))), "a changed size must change the identifier");
 
 		byte[] changedInside = content(BIG, (byte) 7);
-		changedInside[BIG / 2] = (byte) 9;
+		changedInside[READ_OFFSET] = (byte) 9;
 		assertNotEquals(expected, ruid(write("inside.bin", changedInside)), "a changed byte inside a segment must change the identifier");
 
 		// documents the trade-off: a big file is not read completely

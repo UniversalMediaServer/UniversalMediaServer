@@ -22,9 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.IntConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.eclipse.jetty.client.AuthenticationStore;
@@ -64,6 +66,14 @@ public class RadioNetwork {
 	private final static String FAV = "Favorites";
 
 	private final static ExecutorService EXEC_SERVICE = Executors.newSingleThreadExecutor();
+
+	// Retries are scheduled here so a waiting network never blocks the initialization of the others.
+	private final static ScheduledExecutorService RETRY_SERVICE = Executors.newSingleThreadScheduledExecutor(r -> {
+		Thread thread = new Thread(r, "AudioAddict-retry");
+		thread.setDaemon(true);
+		return thread;
+	});
+	private final static long RETRY_DELAY_SECONDS = 5;
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern SESSION_KEY_PATTERN = Pattern.compile(".*session_key\":\\s*\"([\\w\\d]*)\",");
@@ -173,32 +183,27 @@ public class RadioNetwork {
 	}
 
 	private void readNetworkConfiguration() {
-		Runnable r = new Runnable() {
-
-			@Override
-			public void run() {
-				LOGGER.info("{} : initializing ...", network.name());
-				int i = 0;
-				boolean successBatchRead = false;
-				while (i <= maxRetryBatchCount && !successBatchRead) {
-					try {
-						readNetworkBatch();
-						successBatchRead = true;
-					} catch (Exception e) {
-						i++;
-						LOGGER.warn("{} : failed to read batch update network data. Waiting 5 seconds. Retry count {} of {}", network.displayName, i, maxRetryBatchCount);
-						try {
-							Thread.sleep(5000L);
-						} catch (InterruptedException e1) {
-							LOGGER.error("{} : interupted ... ", network.displayName, e);
-							Thread.interrupted();
-						}
-					}
-				}
-			};
+		// readNetworkBatch only starts the request, so failures show up in its handler, not here.
+		Runnable r = () -> {
+			LOGGER.info("{} : initializing ...", network.name());
+			readNetworkBatch(1);
 		};
 		LOGGER.debug("{} : creating read thread ...", network.displayName);
 		EXEC_SERVICE.execute(r);
+	}
+
+	/**
+	 * Retries a step of the network initialization or gives up
+	 */
+	private void scheduleRetry(String step, int attempt, Throwable failure, IntConsumer nextAttempt) {
+		if (attempt >= maxRetryBatchCount) {
+			LOGGER.warn("{} : {} failed {} times, giving up. The folder stays empty until the next start.",
+				network.displayName, step, attempt, failure);
+			return;
+		}
+		LOGGER.warn("{} : {} failed, retrying in {} seconds (attempt {} of {})",
+			network.displayName, step, RETRY_DELAY_SECONDS, attempt, maxRetryBatchCount, failure);
+		RETRY_SERVICE.schedule(() -> nextAttempt.accept(attempt + 1), RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
 	}
 
 	public boolean isAuthenticated() {
@@ -506,44 +511,55 @@ public class RadioNetwork {
 	/*
 	 * Get all channels on this network
 	 */
-	private void readChannels() {
-		LOGGER.debug("{} : reading channel list ... ");
+	private void readChannels(int attempt) {
+		LOGGER.debug("{} : reading channel list ... ", network.displayName);
 		String url = String.format("%s/%s", network.listenUrl, quality.path);
 		Request request = httpNonBlocking.newRequest(url);
 		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
 		completable.whenComplete((response, failure) -> {
+			if (failure != null || response == null) {
+				scheduleRetry("reading the channel list", attempt, failure, this::readChannels);
+				return;
+			}
 			LOGGER.info("{} : analyzing channels ...", network.displayName);
 			try {
 				ChannelJson[] allChannels = om.readValue(response.getContentAsString(), ChannelJson[].class);
 				channelUrls = convertPlsToUrl(allChannels);
 			} catch (JsonProcessingException e) {
-				LOGGER.error("read channels failed.", e);
-				throw new RuntimeException(e);
+				LOGGER.error("{} : reading the channels failed.", network.displayName, e);
+				scheduleRetry("parsing the channel list", attempt, e, this::readChannels);
+				return;
 			}
 			updateChannels();
 			readFavorites();
 		});
 	}
 
-	private void readNetworkBatch() {
+	private void readNetworkBatch(int attempt) {
 		String url = String.format("http://api.audioaddict.com/v1/%s/mobile/batch_update?stream_set_key=%s", network.shortName, quality.path);
 		Request request = httpBatch.newRequest(url);
 		CompletableFuture<ContentResponse> completable = new CompletableResponseListener(request, maxResponseSize).send();
 		completable.whenComplete((response, failure) -> {
+			if (failure != null || response == null) {
+				scheduleRetry("reading the batch update", attempt, failure, this::readNetworkBatch);
+				return;
+			}
 			LOGGER.info("{} : analyzing batch update content ...", network.displayName);
 			if (response.getStatus() != 200) {
 				LOGGER.warn("{} : retuned code is {}. Body : {}", this.network.displayName, response.getStatus(),
 					response.getContentAsString());
-			} else {
-				try {
-					networkBatchRoot = om.readValue(response.getContentAsString(), Root.class);
-				} catch (JsonProcessingException e) {
-					LOGGER.error("{} : network data not parseable.", this.network.displayName);
-					throw new RuntimeException(e);
-				}
-				LOGGER.info("{} : read network root data.", this.network.displayName);
-				readChannels();
+				scheduleRetry("reading the batch update", attempt, null, this::readNetworkBatch);
+				return;
 			}
+			try {
+				networkBatchRoot = om.readValue(response.getContentAsString(), Root.class);
+			} catch (JsonProcessingException e) {
+				LOGGER.error("{} : network data not parseable.", this.network.displayName, e);
+				scheduleRetry("parsing the batch update", attempt, e, this::readNetworkBatch);
+				return;
+			}
+			LOGGER.info("{} : read network root data.", this.network.displayName);
+			readChannels(1);
 		});
 	}
 
