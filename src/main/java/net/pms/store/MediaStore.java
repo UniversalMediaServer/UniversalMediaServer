@@ -1187,6 +1187,21 @@ public class MediaStore extends StoreContainer {
 	}
 
 	/**
+	 * Wraps work that belongs to a request but runs on a helper thread
+	 */
+	public static Runnable asRequestWork(Runnable work) {
+		return () -> {
+			boolean wasServingRequest = SERVING_REQUEST.get();
+			SERVING_REQUEST.set(true);
+			try {
+				work.run();
+			} finally {
+				SERVING_REQUEST.set(wasServingRequest);
+			}
+		};
+	}
+
+	/**
 	 * @return whether the current thread is answering a UPnP request right now.
 	 */
 	public static boolean isServingRequest() {

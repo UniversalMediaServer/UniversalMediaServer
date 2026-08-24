@@ -50,6 +50,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.parsers.WebStreamParser;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
+import net.pms.store.MediaStore;
 import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
@@ -84,6 +85,15 @@ public final class PlaylistFolder extends StoreContainer {
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
 	private static final ExecutorService WEB_ENTRY_EXECUTOR =
 		Executors.newFixedThreadPool(Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())));
+
+	// Reads the files of a playlist ahead of the sequential handling below.
+	private static final ExecutorService ENTRY_PREFETCH_EXECUTOR =
+		Executors.newFixedThreadPool(Math.max(4, Math.min(8, Runtime.getRuntime().availableProcessors() * 2)),
+			runnable -> {
+				Thread thread = new Thread(runnable, "playlist-entry-prefetch");
+				thread.setDaemon(true);
+				return thread;
+			});
 
 	private final String uri;
 	private File uriAsFile;
@@ -236,11 +246,60 @@ public final class PlaylistFolder extends StoreContainer {
 		resolveOnce();
 	}
 
+	/**
+	 * Parses the files of this playlist in parallel, so the loop below finds their metadata ready.
+	 *
+	 * Nothing is added to the tree here: MediaInfoStore keeps what it read, and the sequential pass
+	 * then only picks it up. Failures are ignored on purpose - whatever did not work here is simply
+	 * done again, and reported, where the entry is actually added.
+	 *
+	 * @param entries the entries of this playlist
+	 */
+	private void prefetchLocalEntries(List<Entry> entries) {
+		if (entries == null || entries.size() < 2) {
+			return;
+		}
+		String parent = new File(uri).getParent();
+		if (isweb || parent == null) {
+			return;
+		}
+		List<CompletableFuture<Void>> pending = new ArrayList<>();
+		for (Entry entry : entries) {
+			if (entry == null || FileUtil.isUrl(entry.fileName())) {
+				continue;
+			}
+			File file = new File(FilenameUtils.concat(parent, entry.fileName()));
+			if (!file.isFile()) {
+				continue;
+			}
+			String ext = FileUtil.getUrlExtension(entry.fileName());
+			Format format = ext != null ? FormatFactory.getAssociatedFormat("." + ext) : null;
+			if (format == null || format.getType() == Format.PLAYLIST) {
+				continue;
+			}
+			pending.add(CompletableFuture.runAsync(MediaStore.asRequestWork(() -> {
+				try {
+					MediaInfoStore.getMediaInfo(file.getAbsolutePath(), file, format, format.getType());
+				} catch (Exception e) {
+					LOGGER.trace("Could not read \"{}\" ahead of time: {}", file.getName(), e.getMessage());
+				}
+			}), ENTRY_PREFETCH_EXECUTOR));
+		}
+		if (pending.isEmpty()) {
+			return;
+		}
+		long started = System.currentTimeMillis();
+		CompletableFuture.allOf(pending.toArray(new CompletableFuture[0])).join();
+		LOGGER.debug("Read {} playlist entries of \"{}\" ahead in {} ms",
+			pending.size(), getName(), System.currentTimeMillis() - started);
+	}
+
 	@Override
 	protected void resolveOnce() {
 		Long containerId = MediaTableFiles.getOrInsertFileId(uri, getLastModified(), Format.PLAYLIST);
 
 		List<Entry> entries = getPlaylistEntries();
+		prefetchLocalEntries(entries);
 		List<CompletableFuture<ResolvedWebEntry>> webEntryFutures = new ArrayList<>();
 		for (Entry entry : entries) {
 			if (entry == null) {
