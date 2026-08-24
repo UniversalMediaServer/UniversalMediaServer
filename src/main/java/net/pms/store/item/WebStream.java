@@ -32,7 +32,6 @@ import net.pms.external.radiobrowser.RadioBrowser4j;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
-import net.pms.store.MediaStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreItem;
 import net.pms.store.ThumbnailSource;
@@ -193,7 +192,7 @@ public class WebStream extends StoreItem {
 	/**
 	 * Puts the stream away from the request that asked for it.
 	 */
-	private void resolveInBackground() {
+	public void resolveInBackground() {
 		if (!RESOLVING.add(url)) {
 			return;
 		}
@@ -218,12 +217,7 @@ public class WebStream extends StoreItem {
 		}
 
 		if (getMediaInfo() == null || !getMediaInfo().isMediaParsed()) {
-			if (MediaStore.isServingRequest()) {
-				// Same trade-off as the audio covers: answer now, fill in the details afterwards.
-				resolveInBackground();
-			} else {
-				setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
-			}
+			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
 		}
 		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID)) {
 			// Attempt to enhance the metadata via RADIOBROWSER API.

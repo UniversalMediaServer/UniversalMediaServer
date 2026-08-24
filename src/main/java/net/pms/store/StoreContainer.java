@@ -28,6 +28,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
+import net.pms.store.item.WebStream;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.FileTranscodeVirtualFolder;
 import net.pms.store.container.LocalizedStoreContainer;
@@ -121,7 +122,12 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (child instanceof StoreItem storeItem) {
-			child.resolve();
+			if (child instanceof WebStream webStream) {
+				// Probing a web stream like youtube item can take half a minute.
+				webStream.resolveInBackground();
+			} else {
+				child.resolve();
+			}
 			addChildItem(storeItem, isNew, isAddGlobally);
 		} else if (child instanceof StoreContainer storeContainer) {
 			addChildContainer(storeContainer, isNew, isAddGlobally);
