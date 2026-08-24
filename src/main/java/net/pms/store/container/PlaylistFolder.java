@@ -93,7 +93,14 @@ public final class PlaylistFolder extends StoreContainer {
 	private final AtomicBoolean webEntriesResponded = new AtomicBoolean(false);
 
 	private static final ExecutorService WEB_ENTRY_EXECUTOR =
-		Executors.newFixedThreadPool(Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())));
+		Executors.newFixedThreadPool(Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())), r -> {
+			Thread thread = new Thread(r, "web-playlist-entry");
+			thread.setDaemon(true);
+			return thread;
+		});
+
+	// A nested playlist must not wait for entries that need the pool it is running on.
+	private static final ThreadLocal<Boolean> IN_WEB_ENTRY_POOL = ThreadLocal.withInitial(() -> false);
 
 	// Reads the files of a playlist ahead of the sequential handling below.
 	private static final ExecutorService ENTRY_PREFETCH_EXECUTOR =
@@ -382,6 +389,10 @@ public final class PlaylistFolder extends StoreContainer {
 		if (webEntryFutures.isEmpty()) {
 			return;
 		}
+		if (Boolean.TRUE.equals(IN_WEB_ENTRY_POOL.get())) {
+			LOGGER.debug("Not waiting for {} web playlist entries, this is already a resolving thread", webEntryFutures.size());
+			return;
+		}
 		try {
 			CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]))
 				.get(WEB_ENTRY_BUDGET_SECONDS, TimeUnit.SECONDS);
@@ -433,6 +444,7 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	private ResolvedWebEntry resolveWebEntry(Entry entry) {
+		IN_WEB_ENTRY_POOL.set(true);
 		String u = FileUtil.urlJoin(uri, entry.fileName());
 		int type = WebStreamParser.getWebStreamType(entry.fileName(), defaultContent);
 		StoreResource d = createWebResource(entry, u, type);
