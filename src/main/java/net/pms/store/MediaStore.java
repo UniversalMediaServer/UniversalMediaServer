@@ -98,11 +98,17 @@ public class MediaStore extends StoreContainer {
 	// Bound of the queue in front of the resolver pool.
 	private static final int RESOLVE_QUEUE_CAPACITY = 256;
 
+	// Set on the pool threads only, so the caller runs path can be told apart from a real worker.
+	private static final ThreadLocal<Boolean> IS_RESOLVER_THREAD = ThreadLocal.withInitial(() -> false);
+
 	private static final ThreadPoolExecutor RESOLVE_EXECUTOR = new ThreadPoolExecutor(
 		RESOLVE_THREADS, RESOLVE_THREADS, 0L, TimeUnit.MILLISECONDS,
 		new ArrayBlockingQueue<>(RESOLVE_QUEUE_CAPACITY),
 		runnable -> {
-			Thread thread = new Thread(runnable, "MediaStore Resolver");
+			Thread thread = new Thread(() -> {
+				IS_RESOLVER_THREAD.set(true);
+				runnable.run();
+			}, "MediaStore Resolver");
 			thread.setDaemon(true);
 			thread.setPriority(Thread.MIN_PRIORITY);
 			return thread;
@@ -942,6 +948,16 @@ public class MediaStore extends StoreContainer {
 	}
 
 	private void resolveAhead(File file) {
+		if (Boolean.TRUE.equals(IS_RESOLVER_THREAD.get())) {
+			try {
+				// Browsing and playback come first. Without this the resolver threads keep the disk busy and make the whole store
+				// feel stuck while a scan runs.
+				waitWorkers();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+		}
 		IN_RESOLVER.set(true);
 		try {
 			StoreResource resource = createResourceFromFile(file);
