@@ -85,6 +85,10 @@ public final class PlaylistFolder extends StoreContainer {
 
 	public static final String DIRECTIVE_ALBUMART_URI = "#EXTIMG:";
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
+
+	// How long the first browse of a web playlist waits for its entries.
+	private static final long WEB_ENTRY_BUDGET_SECONDS = 2;
+
 	// Set once the browse has been answered, so entries that resolve later make renderers refresh.
 	private final AtomicBoolean webEntriesResponded = new AtomicBoolean(false);
 
@@ -306,6 +310,7 @@ public final class PlaylistFolder extends StoreContainer {
 		List<Entry> entries = getPlaylistEntries();
 		prefetchLocalEntries(entries);
 		webEntriesResponded.set(false);
+		List<CompletableFuture<ResolvedWebEntry>> webEntryFutures = new ArrayList<>();
 		for (Entry entry : entries) {
 			if (entry == null) {
 				continue;
@@ -350,12 +355,13 @@ public final class PlaylistFolder extends StoreContainer {
 					MediaTableContainerFiles.addContainerEntry(containerId, entryId);
 				} else {
 					LOGGER.debug("Web playlist entry queued for async resolve: {}", u);
-					CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR)
-						.whenComplete((resolved, failure) -> addResolvedWebEntry(containerId, resolved, failure));
+					webEntryFutures.add(CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR)
+						.whenComplete((resolved, failure) -> addResolvedWebEntry(containerId, resolved, failure)));
 				}
 			}
 		}
 
+		awaitWebEntries(webEntryFutures);
 		// Everything still in flight announces itself through the update id from here on.
 		webEntriesResponded.set(true);
 
@@ -365,6 +371,27 @@ public final class PlaylistFolder extends StoreContainer {
 
 		for (StoreResource r : new ArrayList<>(getChildren())) {
 			r.syncResolve();
+		}
+	}
+
+	/**
+	 * Gives the entries of a web playlist a short moment to arrive, so the first answer is not empty. Nothing is lost by giving up early.
+	 * The completion handler stores every entry whenever it finishes.
+	 */
+	private void awaitWebEntries(List<CompletableFuture<ResolvedWebEntry>> webEntryFutures) {
+		if (webEntryFutures.isEmpty()) {
+			return;
+		}
+		try {
+			CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]))
+				.get(WEB_ENTRY_BUDGET_SECONDS, TimeUnit.SECONDS);
+		} catch (java.util.concurrent.TimeoutException e) {
+			LOGGER.debug("{} web playlist entries are not resolved within {} s, they follow through the update id",
+				webEntryFutures.size(), WEB_ENTRY_BUDGET_SECONDS);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} catch (Exception e) {
+			// Individual failures are reported by the completion handler
 		}
 	}
 
