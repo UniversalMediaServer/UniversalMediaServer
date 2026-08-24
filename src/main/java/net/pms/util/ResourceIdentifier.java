@@ -36,19 +36,13 @@ public class ResourceIdentifier {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceIdentifier.class);
 
-	/**
-	 * Number of segments read from a file that is not hashed completely.
-	 */
-	private static final int SEGMENTS = 5;
+	// Number of segments read from a file that is not hashed completely.
+	private static final int SEGMENTS = 2;
 
-	/**
-	 * Number of bytes of a single segment.
-	 */
-	private static final int SEGMENT_BYTES = 1024 * 256; // 256 kB
+	// Number of bytes of a single segment.
+	private static final int SEGMENT_BYTES = 1024 * 128; // 128 kB
 
-	/**
-	 * Files up to this size are hashed completely, which is the size at which the segments cover the file without a gap anyway.
-	 */
+	// Files up to this size are hashed completely, which is the size at which the segments cover the file without a gap anyway.
 	private static final long WHOLE_FILE_THRESHOLD = (long) SEGMENTS * SEGMENT_BYTES;
 
 	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
