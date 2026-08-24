@@ -2093,7 +2093,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	/**
 	 * Calculates the greatest common divisor for two {@link Long}s using
 	 * "binary GDC" with some optimizations borrowed from
-	 * {@link org.apache.commons.lang.math.Fraction#greatestCommonDivisor}.
+	 * {@link org.apache.commons.lang3.math.Fraction#greatestCommonDivisor}.
 	 *
 	 * @param u the first number.
 	 * @param v the second number.
