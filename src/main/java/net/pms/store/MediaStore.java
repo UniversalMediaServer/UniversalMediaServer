@@ -531,6 +531,7 @@ public class MediaStore extends StoreContainer {
 		// this method returns exactly ONE (1) LibraryResource
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
+		boolean wasServingRequest = SERVING_REQUEST.get();
 		try {
 			WORKERS.incrementAndGet();
 			SERVING_REQUEST.set(true);
@@ -573,7 +574,7 @@ public class MediaStore extends StoreContainer {
 			String[] ids = objectId.split("\\.");
 			return getWeakResource(ids[ids.length - 1]);
 		} finally {
-			SERVING_REQUEST.set(false);
+			SERVING_REQUEST.set(wasServingRequest);
 			WORKERS.decrementAndGet();
 		}
 	}
@@ -739,6 +740,7 @@ public class MediaStore extends StoreContainer {
 	 * @throws IOException
 	 */
 	public List<StoreResource> getResources(String objectId, boolean returnChildren) {
+		boolean wasServingRequest = SERVING_REQUEST.get();
 		try {
 			WORKERS.incrementAndGet();
 			SERVING_REQUEST.set(true);
@@ -812,7 +814,7 @@ public class MediaStore extends StoreContainer {
 
 			return resources;
 		} finally {
-			SERVING_REQUEST.set(false);
+			SERVING_REQUEST.set(wasServingRequest);
 			WORKERS.decrementAndGet();
 		}
 	}
