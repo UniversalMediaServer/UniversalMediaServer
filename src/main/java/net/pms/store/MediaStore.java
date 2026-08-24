@@ -45,6 +45,7 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.ApertureLibraries;
 import net.pms.store.container.AudiosFeed;
+import net.pms.store.container.Feed;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.CueFolder;
 import net.pms.store.container.DVDISOFile;
@@ -439,6 +440,15 @@ public class MediaStore extends StoreContainer {
 		}
 	}
 
+	/**
+	 * Hangs a feed into the tree and lets it read itself in the background: a feed costs an HTTP
+	 * request per entry, and this runs while the store is being built under its lock.
+	 */
+	private static void addFeed(StoreContainer parent, Feed feed) {
+		parent.addChild(feed);
+		feed.discoverChildrenInBackground();
+	}
+
 	private void setExternalContent(SharedContentWithPath sharedContent) {
 		StoreContainer parent = getSharedContentParent(sharedContent.getParent());
 		// Handle web playlists stream
@@ -450,11 +460,11 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 		if (sharedContent instanceof FeedAudioContent feedAudioContent) {
-			parent.addChild(new AudiosFeed(renderer, feedAudioContent.getUri()));
+			addFeed(parent, new AudiosFeed(renderer, feedAudioContent.getUri()));
 		} else if (sharedContent instanceof FeedImageContent feedImageContent) {
-			parent.addChild(new ImagesFeed(renderer, feedImageContent.getUri()));
+			addFeed(parent, new ImagesFeed(renderer, feedImageContent.getUri()));
 		} else if (sharedContent instanceof FeedVideoContent feedVideoContent) {
-			parent.addChild(new VideosFeed(renderer, feedVideoContent.getUri()));
+			addFeed(parent, new VideosFeed(renderer, feedVideoContent.getUri()));
 		} else if (sharedContent instanceof StreamAudioContent streamAudioContent) {
 			parent.addChild(new WebAudioStream(renderer, streamAudioContent.getName(), streamAudioContent.getUri(), streamAudioContent.getThumbnail()));
 		} else if (sharedContent instanceof StreamVideoContent streamVideoContent) {
