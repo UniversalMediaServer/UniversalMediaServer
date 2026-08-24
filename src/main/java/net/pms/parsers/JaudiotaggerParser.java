@@ -18,9 +18,13 @@ package net.pms.parsers;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
+import net.openhft.hashing.LongHashFunction;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
@@ -61,6 +65,26 @@ public class JaudiotaggerParser {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JaudiotaggerParser.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
+	// Thumbnail ids of covers already stored, by the hash of the raw image.
+	private static final int COVER_CACHE_SIZE = 64;
+	private static final LongHashFunction COVER_HASH = LongHashFunction.xx3();
+	private static final Map<Long, Long> COVER_THUMBNAIL_IDS = Collections.synchronizedMap(new CoverThumbnailCache());
+
+	// Access ordered map that drops the least recently used cover once it is full.
+	private static class CoverThumbnailCache extends LinkedHashMap<Long, Long> {
+
+		private static final long serialVersionUID = 1L;
+
+		CoverThumbnailCache() {
+			super(16, 0.75f, true);
+		}
+
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<Long, Long> eldest) {
+			return size() > COVER_CACHE_SIZE;
+		}
+	}
 	public static final String PARSER_NAME = "JAUDIO";
 	private static final String MULTI_VALUE_SEPARATOR = " / ";
 
@@ -122,9 +146,8 @@ public class JaudiotaggerParser {
 
 				Tag t = af.getTag();
 				if (t != null) {
-					DLNAThumbnail thumbnail = getThumbnail(media, t);
-					if (thumbnail != null) {
-						Long thumbId = ThumbnailStore.getId(thumbnail);
+					Long thumbId = getThumbnailId(media, t);
+					if (thumbId != null) {
 						media.setThumbnailId(thumbId);
 					}
 					audioMetadata.setAlbum(extractAudioTagKeyValue(t, FieldKey.ALBUM));
@@ -238,54 +261,86 @@ public class JaudiotaggerParser {
 		return null;
 	}
 
+	/**
+	 * Resolves the stored thumbnail for the cover of this track.
+	 *
+	 * The hashing inside the thumbnail table happen once per cover instead of once per track. Hashing the raw bytes rather than the album
+	 * name keeps that exact - equal bytes are the same picture, whatever the tags say.
+	 */
+	private static Long getThumbnailId(MediaInfo media, Tag t) {
+		Cover cover = getCover(t, false);
+		if (cover == null) {
+			return null;
+		}
+		Long hash = COVER_HASH.hashBytes(cover.bytes());
+		Long cachedId = COVER_THUMBNAIL_IDS.get(hash);
+		if (cachedId != null) {
+			media.setThumbnailSource(cover.source());
+			return cachedId;
+		}
+		DLNAThumbnail thumbnail = toThumbnail(media, cover.bytes());
+		if (thumbnail == null) {
+			return null;
+		}
+		Long id = ThumbnailStore.getId(thumbnail);
+		if (id != null) {
+			COVER_THUMBNAIL_IDS.put(hash, id);
+		}
+		media.setThumbnailSource(cover.source());
+		return id;
+	}
+
 	private static DLNAThumbnail getThumbnail(MediaInfo media, Tag t) {
-		if (t != null) {
-			if (!t.getArtworkList().isEmpty()) {
-				byte[] cover = t.getArtworkList().get(0).getBinaryData();
-				if (cover != null && cover.length > 0) {
-					try {
-						DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
-							cover,
-							640,
-							480,
-							ScaleType.MAX,
-							ImageFormat.SOURCE,
-							false
-						);
-						if (thumbnail != null) {
-							media.setThumbnailSource(ThumbnailSource.EMBEDDED);
-							return thumbnail;
-						}
-					} catch (IOException e) {
-						LOGGER.debug("Error parsing embedded audio artwork for \"{}\": {}", media.getTitle(), e.getMessage());
-						LOGGER.trace("", e);
-					}
-				}
+		Cover cover = getCover(t, true);
+		if (cover == null) {
+			return null;
+		}
+		DLNAThumbnail thumbnail = toThumbnail(media, cover.bytes());
+		if (thumbnail != null) {
+			media.setThumbnailSource(cover.source());
+		}
+		return thumbnail;
+	}
+
+	private static DLNAThumbnail toThumbnail(MediaInfo media, byte[] cover) {
+		try {
+			return DLNAThumbnail.toThumbnail(cover, 640, 480, ScaleType.MAX, ImageFormat.SOURCE, false);
+		} catch (IOException e) {
+			LOGGER.debug("Error parsing audio artwork for \"{}\": {}", media.getTitle(), e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	/**
+	 * The raw cover of a track together with where it came from.
+	 */
+	private record Cover(byte[] bytes, ThumbnailSource source) { }
+
+	/**
+	 * @return the embedded cover.
+	 */
+	private static Cover getCover(Tag t, boolean allowRemoteLookup) {
+		if (t == null) {
+			return null;
+		}
+		if (!t.getArtworkList().isEmpty()) {
+			byte[] cover = t.getArtworkList().get(0).getBinaryData();
+			if (cover != null && cover.length > 0) {
+				return new Cover(cover, ThumbnailSource.EMBEDDED);
 			}
-			if (CONFIGURATION.getAudioThumbnailMethod().equals(CoverSupplier.COVER_ART_ARCHIVE)) {
-				byte[] cover = CoverUtil.get().getThumbnail(t);
-				if (cover != null && cover.length > 0) {
-					try {
-						DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
-							cover,
-							640,
-							480,
-							ScaleType.MAX,
-							ImageFormat.SOURCE,
-							false
-						);
-						if (thumbnail != null) {
-							media.setThumbnailSource(ThumbnailSource.MUSICBRAINZ);
-							return thumbnail;
-						}
-					} catch (IOException e) {
-						LOGGER.debug("Error parsing cover art archive audio artwork for \"{}\": {}", media.getTitle(), e.getMessage());
-						LOGGER.trace("", e);
-					}
-				}
+		}
+		if (allowRemoteLookup && isRemoteCoverLookupConfigured()) {
+			byte[] cover = CoverUtil.get().getThumbnail(t);
+			if (cover != null && cover.length > 0) {
+				return new Cover(cover, ThumbnailSource.MUSICBRAINZ);
 			}
 		}
 		return null;
+	}
+
+	private static boolean isRemoteCoverLookupConfigured() {
+		return CONFIGURATION.getAudioThumbnailMethod().equals(CoverSupplier.COVER_ART_ARCHIVE);
 	}
 
 	/**

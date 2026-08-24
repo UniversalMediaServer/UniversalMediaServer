@@ -165,22 +165,32 @@ public class ThumbnailStore {
 			LOGGER.debug("Cannot update thumbnail because uri/filePath/thumbnailSource is null");
 			return null;
 		}
-		DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(uri);
-		Long fileId = MediaTableFiles.getFileId(filePath);
+		return updateFileThumbnail(filePath, JavaHttpClient.getThumbnail(uri), thumbnailSource);
+	}
 
+	/**
+	 * Stores a thumbnail that was resolved after the file had already been parsed and makes renderers
+	 * notice it.
+	 */
+	public static Long updateFileThumbnail(String filePath, DLNAThumbnail thumbnail, ThumbnailSource thumbnailSource) {
+		if (filePath == null || thumbnail == null || thumbnailSource == null) {
+			return null;
+		}
+		Long fileId = MediaTableFiles.getFileId(filePath);
 		Long id = getId(thumbnail);
-		if (id != null && fileId != null) {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					MediaTableFiles.updateThumbnailId(connection, fileId, id, thumbnailSource.toString());
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-		} else {
+		if (id == null || fileId == null) {
 			LOGGER.debug("id : {} or fileId : {} is null", id, fileId);
+			return null;
+		}
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableFiles.updateThumbnailId(connection, fileId, id, thumbnailSource.toString());
+				MediaStoreIds.incrementUpdateIdForFilename(connection, filePath);
+			}
+		} finally {
+			MediaDatabase.close(connection);
 		}
 		return id;
 	}

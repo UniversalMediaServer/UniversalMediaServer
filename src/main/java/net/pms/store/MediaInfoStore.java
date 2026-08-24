@@ -198,6 +198,11 @@ public class MediaInfoStore {
 			if (connection != null && mediaInfo.isMediaParsed()) {
 				try {
 					MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+					if (mediaInfo.isAudio() && mediaInfo.getThumbnailId() == null) {
+						// The file carries no cover, so it has to come from Cover Art Archive. That is an HTTP
+						// round trip and is done in the background, now that the file row exists.
+						AudioCoverResolver.enqueue(file);
+					}
 				} catch (SQLException e) {
 					LOGGER.error(
 						"Database error while trying to add parsed information for \"{}\" to the cache: {}",
