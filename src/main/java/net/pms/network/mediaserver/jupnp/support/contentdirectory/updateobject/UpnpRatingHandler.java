@@ -2,6 +2,9 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject;
 
 import java.util.Objects;
 import net.pms.store.StoreResource;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.store.item.WebStream;
+import org.jupnp.model.types.ErrorCode;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +48,14 @@ public class UpnpRatingHandler extends BaseUpdateObjectHandler {
 		} catch (RuntimeException e) {
 			LOGGER.error("cannot handle update object request", e);
 			throw new ContentDirectoryException(712, "UpdateObject() failed because the new upnp:rating value cannot be stored.");
+		}
+		if (getObjectResource() instanceof WebStream ws && getObjectResource().getParent() instanceof PlaylistFolder pls) {
+			// A web stream has no file to hold the rating, so the playlist keeps it.
+			try {
+				pls.updateRatingDirective(ws.getUrl(), newValue);
+			} catch (Exception e) {
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "the playlist file could not be updated : " + e.getMessage());
+			}
 		}
 	}
 

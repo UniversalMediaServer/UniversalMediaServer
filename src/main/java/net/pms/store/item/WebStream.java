@@ -246,6 +246,22 @@ public class WebStream extends StoreItem {
 		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_ALBUMART_URI)) {
 			ThumbnailStore.enqueueThumbnailUpdate(directives.get(PlaylistFolder.DIRECTIVE_ALBUMART_URI), getFileName(), ThumbnailSource.PLAYLIST);
 		}
+		applyRatingDirective();
+	}
+
+	/**
+	 * A web stream has no file to hold its rating.
+	 */
+	private void applyRatingDirective() {
+		if (directives == null || !directives.containsKey(PlaylistFolder.DIRECTIVE_RATING) || getRating() != null) {
+			return;
+		}
+		String value = directives.get(PlaylistFolder.DIRECTIVE_RATING).trim();
+		try {
+			setRating(Integer.valueOf(value));
+		} catch (NumberFormatException e) {
+			LOGGER.debug("Ignoring the rating directive \"{}\" of {} because it is not a number", value, url);
+		}
 	}
 
 }

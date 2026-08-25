@@ -85,6 +85,7 @@ public final class PlaylistFolder extends StoreContainer {
 
 	public static final String DIRECTIVE_ALBUMART_URI = "#EXTIMG:";
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
+	public static final String DIRECTIVE_RATING = "#EXTRATING:";
 
 	// How long the first browse of a web playlist waits for its entries.
 	private static final long WEB_ENTRY_BUDGET_SECONDS = 2;
@@ -508,16 +509,31 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
+		updateDirective(url, DIRECTIVE_ALBUMART_URI, externalAlbumArtUri);
+	}
+
+	/**
+	 * A NULL rating removes the directive, so an entry that is no longer rated does not keep an old
+	 * value in the file.
+	 */
+	public void updateRatingDirective(String url, Integer rating) {
+		updateDirective(url, DIRECTIVE_RATING, rating == null ? null : rating.toString());
+	}
+
+	/**
+	 * Rewrites the playlist with a new value for one directive of one entry.
+	 */
+	private synchronized void updateDirective(String url, String directive, String value) {
 		boolean firstline = true;
 		try (BufferedReader br = getBufferedReader(utf8)) {
 			StringBuilder out = new StringBuilder();
 			if (!isM3uPlaylist()) {
-				LOGGER.debug("updating album art is only possible for m3u or m3u8 files. This playlist is {}", getExtension());
+				LOGGER.debug("updating {} is only possible for m3u or m3u8 files. This playlist is {}", directive, getExtension());
 				return;
 			}
 			String line = "";
 			StringBuilder lastEntry = new StringBuilder();
-			String lastAlbumArtDirective = null;
+			String lastDirective = null;
 			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
 				if (firstline) {
@@ -527,8 +543,8 @@ public final class PlaylistFolder extends StoreContainer {
 						lastEntry.append("#EXTM3U\n\n");
 					}
 				}
-				if (line.startsWith(DIRECTIVE_ALBUMART_URI)) {
-					lastAlbumArtDirective = line.substring(DIRECTIVE_ALBUMART_URI.length());
+				if (line.toUpperCase().startsWith(directive)) {
+					lastDirective = line.substring(directive.length());
 				} else if (line.startsWith("#")) {
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 				} else if (StringUtils.isAllBlank(line)) {
@@ -536,20 +552,24 @@ public final class PlaylistFolder extends StoreContainer {
 				} else {
 					// Parsing finished. This line is the filename.
 					if (line.equalsIgnoreCase(url)) {
-						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(externalAlbumArtUri).append(System.getProperty("line.separator"));
-					} else if (lastAlbumArtDirective != null) {
-						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(lastAlbumArtDirective).append(System.getProperty("line.separator"));
+						if (value != null) {
+							lastEntry.append(directive).append(value).append(System.getProperty("line.separator"));
+						}
+					} else if (lastDirective != null) {
+						lastEntry.append(directive).append(lastDirective).append(System.getProperty("line.separator"));
 					}
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 					out.append(lastEntry);
 					lastEntry = new StringBuilder();
-					lastAlbumArtDirective = null;
+					lastDirective = null;
 				}
 			}
+			// whatever follows the last entry - a trailing comment for example - would be lost otherwise
+			out.append(lastEntry);
 
 			writeContentToFile(out);
 		} catch (Exception er) {
-			LOGGER.error("updateAlbumArtUriDirective", er);
+			LOGGER.error("cannot update {} in playlist", directive, er);
 		}
 	}
 
@@ -609,6 +629,8 @@ public final class PlaylistFolder extends StoreContainer {
 						directives.put(DIRECTIVE_RADIOBROWSERUUID, line.substring(DIRECTIVE_RADIOBROWSERUUID.length()));
 					} else if (line.toUpperCase().startsWith(DIRECTIVE_ALBUMART_URI)) {
 						directives.put(DIRECTIVE_ALBUMART_URI, line.substring(DIRECTIVE_ALBUMART_URI.length()));
+					} else if (line.toUpperCase().startsWith(DIRECTIVE_RATING)) {
+						directives.put(DIRECTIVE_RATING, line.substring(DIRECTIVE_RATING.length()));
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
 						entries.add(new Entry(line, title, directives));
 						title = null;
