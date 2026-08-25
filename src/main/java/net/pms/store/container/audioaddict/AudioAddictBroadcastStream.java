@@ -51,7 +51,8 @@ public abstract class AudioAddictBroadcastStream extends WebAudioStream implemen
 	 */
 	@Override
 	public InputStream getIcyInputStream(int metaInt) {
-		return new IcyMetadataInputStream(getInputStream(), metaInt, this::getStreamTitle);
+		InputStream input = getInputStream();
+		return input != null ? new IcyMetadataInputStream(input, metaInt, this::getStreamTitle) : null;
 	}
 
 	/**

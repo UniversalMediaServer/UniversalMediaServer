@@ -493,14 +493,21 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						range.setStart(0L);
 						range.setEnd(0L);
 					}
-					if ("1".equals(req.getHeader("Icy-MetaData")) && item instanceof IcyMetadataSource icySource && icySource.isIcyMetadataEnabled()) {
-						// Renderer asked for SHOUTcast/Icecast in-band metadata: advertise the
-						// interval and interleave the metadata blocks into the stream.
-						int metaInt = icySource.getIcyMetaInt();
-						resp.setHeader("icy-metaint", Integer.toString(metaInt));
-						inputStream = icySource.getIcyInputStream(metaInt);
-					} else {
-						inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
+					try {
+						if ("1".equals(req.getHeader("Icy-MetaData")) && item instanceof IcyMetadataSource icySource && icySource.isIcyMetadataEnabled()) {
+							// Renderer asked for SHOUTcast/Icecast in-band metadata: advertise the
+							// interval and interleave the metadata blocks into the stream.
+							int metaInt = icySource.getIcyMetaInt();
+							resp.setHeader("icy-metaint", Integer.toString(metaInt));
+							inputStream = icySource.getIcyInputStream(metaInt);
+						} else {
+							inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
+						}
+					} catch (IOException ie) {
+						LOGGER.error("Cannot open the source of \"{}\": {}", item.getDisplayName(), ie.getMessage());
+						LOGGER.trace("", ie);
+						respondBadGateway(req, resp, "Cannot read the source of \"" + item.getDisplayName() + "\": " + ie.getMessage());
+						return;
 					}
 					if (item.isUnboundedLiveStream()) {
 						// Endless, non-seekable stream: answer 200 without Content-Range/Content-Length
