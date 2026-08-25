@@ -504,7 +504,7 @@ public class DidlHelper extends DlnaHelper {
 					}
 				}
 
-				sb.append(item.getMediaURL()).append(transcodedExtension);
+				sb.append(encodeXML(item.getMediaURL() + transcodedExtension));
 				closeTag(sb, "res");
 			}
 
@@ -553,7 +553,7 @@ public class DidlHelper extends DlnaHelper {
 					openTag(sb, "sec:CaptionInfoEx");
 					addAttribute(sb, "sec:type", "srt");
 					endTag(sb);
-					sb.append(subsURL);
+					sb.append(encodeXML(subsURL));
 					closeTag(sb, "sec:CaptionInfoEx");
 					LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
 				} else if (renderer.offerSubtitlesAsResource()) {
@@ -565,7 +565,7 @@ public class DidlHelper extends DlnaHelper {
 
 					addAttribute(sb, "protocolInfo", "http-get:*:text/" + subtitlesFormat + ":*");
 					endTag(sb);
-					sb.append(subsURL);
+					sb.append(encodeXML(subsURL));
 					closeTag(sb, "res");
 					LOGGER.trace("Network debugger: http-get:*:text/" + subtitlesFormat + ":*" + subsURL);
 				}
@@ -932,7 +932,7 @@ public class DidlHelper extends DlnaHelper {
 					url += "?update=" + updateId;
 				}
 			}
-			sb.append(url);
+			sb.append(encodeXML(url));
 			closeTag(sb, "res");
 		}
 	}
@@ -956,7 +956,7 @@ public class DidlHelper extends DlnaHelper {
 			addAttribute(sb, "dlna:profileID", thumbnailProfile);
 			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			endTag(sb);
-			sb.append(albumArtURL);
+			sb.append(encodeXML(albumArtURL));
 			closeTag(sb, "upnp:albumArtURI");
 		}
 	}
