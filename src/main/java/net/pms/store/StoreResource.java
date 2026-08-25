@@ -532,6 +532,10 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		} else {
 			LOGGER.debug("Warning: Thumbnail without DLNA image profile requested, resulting URL is: \"{}\"", sb.toString());
 		}
+		String updateId = MediaStoreIds.getObjectUpdateIdAsString(getLongId());
+		if (updateId != null) {
+			sb.append("?u=").append(updateId);
+		}
 
 		return sb.toString();
 	}

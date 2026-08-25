@@ -179,7 +179,16 @@ public class ThumbnailStore {
 			LOGGER.debug("Cannot update thumbnail of {} because \"{}\" is not an absolute URI", filePath, uri);
 			return null;
 		}
-		return updateFileThumbnail(filePath, JavaHttpClient.getThumbnail(uri), thumbnailSource);
+		Long knownId = URL_THUMBNAIL_IDS.get(uri);
+		if (knownId != null && knownId.equals(MediaInfoStore.getStoredThumbnailId(filePath))) {
+			LOGGER.trace("{} already shows the picture of {}", filePath, uri);
+			return knownId;
+		}
+		Long id = updateFileThumbnail(filePath, JavaHttpClient.getThumbnail(uri), thumbnailSource);
+		if (id != null) {
+			URL_THUMBNAIL_IDS.put(uri, id);
+		}
+		return id;
 	}
 
 	public static boolean isUsableThumbnailUri(String uri) {
@@ -220,6 +229,7 @@ public class ThumbnailStore {
 		} finally {
 			MediaDatabase.close(connection);
 		}
+		MediaInfoStore.updateThumbnail(filePath, id, thumbnailSource);
 		return id;
 	}
 

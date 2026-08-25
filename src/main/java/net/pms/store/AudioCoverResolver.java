@@ -92,8 +92,6 @@ public class AudioCoverResolver {
 		}
 		Long id = ThumbnailStore.updateFileThumbnail(file.getAbsolutePath(), thumbnail, media.getThumbnailSource());
 		if (id != null) {
-			// The resources of a running browse hold the media info that was parsed without a picture, so it has to get the new id
-			MediaInfoStore.updateThumbnail(file.getAbsolutePath(), id, media.getThumbnailSource());
 			LOGGER.debug("Stored the cover of \"{}\" found at {}", file.getName(), media.getThumbnailSource());
 		}
 	}

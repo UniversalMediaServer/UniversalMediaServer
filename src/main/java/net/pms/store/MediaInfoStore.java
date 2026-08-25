@@ -127,6 +127,14 @@ public class MediaInfoStore {
 	}
 
 	/**
+	 * Returns the thumbnail id of the media info that is still in memory
+	 */
+	public static Long getStoredThumbnailId(String filename) {
+		MediaInfo mediaInfo = getMediaInfoStored(filename);
+		return mediaInfo != null ? mediaInfo.getThumbnailId() : null;
+	}
+
+	/**
 	 * Hands a thumbnail made after the file was parsed to the media info that is still in memory.
 	 */
 	public static void updateThumbnail(String filename, Long thumbnailId, ThumbnailSource thumbnailSource) {
