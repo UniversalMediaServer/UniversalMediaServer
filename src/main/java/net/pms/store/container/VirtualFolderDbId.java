@@ -347,6 +347,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 						default -> throw new RuntimeException("Unknown Type : " + typeIdent);
 					}
 					if (filesListFromDb != null) {
+						renderer.getMediaStore().prepareResources(filesListFromDb);
 						for (File file : filesListFromDb) {
 							if (renderer.hasShareAccess(file)) {
 								StoreResource sr = renderer.getMediaStore().createResourceFromFile(file);
