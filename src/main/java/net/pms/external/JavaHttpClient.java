@@ -58,6 +58,15 @@ public class JavaHttpClient {
 	private static final int DEFAULT_CONNECT_SECONDS = 5;
 	private static final int DEFAULT_RESPONSE_SECONDS = 15;
 
+	/**
+	 * request identifies as a browser.
+	 */
+	public static final String BROWSER_USER_AGENT =
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+	/** What a browser asks for when it loads an <img>. */
+	private static final String IMAGE_ACCEPT = "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
+
 	private JavaHttpClient() {
 		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
 	}
@@ -125,7 +134,9 @@ public class JavaHttpClient {
 	}
 
 	private static HttpRequest.Builder newHttpRequest(String uri) {
-		return addRequestTimeout(HttpRequest.newBuilder().uri(URI.create(uri)));
+		return addRequestTimeout(HttpRequest.newBuilder()
+				.uri(URI.create(uri))
+				.header("User-Agent", BROWSER_USER_AGENT));
 	}
 
 	private static IOException handleCompletionException(String uri, CompletionException ex) {
@@ -144,10 +155,16 @@ public class JavaHttpClient {
 	 * @throws IOException
 	 */
 	public static byte[] getBytes(String uri) throws IOException {
+		return getBytes(uri, null);
+	}
+
+	private static byte[] getBytes(String uri, String accept) throws IOException {
 		try {
-			HttpRequest request = newHttpRequest(uri)
-					.GET()
-					.build();
+			HttpRequest.Builder builder = newHttpRequest(uri).GET();
+			if (accept != null) {
+				builder.header("Accept", accept);
+			}
+			HttpRequest request = builder.build();
 			HttpResponse<byte[]> response = getClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
 					.join();
@@ -268,7 +285,7 @@ public class JavaHttpClient {
 
 		try {
 			LOGGER.trace("Downloading image from {}", uri);
-			byte[] image = getBytes(uri);
+			byte[] image = getBytes(uri, IMAGE_ACCEPT);
 			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
 		} catch (EOFException e) {
 			LOGGER.debug(

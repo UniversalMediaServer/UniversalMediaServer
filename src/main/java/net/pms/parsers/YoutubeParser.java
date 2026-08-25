@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.pms.external.JavaHttpClient;
 import net.pms.media.MediaInfo;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
@@ -86,7 +87,7 @@ public class YoutubeParser {
 
 			HttpRequest request = HttpRequest.newBuilder()
 				.uri(URI.create(videoUrl))
-				.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+				.header("User-Agent", JavaHttpClient.BROWSER_USER_AGENT)
 				.header("Accept-Language", "en-US,en;q=0.9")
 				.GET()
 				.build();
