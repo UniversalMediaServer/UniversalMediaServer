@@ -17,15 +17,40 @@
 package net.pms.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class ResourceIdentifierTest {
 	private static final Class<?> CLASS = ResourceIdentifierTest.class;
+
+	/**
+	 * Bigger than the threshold up to which a file is hashed completely, which is
+	 * 2 segments of 128 kB.
+	 */
+	private static final int BIG = 1024 * 1024 * 2;
+
+	/**
+	 * An offset inside the gap between the two segments of a file of {@link #BIG} bytes: the
+	 * first segment ends at 128 kB, the second one starts at BIG - 128 kB = 1920 kB.
+	 */
+	private static final int UNREAD_OFFSET = 1024 * 300;
+
+	/**
+	 * An offset in the middle of the first segment, so neither the first nor the last byte.
+	 */
+	private static final int READ_OFFSET = 1024 * 64;
+
+	@TempDir
+	private Path tempDir;
 
 	public void testResourceIdentifier(String test, String uri, String expected) {
 		String actual = ResourceIdentifier.getResourceIdentifier(uri);
@@ -41,11 +66,11 @@ public class ResourceIdentifierTest {
 		//test with file
 		File file = getTestFile("/net/pms/parsers/video-h264-aac.mp4");
 		String filePath = file.getAbsolutePath();
-		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "5a508e91e1f042a9");
+		testResourceIdentifier("file: " + filePath, file.getAbsolutePath(), "b040d7724244cf44");
 		//test with file url
 		try {
 			String fileUrl = file.toURI().toURL().toString();
-			testResourceIdentifier("file url: " + fileUrl, fileUrl, "5a508e91e1f042a9");
+			testResourceIdentifier("file url: " + fileUrl, fileUrl, "b040d7724244cf44");
 		} catch (MalformedURLException ex) {
 			// Can't happen
 		}
@@ -98,5 +123,65 @@ public class ResourceIdentifierTest {
 			assertNotNull(ruid);
 			assertFalse(ruid.isEmpty());
 		}
+	}
+
+	private File write(String name, byte[] content) throws IOException {
+		Path path = tempDir.resolve(name);
+		Files.write(path, content);
+		return path.toFile();
+	}
+
+	private static byte[] content(int size, byte fill) {
+		byte[] bytes = new byte[size];
+		Arrays.fill(bytes, fill);
+		return bytes;
+	}
+
+	private static String ruid(File file) {
+		return ResourceIdentifier.getResourceIdentifier(file.getAbsolutePath());
+	}
+
+	@Test
+	public void testSmallFileUsesWholeContent() throws IOException {
+		byte[] content = content(1000, (byte) 7);
+		File a = write("a.bin", content);
+		content[500] = (byte) 9;
+		File b = write("b.bin", content);
+
+		assertNotNull(ruid(a));
+		assertEquals(ruid(a), ruid(a));
+		assertNotEquals(ruid(a), ruid(b), "a changed byte must change the identifier of a small file");
+	}
+
+	@Test
+	public void testBigFileUsesSizeAndSegments() throws IOException {
+		String expected = ruid(write("original.bin", content(BIG, (byte) 7)));
+		assertNotNull(expected);
+
+		byte[] changedHead = content(BIG, (byte) 7);
+		changedHead[0] = (byte) 9;
+		assertNotEquals(expected, ruid(write("head.bin", changedHead)), "a changed first byte must change the identifier");
+
+		byte[] changedTail = content(BIG, (byte) 7);
+		changedTail[BIG - 1] = (byte) 9;
+		assertNotEquals(expected, ruid(write("tail.bin", changedTail)), "a changed last byte must change the identifier");
+
+		assertNotEquals(expected, ruid(write("size.bin", content(BIG + 1, (byte) 7))), "a changed size must change the identifier");
+
+		byte[] changedInside = content(BIG, (byte) 7);
+		changedInside[READ_OFFSET] = (byte) 9;
+		assertNotEquals(expected, ruid(write("inside.bin", changedInside)), "a changed byte inside a segment must change the identifier");
+
+		// documents the trade-off: a big file is not read completely
+		byte[] changedGap = content(BIG, (byte) 7);
+		changedGap[UNREAD_OFFSET] = (byte) 9;
+		assertEquals(expected, ruid(write("gap.bin", changedGap)), "bytes between two segments are not part of the identifier");
+	}
+
+	@Test
+	public void testEmptyFileHasIdentifier() throws IOException {
+		File empty = write("empty.bin", new byte[0]);
+		assertNotNull(ruid(empty));
+		assertEquals(ruid(empty), ruid(empty));
 	}
 }
