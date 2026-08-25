@@ -60,6 +60,7 @@ public class WebStream extends StoreItem {
 	private String fluxName;
 	private String thumbURL;
 	private final Map<String, String> directives;
+	private volatile String lastStreamError;
 
 	public WebStream(Renderer renderer, String fluxName, String url, String thumbURL, int type, Map<String, String> directives) {
 		super(renderer, type);
@@ -109,11 +110,17 @@ public class WebStream extends StoreItem {
 	public InputStream getInputStream() {
 		try {
 			InputStream input = new URL(url).openStream();
+			lastStreamError = null;
 			return input;
 		} catch (IOException e) {
 			LOGGER.error("cannot read input stream from {}", url, e);
+			lastStreamError = e.getMessage();
 		}
 		return null;
+	}
+
+	public String getLastStreamError() {
+		return lastStreamError;
 	}
 
 	/**

@@ -65,6 +65,7 @@ import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.ThumbnailStore;
+import net.pms.store.item.WebStream;
 import net.pms.util.ByteRange;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
@@ -578,6 +579,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					if (!ignoreTranscodeByteRangeRequests) {
 						// No inputStream indicates that transcoding / remuxing probably crashed.
 						LOGGER.error("There is no inputstream to return for " + name);
+						respondBadGateway(req, resp, getStreamFailureReason(item, name));
+						return;
 					}
 				} else {
 					if (!isVideoThumbnailRequest && GET.equals(req.getMethod().toUpperCase())) {
@@ -672,6 +675,14 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		} else {
 			respondBadRequest(req, resp);
 		}
+	}
+
+	private static String getStreamFailureReason(StoreItem item, String name) {
+		String upstreamError = item instanceof WebStream webStream ? webStream.getLastStreamError() : null;
+		if (upstreamError != null) {
+			return "Cannot read the source of \"" + name + "\": " + upstreamError;
+		}
+		return "No source stream for \"" + name + "\"";
 	}
 
 	private static ByteRange getRange(String rangeStr, long streamLength) {

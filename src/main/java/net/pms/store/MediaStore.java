@@ -1155,21 +1155,35 @@ public class MediaStore extends StoreContainer {
 	}
 
 	private static void sortChildrenWithAudioElements(StoreContainer resource) {
-		Collections.sort(resource.getChildren(), (StoreResource o1, StoreResource o2) -> {
-			if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
-				if (o1 instanceof StoreItem item1 && item1.getFormat() != null && item1.getFormat().isAudio()) {
-					if (o2 instanceof StoreItem item2 && item2.getFormat() != null && item2.getFormat().isAudio()) {
-						return getTrackNum(o1).compareTo(getTrackNum(o2));
+		synchronized (resource) {
+			Collections.sort(resource.getChildren(), (StoreResource o1, StoreResource o2) -> {
+				if (o1 == null || o2 == null) {
+					return o1 == o2 ? 0 : (o1 == null ? 1 : -1);
+				}
+				if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
+					if (o1 instanceof StoreItem item1 && item1.getFormat() != null && item1.getFormat().isAudio()) {
+						if (o2 instanceof StoreItem item2 && item2.getFormat() != null && item2.getFormat().isAudio()) {
+							return getTrackNum(o1).compareTo(getTrackNum(o2));
+						} else {
+							return compareDisplayNames(o1, o2);
+						}
 					} else {
-						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+						return compareDisplayNames(o1, o2);
 					}
 				} else {
-					return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+					return getDiscNum(o1).compareTo(getDiscNum(o2));
 				}
-			} else {
-				return getDiscNum(o1).compareTo(getDiscNum(o2));
-			}
-		});
+			});
+		}
+	}
+
+	private static int compareDisplayNames(StoreResource o1, StoreResource o2) {
+		String name1 = o1.getDisplayNameBase();
+		String name2 = o2.getDisplayNameBase();
+		if (name1 == null || name2 == null) {
+			return name1 == name2 ? 0 : (name1 == null ? 1 : -1);
+		}
+		return name1.compareTo(name2);
 	}
 
 	private static Integer getTrackNum(StoreResource res) {
