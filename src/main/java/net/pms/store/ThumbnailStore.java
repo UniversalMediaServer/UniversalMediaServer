@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.net.URI;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
@@ -165,12 +167,33 @@ public class ThumbnailStore {
 		}
 	}
 
-	private static Long updateThumbnailByURI(String uri, String filePath, ThumbnailSource thumbnailSource) {
+	/**
+	 * Downloads the thumbnail and stores it, in the calling thread.
+	 */
+	public static Long updateThumbnailByURI(String uri, String filePath, ThumbnailSource thumbnailSource) {
 		if (uri == null || filePath == null || thumbnailSource == null) {
 			LOGGER.debug("Cannot update thumbnail because uri/filePath/thumbnailSource is null");
 			return null;
 		}
+		if (!isUsableThumbnailUri(uri)) {
+			LOGGER.debug("Cannot update thumbnail of {} because \"{}\" is not an absolute URI", filePath, uri);
+			return null;
+		}
 		return updateFileThumbnail(filePath, JavaHttpClient.getThumbnail(uri), thumbnailSource);
+	}
+
+	public static boolean isUsableThumbnailUri(String uri) {
+		if (StringUtils.isBlank(uri)) {
+			return false;
+		}
+		if (uri.startsWith("data:")) {
+			return uri.indexOf(',') > -1;
+		}
+		try {
+			return URI.create(uri.trim()).isAbsolute();
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
 	}
 
 	/**

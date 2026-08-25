@@ -198,6 +198,19 @@ public class UpdateObjectTest {
 		assertEquals(Integer.valueOf(4), folder.getRating());
 	}
 
+	/**
+	 * An URL carrying an unescaped &amp; used to be dropped silently, so the control point believed
+	 * the update had worked.
+	 */
+	@Test
+	public void testMalformedTagValueIsRejected() {
+		RatableResource resource = new RatableResource(3, false);
+		ContentDirectoryException e = assertThrows(ContentDirectoryException.class,
+			() -> UpdateObjectFactory.getUpdateObjectHandler(resource, "<upnp:albumArtURI>http://host/a</upnp:albumArtURI>",
+				"<upnp:albumArtURI>http://host/images?q=tbn:ANd9&s=10</upnp:albumArtURI>"));
+		assertEquals(703, e.getErrorCode());
+	}
+
 	private static void handleRating(StoreResource resource, String currentTagValue, String newTagValue) throws ContentDirectoryException {
 		IUpdateObjectHandler handler = UpdateObjectFactory.getUpdateObjectHandler(resource, currentTagValue, newTagValue);
 		assertNotNull(handler);

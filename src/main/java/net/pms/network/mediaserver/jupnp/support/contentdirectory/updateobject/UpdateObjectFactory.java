@@ -28,8 +28,8 @@ public class UpdateObjectFactory {
 	public static IUpdateObjectHandler getUpdateObjectHandler(StoreResource objectResource, String currentTagValue, String newTagValue)
 		throws ContentDirectoryException {
 
-		NodeList currentTagNode = getXmlNode(currentTagValue);
-		NodeList newTagNode = getXmlNode(newTagValue);
+		NodeList currentTagNode = parseTagValue(currentTagValue);
+		NodeList newTagNode = parseTagValue(newTagValue);
 
 		if (currentTagNode == null && newTagNode == null) {
 			throw new ContentDirectoryException(703, "UpdateObject() failed because no newTagValue was supplied");
@@ -48,6 +48,18 @@ public class UpdateObjectFactory {
 
 		LOGGER.warn("NO handler found for tag pair values : '{}' AND '{}'", currentTagValue, newTagValue);
 		return null;
+	}
+
+	/**
+	 * Parses a tag value and reports a malformed one back to the caller.
+	 */
+	private static NodeList parseTagValue(String tagValue) throws ContentDirectoryException {
+		NodeList node = getXmlNode(tagValue);
+		if (node == null && tagValue != null && tagValue.indexOf('<') > -1) {
+			throw new ContentDirectoryException(703, "UpdateObject() failed because the tag value is not well-formed XML. " +
+				"Reserved characters like & in an URL have to be escaped : " + tagValue);
+		}
+		return node;
 	}
 
 	private static String getNodeName(NodeList tagNode) {
@@ -86,7 +98,7 @@ public class UpdateObjectFactory {
 			}
 			return node;
 		} catch (SAXException | IOException | XPathExpressionException | ParserConfigurationException e) {
-			LOGGER.warn("cannot extract error message", e);
+			LOGGER.debug("cannot parse tag value '{}' : {}", xml, e.getMessage());
 			return null;
 		}
 	}
