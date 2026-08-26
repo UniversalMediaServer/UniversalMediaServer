@@ -20,9 +20,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -202,13 +203,12 @@ public final class PlaylistFolder extends StoreContainer {
 		return extension;
 	}
 
+	private Charset getCharset() {
+		return utf8 ? StandardCharsets.UTF_8 : StandardCharsets.ISO_8859_1;
+	}
+
 	private BufferedReader getBufferedReader(boolean utf8) throws IOException {
-		Charset charset;
-		if (utf8) {
-			charset = StandardCharsets.UTF_8;
-		} else {
-			charset = StandardCharsets.ISO_8859_1;
-		}
+		Charset charset = utf8 ? StandardCharsets.UTF_8 : StandardCharsets.ISO_8859_1;
 		if (FileUtil.isUrl(uri)) {
 			BOMInputStream bi = BOMInputStream.builder().setInputStream(URI.create(uri).toURL().openStream()).get();
 			return new BufferedReader(new InputStreamReader(bi, charset));
@@ -511,13 +511,67 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
+	/**
+	 * Appends a web resource.The url has to come last!
+	 */
+	public synchronized boolean addWebEntry(String url, String title, String albumArtUri, String radioBrowserUuid) {
+		if (StringUtils.isBlank(url)) {
+			return false;
+		}
+		if (!isM3uPlaylist()) {
+			LOGGER.debug("adding entries is only possible for m3u or m3u8 files. This playlist is {}", getExtension());
+			return false;
+		}
+		String entryUrl = url.trim();
+		try (BufferedReader br = getBufferedReader(utf8)) {
+			StringBuilder out = new StringBuilder();
+			String nl = System.getProperty("line.separator");
+			boolean firstline = true;
+			String line;
+			while (br != null && (line = br.readLine()) != null) {
+				line = line.trim();
+				if (firstline) {
+					firstline = false;
+					if (!"#EXTM3U".equals(line)) {
+						LOGGER.debug("adding missing #EXTM3U directive.");
+						out.append("#EXTM3U").append(nl).append(nl);
+					}
+				}
+				if (line.equalsIgnoreCase(entryUrl)) {
+					LOGGER.debug("{} is already in this playlist", entryUrl);
+					return false;
+				}
+				out.append(line).append(nl);
+			}
+			if (firstline) {
+				// the file was empty
+				out.append("#EXTM3U").append(nl).append(nl);
+			}
+			out.append(nl);
+			out.append("#EXTINF:-1,").append(StringUtils.isBlank(title) ? entryUrl : title.trim()).append(nl);
+			if (StringUtils.isNotBlank(radioBrowserUuid)) {
+				out.append(DIRECTIVE_RADIOBROWSERUUID).append(radioBrowserUuid.trim()).append(nl);
+			}
+			if (StringUtils.isNotBlank(albumArtUri)) {
+				out.append(DIRECTIVE_ALBUMART_URI).append(albumArtUri.trim()).append(nl);
+			}
+			out.append(entryUrl).append(nl);
+			writeContentToFile(out);
+		} catch (Exception er) {
+			LOGGER.error("cannot add {} to playlist", entryUrl, er);
+			return false;
+		}
+		// let the renderers know the playlist changed
+		MediaStoreIds.incrementUpdateIdForFilename(getFileName());
+		return true;
+	}
+
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
 		updateDirective(url, DIRECTIVE_ALBUMART_URI, externalAlbumArtUri);
 	}
 
 	/**
-	 * A NULL rating removes the directive, so an entry that is no longer rated does not keep an old
-	 * value in the file.
+	 * A NULL rating removes the directive, so an entry that is no longer rated does not keep an old value in the file.
 	 */
 	public void updateRatingDirective(String url, Integer rating) {
 		updateDirective(url, DIRECTIVE_RATING, rating == null ? null : rating.toString());
@@ -633,7 +687,7 @@ public final class PlaylistFolder extends StoreContainer {
 		BufferedWriter writer = null;
 		try {
 			LOGGER.debug("writing playlist file ...");
-			writer = new BufferedWriter(new FileWriter(file));
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), getCharset()));
 			writer.append(out);
 			file.setLastModified(System.currentTimeMillis());
 		} catch (Exception e) {

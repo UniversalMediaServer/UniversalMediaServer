@@ -45,8 +45,16 @@ import org.slf4j.LoggerFactory;
 
 public class RadioBrowser4j {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RadioBrowser.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(RadioBrowser4j.class.getName());
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
+	private static final String USER_AGENT = "UMS/" + PMS.getVersion();
+
+	// How long a discovered endpoint is used before it is looked up again.
+	private static final long ENDPOINT_TTL_MS = TimeUnit.HOURS.toMillis(6);
+
+	// Discovery resolves DNS and probes every mirror, so a failure must not be repeated per lookup.
+	private static final long DISCOVERY_RETRY_MS = TimeUnit.MINUTES.toMillis(5);
 
 	// Minimum number of threads in pool
 	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(
@@ -60,6 +68,9 @@ public class RadioBrowser4j {
 	);
 
 	private static RadioBrowser radioBrowser;
+	private static String endpoint;
+	private static long endpointResolvedAt;
+	private static long lastDiscoveryAttemptAt;
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -81,25 +92,61 @@ public class RadioBrowser4j {
 		return true;
 	}
 
-	private static boolean isRadioBrowserExists() {
-		if (radioBrowser == null) {
-			Optional<String> endpoint = Optional.empty();
-			try {
-				endpoint = new EndpointDiscovery("UMS/" + PMS.getVersion()).discover();
-			} catch (IOException e) {
-				LOGGER.debug("IO problem while endpoint discovery.");
-			}
-			if (endpoint.isPresent()) {
-				ConnectionParams cx = ConnectionParams
-						.builder()
-						.apiUrl(endpoint.get())
-						.userAgent("UMS/" + PMS.getVersion())
-						.timeout(5000)
-						.build();
-				radioBrowser = new RadioBrowser(cx);
-			}
+	private static synchronized boolean isRadioBrowserExists() {
+		long now = System.currentTimeMillis();
+		if (radioBrowser != null && now - endpointResolvedAt < ENDPOINT_TTL_MS) {
+			return true;
+		}
+		if (now - lastDiscoveryAttemptAt < DISCOVERY_RETRY_MS) {
+			// still in the backoff window; keep serving the previous endpoint if there is one
+			return radioBrowser != null;
+		}
+		lastDiscoveryAttemptAt = now;
+		Optional<String> endpointUrl = Optional.empty();
+		try {
+			endpointUrl = new EndpointDiscovery(USER_AGENT).discover();
+		} catch (IOException e) {
+			LOGGER.debug("IO problem while endpoint discovery : {}", e.getMessage());
+		}
+		if (endpointUrl.isPresent()) {
+			ConnectionParams cx = ConnectionParams
+					.builder()
+					.apiUrl(endpointUrl.get())
+					.userAgent(USER_AGENT)
+					.timeout(5000)
+					.build();
+			radioBrowser = new RadioBrowser(cx);
+			endpoint = endpointUrl.get();
+			endpointResolvedAt = now;
+			LOGGER.debug("radio browser endpoint is {}", endpoint);
+		} else if (radioBrowser == null) {
+			LOGGER.debug("no radio browser endpoint reachable, retrying in {} s", DISCOVERY_RETRY_MS / 1000);
 		}
 		return radioBrowser != null;
+	}
+
+	/**
+	 * Base url of the endpoint in use, or NULL if none is reachable.
+	 */
+	public static synchronized String getEndpoint() {
+		return isRadioBrowserExists() ? endpoint : null;
+	}
+
+	/**
+	 * Returns the client, or NULL if no endpoint is reachable.
+	 */
+	public static synchronized RadioBrowser getClient() {
+		return isRadioBrowserExists() ? radioBrowser : null;
+	}
+
+	/**
+	 * Drops the current endpoint after a failed request, so the next call looks for another one.
+	 */
+	public static synchronized void invalidateEndpoint() {
+		radioBrowser = null;
+		endpoint = null;
+		endpointResolvedAt = 0;
+		lastDiscoveryAttemptAt = 0;
 	}
 
 	public static boolean getWebStreamMetadata(MediaInfo mediaInfo, String url, String radioBrowserUUID) {

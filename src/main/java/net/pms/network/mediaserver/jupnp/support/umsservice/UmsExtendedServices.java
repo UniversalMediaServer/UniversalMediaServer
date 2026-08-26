@@ -18,12 +18,16 @@ import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RadioBrowserSearch;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
+import net.pms.store.container.PlaylistFolder;
 import net.pms.util.artistImageProvider.UmsArtistImageProvider;
 import net.pms.store.container.audioaddict.AudioAddictPlaylistInputStream;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
+import de.sfuhrm.radiobrowser4j.Station;
+import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
@@ -45,7 +49,17 @@ import java.util.Map;
 	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_PlaylistLoop", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_PlaylistId", sendEvents = false, datatype = "ui4"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_NowPlaying", sendEvents = false, datatype = "string")
+	@UpnpStateVariable(name = "A_ARG_TYPE_NowPlaying", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Name", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_CountryCode", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Language", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Tag", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Offset", sendEvents = false, datatype = "ui4"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Limit", sendEvents = false, datatype = "ui4"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Kind", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Search", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_StationUuid", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Result", sendEvents = false, datatype = "string")
 	})
 public class UmsExtendedServices {
 
@@ -216,6 +230,57 @@ public class UmsExtendedServices {
 		return dir != null ? dir : "";
 	}
 
+	/**
+	 * Searches radio-browser.info so a control point can offer a station picker.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "Result"))
+	public String searchRadioStations(
+			@Nullable @UpnpInputArgument(name = "Name") String name,
+			@Nullable @UpnpInputArgument(name = "CountryCode") String countryCode,
+			@Nullable @UpnpInputArgument(name = "Language") String language,
+			@Nullable @UpnpInputArgument(name = "Tag") String tag,
+			@Nullable @UpnpInputArgument(name = "Offset") UnsignedIntegerFourBytes offset,
+			@Nullable @UpnpInputArgument(name = "Limit") UnsignedIntegerFourBytes limit) throws UmsExtendedServicesException {
+		return RadioBrowserSearch.searchStations(name, countryCode, language, tag,
+				offset != null ? offset.getValue().intValue() : 0,
+				limit != null ? limit.getValue().intValue() : 0);
+	}
+
+	/**
+	 * Values for the filter fields of that picker.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "Result"))
+	public String getRadioFilterValues(
+			@UpnpInputArgument(name = "Kind") String kind,
+			@Nullable @UpnpInputArgument(name = "Search") String search) throws UmsExtendedServicesException {
+		return RadioBrowserSearch.getFilterValues(kind, search);
+	}
+
+	/**
+	 * Adds a station to a playlist
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "Result"))
+	public String addRadioStationToPlaylist(
+			@UpnpInputArgument(name = "ObjectID") String objectId,
+			@UpnpInputArgument(name = "StationUuid") String stationUuid) throws UmsExtendedServicesException {
+		StoreResource resource = RendererConfigurations.getDefaultRenderer().getMediaStore().getResource(objectId);
+		if (!(resource instanceof PlaylistFolder playlist)) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "object " + objectId + " is not a playlist");
+		}
+		Station station = RadioBrowserSearch.getStation(stationUuid);
+		String url = RadioBrowserSearch.getStreamUrl(station);
+		if (StringUtils.isBlank(url)) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "station " + station.getName() + " has no stream url");
+		}
+		if (!playlist.addWebEntry(url, station.getName(), station.getFavicon(),
+				station.getStationUUID() != null ? station.getStationUUID().toString() : null)) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED,
+					"could not add " + station.getName() + " to " + playlist.getName());
+		}
+		LOG.debug("added radio station {} to playlist {}", station.getName(), playlist.getFileName());
+		return StringUtils.trimToEmpty(station.getName());
+	}
+
 	@UpnpAction
 	public void rescanMediaStore() throws UmsExtendedServicesException {
 		if (!MediaScanner.isMediaScanRunning()) {
@@ -233,22 +298,6 @@ public class UmsExtendedServices {
 		StoreResource sr = RendererConfigurations.getDefaultRenderer().getMediaStore().getResource(objectId);
 		LOG.debug("object with ID has path of {} ", sr.getFileName());
 		MediaScanner.backgroundScanFileOrFolder(sr.getFileName());
-	}
-
-	/*
-	 * kept for older control points, album likes are part of the ratings backup
-	 */
-	@UpnpAction
-	public void backupAudioLikes() throws UmsExtendedServicesException {
-		backupRatings();
-	}
-
-	/*
-	 * kept for older control points
-	 */
-	@UpnpAction
-	public void restoreAudioLikes() throws UmsExtendedServicesException {
-		restoreRatings();
 	}
 
 	/**
