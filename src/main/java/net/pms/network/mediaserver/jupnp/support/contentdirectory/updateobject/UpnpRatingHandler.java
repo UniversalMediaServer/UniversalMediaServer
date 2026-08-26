@@ -49,13 +49,15 @@ public class UpnpRatingHandler extends BaseUpdateObjectHandler {
 			LOGGER.error("cannot handle update object request", e);
 			throw new ContentDirectoryException(712, "UpdateObject() failed because the new upnp:rating value cannot be stored.");
 		}
-		if (getObjectResource() instanceof WebStream ws && getObjectResource().getParent() instanceof PlaylistFolder pls) {
-			// A web stream has no file to hold the rating, so the playlist keeps it.
-			try {
+		try {
+			if (getObjectResource() instanceof WebStream ws && getObjectResource().getParent() instanceof PlaylistFolder pls) {
+				// A web stream has no file to hold the rating, so the playlist keeps it.
 				pls.updateRatingDirective(ws.getUrl(), newValue);
-			} catch (Exception e) {
-				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "the playlist file could not be updated : " + e.getMessage());
+			} else if (getObjectResource() instanceof PlaylistFolder pls) {
+				pls.updatePlaylistRatingDirective(newValue);
 			}
+		} catch (Exception e) {
+			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "the playlist file could not be updated : " + e.getMessage());
 		}
 	}
 

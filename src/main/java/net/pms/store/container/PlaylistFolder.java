@@ -86,6 +86,7 @@ public final class PlaylistFolder extends StoreContainer {
 	public static final String DIRECTIVE_ALBUMART_URI = "#EXTIMG:";
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
 	public static final String DIRECTIVE_RATING = "#EXTRATING:";
+	public static final String DIRECTIVE_PLAYLIST_RATING = "#EXTPLAYLISTRATING:";
 
 	// How long the first browse of a web playlist waits for its entries.
 	private static final long WEB_ENTRY_BUDGET_SECONDS = 2;
@@ -117,6 +118,7 @@ public final class PlaylistFolder extends StoreContainer {
 	private final boolean isweb;
 	private final int defaultContent;
 	private boolean utf8 = false;
+	private String playlistRatingDirective = null;
 
 	public PlaylistFolder(Renderer renderer, String name, String uri, int type) {
 		super(renderer, name, null);
@@ -316,6 +318,7 @@ public final class PlaylistFolder extends StoreContainer {
 		Long containerId = MediaTableFiles.getOrInsertFileId(uri, getLastModified(), Format.PLAYLIST);
 
 		List<Entry> entries = getPlaylistEntries();
+		applyPlaylistRatingDirective();
 		prefetchLocalEntries(entries);
 		webEntriesResponded.set(false);
 		List<CompletableFuture<ResolvedWebEntry>> webEntryFutures = new ArrayList<>();
@@ -521,6 +524,58 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	/**
+	 * Stores the rating of the playlist itself in its header.
+	 */
+	public synchronized void updatePlaylistRatingDirective(Integer rating) {
+		if (!isM3uPlaylist()) {
+			LOGGER.debug("updating {} is only possible for m3u or m3u8 files. This playlist is {}",
+				DIRECTIVE_PLAYLIST_RATING, getExtension());
+			return;
+		}
+		String value = rating == null ? null : rating.toString();
+		try (BufferedReader br = getBufferedReader(utf8)) {
+			StringBuilder out = new StringBuilder();
+			String nl = System.getProperty("line.separator");
+			out.append("#EXTM3U").append(nl);
+			if (value != null) {
+				out.append(DIRECTIVE_PLAYLIST_RATING).append(value).append(nl);
+			}
+			String line;
+			boolean firstline = true;
+			while (br != null && (line = br.readLine()) != null) {
+				String trimmed = line.trim();
+				if (firstline) {
+					firstline = false;
+					if ("#EXTM3U".equals(trimmed)) {
+						continue;
+					}
+					LOGGER.debug("adding missing #EXTM3U directive.");
+				}
+				if (trimmed.toUpperCase().startsWith(DIRECTIVE_PLAYLIST_RATING)) {
+					continue;
+				}
+				out.append(trimmed).append(nl);
+			}
+			playlistRatingDirective = value;
+			writeContentToFile(out);
+		} catch (Exception er) {
+			LOGGER.error("cannot update {} in playlist", DIRECTIVE_PLAYLIST_RATING, er);
+		}
+	}
+
+	private void applyPlaylistRatingDirective() {
+		if (playlistRatingDirective == null || getRating() != null) {
+			return;
+		}
+		try {
+			setRating(Integer.valueOf(playlistRatingDirective));
+		} catch (NumberFormatException e) {
+			LOGGER.debug("Ignoring the playlist rating directive \"{}\" of {} because it is not a number",
+				playlistRatingDirective, getFileName());
+		}
+	}
+
+	/**
 	 * Rewrites the playlist with a new value for one directive of one entry.
 	 */
 	private synchronized void updateDirective(String url, String directive, String value) {
@@ -629,6 +684,8 @@ public final class PlaylistFolder extends StoreContainer {
 						directives.put(DIRECTIVE_RADIOBROWSERUUID, line.substring(DIRECTIVE_RADIOBROWSERUUID.length()));
 					} else if (line.toUpperCase().startsWith(DIRECTIVE_ALBUMART_URI)) {
 						directives.put(DIRECTIVE_ALBUMART_URI, line.substring(DIRECTIVE_ALBUMART_URI.length()));
+					} else if (line.toUpperCase().startsWith(DIRECTIVE_PLAYLIST_RATING)) {
+						playlistRatingDirective = line.substring(DIRECTIVE_PLAYLIST_RATING.length()).trim();
 					} else if (line.toUpperCase().startsWith(DIRECTIVE_RATING)) {
 						directives.put(DIRECTIVE_RATING, line.substring(DIRECTIVE_RATING.length()));
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
