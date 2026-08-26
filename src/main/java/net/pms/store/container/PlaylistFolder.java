@@ -92,6 +92,9 @@ public final class PlaylistFolder extends StoreContainer {
 	// How long the first browse of a web playlist waits for its entries.
 	private static final long WEB_ENTRY_BUDGET_SECONDS = 2;
 
+	// How long it waits when there is still nothing to show at all.
+	private static final long WEB_ENTRY_EMPTY_BUDGET_SECONDS = 15;
+
 	// Set once the browse has been answered, so entries that resolve later make renderers refresh.
 	private final AtomicBoolean webEntriesResponded = new AtomicBoolean(false);
 
@@ -386,8 +389,7 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	/**
-	 * Gives the entries of a web playlist a short moment to arrive, so the first answer is not empty. Nothing is lost by giving up early.
-	 * The completion handler stores every entry whenever it finishes.
+	 * Gives the entries of a web playlist a short moment to arrive, so the first answer is not empty. 
 	 */
 	private void awaitWebEntries(List<CompletableFuture<ResolvedWebEntry>> webEntryFutures) {
 		if (webEntryFutures.isEmpty()) {
@@ -397,17 +399,29 @@ public final class PlaylistFolder extends StoreContainer {
 			LOGGER.debug("Not waiting for {} web playlist entries, this is already a resolving thread", webEntryFutures.size());
 			return;
 		}
+		CompletableFuture<Void> all = CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]));
+		if (awaitWebEntries(all, WEB_ENTRY_BUDGET_SECONDS) || !getChildren().isEmpty()) {
+			return;
+		}
+		LOGGER.debug("{} web playlist entries are not resolved within {} s and there is nothing to show, waiting up to {} s",
+			webEntryFutures.size(), WEB_ENTRY_BUDGET_SECONDS, WEB_ENTRY_EMPTY_BUDGET_SECONDS);
+		awaitWebEntries(all, WEB_ENTRY_EMPTY_BUDGET_SECONDS - WEB_ENTRY_BUDGET_SECONDS);
+	}
+
+	/**
+	 * Waits the given number of seconds for the entries. Returns false when they are still in flight.
+	 */
+	private boolean awaitWebEntries(CompletableFuture<Void> all, long seconds) {
 		try {
-			CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]))
-				.get(WEB_ENTRY_BUDGET_SECONDS, TimeUnit.SECONDS);
+			all.get(seconds, TimeUnit.SECONDS);
 		} catch (java.util.concurrent.TimeoutException e) {
-			LOGGER.debug("{} web playlist entries are not resolved within {} s, they follow through the update id",
-				webEntryFutures.size(), WEB_ENTRY_BUDGET_SECONDS);
+			return false;
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		} catch (Exception e) {
 			// Individual failures are reported by the completion handler
 		}
+		return true;
 	}
 
 	/**
