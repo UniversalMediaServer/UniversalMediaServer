@@ -42,6 +42,7 @@ import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.ControlPoint;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.store.MediaInfoStore;
+import net.pms.store.MediaStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -686,7 +687,10 @@ public class ConnectedRenderers {
 		MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
 		Set<Long> refreshedIds = new LinkedHashSet<>();
 		for (Renderer connectedRenderer : getConnectedRenderers()) {
-			refreshedIds.addAll(connectedRenderer.getMediaStore().fileUpdated(file));
+			MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
+			if (rendererStore != null) {
+				refreshedIds.addAll(rendererStore.fileUpdated(file));
+			}
 		}
 		MediaStoreIds.incrementUpdateIds(refreshedIds);
 	}

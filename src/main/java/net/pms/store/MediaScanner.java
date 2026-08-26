@@ -563,9 +563,11 @@ public class MediaScanner implements SharedContentListener {
 							}
 
 							if (advise || isCrawlingParentDirectory) {
-								// Advise renderers about added file.
 								for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-									connectedRenderer.getMediaStore().fileAdded(file);
+									MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
+									if (rendererStore != null) {
+										rendererStore.fileAdded(file);
+									}
 								}
 							}
 						}
@@ -611,7 +613,10 @@ public class MediaScanner implements SharedContentListener {
 		File folder = new File(filename);
 		Set<Long> refreshedIds = new LinkedHashSet<>();
 		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-			refreshedIds.addAll(connectedRenderer.getMediaStore().fileRemoved(folder));
+			MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
+			if (rendererStore != null) {
+				refreshedIds.addAll(rendererStore.fileRemoved(folder));
+			}
 		}
 		MediaStoreIds.incrementUpdateIds(refreshedIds);
 		if (MediaInfoStore.removeMediaEntriesInFolder(filename)) {
@@ -625,7 +630,10 @@ public class MediaScanner implements SharedContentListener {
 			File file = new File(filename);
 			Set<Long> refreshedIds = new LinkedHashSet<>();
 			for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-				refreshedIds.addAll(connectedRenderer.getMediaStore().fileRemoved(file));
+				MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
+				if (rendererStore != null) {
+					refreshedIds.addAll(rendererStore.fileRemoved(file));
+				}
 			}
 			MediaStoreIds.incrementUpdateIds(refreshedIds);
 			MediaStoreIds.incrementSystemUpdateId();

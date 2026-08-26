@@ -278,6 +278,13 @@ public class Renderer extends RendererDeviceConfiguration {
 		}
 	}
 
+	/**
+	 * Returns the media store only if this renderer already has one.
+	 */
+	public MediaStore getMediaStoreIfInitialized() {
+		return mediaStoreInitialized ? mediaStore : null;
+	}
+
 	public synchronized void clearMediaStore() {
 		clearSharedFolders();
 		if (mediaStore != null) {
