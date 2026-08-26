@@ -389,7 +389,7 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	/**
-	 * Gives the entries of a web playlist a short moment to arrive, so the first answer is not empty. 
+	 * Gives the entries of a web playlist a short moment to arrive, so the first answer is not empty.
 	 */
 	private void awaitWebEntries(List<CompletableFuture<ResolvedWebEntry>> webEntryFutures) {
 		if (webEntryFutures.isEmpty()) {
@@ -575,11 +575,26 @@ public final class PlaylistFolder extends StoreContainer {
 			LOGGER.error("cannot add {} to playlist", entryUrl, er);
 			return false;
 		}
+		warmWebEntry(entryUrl);
 		// the children were built from the old file, so the next browse has to read it again
 		setDiscovered(false);
 		// let the renderers know the playlist changed
 		MediaStoreIds.incrementUpdateIdForFilename(getFileName());
 		return true;
+	}
+
+	/**
+	 * Reads a newly added web entry once and records its format, so resolving the playlist afterwards
+	 * finds it in the database and does not have to wait for the network again.
+	 */
+	private void warmWebEntry(String url) {
+		try {
+			int type = WebStreamParser.getWebStreamType(url, defaultContent);
+			MediaInfoStore.getWebStreamMediaInfo(url, type);
+			MediaTableFiles.getOrInsertFileId(url, 0L, type);
+		} catch (Exception e) {
+			LOGGER.debug("could not resolve the new playlist entry {} up front: {}", url, e.getMessage());
+		}
 	}
 
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {

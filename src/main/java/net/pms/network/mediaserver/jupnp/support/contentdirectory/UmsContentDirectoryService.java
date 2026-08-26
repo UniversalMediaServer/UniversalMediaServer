@@ -284,8 +284,12 @@ public class UmsContentDirectoryService {
 		}
 		CSV<String> oldValue = containerUpdateIDs;
 		containerUpdateIDs = newValue;
-		getPropertyChangeSupport().firePropertyChange("ContainerUpdateIDs", oldValue, newValue);
-		LOGGER.trace("Send event \"ContainerUpdateIDs\" for {} container(s)", changed.size());
+		PropertyChangeSupport support = getPropertyChangeSupport();
+		support.firePropertyChange("ContainerUpdateIDs", oldValue, newValue);
+		// The listener count answers why only the initial GENA event ever reaches a subscriber: zero
+		// means jupnp registered on a different PropertyChangeSupport than the one fired on here.
+		LOGGER.debug("Send event \"ContainerUpdateIDs\" for {} container(s), {} listener(s)",
+				changed.size(), support.getPropertyChangeListeners().length);
 	}
 
 	/**

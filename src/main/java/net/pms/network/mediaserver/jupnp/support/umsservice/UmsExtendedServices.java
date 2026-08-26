@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RadioBrowserSearch;
