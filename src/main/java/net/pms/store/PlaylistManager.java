@@ -91,6 +91,7 @@ public class PlaylistManager {
 		}
 
 		if (playlistFolder.deleteEntry(filenameToRemove) || playlistFolder.deleteEntry(relativePath)) {
+			playlistFolder.removeChild(entry);
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
 			Long containerId = MediaTableFiles.getFileId(playlistPath.toString());
 			Long entryId = MediaTableFiles.getFileId(filenameToRemove);
