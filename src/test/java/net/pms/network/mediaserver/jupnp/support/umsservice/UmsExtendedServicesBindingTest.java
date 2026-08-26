@@ -61,6 +61,6 @@ public class UmsExtendedServicesBindingTest {
 		Action<?> add = bind().getAction("AddRadioStationToPlaylist");
 		assertNotNull(add);
 		Set<String> in = Arrays.stream(add.getInputArguments()).map(ActionArgument::getName).collect(Collectors.toSet());
-		assertEquals(Set.of("ObjectID", "StationUuid"), in);
+		assertEquals(Set.of("ObjectID", "StationUuid", "Title"), in);
 	}
 }

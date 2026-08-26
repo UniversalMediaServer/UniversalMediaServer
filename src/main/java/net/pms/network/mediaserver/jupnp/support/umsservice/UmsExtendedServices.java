@@ -59,6 +59,7 @@ import java.util.Map;
 	@UpnpStateVariable(name = "A_ARG_TYPE_Kind", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_Search", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_StationUuid", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Title", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_Result", sendEvents = false, datatype = "string")
 	})
 public class UmsExtendedServices {
@@ -257,12 +258,13 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * Adds a station to a playlist
+	 * Adds a station to a playlist.
 	 */
 	@UpnpAction(out = @UpnpOutputArgument(name = "Result"))
 	public String addRadioStationToPlaylist(
 			@UpnpInputArgument(name = "ObjectID") String objectId,
-			@UpnpInputArgument(name = "StationUuid") String stationUuid) throws UmsExtendedServicesException {
+			@UpnpInputArgument(name = "StationUuid") String stationUuid,
+			@Nullable @UpnpInputArgument(name = "Title") String title) throws UmsExtendedServicesException {
 		StoreResource resource = RendererConfigurations.getDefaultRenderer().getMediaStore().getResource(objectId);
 		if (!(resource instanceof PlaylistFolder playlist)) {
 			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "object " + objectId + " is not a playlist");
@@ -272,13 +274,14 @@ public class UmsExtendedServices {
 		if (StringUtils.isBlank(url)) {
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "station " + station.getName() + " has no stream url");
 		}
-		if (!playlist.addWebEntry(url, station.getName(), station.getFavicon(),
+		String entryTitle = StringUtils.isNotBlank(title) ? title.trim() : StringUtils.trimToEmpty(station.getName());
+		if (!playlist.addWebEntry(url, entryTitle, station.getFavicon(),
 				station.getStationUUID() != null ? station.getStationUUID().toString() : null)) {
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED,
-					"could not add " + station.getName() + " to " + playlist.getName());
+					"could not add " + entryTitle + " to " + playlist.getName());
 		}
-		LOG.debug("added radio station {} to playlist {}", station.getName(), playlist.getFileName());
-		return StringUtils.trimToEmpty(station.getName());
+		LOG.debug("added radio station {} to playlist {}", entryTitle, playlist.getFileName());
+		return entryTitle;
 	}
 
 	@UpnpAction
