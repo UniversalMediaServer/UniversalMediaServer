@@ -711,6 +711,8 @@ public class MediaStore extends StoreContainer {
 			StoreResource sr = null;
 			if (file.isDirectory()) {
 				sr = DbIdResourceLocator.getLibraryResourceRealFolder(renderer, file.getAbsolutePath());
+			} else if (PlaylistManager.isValidPlaylist(file.getName())) {
+				sr = DbIdResourceLocator.getLibraryResourcePlaylist(renderer, file.getAbsolutePath());
 			} else {
 				sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
 			}

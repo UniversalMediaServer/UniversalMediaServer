@@ -215,7 +215,7 @@ public class PlaylistManager {
 		return false;
 	}
 
-	private static boolean isValidPlaylist(String filename) {
+	public static boolean isValidPlaylist(String filename) {
 		return (filename.toLowerCase().endsWith(".m3u") ||
 				filename.toLowerCase().endsWith(".m3u8") ||
 				filename.toLowerCase().endsWith(".pls"));
