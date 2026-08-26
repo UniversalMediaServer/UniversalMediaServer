@@ -16,7 +16,6 @@
  */
 package net.pms.network.mediaserver.jupnp.support.contentdirectory;
 
-import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,6 +38,7 @@ import org.jupnp.binding.annotations.UpnpServiceId;
 import org.jupnp.binding.annotations.UpnpServiceType;
 import org.jupnp.binding.annotations.UpnpStateVariable;
 import org.jupnp.binding.annotations.UpnpStateVariables;
+import org.jupnp.internal.compat.java.beans.PropertyChangeSupport;
 import org.jupnp.model.profile.RemoteClientInfo;
 import org.jupnp.model.types.ErrorCode;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
@@ -251,6 +251,9 @@ public class UmsContentDirectoryService {
 		return MediaStoreIds.getSystemUpdateId();
 	}
 
+	/**
+	 * Use jupnp's own PropertyChangeSupport, not the one from java.beans. Otherwise GEMA subscriptions don't work!
+	 */
 	public PropertyChangeSupport getPropertyChangeSupport() {
 		return propertyChangeSupport;
 	}
@@ -284,12 +287,8 @@ public class UmsContentDirectoryService {
 		}
 		CSV<String> oldValue = containerUpdateIDs;
 		containerUpdateIDs = newValue;
-		PropertyChangeSupport support = getPropertyChangeSupport();
-		support.firePropertyChange("ContainerUpdateIDs", oldValue, newValue);
-		// The listener count answers why only the initial GENA event ever reaches a subscriber: zero
-		// means jupnp registered on a different PropertyChangeSupport than the one fired on here.
-		LOGGER.debug("Send event \"ContainerUpdateIDs\" for {} container(s), {} listener(s)",
-				changed.size(), support.getPropertyChangeListeners().length);
+		getPropertyChangeSupport().firePropertyChange("ContainerUpdateIDs", oldValue, newValue);
+		LOGGER.trace("Send event \"ContainerUpdateIDs\" for {} container(s)", changed.size());
 	}
 
 	/**
