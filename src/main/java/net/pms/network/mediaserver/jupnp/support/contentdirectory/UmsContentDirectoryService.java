@@ -24,6 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
@@ -193,6 +195,17 @@ public class UmsContentDirectoryService {
 	)
 	private UnsignedIntegerFourBytes systemUpdateID;
 
+	/**
+	 * CSV of containerID, containerUpdateID pairs, so a control point can refresh the one container
+	 * that changed instead.
+	 */
+	@UpnpStateVariable(
+			sendEvents = true,
+			datatype = "string",
+			eventMaximumRateMilliseconds = 200
+	)
+	private CSV<String> containerUpdateIDs = new CSVString();
+
 	protected final PropertyChangeSupport propertyChangeSupport;
 
 	public UmsContentDirectoryService() {
@@ -200,6 +213,7 @@ public class UmsContentDirectoryService {
 			@Override
 			public void run() {
 				systemUpdateIdChanged();
+				containerUpdateIdsChanged();
 			}
 		};
 		this.searchCapabilities.addAll(CAPS_SEARCH);
@@ -253,6 +267,25 @@ public class UmsContentDirectoryService {
 			systemUpdateID = new UnsignedIntegerFourBytes(newValue);
 			LOGGER.trace("Send event \"SystemUpdateID\" update from {} to {}", oldValue, newValue);
 		}
+	}
+
+	/**
+	 * Reports the containers that changed since the last event.
+	 */
+	private void containerUpdateIdsChanged() {
+		Map<Long, UnsignedIntegerFourBytes> changed = MediaStoreIds.drainChangedIds();
+		if (changed.isEmpty()) {
+			return;
+		}
+		CSV<String> newValue = new CSVString();
+		for (Entry<Long, UnsignedIntegerFourBytes> change : changed.entrySet()) {
+			newValue.add(change.getKey().toString());
+			newValue.add(change.getValue().getValue().toString());
+		}
+		CSV<String> oldValue = containerUpdateIDs;
+		containerUpdateIDs = newValue;
+		getPropertyChangeSupport().firePropertyChange("ContainerUpdateIDs", oldValue, newValue);
+		LOGGER.trace("Send event \"ContainerUpdateIDs\" for {} container(s)", changed.size());
 	}
 
 	/**

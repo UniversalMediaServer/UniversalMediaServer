@@ -19,9 +19,11 @@ package net.pms.store;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableStoreIds;
@@ -39,6 +41,12 @@ public class MediaStoreIds {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStoreIds.class);
 	private static final Map<Long, UnsignedIntegerFourBytes> UPDATE_IDS = new ConcurrentHashMap<>();
+
+	/**
+	 * Containers whose update id changed since the last ContainerUpdateIDs event went out.
+	 */
+	private static final Map<Long, UnsignedIntegerFourBytes> CHANGED_IDS = new ConcurrentHashMap<>();
+	private static final int MAX_CHANGED_IDS = 64;
 
 	/** Guards the shared system update id counter only, never a database call. */
 	private static final Object SYSTEM_UPDATE_ID_LOCK = new Object();
@@ -310,6 +318,7 @@ public class MediaStoreIds {
 			long updateId = nextSystemUpdateId();
 			if (id != null && id != -1) {
 				UPDATE_IDS.computeIfPresent(id, (key, value) -> new UnsignedIntegerFourBytes(updateId));
+				trackChangedId(id, updateId);
 			}
 			if (connection != null) {
 				MediaTableStoreIds.setMediaStoreUpdateIdIfHigher(connection, -1, updateId);
@@ -336,6 +345,7 @@ public class MediaStoreIds {
 	private static long applyUpdateId(Connection connection, long id) {
 		long updateId = nextSystemUpdateId();
 		UPDATE_IDS.computeIfPresent(id, (key, value) -> new UnsignedIntegerFourBytes(updateId));
+		trackChangedId(id, updateId);
 		if (connection != null) {
 			MediaTableStoreIds.setMediaStoreUpdateIdIfHigher(connection, -1, updateId);
 			MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
@@ -356,6 +366,31 @@ public class MediaStoreIds {
 		if (id != null && id != -1) {
 			applyUpdateId(connection, id);
 		}
+	}
+
+
+	private static void trackChangedId(long id, long updateId) {
+		if (CHANGED_IDS.size() >= MAX_CHANGED_IDS && !CHANGED_IDS.containsKey(id)) {
+			return;
+		}
+		CHANGED_IDS.put(id, new UnsignedIntegerFourBytes(updateId));
+	}
+
+	/**
+	 * Hands over the containers that changed and removes them, so every change is reported once.
+	 */
+	public static Map<Long, UnsignedIntegerFourBytes> drainChangedIds() {
+		if (CHANGED_IDS.isEmpty()) {
+			return Map.of();
+		}
+		Map<Long, UnsignedIntegerFourBytes> drained = new HashMap<>();
+		for (Long id : Set.copyOf(CHANGED_IDS.keySet())) {
+			UnsignedIntegerFourBytes updateId = CHANGED_IDS.remove(id);
+			if (updateId != null) {
+				drained.put(id, updateId);
+			}
+		}
+		return drained;
 	}
 
 }
