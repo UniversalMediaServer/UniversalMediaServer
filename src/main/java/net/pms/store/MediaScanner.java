@@ -24,7 +24,9 @@ import java.nio.file.StandardWatchEventKinds;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
@@ -607,9 +609,11 @@ public class MediaScanner implements SharedContentListener {
 		LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 		//folder may be empty
 		File folder = new File(filename);
+		Set<Long> refreshedIds = new LinkedHashSet<>();
 		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-			connectedRenderer.getMediaStore().fileRemoved(folder);
+			refreshedIds.addAll(connectedRenderer.getMediaStore().fileRemoved(folder));
 		}
+		MediaStoreIds.incrementUpdateIds(refreshedIds);
 		if (MediaInfoStore.removeMediaEntriesInFolder(filename)) {
 			MediaStoreIds.incrementSystemUpdateId();
 		}
@@ -619,9 +623,11 @@ public class MediaScanner implements SharedContentListener {
 		LOGGER.info("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 		if (MediaInfoStore.removeMediaEntry(filename)) {
 			File file = new File(filename);
+			Set<Long> refreshedIds = new LinkedHashSet<>();
 			for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-				connectedRenderer.getMediaStore().fileRemoved(file);
+				refreshedIds.addAll(connectedRenderer.getMediaStore().fileRemoved(file));
 			}
+			MediaStoreIds.incrementUpdateIds(refreshedIds);
 			MediaStoreIds.incrementSystemUpdateId();
 		}
 	}

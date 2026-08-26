@@ -347,8 +347,15 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * Update the last refresh time.
 	 */
 	protected void notifyRefresh() {
-		lastRefreshTime = System.currentTimeMillis();
+		markRefreshed();
 		MediaStoreIds.incrementUpdateId(getLongId());
+	}
+
+	/**
+	 * Marks this resource as refreshed without touching the update id.
+	 */
+	protected void markRefreshed() {
+		lastRefreshTime = System.currentTimeMillis();
 	}
 
 	@Override

@@ -720,7 +720,6 @@ public final class PlaylistFolder extends StoreContainer {
 			LOGGER.debug("writing playlist file ...");
 			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), getCharset()));
 			writer.append(out);
-			file.setLastModified(System.currentTimeMillis());
 		} catch (Exception e) {
 			LOGGER.warn("cannot update playlist", e);
 		} finally {

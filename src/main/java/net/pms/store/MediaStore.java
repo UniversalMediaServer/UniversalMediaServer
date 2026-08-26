@@ -843,11 +843,15 @@ public class MediaStore extends StoreContainer {
 		return getWeakResource(searchIds[searchIds.length - 1]);
 	}
 
-	public void fileRemoved(File file) {
+	public List<Long> fileRemoved(File file) {
+		List<Long> refreshedIds = new ArrayList<>();
 		for (StoreResource storeResource : findSystemFileResources(file)) {
-			storeResource.getParent().removeChild(storeResource);
-			storeResource.getParent().notifyRefresh();
+			StoreContainer parent = storeResource.getParent();
+			parent.removeChild(storeResource);
+			parent.markRefreshed();
+			refreshedIds.add(parent.getLongId());
 		}
+		return refreshedIds;
 	}
 
 	public void fileAdded(File file) {
@@ -863,11 +867,15 @@ public class MediaStore extends StoreContainer {
 	 * File can have different structure after an update. Therefore, read file metadata again.
 	 * @param file
 	 */
-	public void fileUpdated(File file) {
+	public List<Long> fileUpdated(File file) {
+		List<Long> refreshedIds = new ArrayList<>();
 		for (StoreResource storeResource : findSystemFileResources(file)) {
 			if (storeResource instanceof PlaylistFolder playlistFolder) {
 				playlistFolder.setDiscovered(false);
-				playlistFolder.notifyRefresh();
+				// Only invalidated here. The store id is the same for every renderer, so the caller bumps
+				// it once for all of them instead of once per renderer.
+				playlistFolder.markRefreshed();
+				refreshedIds.add(playlistFolder.getLongId());
 				LOGGER.debug("Playlist {} updated, children will be read again on the next browse.", file.toString());
 				continue;
 			}
@@ -883,6 +891,7 @@ public class MediaStore extends StoreContainer {
 			}
 			storeResource.getParent().discoverChildren();
 		}
+		return refreshedIds;
 	}
 
 

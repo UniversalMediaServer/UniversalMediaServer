@@ -24,10 +24,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -40,6 +42,7 @@ import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.ControlPoint;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.store.MediaInfoStore;
+import net.pms.store.MediaStoreIds;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -681,8 +684,10 @@ public class ConnectedRenderers {
 	 */
 	public static void invalidateRendererCache(File file) {
 		MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
+		Set<Long> refreshedIds = new LinkedHashSet<>();
 		for (Renderer connectedRenderer : getConnectedRenderers()) {
-			connectedRenderer.getMediaStore().fileUpdated(file);
+			refreshedIds.addAll(connectedRenderer.getMediaStore().fileUpdated(file));
 		}
+		MediaStoreIds.incrementUpdateIds(refreshedIds);
 	}
 }

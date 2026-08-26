@@ -18,8 +18,10 @@ package net.pms.store;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -327,6 +329,45 @@ public class MediaStoreIds {
 				}
 			}
 			return updateId;
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Bumps the given store ids in one go.
+	 */
+	public static void incrementUpdateIds(Collection<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return;
+		}
+		Set<Long> distinct = new LinkedHashSet<>();
+		for (Long id : ids) {
+			if (id != null && id != -1) {
+				distinct.add(id);
+			}
+		}
+		if (distinct.isEmpty()) {
+			return;
+		}
+		// Same reason as in getMediaStoreResourceId: never wait for a connection under the monitor.
+		Connection connection = MediaDatabase.getConnectionIfAvailable();
+		try {
+			long highestUpdateId = 0;
+			for (Long id : distinct) {
+				final long updateId = nextSystemUpdateId();
+				UPDATE_IDS.computeIfPresent(id, (key, value) -> new UnsignedIntegerFourBytes(updateId));
+				trackChangedId(id, updateId);
+				if (connection != null) {
+					MediaTableStoreIds.setMediaStoreUpdateId(connection, id, updateId);
+				}
+				highestUpdateId = updateId;
+			}
+			// The system id only has to end up at the highest value, so it is written once.
+			if (connection != null) {
+				MediaTableStoreIds.setMediaStoreUpdateIdIfHigher(connection, -1, highestUpdateId);
+			}
+			LOGGER.trace("Bumped the update id of {} container(s): {}", distinct.size(), distinct);
 		} finally {
 			MediaDatabase.close(connection);
 		}
