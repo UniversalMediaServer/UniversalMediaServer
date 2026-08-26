@@ -561,6 +561,8 @@ public final class PlaylistFolder extends StoreContainer {
 			LOGGER.error("cannot add {} to playlist", entryUrl, er);
 			return false;
 		}
+		// the children were built from the old file, so the next browse has to read it again
+		setDiscovered(false);
 		// let the renderers know the playlist changed
 		MediaStoreIds.incrementUpdateIdForFilename(getFileName());
 		return true;
