@@ -11,15 +11,20 @@ import org.jupnp.binding.annotations.UpnpServiceId;
 import org.jupnp.binding.annotations.UpnpServiceType;
 import org.jupnp.binding.annotations.UpnpStateVariable;
 import org.jupnp.binding.annotations.UpnpStateVariables;
+import org.jupnp.model.profile.RemoteClientInfo;
 import org.jupnp.model.types.ErrorCode;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.File;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RadioBrowserSearch;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
+import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
 import net.pms.store.container.PlaylistFolder;
@@ -264,8 +269,13 @@ public class UmsExtendedServices {
 	public String addRadioStationToPlaylist(
 			@UpnpInputArgument(name = "ObjectID") String objectId,
 			@UpnpInputArgument(name = "StationUuid") String stationUuid,
-			@Nullable @UpnpInputArgument(name = "Title") String title) throws UmsExtendedServicesException {
-		StoreResource resource = RendererConfigurations.getDefaultRenderer().getMediaStore().getResource(objectId);
+			@Nullable @UpnpInputArgument(name = "Title") String title,
+			RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
+		Renderer renderer = UmsContentDirectoryService.getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "unknown media renderer");
+		}
+		StoreResource resource = renderer.getMediaStore().getResource(objectId);
 		if (!(resource instanceof PlaylistFolder playlist)) {
 			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "object " + objectId + " is not a playlist");
 		}
@@ -280,6 +290,7 @@ public class UmsExtendedServices {
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED,
 					"could not add " + entryTitle + " to " + playlist.getName());
 		}
+		ConnectedRenderers.invalidateRendererCache(new File(playlist.getFileName()));
 		LOG.debug("added radio station {} to playlist {}", entryTitle, playlist.getFileName());
 		return entryTitle;
 	}
@@ -296,9 +307,17 @@ public class UmsExtendedServices {
 	}
 
 	@UpnpAction
-	public void rescanMediaStoreFolder(@UpnpInputArgument(name = "ObjectID") String objectId) {
+	public void rescanMediaStoreFolder(@UpnpInputArgument(name = "ObjectID") String objectId,
+			RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
 		LOG.debug("updating object with ID {} ", objectId);
-		StoreResource sr = RendererConfigurations.getDefaultRenderer().getMediaStore().getResource(objectId);
+		Renderer renderer = UmsContentDirectoryService.getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "unknown media renderer");
+		}
+		StoreResource sr = renderer.getMediaStore().getResource(objectId);
+		if (sr == null) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "no object with id " + objectId);
+		}
 		LOG.debug("object with ID has path of {} ", sr.getFileName());
 		MediaScanner.backgroundScanFileOrFolder(sr.getFileName());
 	}

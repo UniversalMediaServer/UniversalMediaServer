@@ -374,7 +374,7 @@ public class UmsContentDirectoryService {
 	 * @param remoteClientInfo the client info of the browsing request
 	 * @return the renderer to use, or "null}" when authentication is enabled and the renderer is unrecognized or not allowed
 	 */
-	private static Renderer getBrowseRenderer(RemoteClientInfo remoteClientInfo) {
+	public static Renderer getBrowseRenderer(RemoteClientInfo remoteClientInfo) {
 		if (!PMS.getConfiguration().isAuthenticationEnabled()) {
 			return ControlPoint.getRenderer();
 		}

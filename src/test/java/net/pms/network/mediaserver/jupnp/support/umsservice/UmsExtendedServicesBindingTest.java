@@ -56,6 +56,15 @@ public class UmsExtendedServicesBindingTest {
 		assertEquals(Set.of("Kind", "Search"), in);
 	}
 
+	/** RemoteClientInfo is injected by jUPnP and must not turn up as a published argument. */
+	@Test
+	public void testRescanFolderKeepsItsSingleArgument() {
+		Action<?> rescan = bind().getAction("RescanMediaStoreFolder");
+		assertNotNull(rescan);
+		Set<String> in = Arrays.stream(rescan.getInputArguments()).map(ActionArgument::getName).collect(Collectors.toSet());
+		assertEquals(Set.of("ObjectID"), in);
+	}
+
 	@Test
 	public void testAddStationActionArguments() {
 		Action<?> add = bind().getAction("AddRadioStationToPlaylist");

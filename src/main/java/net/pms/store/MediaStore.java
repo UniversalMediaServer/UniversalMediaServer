@@ -863,6 +863,12 @@ public class MediaStore extends StoreContainer {
 	 */
 	public void fileUpdated(File file) {
 		for (StoreResource storeResource : findSystemFileResources(file)) {
+			if (storeResource instanceof PlaylistFolder playlistFolder) {
+				playlistFolder.setDiscovered(false);
+				playlistFolder.notifyRefresh();
+				LOGGER.debug("Playlist {} updated, children will be read again on the next browse.", file.toString());
+				continue;
+			}
 			if (storeResource instanceof RealFile rf) {
 				rf.setMediaInfo(null);
 				rf.resolve();
