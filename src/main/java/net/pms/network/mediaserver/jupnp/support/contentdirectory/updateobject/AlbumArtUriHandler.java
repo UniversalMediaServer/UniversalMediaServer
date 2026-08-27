@@ -1,5 +1,6 @@
 package net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject;
 
+import java.io.IOException;
 import org.jupnp.model.types.ErrorCode;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.slf4j.Logger;
@@ -43,8 +44,16 @@ public class AlbumArtUriHandler extends BaseUpdateObjectHandler {
 		}
 		// done in the calling thread : the control point shall learn whether the image could be read.
 		String fileName = getObjectResource().getFileName();
-		if (ThumbnailStore.updateThumbnailByURI(newValue, fileName, ThumbnailSource.USER) == null) {
+		Long thumbnailId = ThumbnailStore.updateThumbnailByURI(newValue, fileName, ThumbnailSource.USER);
+		if (thumbnailId == null) {
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "the album art could not be read from " + newValue);
+		}
+		if (getObjectResource() instanceof PlaylistFolder playlist) {
+			try {
+				playlist.writeCoverFile(ThumbnailStore.getThumbnail(thumbnailId));
+			} catch (IOException e) {
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "the cover file could not be written : " + e.getMessage());
+			}
 		}
 		if (getObjectResource() instanceof WebStream ws && getObjectResource().getParent() instanceof PlaylistFolder pls) {
 			// This entry is a webResource from a Playlist. We can try to update the album art uri

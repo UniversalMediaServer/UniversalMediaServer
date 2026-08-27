@@ -27,6 +27,8 @@ import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,11 +46,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
+import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableContainerFiles;
 import net.pms.database.MediaTableFiles;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.image.ImageFormat;
 import net.pms.parsers.WebStreamParser;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
@@ -226,36 +231,122 @@ public final class PlaylistFolder extends StoreContainer {
 		return null;
 	}
 
+	/**
+	 * The playlist's picture, most specific source first:
+	 *
+	 * 1. an image named after the playlist
+	 * 2. a cover set through UpdateObject
+	 * 3. the folder.* picture of the directory
+	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (!isweb) {
-			File diskThumbnail = SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile(), FilenameUtils.removeExtension(uriAsFile.getName()));
-			DLNAThumbnailInputStream result = null;
-			try {
-				if (diskThumbnail != null) {
-					result = ThumbnailStore.getThumbnailInputStreamForFile(diskThumbnail);
-				}
-			} catch (IOException e) {
-				LOGGER.trace("getThumbnailInputStream", e);
+			DLNAThumbnailInputStream named = readDiskThumbnail(
+				SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile(), FilenameUtils.removeExtension(uriAsFile.getName()))
+			);
+			if (named != null) {
+				return named;
 			}
-
-			// Just use folder image as Thumbnail is available
-			if (result == null) {
-				diskThumbnail = SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile());
-				if (diskThumbnail != null) {
-					try {
-						result = ThumbnailStore.getThumbnailInputStreamForFile(diskThumbnail);
-					} catch (IOException e) {
-						LOGGER.trace("getThumbnailInputStream", e);
-					}
-				}
-			}
-
-			return result != null ? result : super.getThumbnailInputStream();
-		} else {
-			DLNAThumbnailInputStream storeThum = ThumbnailStore.getThumbnailInputStream(getLongId());
-			return storeThum != null ? storeThum : super.getThumbnailInputStream();
 		}
+
+		DLNAThumbnailInputStream userThumbnail = getUserThumbnailInputStream();
+		if (userThumbnail != null) {
+			return userThumbnail;
+		}
+
+		if (!isweb) {
+			DLNAThumbnailInputStream folderImage = readDiskThumbnail(SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile()));
+			if (folderImage != null) {
+				return folderImage;
+			}
+		}
+		return super.getThumbnailInputStream();
+	}
+
+	private static DLNAThumbnailInputStream readDiskThumbnail(File diskThumbnail) {
+		if (diskThumbnail == null) {
+			return null;
+		}
+		try {
+			return ThumbnailStore.getThumbnailInputStreamForFile(diskThumbnail);
+		} catch (IOException e) {
+			LOGGER.trace("getThumbnailInputStream", e);
+			return null;
+		}
+	}
+
+	/**
+	 * The thumbnail a user set for this playlist
+	 */
+	private DLNAThumbnailInputStream getUserThumbnailInputStream() {
+		Long thumbnailId = MediaInfoStore.getStoredUserThumbnailId(getFileName());
+		if (thumbnailId == null) {
+			// The playlist file usually has no media info in memory, so the stored id is the only source.
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				thumbnailId = MediaTableFiles.getUserThumbnailId(connection, getFileName());
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return thumbnailId != null ? ThumbnailStore.getThumbnailInputStream(thumbnailId) : null;
+	}
+
+	/**
+	 * Stores a cover next to the playlist file.
+	 */
+	public File writeCoverFile(DLNAThumbnail thumbnail) throws IOException {
+		File playlistFile = getPlaylistfile();
+		if (playlistFile == null || thumbnail == null) {
+			return null;
+		}
+		String extension = thumbnailExtension(thumbnail.getFormat());
+		if (extension == null) {
+			LOGGER.debug("not storing the cover of {} : {} is not a thumbnail format", playlistFile, thumbnail.getFormat());
+			return null;
+		}
+		if (SystemFilesHelper.isFolderThumbnail(playlistFile, false)) {
+			LOGGER.warn("not storing the cover of {} : the name is reserved for the folder thumbnail", playlistFile);
+			return null;
+		}
+		File coverFile = FileUtil.replaceExtension(playlistFile, extension, false, true);
+		if (coverFile == null) {
+			return null;
+		}
+		Files.write(coverFile.toPath(), thumbnail.getBytes(false));
+		removeStaleCoverFiles(playlistFile, coverFile);
+		LOGGER.debug("stored the cover of {} as {}", playlistFile, coverFile);
+		return coverFile;
+	}
+
+	/**
+	 * Drops the cover files of this playlist that the new one replaces.
+	 */
+	private static void removeStaleCoverFiles(File playlistFile, File coverFile) {
+		for (String extension : SystemFilesHelper.THUMBNAIL_EXTENSIONS) {
+			File stale = FileUtil.replaceExtension(playlistFile, extension, true, true);
+			if (stale != null && !stale.equals(coverFile) && !stale.delete()) {
+				LOGGER.warn("cannot remove the previous cover {} of {}", stale, playlistFile);
+			}
+		}
+	}
+
+	/**
+	 * The file extension a picture.
+	 */
+	private static String thumbnailExtension(ImageFormat format) {
+		if (format == null) {
+			return null;
+		}
+		return switch (format) {
+			case JPEG -> "jpg";
+			case PNG -> "png";
+			case GIF -> "gif";
+			case BMP -> "bmp";
+			case WEBP -> "webp";
+			default -> null;
+		};
 	}
 
 	@Override

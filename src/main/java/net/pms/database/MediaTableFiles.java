@@ -178,6 +178,8 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_GET_RESOURCE_UID_BY_FILENAME = SELECT + COL_RESOURCE_UID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_FILENAMES_BY_RESOURCE_UID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + COL_RESOURCE_UID + EQUAL + PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_USER_THUMBID_BY_FILENAME = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME +
+		WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_NAME + "." + COL_THUMB_SRC + EQUAL + PARAMETER + LIMIT_1;
 
 	/**
 	 * Used by child tables
@@ -1453,6 +1455,28 @@ public class MediaTableFiles extends MediaTable {
 			LOGGER.error(null, se);
 		}
 		return result;
+	}
+
+	/**
+	 * The thumbnail a user set explicitly for this file.
+	 */
+	public static Long getUserThumbnailId(final Connection connection, final String filename) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return null;
+		}
+		try (PreparedStatement ps = connection.prepareStatement(SQL_GET_USER_THUMBID_BY_FILENAME)) {
+			ps.setString(1, filename);
+			ps.setString(2, ThumbnailSource.USER.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return toLong(rs, COL_THUMBID);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", filename, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 	/**
