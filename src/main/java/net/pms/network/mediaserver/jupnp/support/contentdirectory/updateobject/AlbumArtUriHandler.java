@@ -1,15 +1,19 @@
 package net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject;
 
+import java.io.File;
 import java.io.IOException;
 import org.jupnp.model.types.ErrorCode;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.NodeList;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.external.JavaHttpClient;
 import net.pms.store.StoreResource;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.store.container.PlaylistFolder;
+import net.pms.store.container.RealFolder;
 import net.pms.store.item.WebStream;
 
 /**
@@ -42,18 +46,24 @@ public class AlbumArtUriHandler extends BaseUpdateObjectHandler {
 			throw new ContentDirectoryException(703, "UpdateObject() failed because \"" + newValue +
 				"\" is not an absolute URI.");
 		}
-		// done in the calling thread : the control point shall learn whether the image could be read.
 		String fileName = getObjectResource().getFileName();
 		Long thumbnailId = ThumbnailStore.updateThumbnailByURI(newValue, fileName, ThumbnailSource.USER);
-		if (thumbnailId == null) {
+		DLNAThumbnail thumbnail = thumbnailId != null ? ThumbnailStore.getThumbnail(thumbnailId) : JavaHttpClient.getThumbnail(newValue);
+		if (thumbnail == null) {
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "the album art could not be read from " + newValue);
 		}
-		if (getObjectResource() instanceof PlaylistFolder playlist) {
-			try {
-				playlist.writeCoverFile(ThumbnailStore.getThumbnail(thumbnailId));
-			} catch (IOException e) {
-				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "the cover file could not be written : " + e.getMessage());
+		File coverFile = null;
+		try {
+			if (getObjectResource() instanceof PlaylistFolder playlist) {
+				coverFile = playlist.writeCoverFile(thumbnail);
+			} else if (getObjectResource() instanceof RealFolder folder) {
+				coverFile = folder.writeCoverFile(thumbnail);
 			}
+		} catch (IOException e) {
+			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "the cover file could not be written : " + e.getMessage());
+		}
+		if (thumbnailId == null && coverFile == null) {
+			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "this object cannot hold an album art");
 		}
 		if (getObjectResource() instanceof WebStream ws && getObjectResource().getParent() instanceof PlaylistFolder pls) {
 			// This entry is a webResource from a Playlist. We can try to update the album art uri

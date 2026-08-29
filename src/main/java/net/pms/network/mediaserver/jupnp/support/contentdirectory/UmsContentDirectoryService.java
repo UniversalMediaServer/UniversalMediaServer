@@ -340,7 +340,7 @@ public class UmsContentDirectoryService {
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
-			LOGGER.error("Exception in browse action \"{}\"", ex.getMessage(), ex);
+			LOGGER.debug("Browse action answered with \"{}\"", ex.getMessage());
 			throw ex;
 		} catch (Exception ex) {
 			LOGGER.error("Exception in result creation \"{}\"", ex.getMessage(), ex);
@@ -387,7 +387,8 @@ public class UmsContentDirectoryService {
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
-			LOGGER.error("Exception in search action \"{}\"", ex.getMessage(), ex);
+			// See browse() : an expected answer, and one a client may repeat at will.
+			LOGGER.debug("Search action answered with \"{}\"", ex.getMessage());
 			throw ex;
 		} catch (Exception ex) {
 			LOGGER.error("Exception in search action \"{}\"", ex.getMessage(), ex);

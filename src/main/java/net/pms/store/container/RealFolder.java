@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -143,6 +144,13 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Stores a cover as folder.<EXT> inside this directory.
+	 */
+	public File writeCoverFile(DLNAThumbnail thumbnail) throws IOException {
+		return SystemFilesHelper.storeThumbnail(directory, "folder", thumbnail);
 	}
 
 	@Override
