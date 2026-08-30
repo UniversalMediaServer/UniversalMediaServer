@@ -51,4 +51,27 @@ public class UMSUtilsTest {
 		assertTrue(UMSUtils.isYouTubeURL("https://www.youtube.com/shorts/jsBOx45iBX0"));
 		assertFalse(UMSUtils.isYouTubeURL("https://www.somewebsite.com/shorts/jsBOx45iBX0"));
 	}
+
+	@Test
+	public void testBuildTooltip() {
+		// Both null/empty
+		assertNull(UMSUtils.buildTooltip(null, null));
+		assertNull(UMSUtils.buildTooltip("", ""));
+
+		// Only default
+		String onlyDefault = UMSUtils.buildTooltip("Disabled", null);
+		assertTrue(onlyDefault.contains("<strong>Default:</strong> Disabled"));
+		assertFalse(onlyDefault.contains("Notes"));
+
+		// Only notes
+		String onlyNotes = UMSUtils.buildTooltip(null, "Some notes here.");
+		assertFalse(onlyNotes.contains("Default"));
+		assertTrue(onlyNotes.contains("<strong>Notes:</strong> Some notes here."));
+
+		// Both
+		String both = UMSUtils.buildTooltip("Enabled", "Some notes here.");
+		assertTrue(both.contains("<strong>Default:</strong> Enabled"));
+		assertTrue(both.contains("<br>"));
+		assertTrue(both.contains("<strong>Notes:</strong> Some notes here."));
+	}
 }

@@ -63,6 +63,7 @@ import net.pms.swing.components.RestrictedFileSystemView;
 import net.pms.swing.gui.FormLayoutUtil;
 import net.pms.swing.gui.JavaGui;
 import net.pms.swing.gui.UmsFormBuilder;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -456,7 +457,7 @@ public class SharedContentTab implements SharedContentListener {
 		scanOnStartup.setSelected(configuration.isScanSharedFoldersOnStartup());
 		scanOnStartup.setContentAreaFilled(false);
 		scanOnStartup.addItemListener((ItemEvent e) -> configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED)));
-		scanOnStartup.setToolTipText(Messages.getGuiString("ThisControlsUmsScanShared"));
+		scanOnStartup.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("True"), Messages.getGuiString("ThisControlsUmsScanShared")));
 		builderFolder.add(scanOnStartup).at(FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
 		JScrollPane pane = new JScrollPane(sharedContentList);

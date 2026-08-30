@@ -42,6 +42,7 @@ import net.pms.swing.gui.JavaGui;
 import net.pms.swing.gui.UmsFormBuilder;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FullyPlayedAction;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -260,7 +261,7 @@ public class NavigationShareTab {
 
 		// Use MPlayer for video thumbnails
 		mplayerThumbnails = new JCheckBox(Messages.getGuiString("UseMplayerVideoThumbnails"), configuration.isUseMplayerForVideoThumbs());
-		mplayerThumbnails.setToolTipText(Messages.getGuiString("WhenSettingDisabledFfmpeg"));
+		mplayerThumbnails.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("WhenSettingDisabledFfmpeg")));
 		mplayerThumbnails.setContentAreaFilled(false);
 		mplayerThumbnails.addItemListener((ItemEvent e) -> configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED)));
 		mplayerThumbnails.setEnabled(configuration.isThumbnailGenerationEnabled());
@@ -360,7 +361,7 @@ public class NavigationShareTab {
 		isShowFolderMediaLibrary = new JCheckBox(Messages.getGuiString("ShowMediaLibraryFolder"), configuration.isShowMediaLibraryFolder());
 		isShowFolderMediaLibrary.setContentAreaFilled(false);
 		isShowFolderMediaLibrary.addItemListener((ItemEvent e) -> configuration.setShowMediaLibraryFolder((e.getStateChange() == ItemEvent.SELECTED)));
-		isShowFolderMediaLibrary.setToolTipText(Messages.getGuiString("MediaLibraryFolderWillAvailable"));
+		isShowFolderMediaLibrary.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Enabled"), Messages.getGuiString("MediaLibraryFolderWillAvailable")));
 
 		// Browse compressed archives
 		archive = new JCheckBox(Messages.getGuiString("BrowseCompressedArchives"), configuration.isArchiveBrowsing());
@@ -395,7 +396,7 @@ public class NavigationShareTab {
 
 		// Hide transcoding engine names
 		hideEngines = new JCheckBox(Messages.getGuiString("AddEnginesNamesAfterFilenames"), !configuration.isHideEngineNames());
-		hideEngines.setToolTipText(Messages.getGuiString("IfEnabledEngineNameDisplayed"));
+		hideEngines.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("IfEnabledEngineNameDisplayed")));
 		hideEngines.setContentAreaFilled(false);
 		hideEngines.addItemListener((ItemEvent e) -> configuration.setHideEngineNames((e.getStateChange() != ItemEvent.SELECTED)));
 
@@ -415,7 +416,7 @@ public class NavigationShareTab {
 
 		addVideoSuffix = new JComboBox<>(videoSuffixKCBM);
 		addVideoSuffix.setEditable(false);
-		addVideoSuffix.setToolTipText(Messages.getGuiString("AddsInformationAboutSelectedSubtitles"));
+		addVideoSuffix.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Basic"), Messages.getGuiString("AddsInformationAboutSelectedSubtitles")));
 
 		videoSuffixKCBM.setSelectedKey(configuration.getSubtitlesInfoLevel());
 
@@ -431,25 +432,25 @@ public class NavigationShareTab {
 
 		// Hide empty folders
 		hideEmptyFolders = new JCheckBox(Messages.getGuiString("HideEmptyFolders"), configuration.isHideEmptyFolders());
-		hideEmptyFolders.setToolTipText(Messages.getGuiString("ThisMakesBrowsingSlower"));
+		hideEmptyFolders.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("ThisMakesBrowsingSlower")));
 		hideEmptyFolders.setContentAreaFilled(false);
 		hideEmptyFolders.addItemListener((ItemEvent e) -> configuration.setHideEmptyFolders((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Flatten folder structure
 		flattenFolders = new JCheckBox(Messages.getGuiString("FlattenFolders"), configuration.isFlattenFolders());
-		flattenFolders.setToolTipText(Messages.getGuiString("FlattenFoldersTooltip"));
+		flattenFolders.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("FlattenFoldersTooltip")));
 		flattenFolders.setContentAreaFilled(false);
 		flattenFolders.addItemListener((ItemEvent e) -> configuration.setFlattenFolders((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Use target file for symlinks
 		useSymlinksTargetFile = new JCheckBox(Messages.getGuiString("UseTargetFileSymbolicLinks"), configuration.isUseSymlinksTargetFile());
-		useSymlinksTargetFile.setToolTipText(Messages.getGuiString("TreatMultipleSymbolicLinks"));
+		useSymlinksTargetFile.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("TreatMultipleSymbolicLinks")));
 		useSymlinksTargetFile.setContentAreaFilled(false);
 		useSymlinksTargetFile.addItemListener((ItemEvent e) -> configuration.setUseSymlinksTargetFile((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Show iTunes library
 		iTunes = new JCheckBox(Messages.getGuiString("ShowItunesLibrary"), false);
-		iTunes.setToolTipText(Messages.getGuiString("IfEnabledThreeNewVirtual"));
+		iTunes.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("IfEnabledThreeNewVirtual")));
 		iTunes.setContentAreaFilled(false);
 		iTunes.setEnabled(false);
 
@@ -493,12 +494,12 @@ public class NavigationShareTab {
 
 		// Ignore the word "the" while sorting
 		ignoreTheWordThe = new JCheckBox(Messages.getGuiString("IgnoreArticlesATheSorting"), configuration.isIgnoreTheWordAandThe());
-		ignoreTheWordThe.setToolTipText(Messages.getGuiString("IfEnabledFilesWillOrdered"));
+		ignoreTheWordThe.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Enabled"), Messages.getGuiString("IfEnabledFilesWillOrdered")));
 		ignoreTheWordThe.setContentAreaFilled(false);
 		ignoreTheWordThe.addItemListener((ItemEvent e) -> configuration.setIgnoreTheWordAandThe((e.getStateChange() == ItemEvent.SELECTED)));
 
 		atzLimit = new JTextField("" + configuration.getATZLimit());
-		atzLimit.setToolTipText(Messages.getGuiString("IfNumberItemsFolderExceeds"));
+		atzLimit.setToolTipText(UMSUtils.buildTooltip("10000", Messages.getGuiString("IfNumberItemsFolderExceeds")));
 		atzLimit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -513,7 +514,7 @@ public class NavigationShareTab {
 		});
 
 		prettifyFilenames = new JCheckBox(Messages.getGuiString("PrettifyFilenames"), configuration.isPrettifyFilenames());
-		prettifyFilenames.setToolTipText(Messages.getGuiString("IfEnabledFilesWillAppear"));
+		prettifyFilenames.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Disabled"), Messages.getGuiString("IfEnabledFilesWillAppear")));
 		prettifyFilenames.setContentAreaFilled(false);
 		prettifyFilenames.addItemListener((ItemEvent e) -> {
 			configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
@@ -521,7 +522,7 @@ public class NavigationShareTab {
 		});
 
 		resume = new JCheckBox(Messages.getGuiString("EnableVideoResuming"), configuration.isResumeEnabled());
-		resume.setToolTipText(Messages.getGuiString("WhenEnabledPartiallyWatchVideo"));
+		resume.setToolTipText(UMSUtils.buildTooltip(Messages.getGuiString("Enabled"), Messages.getGuiString("WhenEnabledPartiallyWatchVideo")));
 		resume.setContentAreaFilled(false);
 		resume.addItemListener((ItemEvent e) -> configuration.setResume((e.getStateChange() == ItemEvent.SELECTED)));
 
