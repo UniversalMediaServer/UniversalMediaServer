@@ -25,6 +25,8 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,6 +70,32 @@ public class MediaScanner implements SharedContentListener {
 	private static final Renderer RENDERER = MediaScannerDevice.getRenderer();
 	private static final MediaScanner INSTANCE = new MediaScanner();
 	private static final List<String> FILES_PARSING = Collections.synchronizedList(new ArrayList<>());
+
+	/**
+	 * File events used to spawn one thread per file! Keep a small pool.
+	 */
+	private static final ExecutorService FILE_EVENT_EXECUTOR = Executors.newFixedThreadPool(
+			Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())),
+			runnable -> {
+				Thread thread = new Thread(runnable, "MediaScanner File Parser");
+				thread.setPriority(Thread.MIN_PRIORITY);
+				return thread;
+			});
+
+	/**
+	 * Partial scans all wait for SCANNER_LOCK anyway, so running them one after another avoids a pile of parked threads.
+	 */
+	private static final ExecutorService PARTIAL_SCAN_EXECUTOR = Executors.newSingleThreadExecutor(
+			runnable -> {
+				Thread thread = new Thread(runnable, "scanFileOrFolder");
+				thread.setPriority(Thread.MIN_PRIORITY);
+				return thread;
+			});
+
+	/**
+	 * Upper bound for the wait on a file that is still being written.
+	 */
+	private static final int MAX_FILE_SETTLE_WAITS = 120;
 
 	@GuardedBy("DEFAULT_FOLDERS_LOCK")
 	private static List<String> defaultFolders = null;
@@ -239,8 +267,7 @@ public class MediaScanner implements SharedContentListener {
 					scanFileOrFolder(filename);
 				}
 			};
-			Thread scanThread = new Thread(scan, "scanFileOrFolder");
-			scanThread.start();
+			PARTIAL_SCAN_EXECUTOR.execute(scan);
 		}
 	}
 
@@ -282,13 +309,8 @@ public class MediaScanner implements SharedContentListener {
 			} else {
 				LOGGER.debug("Scanning folder \"{}\"", file.getAbsolutePath());
 			}
+
 			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-			if (systemFileResources.isEmpty()) {
-				if (isInSharedFolders(filename)) {
-					internalScanFileOrFolder(filename);
-					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-				}
-			}
 			if (!systemFileResources.isEmpty()) {
 				//if it is still empty, it mean the tree is no more accessible
 				for (StoreResource storeResource : systemFileResources) {
@@ -298,7 +320,9 @@ public class MediaScanner implements SharedContentListener {
 					}
 				}
 			} else {
-				LOGGER.warn("Given folder was not found in store : " + file.getAbsolutePath());
+				// A folder that is not in the store yet is a normal state during a scan,
+				// not something the user has to act on.
+				LOGGER.debug("Given folder was not found in store : " + file.getAbsolutePath());
 			}
 		} else {
 			LOGGER.warn("Given file or folder doesn't share same base path as this server : " + filename);
@@ -363,7 +387,7 @@ public class MediaScanner implements SharedContentListener {
 				}
 			}
 		};
-		new Thread(r, "MediaScanner File Parser - update").start();
+		FILE_EVENT_EXECUTOR.execute(r);
 	}
 
 	private synchronized static final Pattern getFileExtensionAllowlistPattern() {
@@ -435,8 +459,16 @@ public class MediaScanner implements SharedContentListener {
 				//wait 500 ms
 				Thread.sleep(500);
 				//Check if size changed (copying, downloading)
+				int waits = 0;
 				while (file.exists() && (currentSize != file.length() || FileUtil.isLocked(file))) {
 					//loop until file size is not changing anymore and file is unlocked.
+					if (waits++ >= MAX_FILE_SETTLE_WAITS) {
+						LOGGER.debug("Giving up waiting for file {} to be fully written", filename);
+						synchronized (FILES_PARSING) {
+							FILES_PARSING.remove(filename);
+						}
+						return;
+					}
 					LOGGER.trace("Waiting until file {} is fully written", filename);
 					currentSize = file.length();
 					Thread.sleep(500);
@@ -510,7 +542,7 @@ public class MediaScanner implements SharedContentListener {
 				Thread.currentThread().interrupt();
 			}
 		};
-		new Thread(r, "MediaScanner File Parser").start();
+		FILE_EVENT_EXECUTOR.execute(r);
 	}
 
 	private static void addFolderEntry(File directory) {
