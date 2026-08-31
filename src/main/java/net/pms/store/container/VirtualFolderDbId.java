@@ -50,15 +50,42 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 
 	private final DbIdTypeAndIdent typeIdent;
 
+	// What the last query returned, to tell a real change from a plain re-read
+	private List<String> lastChildren = null;
+
 	public VirtualFolderDbId(Renderer renderer, String i18nName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, i18nName, null);
 		this.typeIdent = typeIdent;
 		setId(typeIdent.toString());
 	}
 
+	/**
+	 * This folder holds is a query result over data that changes outside the store.
+	 */
 	@Override
 	public boolean isDiscovered() {
 		return false;
+	}
+
+	/**
+	 * Only report what really differs.
+	 */
+	@Override
+	protected void notifyRefresh() {
+		List<String> currentChildren = childrenSnapshot();
+		if (currentChildren.equals(lastChildren)) {
+			return;
+		}
+		lastChildren = currentChildren;
+		super.notifyRefresh();
+	}
+
+	private List<String> childrenSnapshot() {
+		List<String> names = new ArrayList<>();
+		for (StoreResource child : getChildren()) {
+			names.add(child.getSystemName());
+		}
+		return names;
 	}
 
 	@Override
