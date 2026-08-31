@@ -544,7 +544,7 @@ public class UmsContentDirectoryService {
 	}
 
 	//FIXME : this should sit in net.​pms.​store side.
-	private StoreResource createEmptyItem(StoreContainer storeContainer, String title) {
+	private StoreResource createEmptyItem(StoreContainer storeContainer, String title) throws ContentDirectoryException {
 		File newItem = new File(storeContainer.getFileName(), title);
 		if (!newItem.exists()) {
 			try {
@@ -583,6 +583,8 @@ public class UmsContentDirectoryService {
 					return null;
 				}
 				LOGGER.info("Cannot create file {} because it already exists with a size of {}", newItem.getAbsolutePath(), Files.size(newItem.toPath()));
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED,
+						"an object named \"" + title + "\" already exists in this container and is not an empty stub");
 			} catch (IOException e) {
 				LOGGER.warn("cannot access file item size", e);
 			}
