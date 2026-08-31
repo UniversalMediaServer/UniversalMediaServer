@@ -803,10 +803,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		if (isHttp10(req)) {
 			resp.setHeader("Expires", getFutureDate() + " GMT");
 		} else {
-			// The picture behind this url can be replaced - a new folder.jpg, a new embedded cover -
-			// so the client has to ask. It may keep the bytes: the If-None-Match above is answered
-			// with 304 before anything is read or decoded, which is what a day of max-age used to
-			// save. What that day cost was a cover nobody could see until it expired.
+			// We have ETag support
 			resp.setHeader("Cache-Control", "no-cache");
 		}
 
@@ -877,8 +874,6 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			if (isHttp10(req)) {
 				resp.setHeader("Expires", getFutureDate() + " GMT");
 			} else {
-				// A subtitle file can be replaced or refetched too, and the If-None-Match above
-				// answers 304 before it is opened.
 				resp.setHeader("Cache-Control", "no-cache");
 			}
 			MediaSubtitle sub = item.getMediaSubtitle();
