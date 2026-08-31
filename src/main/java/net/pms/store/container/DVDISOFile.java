@@ -86,7 +86,7 @@ public class DVDISOFile extends StoreContainer {
 	public void discoverChildren() {
 		resolve();
 	}
-	
+
 	@Override
 	protected void resolveOnce() {
 		Map<Integer, Double> titles = new HashMap<>();
