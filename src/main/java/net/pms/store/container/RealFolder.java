@@ -120,6 +120,14 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 	}
 
 	/**
+	 * Forgets what was resolved, so the next browse asks the database again.
+	 */
+	public void resetAlbumMetadata() {
+		albumResolved = false;
+		albumMetadata = null;
+	}
+
+	/**
 	 * An album holds its tracks and nothing that browses further. A folder that
 	 * also contains sub folders or playlists is a place where music is filed, not
 	 * an album, even when the tracks in it happen to share a release id.

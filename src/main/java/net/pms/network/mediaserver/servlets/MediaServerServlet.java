@@ -426,7 +426,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				if (isHttp10(req)) {
 					resp.setHeader("Expires", getFutureDate() + " GMT");
 				} else {
-					resp.setHeader("Cache-Control", "max-age=86400");
+					// We have ETag support
+					resp.setHeader("Cache-Control", "no-cache");
 				}
 				try {
 					InputStream imageInputStream;
@@ -802,7 +803,11 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		if (isHttp10(req)) {
 			resp.setHeader("Expires", getFutureDate() + " GMT");
 		} else {
-			resp.setHeader("Cache-Control", "max-age=86400");
+			// The picture behind this url can be replaced - a new folder.jpg, a new embedded cover -
+			// so the client has to ask. It may keep the bytes: the If-None-Match above is answered
+			// with 304 before anything is read or decoded, which is what a day of max-age used to
+			// save. What that day cost was a cover nobody could see until it expired.
+			resp.setHeader("Cache-Control", "no-cache");
 		}
 
 		DLNAThumbnailInputStream thumbInputStream;
@@ -872,7 +877,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			if (isHttp10(req)) {
 				resp.setHeader("Expires", getFutureDate() + " GMT");
 			} else {
-				resp.setHeader("Cache-Control", "max-age=86400");
+				// A subtitle file can be replaced or refetched too, and the If-None-Match above
+				// answers 304 before it is opened.
+				resp.setHeader("Cache-Control", "no-cache");
 			}
 			MediaSubtitle sub = item.getMediaSubtitle();
 			if (sub != null) {

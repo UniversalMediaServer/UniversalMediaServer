@@ -889,7 +889,12 @@ public class MediaStore extends StoreContainer {
 				rf.doRefreshChildren();
 				LOGGER.debug("Folder {} updated, media info refreshed and children refreshed.", file.toString());
 			}
-			storeResource.getParent().discoverChildren();
+			StoreContainer parent = storeResource.getParent();
+			if (parent instanceof RealFolder realFolder) {
+				realFolder.resetAlbumMetadata();
+				refreshedIds.add(parent.getLongId());
+			}
+			parent.discoverChildren();
 		}
 		return refreshedIds;
 	}
