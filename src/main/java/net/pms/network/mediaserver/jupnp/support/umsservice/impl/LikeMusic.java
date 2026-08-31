@@ -98,7 +98,7 @@ public class LikeMusic {
 			}
 			MediaTableResourceRatings.setAlbumLiked(connection, type, ident, liked);
 			StoreResourceRatings.clearCache();
-			MediaStoreIds.incrementUpdateIdForFilename(connection, type.getResourceKey(ident));
+			MediaStoreIds.incrementUpdateIdForFilenameWithAncestors(connection, type.getResourceKey(ident));
 			LOGGER.debug("{} album with {}{}", liked ? "liked" : "disliked", type, ident);
 		} catch (SQLException e) {
 			LOGGER.warn("{} album failed : ", liked ? "like" : "dislike", e);

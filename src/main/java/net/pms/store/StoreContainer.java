@@ -474,8 +474,25 @@ public class StoreContainer extends StoreResource {
 	protected void refreshChildrenIfNeeded() {
 		if (isDiscovered() && isRefreshNeeded()) {
 			refreshChildren();
+			notifyRefreshIfChanged();
+		}
+	}
+
+	/**
+	 * Reports a change, but only if the children really differ from the last report.
+	 */
+	protected void notifyRefreshIfChanged() {
+		if (MediaStoreIds.isReportableChange(getLongId(), childrenSignature())) {
 			notifyRefresh();
 		}
+	}
+
+	private String childrenSignature() {
+		StringBuilder names = new StringBuilder();
+		for (StoreResource child : children) {
+			names.append(child.getSystemName()).append('\n');
+		}
+		return children.size() + ":" + names.toString().hashCode();
 	}
 
 	private void addDynamicPls(final StoreResource child) {
@@ -747,7 +764,7 @@ public class StoreContainer extends StoreResource {
 
 			discoverChildren();
 			setDiscovered(true);
-			notifyRefresh();
+			notifyRefreshIfChanged();
 		} else {
 			// if forced, then call the old 'refreshChildren' method
 			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);
@@ -762,7 +779,7 @@ public class StoreContainer extends StoreResource {
 				// doRefreshChildren, which is what happens below
 				// (refreshChildren is not overridden in VirtualFile)
 				if (refreshChildren()) {
-					notifyRefresh();
+					notifyRefreshIfChanged();
 				} else {
 					sortChildrenIfNeeded();
 				}
@@ -771,7 +788,7 @@ public class StoreContainer extends StoreResource {
 				// pair.
 				if (isRefreshNeeded()) {
 					doRefreshChildren();
-					notifyRefresh();
+					notifyRefreshIfChanged();
 				} else {
 					sortChildrenIfNeeded();
 				}

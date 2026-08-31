@@ -37,6 +37,7 @@ import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.util.StringUtil;
 
@@ -50,8 +51,8 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 
 	private final DbIdTypeAndIdent typeIdent;
 
-	// What the last query returned, to tell a real change from a plain re-read
-	private List<String> lastChildren = null;
+	// System update id the children were built at. -1 means never built.
+	private long builtAtSystemUpdateId = -1;
 
 	public VirtualFolderDbId(Renderer renderer, String i18nName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, i18nName, null);
@@ -60,32 +61,11 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	}
 
 	/**
-	 * This folder holds is a query result over data that changes outside the store.
+	 * This folder is a database query, and its result can only differ once something in the store was written.
 	 */
 	@Override
-	public boolean isDiscovered() {
-		return false;
-	}
-
-	/**
-	 * Only report what really differs.
-	 */
-	@Override
-	protected void notifyRefresh() {
-		List<String> currentChildren = childrenSnapshot();
-		if (currentChildren.equals(lastChildren)) {
-			return;
-		}
-		lastChildren = currentChildren;
-		super.notifyRefresh();
-	}
-
-	private List<String> childrenSnapshot() {
-		List<String> names = new ArrayList<>();
-		for (StoreResource child : getChildren()) {
-			names.add(child.getSystemName());
-		}
-		return names;
+	public boolean isRefreshNeeded() {
+		return builtAtSystemUpdateId != MediaStoreIds.getSystemUpdateId().getValue();
 	}
 
 	@Override
@@ -389,6 +369,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 						}
 					}
 				}
+				builtAtSystemUpdateId = MediaStoreIds.getSystemUpdateId().getValue();
 			} else {
 				LOGGER.error("database not available !");
 			}

@@ -50,6 +50,13 @@ public class MediaStoreIds {
 	private static final Map<Long, UnsignedIntegerFourBytes> CHANGED_IDS = new ConcurrentHashMap<>();
 	private static final int MAX_CHANGED_IDS = 64;
 
+	// The content a container last reported
+	private static final Map<Long, String> LAST_REPORTED = new ConcurrentHashMap<>();
+	private static final int MAX_LAST_REPORTED = 2048;
+
+	/** A store path deeper than this is broken, see getMediaStoreResourceTree(). */
+	private static final int MAX_TREE_DEPTH = 100;
+
 	/** Guards the shared system update id counter only, never a database call. */
 	private static final Object SYSTEM_UPDATE_ID_LOCK = new Object();
 
@@ -409,6 +416,51 @@ public class MediaStoreIds {
 		}
 	}
 
+
+	/**
+	 * Whether the given container differs from what it last reported
+	 */
+	public static boolean isReportableChange(long id, String contentSignature) {
+		if (LAST_REPORTED.size() >= MAX_LAST_REPORTED && !LAST_REPORTED.containsKey(id)) {
+			LAST_REPORTED.clear();
+		}
+		return !contentSignature.equals(LAST_REPORTED.put(id, contentSignature));
+	}
+
+	/**
+	 * Bumps every store id of the given name and the containers holding them.
+	 */
+	public static void incrementUpdateIdForFilenameWithAncestors(Connection connection, String filename) {
+		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, filename);
+		Set<Long> toBump = new LinkedHashSet<>();
+		for (Long id : ids) {
+			if (id != null && id != -1) {
+				toBump.add(id);
+				collectAncestors(connection, id, toBump);
+			}
+		}
+		for (Long id : toBump) {
+			incrementUpdateId(connection, id);
+		}
+		LOGGER.trace("Bumped {} id(s) for \"{}\" and their containers: {}", ids.size(), filename, toBump);
+	}
+
+	/**
+	 * Collects the containers above the given id.
+	 */
+	private static void collectAncestors(Connection connection, long id, Set<Long> collected) {
+		MediaStoreId current = MediaTableStoreIds.getMediaStoreId(connection, id);
+		int depth = 0;
+		while (current != null && current.getParentId() != 0) {
+			collected.add(current.getParentId());
+			current = MediaTableStoreIds.getMediaStoreId(connection, current.getParentId());
+			depth++;
+			if (depth > MAX_TREE_DEPTH) {
+				LOGGER.trace("MediaStore path is more than {} entries, something was wrong", MAX_TREE_DEPTH);
+				return;
+			}
+		}
+	}
 
 	private static void trackChangedId(long id, long updateId) {
 		if (CHANGED_IDS.size() >= MAX_CHANGED_IDS && !CHANGED_IDS.containsKey(id)) {

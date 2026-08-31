@@ -117,8 +117,7 @@ public class StoreResourceRatings {
 			MediaTableResourceRatings.setRating(connection, ratingKey, resource.getClass().getSimpleName(), rating);
 			CACHE.put(ratingKey, rating);
 			updateAudioMetadata(connection, resource, rating);
-			//let all renderers know that every tree position of this resource changed
-			MediaStoreIds.incrementUpdateIdForFilename(connection, ratingKey);
+			MediaStoreIds.incrementUpdateIdForFilenameWithAncestors(connection, ratingKey);
 		} finally {
 			MediaDatabase.close(connection);
 		}
@@ -130,8 +129,7 @@ public class StoreResourceRatings {
 	}
 
 	/**
-	 * Mirrors the rating of an audio file into the audio metadata, the
-	 * AUDIO_METADATA table and, if enabled, the tag of the file itself.
+	 * Mirrors the rating of an audio file into the audio metadata, the AUDIO_METADATA table and, if enabled, the tag of the file itself.
 	 */
 	private static void updateAudioMetadata(Connection connection, StoreResource resource, Integer rating) {
 		MediaAudioMetadata audioMetadata = getAudioMetadata(resource);
