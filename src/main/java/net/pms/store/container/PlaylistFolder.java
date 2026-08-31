@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -100,6 +101,9 @@ public final class PlaylistFolder extends StoreContainer {
 
 	// Set once the browse has been answered, so entries that resolve later make renderers refresh.
 	private final AtomicBoolean webEntriesResponded = new AtomicBoolean(false);
+
+	// Counts the passes of resolveOnce(). An entry that arrives from an older pass belongs to a children list that no longer exists
+	private final AtomicLong resolveGeneration = new AtomicLong();
 
 	private static final ExecutorService WEB_ENTRY_EXECUTOR =
 		Executors.newFixedThreadPool(Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())), r -> {
@@ -373,6 +377,7 @@ public final class PlaylistFolder extends StoreContainer {
 		applyPlaylistRatingDirective();
 		prefetchLocalEntries(entries);
 		webEntriesResponded.set(false);
+		final long generation = resolveGeneration.incrementAndGet();
 		List<CompletableFuture<ResolvedWebEntry>> webEntryFutures = new ArrayList<>();
 		for (Entry entry : entries) {
 			if (entry == null) {
@@ -419,7 +424,7 @@ public final class PlaylistFolder extends StoreContainer {
 				} else {
 					LOGGER.debug("Web playlist entry queued for async resolve: {}", u);
 					webEntryFutures.add(CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR)
-						.whenComplete((resolved, failure) -> addResolvedWebEntry(containerId, resolved, failure)));
+						.whenComplete((resolved, failure) -> addResolvedWebEntry(containerId, generation, resolved, failure)));
 				}
 			}
 		}
@@ -476,7 +481,7 @@ public final class PlaylistFolder extends StoreContainer {
 	/**
 	 * Adds a resolved web entry and stores it. A late entry bumps the update id of this folder, so renderers ask again and see it.
 	 */
-	private void addResolvedWebEntry(Long containerId, ResolvedWebEntry resolved, Throwable failure) {
+	private void addResolvedWebEntry(Long containerId, long generation, ResolvedWebEntry resolved, Throwable failure) {
 		if (failure != null) {
 			Throwable cause = (failure instanceof CompletionException && failure.getCause() != null) ? failure.getCause() : failure;
 			if (cause instanceof WebEntryResolveException re && re.entry != null) {
@@ -487,6 +492,15 @@ public final class PlaylistFolder extends StoreContainer {
 			return;
 		}
 		if (resolved == null || resolved.resource() == null) {
+			return;
+		}
+
+		if (generation != resolveGeneration.get()) {
+			LOGGER.debug("Dropping web playlist entry {} from an outdated resolve pass", resolved.url());
+			return;
+		}
+		if (hasChildWithSystemName(resolved.resource().getSystemName())) {
+			LOGGER.debug("Web playlist entry {} is already listed", resolved.url());
 			return;
 		}
 		try {
@@ -637,13 +651,27 @@ public final class PlaylistFolder extends StoreContainer {
 	 * finds it in the database and does not have to wait for the network again.
 	 */
 	private void warmWebEntry(String url) {
-		try {
-			int type = WebStreamParser.getWebStreamType(url, defaultContent);
-			MediaInfoStore.getWebStreamMediaInfo(url, type);
-			MediaTableFiles.getOrInsertFileId(url, 0L, type);
-		} catch (Exception e) {
-			LOGGER.debug("could not resolve the new playlist entry {} up front: {}", url, e.getMessage());
+		WEB_ENTRY_EXECUTOR.execute(() -> {
+			try {
+				int type = WebStreamParser.getWebStreamType(url, defaultContent);
+				MediaInfoStore.getWebStreamMediaInfo(url, type);
+				MediaTableFiles.getOrInsertFileId(url, 0L, type);
+			} catch (Exception e) {
+				LOGGER.debug("could not resolve the new playlist entry {} up front: {}", url, e.getMessage());
+			}
+		});
+	}
+
+	private boolean hasChildWithSystemName(String systemName) {
+		if (systemName == null) {
+			return false;
 		}
+		for (StoreResource child : new ArrayList<>(getChildren())) {
+			if (child != null && systemName.equals(child.getSystemName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
