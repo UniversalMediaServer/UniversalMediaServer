@@ -422,15 +422,21 @@ public class ConnectedRenderers {
 	}
 
 	public static void resetAllRenderers() {
-		for (Renderer r : getConnectedRenderers()) {
+		for (Renderer r : getRenderersWithMediaStore()) {
 			r.resetMediaStore();
 		}
-		// The control-point renderer holds the CDS object tree in the non-authenticated (3-box)
-		// mode but is not part of the connected renderers, so reset its media store explicitly.
+	}
+
+	/*
+	 * Connected renderers plus the control point
+	 */
+	public static Collection<Renderer> getRenderersWithMediaStore() {
+		Collection<Renderer> renderers = new LinkedHashSet<>(getConnectedRenderers());
 		Renderer controlPoint = ControlPoint.getRenderer();
 		if (controlPoint != null) {
-			controlPoint.resetMediaStore();
+			renderers.add(controlPoint);
 		}
+		return renderers;
 	}
 
 	public static List<Renderer> getInheritors(Renderer renderer) {
@@ -686,7 +692,7 @@ public class ConnectedRenderers {
 	public static void invalidateRendererCache(File file) {
 		MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
 		Set<Long> refreshedIds = new LinkedHashSet<>();
-		for (Renderer connectedRenderer : getConnectedRenderers()) {
+		for (Renderer connectedRenderer : getRenderersWithMediaStore()) {
 			MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
 			if (rendererStore != null) {
 				refreshedIds.addAll(rendererStore.fileUpdated(file));

@@ -563,7 +563,7 @@ public class MediaScanner implements SharedContentListener {
 							}
 
 							if (advise || isCrawlingParentDirectory) {
-								for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+								for (Renderer connectedRenderer : ConnectedRenderers.getRenderersWithMediaStore()) {
 									MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
 									if (rendererStore != null) {
 										rendererStore.fileAdded(file);
@@ -628,7 +628,7 @@ public class MediaScanner implements SharedContentListener {
 		//folder may be empty
 		File folder = new File(filename);
 		Set<Long> refreshedIds = new LinkedHashSet<>();
-		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+		for (Renderer connectedRenderer : ConnectedRenderers.getRenderersWithMediaStore()) {
 			MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
 			if (rendererStore != null) {
 				refreshedIds.addAll(rendererStore.fileRemoved(folder));
@@ -645,7 +645,7 @@ public class MediaScanner implements SharedContentListener {
 		if (MediaInfoStore.removeMediaEntry(filename)) {
 			File file = new File(filename);
 			Set<Long> refreshedIds = new LinkedHashSet<>();
-			for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+			for (Renderer connectedRenderer : ConnectedRenderers.getRenderersWithMediaStore()) {
 				MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
 				if (rendererStore != null) {
 					refreshedIds.addAll(rendererStore.fileRemoved(file));
