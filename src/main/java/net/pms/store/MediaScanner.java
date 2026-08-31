@@ -607,6 +607,22 @@ public class MediaScanner implements SharedContentListener {
 		}
 	}
 
+	/**
+	 * Updates cover
+	 */
+	private static void coverChanged(File cover) {
+		File folder = cover.getParentFile();
+		if (folder == null) {
+			return;
+		}
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(folder.getAbsolutePath(), RealFolder.class);
+		if (ids.isEmpty()) {
+			return;
+		}
+		LOGGER.debug("Cover {} changed, refreshing folder {}", cover.getName(), folder.getAbsolutePath());
+		MediaStoreIds.incrementUpdateIds(ids);
+	}
+
 	private static void removeFolderEntry(String filename) {
 		LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 		//folder may be empty
@@ -659,6 +675,9 @@ public class MediaScanner implements SharedContentListener {
 					removeFolderEntry(filename);
 				}
 			} else {
+				if (SystemFilesHelper.isPotentialThumbnail(f.getName())) {
+					coverChanged(f);
+				}
 				if (ENTRY_CREATE.equals(event)) {
 					parseFileEntry(f, true, false);
 				} else if (ENTRY_DELETE.equals(event)) {
