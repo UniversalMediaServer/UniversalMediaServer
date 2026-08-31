@@ -92,6 +92,11 @@ public class DVDISOFile extends StoreContainer {
 	}
 
 	@Override
+	public void discoverChildren() {
+		resolve();
+	}
+
+	@Override
 	protected void resolveOnce() {
 		Map<Integer, Double> titles = new HashMap<>();
 		volumeId = MPlayerParser.parseIsoFile(file, titles);
