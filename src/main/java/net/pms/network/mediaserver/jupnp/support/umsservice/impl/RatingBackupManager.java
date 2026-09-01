@@ -218,8 +218,17 @@ public class RatingBackupManager {
 			} else if (key.startsWith(PORTABLE_PREFIX)) {
 				addEntry(portableEntries, key, PORTABLE_PREFIX, rating, counters);
 			} else {
+				counters.obsoleteFormat++;
 				counters.skipped++;
 			}
+		}
+
+		if (counters.obsoleteFormat > 0) {
+			LOGGER.warn("[restoreRating] ignored {} entries in the obsolete \"ruid=rating\" format. They were written by a UMS " +
+				"that kept ratings in AUDIO_METADATA. {}", counters.obsoleteFormat,
+				resourceEntries.isEmpty() && contentEntries.isEmpty() && portableEntries.isEmpty() ?
+					"The backup file holds nothing else, so no rating was restored and none was deleted." :
+					"The rest of the file describes the same ratings and was restored.");
 		}
 
 		//the resource keys written in this run, so a rating is not applied twice
@@ -395,6 +404,7 @@ public class RatingBackupManager {
 		private int byContent;
 		private int byRelativePath;
 		private int missingPaths;
+		private int obsoleteFormat;
 	}
 
 }
