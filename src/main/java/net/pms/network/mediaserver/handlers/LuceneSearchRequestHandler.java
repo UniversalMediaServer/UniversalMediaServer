@@ -95,11 +95,13 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 	 * in an empty Lucene expression, because upnp:class is handled in the SQL WHERE clause
 	 * and not by the fulltext index.
 	 *
+	 * It also fails on upnp:rating because it is not in the fulltext index.
+	 *
 	 * @return true if this handler can process the search criteria
 	 */
 	@Override
 	public boolean canHandle() {
-		return StringUtils.isNotBlank(luceneQuery);
+		return StringUtils.isNotBlank(luceneQuery) && !usesRating();
 	}
 
 	private int getCount() {
@@ -175,7 +177,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 	private String addSqlSelectByType() {
 		switch (getRequestType()) {
 			case TYPE_AUDIO -> {
-				String sql = "SELECT A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('%s', %d, %d) FT " +
+				String sql = "SELECT A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, FT.SCORE, F.ID AS OID FROM FTL_SEARCH_DATA('%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A  ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID WHERE FT.\"TABLE\" = 'AUDIO_METADATA'";
 				return getFormattedLuceneString(luceneQuery, sql);
 			}
@@ -232,7 +234,7 @@ public class LuceneSearchRequestHandler extends BaseSearchRequestHandler {
 		switch (getRequestType()) {
 			case TYPE_AUDIO -> {
 				String sql = getTreeStatement(subtreeId) +
-					"SELECT FT.SCORE, A.RATING, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE " +
+					"SELECT FT.SCORE, A.GENRE, F.FILENAME, F.MODIFIED, F.ID AS FID, F.ID AS OID, FT.SCORE " +
 					"FROM FTL_SEARCH_DATA('%s', %d, %d) FT " +
 					"JOIN AUDIO_METADATA A ON A.FILEID = FT.KEYS[1] JOIN FILES F ON F.ID = A.FILEID " +
 					getTreeWhereStatement("AUDIO_METADATA", subtreeId, false);

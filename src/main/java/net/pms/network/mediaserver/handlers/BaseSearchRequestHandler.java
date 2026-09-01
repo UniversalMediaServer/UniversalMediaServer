@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
+import net.pms.database.MediaTableResourceRatings;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
 import net.pms.media.audio.metadata.AlbumMetadata;
@@ -93,7 +94,8 @@ public abstract class BaseSearchRequestHandler {
 		} else if ("upnp:album".equals(property)) {
 			return " A.ALBUM ";
 		} else if ("upnp:rating".equals(property)) {
-			return " rating ";
+			// RESOURCE_RATINGS only. AUDIO_METADATA.RATING is just the tag mirror.
+			return " RR." + MediaTableResourceRatings.COL_RATING + " ";
 		} else if ("ums:likedalbum".equals(property)) {
 			// Makes less sense in a  score based search. Maybe we can use this property in a future implementation to mark albums as
 			// liked in the database and then use this information to boost the score of liked albums in the search results.
@@ -234,6 +236,17 @@ public abstract class BaseSearchRequestHandler {
 
 	protected List<SearchToken> getTokens() {
 		return tokens;
+	}
+
+	/**
+	 * @return true if the request references upnp:rating, as criterion or as sort key
+	 */
+	protected boolean usesRating() {
+		if (tokens.stream().anyMatch(token -> "upnp:rating".equalsIgnoreCase(token.attr()))) {
+			return true;
+		}
+		String sortCriteria = requestMessage.getSortCriteria();
+		return sortCriteria != null && sortCriteria.toLowerCase().contains("upnp:rating");
 	}
 
 	protected static UmsConfiguration getUmsConfiguration() {

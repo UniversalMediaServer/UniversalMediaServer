@@ -1,6 +1,7 @@
 package net.pms.network.mediaserver.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -28,6 +29,7 @@ import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableResourceRatings;
 import net.pms.database.MediaTableStoreIds;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
@@ -602,6 +604,64 @@ public class SearchRequestDatabaseTest {
 		assertEquals("Jazz.m3u8", foundResource.getName());
 	}
 
+
+	/**
+	 * Liked playlists : the rating is keyed on the playlist file path in RESOURCE_RATINGS.
+	 */
+	@Test
+	public void testGlobalLikedPlaylistSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("( upnp:class derivedfrom \"object.container.playlistContainer\" and upnp:rating = \"5\" )");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		assertFalse(new LuceneSearchRequestHandler(sr).canHandle(), "a rating search must fall back to the database handler");
+		assertEquals(0, new DbSearchRequestHandler(sr).getSearchCountElements(sr), "nothing is liked yet");
+
+		StoreResource playlist = findJazzPlaylist();
+		playlist.setRating(MediaTableResourceRatings.RATING_LIKED);
+		try {
+			DbSearchRequestHandler handler = new DbSearchRequestHandler(sr);
+			assertEquals(1, handler.getSearchCountElements(sr));
+			List<StoreResource> resources = handler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+			assertEquals(1, resources.size());
+			assertEquals("Jazz.m3u8", resources.get(0).getName());
+		} finally {
+			playlist.setRating(null);
+		}
+
+		assertEquals(0, new DbSearchRequestHandler(sr).getSearchCountElements(sr), "the like was taken back");
+	}
+
+	/**
+	 * A search without a rating criterion must not be narrowed by the RESOURCE_RATINGS join.
+	 */
+	@Test
+	public void testPlaylistSearchIgnoresRatingWhenNotAsked() {
+		StoreResource playlist = findJazzPlaylist();
+		playlist.setRating(null);
+
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"Jazz\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		assertEquals(1, new DbSearchRequestHandler(sr).getSearchCountElements(sr));
+	}
+
+	private StoreResource findJazzPlaylist() {
+		SearchRequest byTitle = new SearchRequest();
+		byTitle.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"Jazz\"");
+		byTitle.setContainerId("0");
+		byTitle.setRequestedCount(0);
+		byTitle.setStartingIndex(0);
+		List<StoreResource> found = new LuceneSearchRequestHandler(byTitle)
+			.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, found.size());
+		return found.get(0);
+	}
 
 	@Test
 	public void testGlobalVideoSearch() {

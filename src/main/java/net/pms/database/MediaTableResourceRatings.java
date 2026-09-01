@@ -50,9 +50,9 @@ public final class MediaTableResourceRatings extends MediaTable {
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_ID = "ID";
-	private static final String COL_RESOURCE_KEY = "RESOURCE_KEY";
+	public static final String COL_RESOURCE_KEY = "RESOURCE_KEY";
 	private static final String COL_OBJECT_TYPE = "OBJECT_TYPE";
-	private static final String COL_RATING = "RATING";
+	public static final String COL_RATING = "RATING";
 	private static final String COL_MODIFIED = "MODIFIED";
 
 	/**
