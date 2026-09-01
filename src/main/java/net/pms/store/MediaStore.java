@@ -854,6 +854,24 @@ public class MediaStore extends StoreContainer {
 		return refreshedIds;
 	}
 
+	/*
+	 * Called once the file was parsed, so the folder asks the database again with the new tags.
+	 */
+	public List<Long> audioMetadataUpdated(File file) {
+		List<Long> refreshedIds = new ArrayList<>();
+		File parentFile = file.getParentFile();
+		if (parentFile == null) {
+			return refreshedIds;
+		}
+		for (StoreResource storeResource : findSystemFileResources(parentFile)) {
+			if (storeResource instanceof RealFolder realFolder) {
+				realFolder.resetAlbumMetadata();
+				refreshedIds.add(realFolder.getLongId());
+			}
+		}
+		return refreshedIds;
+	}
+
 	public void fileAdded(File file) {
 		File parentFile = file.getParentFile();
 		for (StoreResource storeResource : findSystemFileResources(parentFile)) {
@@ -890,10 +908,7 @@ public class MediaStore extends StoreContainer {
 				LOGGER.debug("Folder {} updated, media info refreshed and children refreshed.", file.toString());
 			}
 			StoreContainer parent = storeResource.getParent();
-			if (parent instanceof RealFolder realFolder) {
-				realFolder.resetAlbumMetadata();
-				refreshedIds.add(parent.getLongId());
-			}
+			refreshedIds.add(parent.getLongId());
 			parent.discoverChildren();
 		}
 		return refreshedIds;

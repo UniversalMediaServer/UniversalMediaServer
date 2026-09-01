@@ -562,6 +562,8 @@ public class MediaScanner implements SharedContentListener {
 								System.gc();
 							}
 
+							ConnectedRenderers.audioMetadataChanged(file);
+
 							if (advise || isCrawlingParentDirectory) {
 								for (Renderer connectedRenderer : ConnectedRenderers.getRenderersWithMediaStore()) {
 									MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();

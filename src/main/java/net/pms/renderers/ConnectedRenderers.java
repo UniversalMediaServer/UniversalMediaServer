@@ -689,6 +689,20 @@ public class ConnectedRenderers {
 	 * Invalidates renderer caches for given file resource.
 	 * @param file
 	 */
+	/*
+	 * The folder holding this file may have become an album, or stopped being one.
+	 */
+	public static void audioMetadataChanged(File file) {
+		Set<Long> refreshedIds = new LinkedHashSet<>();
+		for (Renderer renderer : getRenderersWithMediaStore()) {
+			MediaStore rendererStore = renderer.getMediaStoreIfInitialized();
+			if (rendererStore != null) {
+				refreshedIds.addAll(rendererStore.audioMetadataUpdated(file));
+			}
+		}
+		MediaStoreIds.incrementUpdateIds(refreshedIds);
+	}
+
 	public static void invalidateRendererCache(File file) {
 		MediaInfoStore.removeMediaEntryFromCache(file.getAbsolutePath());
 		Set<Long> refreshedIds = new LinkedHashSet<>();
