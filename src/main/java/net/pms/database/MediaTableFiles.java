@@ -176,6 +176,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 	private static final String SQL_GET_RESOURCE_UID_BY_FILENAME = SELECT + COL_RESOURCE_UID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_UPDATE_RESOURCE_UID_BY_FILENAME = UPDATE + TABLE_NAME + SET + COL_RESOURCE_UID + EQUAL + PARAMETER + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_FILENAMES_BY_RESOURCE_UID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + COL_RESOURCE_UID + EQUAL + PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_USER_THUMBID_BY_FILENAME = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME +
@@ -1417,6 +1418,20 @@ public class MediaTableFiles extends MediaTable {
 			LOGGER.error(null, se);
 		}
 		return null;
+	}
+
+	public static void updateResourceUidForFilename(final Connection connection, final String filename, final String resourceUid) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_RESOURCE_UID_BY_FILENAME)) {
+			statement.setString(1, resourceUid);
+			statement.setString(2, filename);
+			statement.executeUpdate();
+		} catch (SQLException se) {
+			LOGGER.error("cannot store the resource identifier of \"{}\" : {}", filename, se.getMessage());
+			LOGGER.trace("", se);
+		}
 	}
 
 	/**

@@ -544,18 +544,19 @@ public class JaudiotaggerParser {
 	 *
 	 * @param filename the audio file to update
 	 * @param ratingInStars the rating (0 - 5 stars), or NULL to remove the rating
+	 * @return true if the file was actually rewritten, which changes its content hash
 	 */
-	public static void writeRatingToFile(String filename, Integer ratingInStars) {
+	public static boolean writeRatingToFile(String filename, Integer ratingInStars) {
 		if (StringUtils.isEmpty(filename)) {
 			LOGGER.warn("cannot update rating in file. Filename is empty or NULL");
-			return;
+			return false;
 		}
 		try {
 			AudioFile audioFile = AudioFileIO.read(new File(filename));
 			Tag tag = audioFile.getTag();
 			if (tag == null) {
 				LOGGER.warn("cannot update rating in file \"{}\". No tag found.", filename);
-				return;
+				return false;
 			}
 			if (ratingInStars == null) {
 				tag.deleteField(FieldKey.RATING);
@@ -563,8 +564,10 @@ public class JaudiotaggerParser {
 				tag.setField(FieldKey.RATING, convertStarsToTagValue(tag, ratingInStars));
 			}
 			audioFile.commit();
+			return true;
 		} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | CannotWriteException e) {
 			LOGGER.warn("Error writing Tag info.", e);
+			return false;
 		}
 	}
 

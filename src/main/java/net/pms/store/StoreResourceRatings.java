@@ -5,10 +5,12 @@ import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableResourceRatings;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.parsers.JaudiotaggerParser;
+import net.pms.util.ResourceIdentifier;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +97,7 @@ public class StoreResourceRatings {
 			}
 			MediaTableResourceRatings.setRating(connection, ratingKey, resource.getClass().getSimpleName(), rating);
 			CACHE.put(ratingKey, rating);
-			updateAudioMetadata(resource, rating);
+			updateAudioMetadata(connection, resource, rating);
 			MediaStoreIds.incrementUpdateIdForFilenameWithAncestors(connection, ratingKey);
 		} finally {
 			MediaDatabase.close(connection);
@@ -110,15 +112,28 @@ public class StoreResourceRatings {
 	/**
 	 * Copies the rating into the audio metadata and if enabled into the tag of the file itself.
 	 */
-	private static void updateAudioMetadata(StoreResource resource, Integer rating) {
+	private static void updateAudioMetadata(Connection connection, StoreResource resource, Integer rating) {
 		MediaAudioMetadata audioMetadata = getAudioMetadata(resource);
 		if (audioMetadata == null) {
 			return;
 		}
 		audioMetadata.setRating(rating);
-		if (PMS.getConfiguration().isAudioUpdateTag()) {
-			JaudiotaggerParser.writeRatingToFile(resource.getFileName(), rating);
+		if (PMS.getConfiguration().isAudioUpdateTag() && JaudiotaggerParser.writeRatingToFile(resource.getFileName(), rating)) {
+			refreshResourceId(connection, resource);
 		}
+	}
+
+	private static void refreshResourceId(Connection connection, StoreResource resource) {
+		String filename = resource.getFileName();
+		String resourceId = ResourceIdentifier.getResourceIdentifier(filename);
+		if (resourceId == null) {
+			return;
+		}
+		MediaInfo mediaInfo = resource.getMediaInfo();
+		if (mediaInfo != null) {
+			mediaInfo.setResourceId(resourceId);
+		}
+		MediaTableFiles.updateResourceUidForFilename(connection, filename, resourceId);
 	}
 
 	private static MediaAudioMetadata getAudioMetadata(StoreResource resource) {
