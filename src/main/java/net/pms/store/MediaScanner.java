@@ -264,8 +264,8 @@ public class MediaScanner implements SharedContentListener {
 						start = System.currentTimeMillis();
 						MediaDatabase.analyzeDb();
 						LOGGER.info("Database analyze completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
-						// One bump for the whole scan, instead of one per file while it ran.
 						MediaStoreIds.incrementSystemUpdateId();
+						StoreResourceRatings.clearCache();
 					}
 				} catch (Exception e) {
 					LOGGER.error("Unhandled exception during media scan: {}", e.getMessage());

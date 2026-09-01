@@ -29,7 +29,7 @@ public final class MediaTableResourceRatings extends MediaTable {
 	 * Table version must be increased every time a change is done to the table definition. Table upgrade SQL must also be added to
 	 * upgradeTable(Connection, int)
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * The rating that represents a "like". Used by the My Albums folder.
@@ -100,6 +100,7 @@ public final class MediaTableResourceRatings extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1 -> migrateAlbumLikes(connection);
+				case 2 -> migrateAudioTagRatings(connection);
 				default -> throw new IllegalStateException(
 					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 				);
@@ -108,9 +109,48 @@ public final class MediaTableResourceRatings extends MediaTable {
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 	}
 
+	public static final String FILE_OBJECT_TYPE = "RealFile";
+
+	// The tag is the import state of file rating
+	private static final String SQL_INSERT_TAG_RATING = INSERT_INTO + TABLE_NAME + "(" + COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE +
+		COMMA + COL_RATING + COMMA + COL_MODIFIED + ") " +
+		SELECT + "?" + COMMA + "?" + COMMA + "?" + COMMA + "CURRENT_TIMESTAMP" +
+		WHERE + "NOT " + EXISTS + "(" + SELECT + "1" + FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + PARAMETER + ")";
+
 	/**
-	 * Copies the album likes of the legacy like tables into this table, so the My Albums folder keeps its content after the upgrade.
+	 * Stores the rating an audio file carries in its tag, unless the resource is already rated.
 	 */
+	public static void insertTagRating(final Connection connection, final String resourceKey, final Integer rating) {
+		if (connection == null || resourceKey == null || rating == null) {
+			return;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT_TAG_RATING)) {
+			statement.setString(1, resourceKey);
+			statement.setString(2, FILE_OBJECT_TYPE);
+			statement.setInt(3, rating);
+			statement.setString(4, resourceKey);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing tag rating", rating, TABLE_NAME, resourceKey, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	public static void migrateAudioTagRatings(final Connection connection) throws SQLException {
+		if (!tableExists(connection, MediaTableAudioMetadata.TABLE_NAME) || !tableExists(connection, MediaTableFiles.TABLE_NAME)) {
+			return;
+		}
+		String sql = INSERT_INTO + TABLE_NAME + "(" + COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE + COMMA + COL_RATING + COMMA + COL_MODIFIED + ") " +
+			SELECT + "F.FILENAME" + COMMA + sqlQuote(FILE_OBJECT_TYPE) + COMMA + "A.RATING" + COMMA + "CURRENT_TIMESTAMP" +
+			FROM + MediaTableFiles.TABLE_NAME + " F JOIN " + MediaTableAudioMetadata.TABLE_NAME + " A ON A.FILEID = F.ID" +
+			WHERE + "A.RATING" + IS_NOT_NULL +
+			AND + "NOT " + EXISTS + "(" + SELECT + "1" + FROM + TABLE_NAME + " RR" + WHERE + "RR." + COL_RESOURCE_KEY + " = F.FILENAME)";
+		try (PreparedStatement statement = connection.prepareStatement(sql)) {
+			int migrated = statement.executeUpdate();
+			LOGGER.info("Database \"{}\" moved {} audio tag ratings into \"{}\"", DATABASE_NAME, migrated, TABLE_NAME);
+		}
+	}
+
 	public static void migrateAlbumLikes(final Connection connection) throws SQLException {
 		migrateAlbumLikes(connection, MediaTableMusicBrainzReleaseLike.TABLE_NAME, "MBID_RELEASE", DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID);
 		migrateAlbumLikes(connection, MediaTableDiscogsReleaseLike.TABLE_NAME, "DISCOGS_RELEASE_ID", DbIdMediaType.TYPE_DISCOGS_RELEASEID);

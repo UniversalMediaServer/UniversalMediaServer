@@ -651,6 +651,73 @@ public class SearchRequestDatabaseTest {
 		assertEquals(1, new DbSearchRequestHandler(sr).getSearchCountElements(sr));
 	}
 
+	/**
+	 * The scan stores the rating an audio file carries in its tag, and never over an existing one :
+	 * with audio_update_tag off the tag stays stale while the user rating is the truth.
+	 */
+	@Test
+	public void testScanStoresTagRatingWithoutOverwriting() throws Exception {
+		Path file = testMusicFolder.resolve("Zzz Tag Probe.flac");
+		Files.createFile(file);
+		Files.writeString(file, "TAGGED");
+		String resourceKey = file.toAbsolutePath().toString();
+
+		MediaInfo media = new MediaInfo();
+		MediaAudioMetadata metadata = new MediaAudioMetadata();
+		metadata.setSongname("Zzz Tag Probe");
+		metadata.setArtist("Zzz");
+		metadata.setAlbum("Zzz");
+		metadata.setGenre("Zzz");
+		metadata.setRating(4);
+		media.setAudioMetadata(metadata);
+
+		MediaTableFiles.insertOrUpdateData(resourceKey, file.toFile().lastModified(), Format.AUDIO, media);
+		assertEquals(4, readStoredRating(resourceKey), "the tag rating reached RESOURCE_RATINGS");
+
+		try (Connection c = MediaDatabase.get().getConnection()) {
+			MediaTableResourceRatings.setRating(c, resourceKey, MediaTableResourceRatings.FILE_OBJECT_TYPE, 2);
+		}
+		MediaTableFiles.insertOrUpdateData(resourceKey, file.toFile().lastModified() + 1, Format.AUDIO, media);
+		assertEquals(2, readStoredRating(resourceKey), "a rescan must not revert the rating the user gave");
+	}
+
+	/**
+	 * Upgrade path of an existing database : AUDIO_METADATA.RATING is moved into RESOURCE_RATINGS
+	 * before MediaTableAudioMetadata drops that column.
+	 */
+	@Test
+	public void testMigrateAudioTagRatings() throws Exception {
+		try (Connection c = MediaDatabase.get().getConnection(); Statement st = c.createStatement()) {
+			String filename;
+			try (ResultSet rs = st.executeQuery("select F.FILENAME from FILES F join AUDIO_METADATA A on A.FILEID = F.ID " +
+					"where F.FORMAT_TYPE = 1 and not exists (select 1 from RESOURCE_RATINGS RR where RR.RESOURCE_KEY = F.FILENAME) limit 1")) {
+				assertTrue(rs.next(), "an unrated audio file to migrate");
+				filename = rs.getString(1);
+			}
+			String quoted = filename.replace("'", "''");
+			// bring back the column an old database still has
+			st.execute("ALTER TABLE AUDIO_METADATA ADD COLUMN IF NOT EXISTS RATING INTEGER");
+			try {
+				st.execute("UPDATE AUDIO_METADATA SET RATING = 3 WHERE FILEID IN (SELECT ID FROM FILES WHERE FILENAME = '" + quoted + "')");
+				MediaTableResourceRatings.migrateAudioTagRatings(c);
+				assertEquals(3, MediaTableResourceRatings.getRating(c, filename), "the tag rating was moved over");
+
+				st.execute("UPDATE AUDIO_METADATA SET RATING = 5 WHERE FILEID IN (SELECT ID FROM FILES WHERE FILENAME = '" + quoted + "')");
+				MediaTableResourceRatings.migrateAudioTagRatings(c);
+				assertEquals(3, MediaTableResourceRatings.getRating(c, filename), "the migration is insert only");
+			} finally {
+				st.execute("DELETE FROM RESOURCE_RATINGS WHERE RESOURCE_KEY = '" + quoted + "'");
+				st.execute("ALTER TABLE AUDIO_METADATA DROP COLUMN IF EXISTS RATING");
+			}
+		}
+	}
+
+	private Integer readStoredRating(String resourceKey) throws SQLException {
+		try (Connection c = MediaDatabase.get().getConnection()) {
+			return MediaTableResourceRatings.getRating(c, resourceKey);
+		}
+	}
+
 	private StoreResource findJazzPlaylist() {
 		SearchRequest byTitle = new SearchRequest();
 		byTitle.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"Jazz\"");

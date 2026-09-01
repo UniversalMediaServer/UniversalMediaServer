@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableResourceRatings;
 import net.pms.database.MediaTableResourceRatings.ResourceRating;
@@ -47,8 +46,6 @@ import net.pms.util.RelativeMediaPath.Relative;
 public class RatingBackupManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RatingBackupManager.class.getName());
-	private final static String RATINGS_READ = "SELECT FILES.RUID, AUDIO_METADATA.RATING FROM FILES LEFT JOIN AUDIO_METADATA ON FILES.ID = AUDIO_METADATA.FILEID WHERE RATING is not null and RUID is not null";
-	private final static String RATINGS_WRITE = "UPDATE AUDIO_METADATA a SET a.RATING = ? WHERE a.FILEID in (SELECT ID from FILES WHERE RUID = ?)";
 
 	private final static String RESOURCE_PREFIX = "resource:";
 	private final static String PORTABLE_PREFIX = "portable:";
@@ -72,17 +69,6 @@ public class RatingBackupManager {
 		List<File> sharedFolders = SharedContentConfiguration.getSharedFolders();
 		Set<Integer> usedRoots = new HashSet<>();
 		try {
-			try (PreparedStatement selectStatement = c.prepareStatement(RATINGS_READ)) {
-				try (ResultSet rs = selectStatement.executeQuery()) {
-					while (rs.next()) {
-						p.put(rs.getString("ruid"), rs.getString("rating"));
-						items++;
-					}
-				}
-			} catch (SQLException e) {
-				LOGGER.error("backup rating failed", e);
-			}
-
 			List<ResourceRating> resourceRatings = MediaTableResourceRatings.getAllRatings(c);
 			for (ResourceRating resourceRating : resourceRatings) {
 				String objectType = getObjectType(resourceRating.objectType());
@@ -177,28 +163,14 @@ public class RatingBackupManager {
 	private static final class Writers implements AutoCloseable {
 
 		private final MediaTableResourceRatings.RatingWriter ratings;
-		private final PreparedStatement audioMetadata;
-		private final PreparedStatement legacy;
 
 		private Writers(Connection c) throws SQLException {
 			ratings = new MediaTableResourceRatings.RatingWriter(c);
-			audioMetadata = MediaTableAudioMetadata.prepareRatingUpdate(c);
-			legacy = c.prepareStatement(RATINGS_WRITE);
 		}
 
 		@Override
 		public void close() {
 			ratings.close();
-			closeQuietly(audioMetadata);
-			closeQuietly(legacy);
-		}
-
-		private static void closeQuietly(PreparedStatement statement) {
-			try {
-				statement.close();
-			} catch (SQLException e) {
-				LOGGER.trace("closing a restore statement failed : {}", e.getMessage());
-			}
 		}
 	}
 
@@ -226,7 +198,6 @@ public class RatingBackupManager {
 		List<Entry> resourceEntries = new ArrayList<>();
 		List<Entry> contentEntries = new ArrayList<>();
 		List<Entry> portableEntries = new ArrayList<>();
-		List<Entry> legacyEntries = new ArrayList<>();
 
 		for (Object okey : p.keySet()) {
 			String key = (String) okey;
@@ -247,7 +218,7 @@ public class RatingBackupManager {
 			} else if (key.startsWith(PORTABLE_PREFIX)) {
 				addEntry(portableEntries, key, PORTABLE_PREFIX, rating, counters);
 			} else {
-				legacyEntries.add(new Entry(null, key, rating));
+				counters.skipped++;
 			}
 		}
 
@@ -255,9 +226,6 @@ public class RatingBackupManager {
 		Set<String> restored = new HashSet<>();
 		List<File> sharedFolders = SharedContentConfiguration.getSharedFolders();
 
-		for (Entry entry : legacyEntries) {
-			restoreLegacyRating(entry, writers, counters);
-		}
 		for (Entry entry : resourceEntries) {
 			restoreResourceRating(entry, c, restored, counters, writers);
 		}
@@ -274,32 +242,6 @@ public class RatingBackupManager {
 		return restored;
 	}
 
-	/**
-	 * Restores the mirrored rating of an audio file, keyed on its RUID.
-	 */
-	private static void restoreLegacyRating(Entry entry, Writers writers, RestoreCounters counters) {
-		try {
-			PreparedStatement updateStatement = writers.legacy;
-			updateStatement.setInt(1, entry.rating());
-			updateStatement.setString(2, entry.value());
-			int numUpdates = updateStatement.executeUpdate();
-			if (numUpdates == 1) {
-				counters.updated++;
-			} else if (numUpdates > 1) {
-				LOGGER.info("File exists multiple times on file system. RUID : '{}'.", entry.value());
-				counters.updated = counters.updated + numUpdates;
-			} else {
-				counters.skipped++;
-			}
-		} catch (SQLException e) {
-			LOGGER.warn("restoreRating failed for entry {} ", entry.value(), e);
-			counters.skipped++;
-		}
-	}
-
-	/**
-	 * Restores the rating of a resource on the key it was stored with.
-	 */
 	private static void restoreResourceRating(Entry entry, Connection c, Set<String> restored, RestoreCounters counters, Writers writers) {
 		String resourceKey = entry.value();
 		if (RelativeMediaPath.isFileSystemPath(resourceKey) && !new File(resourceKey).exists()) {
@@ -383,15 +325,6 @@ public class RatingBackupManager {
 		}
 		restored.add(resourceKey);
 		counters.updated++;
-		if (!RelativeMediaPath.isFileSystemPath(resourceKey)) {
-			return;
-		}
-		try {
-			MediaTableAudioMetadata.updateRatingByFilename(writers.audioMetadata, rating, resourceKey);
-		} catch (SQLException e) {
-			LOGGER.warn("restoreRating could not mirror the rating of {} into the audio metadata : {}", resourceKey, e.getMessage());
-			LOGGER.trace("", e);
-		}
 	}
 
 	/**
