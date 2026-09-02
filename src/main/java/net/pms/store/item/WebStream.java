@@ -136,6 +136,11 @@ public class WebStream extends StoreItem {
 	}
 
 	@Override
+	public boolean isAudioBroadcast() {
+		return isUnboundedLiveStream();
+	}
+
+	@Override
 	public boolean isValid() {
 		resolveFormat();
 		return getFormat() != null;

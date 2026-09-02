@@ -51,6 +51,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.PlaylistContainer;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.StorageFolder;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.AudioBroadcast;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.AudioItem;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Movie;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.MusicTrack;
@@ -341,6 +342,11 @@ public class StoreResourceHelper {
 			result.getProperties().set(new DC.Date(formatDate(new Date(item.getLastModified()))));
 		}
 
+		if (mediaInfo != null && audioMetadata != null && result instanceof AudioItem audioItem &&
+				StringUtils.isNotBlank(audioMetadata.getGenre())) {
+			audioItem.setGenres(new String[] {audioMetadata.getGenre()});
+		}
+
 		if (mediaInfo != null && audioMetadata != null && result instanceof MusicTrack musicTrack) {
 			if (StringUtils.isNotBlank(audioMetadata.getAlbum())) {
 				musicTrack.setAlbum(audioMetadata.getAlbum());
@@ -357,10 +363,6 @@ public class StoreResourceHelper {
 
 			if (StringUtils.isNotBlank(audioMetadata.getConductor())) {
 				musicTrack.addArtist(new UPNP.Artist(audioMetadata.getConductor(), "Conductor"));
-			}
-
-			if (StringUtils.isNotBlank(audioMetadata.getGenre())) {
-				musicTrack.setGenres(new String[] {audioMetadata.getGenre()});
 			}
 
 			if (audioMetadata.getTrack() > 0) {
