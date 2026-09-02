@@ -8,6 +8,8 @@ public class AudioAddictPlaylistDto {
 	public String duration;
 	public int trackCount;
 	public String albumArt;
+	public String genres;
+	public String curator;
 
 	public AudioAddictPlaylistDto() {
 	}

@@ -9,6 +9,7 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.IcyMetadataInputStream;
 import net.pms.store.NowPlayingWatchInputStream;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A curated playlist represented as a single, continuously playable item. Playing it streams
@@ -32,9 +33,14 @@ public class AudioAddictPlaylistStream extends AudioAddictBroadcastStream {
 		MediaInfo mi = new MediaInfo();
 		mi.setMimeType("audio/mpeg");
 		mi.setMediaParser("AudioAddictPlaylistStream");
-		if (playlist.description != null) {
+		String description = StringUtils.trimToNull(playlist.description);
+		String genres = StringUtils.trimToNull(playlist.genres);
+		String curator = StringUtils.trimToNull(playlist.curator);
+		if (description != null || genres != null || curator != null) {
 			MediaAudioMetadata md = new MediaAudioMetadata();
-			md.setAlbum(playlist.description);
+			md.setAlbum(description);
+			md.setGenre(genres);
+			md.setArtist(curator);
 			mi.setAudioMetadata(md);
 		}
 		setMediaInfo(mi);

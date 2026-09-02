@@ -605,6 +605,7 @@ public class RadioNetwork {
 			ContentResponse response = httpBlocking.GET(url);
 			PlaylistsResponse resp = om.readValue(response.getContentAsString(), PlaylistsResponse.class);
 			if (resp.results != null) {
+				Map<Integer, String> genreFilters = buildGenreFilterMap();
 				for (PlaylistJson p : resp.results) {
 					AudioAddictPlaylistDto dto = new AudioAddictPlaylistDto();
 					dto.id = p.id;
@@ -613,6 +614,8 @@ public class RadioNetwork {
 					dto.duration = p.duration;
 					dto.trackCount = p.trackCount;
 					dto.albumArt = imageUrlFromMap(p.images);
+					dto.genres = joinGenres(p.channelFilterIds, genreFilters);
+					dto.curator = p.curator != null ? p.curator.name : null;
 					result.add(dto);
 				}
 			}

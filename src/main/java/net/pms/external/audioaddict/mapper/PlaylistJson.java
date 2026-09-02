@@ -16,4 +16,7 @@ public class PlaylistJson {
 	@JsonProperty("track_count")
 	public int trackCount;
 	public Map<String, String> images;
+	public Curator curator;
+	@JsonProperty("channel_filter_ids")
+	public int[] channelFilterIds;
 }
