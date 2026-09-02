@@ -64,8 +64,7 @@ public class JavaHttpClient {
 	public static final String BROWSER_USER_AGENT =
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-	/** What a browser asks for when it loads an <img>. */
-	private static final String IMAGE_ACCEPT = "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
+	private static final String IMAGE_ACCEPT = "image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
 
 	private JavaHttpClient() {
 		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
