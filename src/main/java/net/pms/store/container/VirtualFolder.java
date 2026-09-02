@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.*;
 import java.util.Map.Entry;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
+import net.pms.database.MediaTableFiles;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.renderers.Renderer;
@@ -275,6 +276,10 @@ public class VirtualFolder extends StoreContainer {
 			if (resource instanceof StoreItem) {
 				resource.setParent(this);
 				renderer.getMediaStore().addWeakResource(resource);
+			} else if (resource instanceof PlaylistFolder || resource instanceof DVDISOFile) {
+				// A playlist and a dvd iso are containers, so they never enter the tree of a scan. We need the DB entry here.
+				int type = resource instanceof PlaylistFolder ? Format.PLAYLIST : Format.ISO;
+				MediaTableFiles.getOrInsertFileId(file.getAbsolutePath(), file.lastModified(), type);
 			}
 		}
 	}

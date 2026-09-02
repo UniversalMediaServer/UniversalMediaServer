@@ -1068,7 +1068,9 @@ public class UmsContentDirectoryService {
 		}
 
 		long totalMatches;
-		if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
+		if (searchCriteria != null) {
+			totalMatches = resultResources.size();
+		} else if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 			// with the new parser, resources are parsed and analyzed *before*
 			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 			// so we do not know exactly the total number of items in the DLNA folder to send
