@@ -159,6 +159,7 @@ public class MediaScanner implements SharedContentListener {
 					// Running might have been set false during scan
 					if (running) {
 						MediaTableFiles.cleanup(connection);
+						resolvePlaylists(connection);
 					}
 				}
 			} finally {
@@ -169,6 +170,42 @@ public class MediaScanner implements SharedContentListener {
 		reset();
 		GuiManager.setMediaScanStatus(false);
 		GuiManager.setStatusLine(null);
+	}
+
+	/**
+	 * Reads every playlist when the walk is done and resolves them.
+	 */
+	private static void resolvePlaylists(Connection connection) {
+		List<String> playlists = MediaTableFiles.getFilenamesByFormatType(connection, Format.PLAYLIST);
+		if (playlists.isEmpty()) {
+			return;
+		}
+		long started = System.currentTimeMillis();
+		int resolved = 0;
+		for (String filename : playlists) {
+			if (!running) {
+				break;
+			}
+			File file = new File(filename);
+			if (!file.isFile()) {
+				continue;
+			}
+			try {
+				StoreContainer playlist = PlaylistManager.getPlaylist(RENDERER, file.getName(), filename, 0);
+				if (playlist == null) {
+					continue;
+				}
+				playlist.setParent(RENDERER.getMediaStore());
+				playlist.syncResolve();
+				// the tree of a scan is thrown away, only what it wrote into the database counts
+				playlist.getChildren().clear();
+				resolved++;
+			} catch (Exception e) {
+				LOGGER.debug("Could not read the playlist \"{}\" ahead of time : {}", filename, e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		LOGGER.info("Read {} playlists ahead in {} seconds", resolved, (System.currentTimeMillis() - started) / 1000);
 	}
 
 	private static void scan(StoreContainer resource) {

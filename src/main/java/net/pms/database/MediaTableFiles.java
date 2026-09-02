@@ -179,6 +179,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_GET_RESOURCE_UID_BY_FILENAME = SELECT + COL_RESOURCE_UID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_UPDATE_RESOURCE_UID_BY_FILENAME = UPDATE + TABLE_NAME + SET + COL_RESOURCE_UID + EQUAL + PARAMETER + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_FILENAMES_BY_RESOURCE_UID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + COL_RESOURCE_UID + EQUAL + PARAMETER;
+	private static final String SQL_GET_FILENAMES_BY_FORMAT_TYPE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FORMAT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_USER_THUMBID_BY_FILENAME = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME +
 		WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_NAME + "." + COL_THUMB_SRC + EQUAL + PARAMETER + LIMIT_1;
@@ -1461,6 +1462,27 @@ public class MediaTableFiles extends MediaTable {
 		}
 		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FILENAMES_BY_RESOURCE_UID)) {
 			statement.setString(1, resourceUid);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				while (resultSet.next()) {
+					result.add(resultSet.getString(COL_FILENAME));
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		}
+		return result;
+	}
+
+	/**
+	 * Every file of one format type, playlists for example.
+	 */
+	public static List<String> getFilenamesByFormatType(final Connection connection, final int formatType) {
+		List<String> result = new ArrayList<>();
+		if (connection == null) {
+			return result;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FILENAMES_BY_FORMAT_TYPE)) {
+			statement.setInt(1, formatType);
 			try (ResultSet resultSet = statement.executeQuery()) {
 				while (resultSet.next()) {
 					result.add(resultSet.getString(COL_FILENAME));
