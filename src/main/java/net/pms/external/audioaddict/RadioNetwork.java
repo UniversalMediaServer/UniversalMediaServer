@@ -57,6 +57,7 @@ import net.pms.external.audioaddict.mapper.PlaylistTrackJson;
 import net.pms.external.audioaddict.mapper.PlaylistsResponse;
 import net.pms.external.audioaddict.mapper.Root;
 import net.pms.store.container.audioaddict.INetworkInitialized;
+import net.pms.external.audioaddict.mapper.TrackHistoryJson;
 
 public class RadioNetwork {
 
@@ -123,6 +124,10 @@ public class RadioNetwork {
 	private volatile Map<Integer, String> currentlyPlaying = new HashMap<>();
 	private volatile long currentlyPlayingFetchedAt = 0;
 	private final AtomicBoolean currentlyPlayingRefreshInFlight = new AtomicBoolean(false);
+
+	private final Map<Integer, AudioAddictTrackDto> currentTrackDetails = new ConcurrentHashMap<>();
+	private final Map<Integer, String> currentTrackDetailLines = new ConcurrentHashMap<>();
+	private final Map<Integer, String> trackDetailRefreshInFlight = new ConcurrentHashMap<>();
 
 	// Cache for the events/episodes trees. The signed content URLs stay valid for hours,
 	// so a cached tree is safe. TTL is configurable.
@@ -932,6 +937,75 @@ public class RadioNetwork {
 	public String getCurrentTrackTitle(int channelId) {
 		triggerCurrentlyPlayingRefreshIfStale();
 		return currentlyPlaying.get(channelId);
+	}
+
+	/**
+	 * @return the track currently playing on the given channel including its cover art.
+	 */
+	public AudioAddictTrackDto getCurrentTrack(int channelId) {
+		String line = getCurrentTrackTitle(channelId);
+		if (line == null) {
+			return null;
+		}
+		AudioAddictTrackDto cached = currentTrackDetails.get(channelId);
+		if (cached != null && line.equals(currentTrackDetailLines.get(channelId))) {
+			return cached;
+		}
+		// This is called from the streaming thread, so the artwork lookup must not block it
+		triggerTrackDetailRefresh(channelId, line);
+		AudioAddictTrackDto flat = new AudioAddictTrackDto();
+		flat.title = line;
+		return flat;
+	}
+
+	private void triggerTrackDetailRefresh(int channelId, String line) {
+		if (line.equals(trackDetailRefreshInFlight.put(channelId, line))) {
+			return;
+		}
+		EXEC_SERVICE.submit(() -> {
+			try {
+				AudioAddictTrackDto detail = fetchCurrentTrackDetail(channelId);
+				if (detail != null) {
+					currentTrackDetails.put(channelId, detail);
+					currentTrackDetailLines.put(channelId, line);
+				}
+			} catch (Exception e) {
+				LOGGER.warn("{} : failed to refresh track detail for channel {}", network.displayName, channelId, e);
+			} finally {
+				trackDetailRefreshInFlight.remove(channelId, line);
+			}
+		});
+	}
+
+	private AudioAddictTrackDto fetchCurrentTrackDetail(int channelId) {
+		String url = String.format("https://api.audioaddict.com/v1/%s/track_history/channel/%d", network.shortName, channelId);
+		try {
+			ContentResponse response = httpBlocking.newRequest(url).method(HttpMethod.GET).send();
+			String content = response.getContentAsString();
+			if (response.getStatus() != 200 || content == null || !content.startsWith("[")) {
+				LOGGER.warn("{} : track_history returned HTTP {} : {}", network.displayName, response.getStatus(),
+					abbreviate(content));
+				return null;
+			}
+			TrackHistoryJson[] entries = om.readValue(content, TrackHistoryJson[].class);
+			if (entries.length == 0) {
+				return null;
+			}
+			TrackHistoryJson entry = entries[0];
+			AudioAddictTrackDto dto = new AudioAddictTrackDto();
+			dto.id = entry.trackId != null ? entry.trackId : 0;
+			dto.artist = firstNonBlank(entry.displayArtist, entry.artist);
+			dto.title = firstNonBlank(entry.displayTitle, entry.title);
+			dto.albumArt = entry.artUrl;
+			if (dto.title == null && entry.track != null && !entry.track.isBlank()) {
+				dto.title = entry.track;
+			}
+			return dto;
+		} catch (Exception e) {
+			LOGGER.warn("{} : failed to read track_history for channel {} : {}", network.displayName, channelId, e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
 	}
 
 	private void triggerCurrentlyPlayingRefreshIfStale() {

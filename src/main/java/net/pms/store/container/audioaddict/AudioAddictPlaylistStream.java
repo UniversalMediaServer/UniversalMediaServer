@@ -8,6 +8,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.IcyMetadataInputStream;
+import net.pms.store.NowPlayingWatchInputStream;
 
 /**
  * A curated playlist represented as a single, continuously playable item. Playing it streams
@@ -45,7 +46,8 @@ public class AudioAddictPlaylistStream extends AudioAddictBroadcastStream {
 
 	@Override
 	public InputStream getInputStream() {
-		return new AudioAddictPlaylistInputStream(network, playlistId, loop);
+		AudioAddictPlaylistInputStream source = new AudioAddictPlaylistInputStream(network, playlistId, loop);
+		return new NowPlayingWatchInputStream(source, getResourceId(), source::getNowPlaying);
 	}
 
 	/**
@@ -55,7 +57,8 @@ public class AudioAddictPlaylistStream extends AudioAddictBroadcastStream {
 	@Override
 	public InputStream getIcyInputStream(int metaInt) {
 		AudioAddictPlaylistInputStream source = new AudioAddictPlaylistInputStream(network, playlistId, loop);
-		return new IcyMetadataInputStream(source, metaInt, source::getStreamTitle);
+		return new NowPlayingWatchInputStream(new IcyMetadataInputStream(source, metaInt, source::getStreamTitle),
+				getResourceId(), source::getNowPlaying);
 	}
 
 	/**

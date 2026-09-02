@@ -8,58 +8,55 @@ import java.util.function.BiConsumer;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Holds the title a web radio is currently announcing via ICY, so a control point can ask for the
- * live title even when the renderer itself never requested in-band metadata.
+ * Holds what each continuous stream is currently playing.
  */
 public final class WebStreamNowPlaying {
 
-	private static final Map<String, String> CURRENT_TITLES = new ConcurrentHashMap<>();
+	private static final Map<String, NowPlayingInfo> CURRENT = new ConcurrentHashMap<>();
 
-	// We do GENA push
-	private static final List<BiConsumer<String, String>> LISTENERS = new CopyOnWriteArrayList<>();
+	/**
+	 * Notified with (resourceId, info) on every change, so the UPnP service can push a GENA event
+	 * instead of making control points poll. The info is NULL when the stream stopped.
+	 */
+	private static final List<BiConsumer<String, NowPlayingInfo>> LISTENERS = new CopyOnWriteArrayList<>();
 
 	private WebStreamNowPlaying() {
 		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
 	}
 
-	public static void addListener(BiConsumer<String, String> listener) {
+	public static void addListener(BiConsumer<String, NowPlayingInfo> listener) {
 		if (listener != null && !LISTENERS.contains(listener)) {
 			LISTENERS.add(listener);
 		}
 	}
 
-	public static void removeListener(BiConsumer<String, String> listener) {
+	public static void removeListener(BiConsumer<String, NowPlayingInfo> listener) {
 		LISTENERS.remove(listener);
 	}
 
-	public static void put(String resourceId, String streamTitle) {
+	public static void put(String resourceId, NowPlayingInfo info) {
 		if (StringUtils.isBlank(resourceId)) {
 			return;
 		}
-		String previous;
-		if (StringUtils.isBlank(streamTitle)) {
-			previous = CURRENT_TITLES.remove(resourceId);
-		} else {
-			previous = CURRENT_TITLES.put(resourceId, streamTitle);
-		}
-		if (!StringUtils.equals(previous, streamTitle)) {
-			notifyListeners(resourceId, streamTitle);
+		NowPlayingInfo previous = info == null ? CURRENT.remove(resourceId) : CURRENT.put(resourceId, info);
+		if (previous == null ? info != null : !previous.equals(info)) {
+			notifyListeners(resourceId, info);
 		}
 	}
 
-	public static String get(String resourceId) {
-		return StringUtils.isBlank(resourceId) ? null : CURRENT_TITLES.get(resourceId);
+	public static NowPlayingInfo get(String resourceId) {
+		return StringUtils.isBlank(resourceId) ? null : CURRENT.get(resourceId);
 	}
 
 	public static void remove(String resourceId) {
-		if (StringUtils.isNotBlank(resourceId) && CURRENT_TITLES.remove(resourceId) != null) {
+		if (StringUtils.isNotBlank(resourceId) && CURRENT.remove(resourceId) != null) {
 			notifyListeners(resourceId, null);
 		}
 	}
 
-	private static void notifyListeners(String resourceId, String streamTitle) {
-		for (BiConsumer<String, String> listener : LISTENERS) {
-			listener.accept(resourceId, streamTitle);
+	private static void notifyListeners(String resourceId, NowPlayingInfo info) {
+		for (BiConsumer<String, NowPlayingInfo> listener : LISTENERS) {
+			listener.accept(resourceId, info);
 		}
 	}
 }

@@ -118,6 +118,15 @@ public class AudioAddictService implements EventListener<ConfigurationEvent> {
 		return network.getCurrentTrackTitle(channelId);
 	}
 
+	/**
+	 * @return the track currently playing on the given channel including its cover art, or NULL when
+	 * unknown.
+	 */
+	public AudioAddictTrackDto getCurrentTrack(Platform platform, int channelId) {
+		RadioNetwork network = getNetwork(platform);
+		return network.getCurrentTrack(channelId);
+	}
+
 	@Override
 	public void onEvent(ConfigurationEvent event) {
 		UmsConfiguration ums = PMS.getConfiguration();

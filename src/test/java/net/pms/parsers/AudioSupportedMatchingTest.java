@@ -97,6 +97,22 @@ public class AudioSupportedMatchingTest {
 		assertMatchedMimeType(renderer, "audio-vorbis.oga", "audio/ogg");
 	}
 
+	/**
+	 * A re-parse starts from the MediaInfo read back from the database, container included. The parser
+	 * must overwrite it, otherwise a stored container can never be corrected.
+	 */
+	@Test
+	public void testReparseOverwritesStoredContainer() {
+		File file = ParserTest.getTestFile("audio-flac24.flac");
+		Format format = FormatFactory.getAssociatedFormat(file.getAbsolutePath());
+		MediaInfo mediaInfo = new MediaInfo();
+		mediaInfo.setContainer("flac 24 bits");
+		InputFile inputFile = new InputFile();
+		inputFile.setFile(file);
+		Parser.parse(mediaInfo, inputFile, format, format.getType());
+		assertEquals(FormatConfiguration.FLAC, mediaInfo.getContainer(), "stale container");
+	}
+
 	private static void assertMatchedMimeType(RendererConfiguration renderer, String testFile, String expected) {
 		MediaInfo mediaInfo = parse(testFile);
 		MediaAudio audio = mediaInfo.getDefaultAudioTrack();

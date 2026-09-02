@@ -26,6 +26,7 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
+import net.pms.store.NowPlayingInfo;
 import net.pms.store.WebStreamNowPlaying;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.util.artistImageProvider.UmsArtistImageProvider;
@@ -119,17 +120,40 @@ public class UmsExtendedServices {
 		timer.schedule(readConfigTimer, 0, 60000);
 	}
 
-	private void onWebStreamTitleChanged(String resourceId, String streamTitle) {
-		Map<String, String> event = new LinkedHashMap<>();
-		event.put("objectID", resourceId);
-		event.put("streamTitle", streamTitle != null ? streamTitle : "");
-		try {
-			this.webStreamNowPlaying = new ObjectMapper().writeValueAsString(event);
-		} catch (JsonProcessingException e) {
-			LOG.warn("cannot serialize web stream now-playing event for {}", resourceId, e);
+	private void onWebStreamTitleChanged(String resourceId, NowPlayingInfo info) {
+		String json = toNowPlayingJson(resourceId, info);
+		if (json == null) {
 			return;
 		}
+		this.webStreamNowPlaying = json;
 		propertyChangeSupport.firePropertyChange("WebStreamNowPlaying", null, this.webStreamNowPlaying);
+	}
+
+	/**
+	 * The artist/title split and the cover are only present for sources that know them.
+	 * Attention: ICY has a single line, which stays in "streamTitle" either way!
+	 */
+	private static String toNowPlayingJson(String resourceId, NowPlayingInfo info) {
+		Map<String, String> event = new LinkedHashMap<>();
+		event.put("objectID", resourceId);
+		event.put("streamTitle", info != null ? info.streamTitle : "");
+		if (info != null) {
+			if (info.artist != null) {
+				event.put("artist", info.artist);
+			}
+			if (info.title != null) {
+				event.put("title", info.title);
+			}
+			if (info.artUrl != null) {
+				event.put("artUrl", info.artUrl);
+			}
+		}
+		try {
+			return new ObjectMapper().writeValueAsString(event);
+		} catch (JsonProcessingException e) {
+			LOG.warn("cannot serialize now-playing for {}", resourceId, e);
+			return null;
+		}
 	}
 
 	private void readConfig() {
@@ -217,18 +241,12 @@ public class UmsExtendedServices {
 	 */
 	@UpnpAction(out = @UpnpOutputArgument(name = "NowPlaying"))
 	public String getWebStreamNowPlaying(@UpnpInputArgument(name = "ObjectID") String objectId) {
-		String streamTitle = WebStreamNowPlaying.get(StringUtils.substringBefore(objectId, "#"));
-		if (StringUtils.isBlank(streamTitle)) {
+		String resourceId = StringUtils.substringBefore(objectId, "#");
+		NowPlayingInfo info = WebStreamNowPlaying.get(resourceId);
+		if (info == null) {
 			return "";
 		}
-		Map<String, String> nowPlaying = new LinkedHashMap<>();
-		nowPlaying.put("streamTitle", streamTitle);
-		try {
-			return new ObjectMapper().writeValueAsString(nowPlaying);
-		} catch (JsonProcessingException e) {
-			LOG.warn("cannot serialize web stream now-playing for {}", objectId, e);
-			return "";
-		}
+		return StringUtils.defaultString(toNowPlayingJson(resourceId, info));
 	}
 
 	@UpnpAction

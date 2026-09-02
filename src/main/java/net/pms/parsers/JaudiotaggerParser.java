@@ -172,14 +172,8 @@ public class JaudiotaggerParser {
 		return value;
 	}
 
-	private static String getContainer(Format format, String codec) {
-		if (format != null && format.getIdentifier() != null) {
-			String container = CONTAINER_BY_IDENTIFIER.get(format.getIdentifier());
-			if (container != null) {
-				return container;
-			}
-		}
-		return codec;
+	private static String getContainer(Format format) {
+		return format == null || format.getIdentifier() == null ? null : CONTAINER_BY_IDENTIFIER.get(format.getIdentifier());
 	}
 
 	public static void parse(MediaInfo media, File file, Format format) {
@@ -293,8 +287,11 @@ public class JaudiotaggerParser {
 
 			media.setAudioMetadata(audioMetadata);
 			media.addAudioTrack(audio);
-			if (StringUtils.isBlank(media.getContainer())) {
-				media.setContainer(getContainer(format, audio.getCodec()));
+			String container = getContainer(format);
+			if (container != null) {
+				media.setContainer(container);
+			} else if (StringUtils.isBlank(media.getContainer())) {
+				media.setContainer(audio.getCodec());
 			}
 			Parser.postParse(media, Format.AUDIO);
 			media.setMediaParser(PARSER_NAME);

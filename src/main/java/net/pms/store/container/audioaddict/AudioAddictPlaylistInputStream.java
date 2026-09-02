@@ -19,6 +19,7 @@ import net.pms.external.audioaddict.AudioAddictPlayWindow;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.external.audioaddict.Platform;
+import net.pms.store.NowPlayingInfo;
 
 /**
  * Continuous audio stream of a curated playlist. It walks the playlist play session and concatenates the track
@@ -82,20 +83,20 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	 * when no track is currently open (treated as "unchanged" by the metadata layer).
 	 */
 	public String getStreamTitle() {
-		AudioAddictTrackDto track = currentTrack;
-		if (track == null) {
-			return null;
-		}
-		if (track.artist != null && !track.artist.isBlank()) {
-			return track.artist + " - " + track.title;
-		}
-		return track.title;
+		NowPlayingInfo info = getNowPlaying();
+		return info == null ? null : info.streamTitle;
 	}
 
 	/**
-	 * @return the track currently playing for the given playlist id, or {@code null} if that
-	 * playlist is not being streamed right now. Used by the UmsExtendedServices UPnP action so a
-	 * control point can display the live playlist track.
+	 * @return the track this very stream instance is playing.
+	 */
+	public NowPlayingInfo getNowPlaying() {
+		AudioAddictTrackDto track = currentTrack;
+		return track == null ? null : NowPlayingInfo.of(track.artist, track.title, track.albumArt);
+	}
+
+	/**
+	 * @return the track currently playing for the given playlist id.
 	 */
 	public static AudioAddictTrackDto getCurrentTrack(int playlistId) {
 		return CURRENT_TRACKS.get(playlistId);

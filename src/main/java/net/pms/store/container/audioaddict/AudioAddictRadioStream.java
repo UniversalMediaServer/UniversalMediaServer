@@ -1,8 +1,10 @@
 package net.pms.store.container.audioaddict;
 
 import net.pms.external.audioaddict.AudioAddictService;
+import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
+import net.pms.store.NowPlayingInfo;
 
 /**
  * A DI.fm/AudioAddict radio channel: a continuous internet-radio stream. The live title is
@@ -19,12 +21,17 @@ public class AudioAddictRadioStream extends AudioAddictBroadcastStream {
 		this.channelId = channelId;
 	}
 
+	/**
+	 * The channel's live track is a global fact of that channel, so it is looked up rather than read
+	 * out of the stream.
+	 */
 	@Override
-	protected String getStreamTitle() {
+	protected NowPlayingInfo getNowPlaying() {
 		if (network == null || channelId == null) {
 			return null;
 		}
-		return AudioAddictService.get().getCurrentTrackTitle(network, channelId);
+		AudioAddictTrackDto track = AudioAddictService.get().getCurrentTrack(network, channelId);
+		return track == null ? null : NowPlayingInfo.of(track.artist, track.title, track.albumArt);
 	}
 
 	/**

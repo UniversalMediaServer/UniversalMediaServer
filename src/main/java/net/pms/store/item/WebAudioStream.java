@@ -16,18 +16,19 @@
  */
 package net.pms.store.item;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.Map;
+import java.util.function.Supplier;
 import net.pms.external.JavaHttpClient;
 import net.pms.formats.Format;
 import net.pms.renderers.Renderer;
 import net.pms.store.IcyMetadataInputStream;
 import net.pms.store.IcyMetadataReaderInputStream;
 import net.pms.store.IcyMetadataSource;
-import net.pms.store.WebStreamNowPlaying;
+import net.pms.store.NowPlayingInfo;
+import net.pms.store.NowPlayingWatchInputStream;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,29 +54,57 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 	}
 
 	/**
-	 * Reads the station's ICY metadata.
+	 * Whether the live title has to be read out of the stream itself. True for a plain internet
+	 * radio; a stream whose titles come from an API of its own opts out, so its bytes stay
+	 * untouched.
 	 */
-	@Override
-	public InputStream getInputStream() {
-		if (!isUnboundedLiveStream()) {
-			return super.getInputStream();
-		}
-		IcyMetadataReaderInputStream reader = openIcyReader();
-		return reader != null ? trackedStream(reader) : super.getInputStream();
+	protected boolean isIcyPassThrough() {
+		return isUnboundedLiveStream();
 	}
 
 	/**
-	 * Passes the station's own ICY metadata.
+	 * The single place a stream type says what it is playing. How that is found out differs - ICY
+	 * blocks, an API lookup, internal playback state - but both consumers, the ICY output towards a
+	 * renderer and the push towards a control point, read it from here.
+	 *
+	 * @return NULL when unknown, which both consumers treat as "unchanged".
 	 */
+	protected NowPlayingInfo getNowPlaying() {
+		return null;
+	}
+
 	@Override
-	public InputStream getIcyInputStream(int metaInt) {
-		IcyMetadataReaderInputStream reader = openIcyReader();
+	public InputStream getInputStream() {
+		IcyMetadataReaderInputStream reader = isIcyPassThrough() ? openIcyReader() : null;
 		if (reader != null) {
-			LOGGER.info("forwarding ICY metadata for {} (renderer interval {})", getUrl(), metaInt);
-			return trackedStream(new IcyMetadataInputStream(reader, metaInt, reader::getStreamTitle));
+			return watched(reader, () -> NowPlayingInfo.ofStreamTitle(reader.getStreamTitle()));
 		}
 		InputStream plain = super.getInputStream();
-		return plain != null ? new IcyMetadataInputStream(plain, metaInt, () -> null) : null;
+		return plain == null ? null : watched(plain, this::getNowPlaying);
+	}
+
+	@Override
+	public InputStream getIcyInputStream(int metaInt) {
+		IcyMetadataReaderInputStream reader = isIcyPassThrough() ? openIcyReader() : null;
+		if (reader != null) {
+			LOGGER.info("forwarding ICY metadata for {} (renderer interval {})", getUrl(), metaInt);
+			return watched(new IcyMetadataInputStream(reader, metaInt, reader::getStreamTitle),
+					() -> NowPlayingInfo.ofStreamTitle(reader.getStreamTitle()));
+		}
+		InputStream plain = super.getInputStream();
+		if (plain == null) {
+			return null;
+		}
+		return watched(new IcyMetadataInputStream(plain, metaInt, this::currentStreamTitle), this::getNowPlaying);
+	}
+
+	private String currentStreamTitle() {
+		NowPlayingInfo info = getNowPlaying();
+		return info == null ? null : info.streamTitle;
+	}
+
+	private InputStream watched(InputStream stream, Supplier<NowPlayingInfo> supplier) {
+		return new NowPlayingWatchInputStream(stream, getResourceId(), supplier);
 	}
 
 	/**
@@ -88,9 +117,7 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 			upstream = response.body();
 			int upstreamMetaInt = NumberUtils.toInt(response.headers().firstValue("icy-metaint").orElse(null), 0);
 			if (upstreamMetaInt > 0) {
-				String resourceId = getResourceId();
-				return new IcyMetadataReaderInputStream(upstream, upstreamMetaInt,
-						title -> WebStreamNowPlaying.put(resourceId, title));
+				return new IcyMetadataReaderInputStream(upstream, upstreamMetaInt);
 			}
 			LOGGER.debug("web stream {} announces no icy-metaint", getUrl());
 		} catch (IOException | RuntimeException e) {
@@ -99,23 +126,6 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 		}
 		closeQuietly(upstream);
 		return null;
-	}
-
-	/**
-	 * Drops the remembered title once the renderer stops pulling the stream.
-	 */
-	private InputStream trackedStream(InputStream stream) {
-		String resourceId = getResourceId();
-		return new FilterInputStream(stream) {
-			@Override
-			public void close() throws IOException {
-				try {
-					super.close();
-				} finally {
-					WebStreamNowPlaying.remove(resourceId);
-				}
-			}
-		};
 	}
 
 	private static void closeQuietly(InputStream stream) {
