@@ -30,14 +30,23 @@ public class NowPlayingInfo {
 	}
 
 	/**
+	 * For an ICY line the parts were split out of: the line itself stays as the station announced it.
+	 */
+	public static NowPlayingInfo ofStreamTitle(String streamTitle, String artist, String title) {
+		if (StringUtils.isBlank(streamTitle)) {
+			return null;
+		}
+		return new NowPlayingInfo(StringUtils.trimToNull(artist), StringUtils.trimToNull(title), null, streamTitle);
+	}
+
+	/**
 	 * For a source that knows the parts, such as the AudioAddict API.
 	 */
 	public static NowPlayingInfo of(String artist, String title, String artUrl) {
 		if (StringUtils.isAllBlank(artist, title)) {
 			return null;
 		}
-		String line = StringUtils.isNotBlank(artist) && StringUtils.isNotBlank(title) ? artist + " - " + title
-			: StringUtils.defaultIfBlank(title, artist);
+		String line = StringUtils.isNotBlank(artist) && StringUtils.isNotBlank(title) ? artist + " - " + title : StringUtils.defaultIfBlank(title, artist);
 		return new NowPlayingInfo(StringUtils.trimToNull(artist), StringUtils.trimToNull(title),
 			StringUtils.trimToNull(artUrl), line);
 	}

@@ -92,6 +92,7 @@ public final class PlaylistFolder extends StoreContainer {
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
 	public static final String DIRECTIVE_RATING = "#EXTRATING:";
 	public static final String DIRECTIVE_PLAYLIST_RATING = "#EXTPLAYLISTRATING:";
+	public static final String DIRECTIVE_ICY_ORDER = "#EXTICYORDER:";
 
 	// How long the first browse of a web playlist waits for its entries.
 	private static final long WEB_ENTRY_BUDGET_SECONDS = 2;
@@ -685,6 +686,10 @@ public final class PlaylistFolder extends StoreContainer {
 		updateDirective(url, DIRECTIVE_RATING, rating == null ? null : rating.toString());
 	}
 
+	public void updateIcyOrderDirective(String url, String order) {
+		updateDirective(url, DIRECTIVE_ICY_ORDER, order);
+	}
+
 	/**
 	 * Stores the rating of the playlist itself in its header.
 	 */
@@ -849,6 +854,8 @@ public final class PlaylistFolder extends StoreContainer {
 						playlistRatingDirective = line.substring(DIRECTIVE_PLAYLIST_RATING.length()).trim();
 					} else if (line.toUpperCase().startsWith(DIRECTIVE_RATING)) {
 						directives.put(DIRECTIVE_RATING, line.substring(DIRECTIVE_RATING.length()));
+					} else if (line.toUpperCase().startsWith(DIRECTIVE_ICY_ORDER)) {
+						directives.put(DIRECTIVE_ICY_ORDER, line.substring(DIRECTIVE_ICY_ORDER.length()));
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
 						entries.add(new Entry(line, title, directives));
 						title = null;

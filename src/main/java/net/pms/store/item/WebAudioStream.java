@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import net.pms.external.JavaHttpClient;
 import net.pms.formats.Format;
@@ -27,8 +28,11 @@ import net.pms.renderers.Renderer;
 import net.pms.store.IcyMetadataInputStream;
 import net.pms.store.IcyMetadataReaderInputStream;
 import net.pms.store.IcyMetadataSource;
+import net.pms.store.IcyStreamTitleParser;
+import net.pms.store.IcyStreamTitleParser.Order;
 import net.pms.store.NowPlayingInfo;
 import net.pms.store.NowPlayingWatchInputStream;
+import net.pms.store.container.PlaylistFolder;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +40,10 @@ import org.slf4j.LoggerFactory;
 public class WebAudioStream extends WebStream implements IcyMetadataSource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebAudioStream.class);
+
+	private static final Map<String, Order> ICY_ORDER_OVERRIDES = new ConcurrentHashMap<>();
+
+	private volatile Order playlistOrder;
 
 	public WebAudioStream(Renderer renderer, String fluxName, String url, String thumbURL) {
 		this(renderer, fluxName, url, thumbURL, null);
@@ -73,11 +81,38 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 		return null;
 	}
 
+	public Order getIcyTitleOrder() {
+		Order fromPlaylist = getPlaylistOrder();
+		Order override = ICY_ORDER_OVERRIDES.get(getUrl());
+		if (override == null) {
+			return fromPlaylist;
+		}
+		if (override == fromPlaylist) {
+			// The playlist has caught up, so the override has done its job.
+			ICY_ORDER_OVERRIDES.remove(getUrl());
+		}
+		return override;
+	}
+
+	public void setIcyTitleOrder(Order order) {
+		ICY_ORDER_OVERRIDES.put(getUrl(), order == null ? Order.AUTO : order);
+	}
+
+	private Order getPlaylistOrder() {
+		Order order = playlistOrder;
+		if (order == null) {
+			order = Order.of(getDirective(PlaylistFolder.DIRECTIVE_ICY_ORDER));
+			playlistOrder = order;
+		}
+		return order;
+	}
+
 	@Override
 	public InputStream getInputStream() {
 		IcyMetadataReaderInputStream reader = isIcyPassThrough() ? openIcyReader() : null;
 		if (reader != null) {
-			return watched(reader, () -> NowPlayingInfo.ofStreamTitle(reader.getStreamTitle()));
+			IcyStreamTitleParser parser = newTitleParser();
+			return watched(reader, () -> parser.parse(reader.getStreamTitle()));
 		}
 		InputStream plain = super.getInputStream();
 		return plain == null ? null : watched(plain, this::getNowPlaying);
@@ -88,8 +123,9 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 		IcyMetadataReaderInputStream reader = isIcyPassThrough() ? openIcyReader() : null;
 		if (reader != null) {
 			LOGGER.info("forwarding ICY metadata for {} (renderer interval {})", getUrl(), metaInt);
+			IcyStreamTitleParser parser = newTitleParser();
 			return watched(new IcyMetadataInputStream(reader, metaInt, reader::getStreamTitle),
-					() -> NowPlayingInfo.ofStreamTitle(reader.getStreamTitle()));
+					() -> parser.parse(reader.getStreamTitle()));
 		}
 		InputStream plain = super.getInputStream();
 		if (plain == null) {
@@ -101,6 +137,10 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 	private String currentStreamTitle() {
 		NowPlayingInfo info = getNowPlaying();
 		return info == null ? null : info.streamTitle;
+	}
+
+	private IcyStreamTitleParser newTitleParser() {
+		return new IcyStreamTitleParser(this::getIcyTitleOrder, getName(), getUrl());
 	}
 
 	private InputStream watched(InputStream stream, Supplier<NowPlayingInfo> supplier) {

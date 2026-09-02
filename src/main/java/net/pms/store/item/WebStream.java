@@ -244,24 +244,28 @@ public class WebStream extends StoreItem {
 		if (getMediaInfo() == null || !getMediaInfo().isMediaParsed()) {
 			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
 		}
-		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID)) {
+		String radioBrowserUuid = getDirective(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID);
+		if (radioBrowserUuid != null) {
 			// Attempt to enhance the metadata via RADIOBROWSER API.
-			RadioBrowser4j.backgroundLookupAndAddMetadata(url, directives.get(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID), mediaInfo);
+			RadioBrowser4j.backgroundLookupAndAddMetadata(url, radioBrowserUuid, mediaInfo);
 		}
-		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_ALBUMART_URI)) {
-			ThumbnailStore.enqueueThumbnailUpdate(directives.get(PlaylistFolder.DIRECTIVE_ALBUMART_URI), getFileName(), ThumbnailSource.PLAYLIST);
+		String albumArtUri = getDirective(PlaylistFolder.DIRECTIVE_ALBUMART_URI);
+		if (albumArtUri != null) {
+			ThumbnailStore.enqueueThumbnailUpdate(albumArtUri, getFileName(), ThumbnailSource.PLAYLIST);
 		}
 		applyRatingDirective();
 	}
 
-	/**
-	 * A web stream has no file to hold its rating.
-	 */
+	protected String getDirective(String directive) {
+		return directives == null ? null : directives.get(directive);
+	}
+
 	private void applyRatingDirective() {
-		if (directives == null || !directives.containsKey(PlaylistFolder.DIRECTIVE_RATING) || getRating() != null) {
+		String rating = getDirective(PlaylistFolder.DIRECTIVE_RATING);
+		if (rating == null || getRating() != null) {
 			return;
 		}
-		String value = directives.get(PlaylistFolder.DIRECTIVE_RATING).trim();
+		String value = rating.trim();
 		try {
 			setRating(Integer.valueOf(value));
 		} catch (NumberFormatException e) {

@@ -26,9 +26,11 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
+import net.pms.store.IcyStreamTitleParser;
 import net.pms.store.NowPlayingInfo;
 import net.pms.store.WebStreamNowPlaying;
 import net.pms.store.container.PlaylistFolder;
+import net.pms.store.item.WebAudioStream;
 import net.pms.util.artistImageProvider.UmsArtistImageProvider;
 import net.pms.store.container.audioaddict.AudioAddictPlaylistInputStream;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
@@ -67,6 +69,7 @@ import org.jupnp.internal.compat.java.beans.PropertyChangeSupport;
 	@UpnpStateVariable(name = "A_ARG_TYPE_Search", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_StationUuid", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_Title", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_IcyOrder", sendEvents = false, datatype = "string"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_Result", sendEvents = false, datatype = "string")
 	})
 public class UmsExtendedServices {
@@ -130,8 +133,8 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * The artist/title split and the cover are only present for sources that know them.
-	 * Attention: ICY has a single line, which stays in "streamTitle" either way!
+	 * The cover is only present for a source that knows it. Artist and title are present for an API
+	 * source and for an ICY line that could be split; "streamTitle" always carries the whole line.
 	 */
 	private static String toNowPlayingJson(String resourceId, NowPlayingInfo info) {
 		Map<String, String> event = new LinkedHashMap<>();
@@ -247,6 +250,51 @@ public class UmsExtendedServices {
 			return "";
 		}
 		return StringUtils.defaultString(toNowPlayingJson(resourceId, info));
+	}
+
+	/**
+	 * Which half of an ICY stream title a station puts the artist in: "auto", "artist-first" or "title-first".
+	 * Most stations announce "Artist - Title", some announce "Track - Station".
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "IcyOrder"))
+	public String getWebStreamIcyOrder(@UpnpInputArgument(name = "ObjectID") String objectId,
+			RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
+		return getWebAudioStream(objectId, remoteClientInfo).getIcyTitleOrder().directiveValue();
+	}
+
+	/**
+	 * Stores that order in the playlist the station is listed in.
+	 */
+	@UpnpAction
+	public void setWebStreamIcyOrder(@UpnpInputArgument(name = "ObjectID") String objectId,
+			@UpnpInputArgument(name = "IcyOrder") String icyOrder,
+			RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
+		IcyStreamTitleParser.Order order = IcyStreamTitleParser.Order.of(icyOrder);
+		if (StringUtils.isNotBlank(icyOrder) && !order.directiveValue().equals(icyOrder.trim().toLowerCase())) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "unknown ICY order " + icyOrder);
+		}
+		WebAudioStream stream = getWebAudioStream(objectId, remoteClientInfo);
+		if (!(stream.getParent() instanceof PlaylistFolder playlist)) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID,
+					"object " + objectId + " is not part of a playlist");
+		}
+		stream.setIcyTitleOrder(order);
+		// AUTO is the default, so it is stored as the absence of the directive.
+		playlist.updateIcyOrderDirective(stream.getUrl(), order == IcyStreamTitleParser.Order.AUTO ? null : order.directiveValue());
+		ConnectedRenderers.invalidateRendererCache(new File(playlist.getFileName()));
+		LOG.debug("ICY title order of {} set to {}", stream.getUrl(), order);
+	}
+
+	private WebAudioStream getWebAudioStream(String objectId, RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
+		Renderer renderer = UmsContentDirectoryService.getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "unknown media renderer");
+		}
+		StoreResource resource = renderer.getMediaStore().getResource(StringUtils.substringBefore(objectId, "#"));
+		if (!(resource instanceof WebAudioStream stream)) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "object " + objectId + " is not a web radio");
+		}
+		return stream;
 	}
 
 	@UpnpAction

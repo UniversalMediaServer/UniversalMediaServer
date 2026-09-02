@@ -342,30 +342,29 @@ public class StoreResourceHelper {
 			result.getProperties().set(new DC.Date(formatDate(new Date(item.getLastModified()))));
 		}
 
-		if (mediaInfo != null && audioMetadata != null && result instanceof AudioItem audioItem &&
-				StringUtils.isNotBlank(audioMetadata.getGenre())) {
-			audioItem.setGenres(new String[] {audioMetadata.getGenre()});
-		}
+		if (mediaInfo != null && audioMetadata != null && result instanceof AudioItem audioItem) {
+			if (StringUtils.isNotBlank(audioMetadata.getGenre())) {
+				audioItem.setGenres(new String[] {audioMetadata.getGenre()});
+			}
 
-		if (mediaInfo != null && audioMetadata != null && result instanceof MusicTrack musicTrack) {
 			if (StringUtils.isNotBlank(audioMetadata.getAlbum())) {
-				musicTrack.setAlbum(audioMetadata.getAlbum());
+				audioItem.getProperties().set(new UPNP.Album(audioMetadata.getAlbum()));
 			}
 
 			if (StringUtils.isNotBlank(audioMetadata.getArtist())) {
-				musicTrack.setCreator(audioMetadata.getArtist());
-				musicTrack.addArtist(new UPNP.Artist(audioMetadata.getArtist()));
+				audioItem.setCreator(audioMetadata.getArtist());
+				audioItem.getProperties().add(new UPNP.Artist(audioMetadata.getArtist()));
 			}
 
 			if (StringUtils.isNotBlank(audioMetadata.getComposer())) {
-				musicTrack.addArtist(new UPNP.Artist(audioMetadata.getComposer(), "Composer"));
+				audioItem.getProperties().add(new UPNP.Artist(audioMetadata.getComposer(), "Composer"));
 			}
 
 			if (StringUtils.isNotBlank(audioMetadata.getConductor())) {
-				musicTrack.addArtist(new UPNP.Artist(audioMetadata.getConductor(), "Conductor"));
+				audioItem.getProperties().add(new UPNP.Artist(audioMetadata.getConductor(), "Conductor"));
 			}
 
-			if (audioMetadata.getTrack() > 0) {
+			if (audioMetadata.getTrack() > 0 && result instanceof MusicTrack musicTrack) {
 				musicTrack.setOriginalTrackNumber(audioMetadata.getTrack());
 			}
 		}

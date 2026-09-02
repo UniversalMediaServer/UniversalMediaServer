@@ -118,6 +118,27 @@ public class PlaylistFolderTest {
 	}
 
 	/**
+	 * The ICY order of a station lives next to its url, and going back to the automatic detection
+	 * takes the line out again instead of leaving "auto" behind.
+	 */
+	@Test
+	public void testIcyOrderDirectiveIsWrittenAndRemoved() throws Exception {
+		Path playlist = tempPlaylist(".m3u8",
+			"#EXTM3U\n\n#EXTINF:-1,First\nhttp://stream.example/first\n#EXTINF:-1,Second\nhttp://stream.example/second\n");
+
+		playlistOf(playlist).updateIcyOrderDirective("http://stream.example/second", "title-first");
+		List<String> lines = Files.readAllLines(playlist).stream().filter(l -> !l.isBlank()).toList();
+		assertEquals("#EXTINF:-1,Second", lines.get(3));
+		assertEquals("#EXTICYORDER:title-first", lines.get(4));
+		assertEquals("http://stream.example/second", lines.get(5));
+		assertEquals(6, lines.size());
+
+		playlistOf(playlist).updateIcyOrderDirective("http://stream.example/second", null);
+		assertFalse(Files.readString(playlist).contains("#EXTICYORDER"), Files.readString(playlist));
+		assertEquals(2, Files.readAllLines(playlist).stream().filter(l -> l.startsWith("http")).count());
+	}
+
+	/**
 	 * A plain m3u is read as ISO-8859-1. Writing it back with the platform default used to turn every
 	 * accented character into mojibake.
 	 */
