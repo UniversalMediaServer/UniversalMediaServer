@@ -1,4 +1,4 @@
-package net.pms.store.container.audioaddict;
+package net.pms.store;
 
 import java.io.IOException;
 import java.io.InputStream;

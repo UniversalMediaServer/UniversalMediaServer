@@ -259,6 +259,25 @@ public class JavaHttpClient {
 		}
 	}
 
+	/**
+	 * Opens an endless stream (internet radio). Extra request headers are used to negotiate ICY metadata.
+	 */
+	public static HttpResponse<InputStream> getLiveStreamResponse(String uri, Map<String, String> headers) throws IOException {
+		try {
+			HttpRequest.Builder builder = HttpRequest.newBuilder()
+					.uri(URI.create(uri))
+					.header("User-Agent", BROWSER_USER_AGENT);
+			headers.forEach(builder::header);
+			return getClient()
+					.sendAsync(builder.GET().build(), HttpResponse.BodyHandlers.ofInputStream())
+					.join();
+		} catch (IllegalArgumentException ex) {
+			throw new IOException("Unable to open live stream " + uri + ":" + ex.getMessage(), ex);
+		} catch (CompletionException ex) {
+			throw handleCompletionException(uri, ex);
+		}
+	}
+
 	public static HttpResponse<InputStream> getHttpResponseInputStream(String uri) throws IOException {
 		try {
 			HttpRequest request = newHttpRequest(uri)

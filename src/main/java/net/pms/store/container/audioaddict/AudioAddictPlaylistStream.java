@@ -7,6 +7,7 @@ import net.pms.external.audioaddict.Platform;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
+import net.pms.store.IcyMetadataInputStream;
 
 /**
  * A curated playlist represented as a single, continuously playable item. Playing it streams

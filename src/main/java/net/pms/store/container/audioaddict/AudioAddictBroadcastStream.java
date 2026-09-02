@@ -2,6 +2,7 @@ package net.pms.store.container.audioaddict;
 
 import java.io.InputStream;
 import net.pms.renderers.Renderer;
+import net.pms.store.IcyMetadataInputStream;
 import net.pms.store.IcyMetadataSource;
 import net.pms.store.item.WebAudioStream;
 
