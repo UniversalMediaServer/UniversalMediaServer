@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.external.radiobrowser.RadioBrowser4j;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.renderers.Renderer;
@@ -39,6 +40,7 @@ import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -223,7 +225,9 @@ public class WebStream extends StoreItem {
 		}
 		RESOLVE_EXECUTOR.execute(() -> {
 			try {
-				setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
+				MediaInfo resolved = MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType());
+				keepStaticAudioMetadata(getMediaInfo(), resolved);
+				setMediaInfo(resolved);
 				MediaStoreIds.incrementUpdateId(getLongId());
 			} catch (Exception e) {
 				LOGGER.debug("Could not resolve the web stream \"{}\": {}", url, e.getMessage());
@@ -254,6 +258,30 @@ public class WebStream extends StoreItem {
 			ThumbnailStore.enqueueThumbnailUpdate(albumArtUri, getFileName(), ThumbnailSource.PLAYLIST);
 		}
 		applyRatingDirective();
+	}
+
+	/**
+	 * A container that knows its stream fills album, artist and genre itself, i.e. an AudioAddict channel.
+	 */
+	private static void keepStaticAudioMetadata(MediaInfo previous, MediaInfo resolved) {
+		if (previous == null || resolved == null || previous == resolved || !previous.hasAudioMetadata()) {
+			return;
+		}
+		MediaAudioMetadata staticMetadata = previous.getAudioMetadata();
+		if (!resolved.hasAudioMetadata()) {
+			resolved.setAudioMetadata(staticMetadata);
+			return;
+		}
+		MediaAudioMetadata metadata = resolved.getAudioMetadata();
+		if (StringUtils.isBlank(metadata.getAlbum())) {
+			metadata.setAlbum(staticMetadata.getAlbum());
+		}
+		if (StringUtils.isBlank(metadata.getArtist())) {
+			metadata.setArtist(staticMetadata.getArtist());
+		}
+		if (StringUtils.isBlank(metadata.getGenre())) {
+			metadata.setGenre(staticMetadata.getGenre());
+		}
 	}
 
 	protected String getDirective(String directive) {
