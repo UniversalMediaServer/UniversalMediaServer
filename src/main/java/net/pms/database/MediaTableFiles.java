@@ -39,6 +39,7 @@ import net.pms.configuration.sharedcontent.FileTypeForgivingAdapter;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.formats.Format;
 import net.pms.configuration.sharedcontent.SharedContentTypeAdapter;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
@@ -107,7 +108,7 @@ public class MediaTableFiles extends MediaTable {
 	 * - 47: new ruid algorithm, all RUID are dropped and recalculated on the next scan
 	 * - 48: index on RUID, the rating backup looks files up by it
 	 */
-	private static final int TABLE_VERSION = 48;
+	private static final int TABLE_VERSION = 49;
 
 	/**
 	 * COLUMNS NAMES
@@ -533,6 +534,22 @@ public class MediaTableFiles extends MediaTable {
 					}
 					case 47 -> {
 						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_RESOURCE_UID + IDX_MARKER + ON + TABLE_NAME + " (" + COL_RESOURCE_UID + ")");
+					}
+					case 48 -> {
+						try (Statement statement = connection.createStatement()) {
+							// JAudiotagger used to store its audio header description ("FLAC 24 bits") as the container and codec, which no
+							// renderer "Supported" line can match!
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append(UPDATE)
+									.append(TABLE_NAME)
+								.append(SET)
+									.append(COL_PARSER).append(" = NULL")
+								.append(WHERE)
+									.append(COL_FORMAT_TYPE).append(" = ").append(Format.AUDIO);
+							statement.execute(sb.toString());
+						}
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					}
 					default -> {
 						// Do the dumb way

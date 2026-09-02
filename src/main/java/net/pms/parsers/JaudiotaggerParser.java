@@ -24,6 +24,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.openhft.hashing.LongHashFunction;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -90,10 +92,94 @@ public class JaudiotaggerParser {
 	public static final String PARSER_NAME = "JAUDIO";
 	private static final String MULTI_VALUE_SEPARATOR = " / ";
 
+	private static final Pattern BIT_DEPTH_SUFFIX = Pattern.compile("\\s+(\\d{1,2})\\s*bits?$");
+
+	// The container belongs to the file type, not to the audio header JAudiotagger describes.
+	private static final Map<Format.Identifier, String> CONTAINER_BY_IDENTIFIER = Map.ofEntries(
+		Map.entry(Format.Identifier.ADPCM, FormatConfiguration.ADPCM),
+		Map.entry(Format.Identifier.ADTS, FormatConfiguration.ADTS),
+		Map.entry(Format.Identifier.AIFF, FormatConfiguration.AIFF),
+		Map.entry(Format.Identifier.APE, FormatConfiguration.MONKEYS_AUDIO),
+		Map.entry(Format.Identifier.ATRAC, FormatConfiguration.ATRAC),
+		Map.entry(Format.Identifier.AU, FormatConfiguration.AU),
+		Map.entry(Format.Identifier.DFF, FormatConfiguration.DFF),
+		Map.entry(Format.Identifier.DSF, FormatConfiguration.DSF),
+		Map.entry(Format.Identifier.FLAC, FormatConfiguration.FLAC),
+		Map.entry(Format.Identifier.M4A, FormatConfiguration.M4A),
+		Map.entry(Format.Identifier.MKA, FormatConfiguration.MKA),
+		Map.entry(Format.Identifier.MLP, FormatConfiguration.MLP),
+		Map.entry(Format.Identifier.MP3, FormatConfiguration.MP3),
+		Map.entry(Format.Identifier.MPA, FormatConfiguration.MPA),
+		Map.entry(Format.Identifier.MPC, FormatConfiguration.MPC),
+		Map.entry(Format.Identifier.OGA, FormatConfiguration.OGA),
+		Map.entry(Format.Identifier.RA, FormatConfiguration.RA),
+		Map.entry(Format.Identifier.SHN, FormatConfiguration.SHORTEN),
+		Map.entry(Format.Identifier.THREEGA, FormatConfiguration.THREEGA),
+		Map.entry(Format.Identifier.THREEG2A, FormatConfiguration.THREEGPP2),
+		Map.entry(Format.Identifier.TTA, FormatConfiguration.TTA),
+		Map.entry(Format.Identifier.WAV, FormatConfiguration.WAV),
+		Map.entry(Format.Identifier.WMA, FormatConfiguration.WMA),
+		Map.entry(Format.Identifier.WV, FormatConfiguration.WAVPACK));
+
 	/**
 	 * This class is not meant to be instantiated.
 	 */
 	private JaudiotaggerParser() {
+	}
+
+	/**
+	 * Translates JAudiotagger's prose description of the audio header ("FLAC 24 bits", "MPEG-1 Layer 3")
+	 * into the vocabulary the renderer "Supported" lines are written in. Anything unrecognized is passed
+	 * through unchanged.
+	 */
+	private static String normalizeCodec(String encodingType) {
+		String value = StringUtils.trimToNull(encodingType);
+		if (value == null) {
+			return null;
+		}
+		value = value.toLowerCase(Locale.ROOT);
+		if (value.contains("(windows media")) {
+			value = value.substring(0, value.indexOf("(windows media")).trim();
+		}
+		value = BIT_DEPTH_SUFFIX.matcher(value).replaceFirst("").trim();
+		if (value.startsWith("flac")) {
+			return FormatConfiguration.FLAC;
+		} else if (value.startsWith("alac") || value.startsWith("apple lossless")) {
+			return FormatConfiguration.ALAC;
+		} else if (value.startsWith("aac")) {
+			return FormatConfiguration.AAC_LC;
+		} else if (value.equals("mp3") || value.contains("layer 3")) {
+			return FormatConfiguration.MP3;
+		} else if (value.contains("layer 2")) {
+			return FormatConfiguration.MP2;
+		} else if (value.contains("layer 1")) {
+			return FormatConfiguration.MPA;
+		} else if (value.contains("vorbis")) {
+			return FormatConfiguration.VORBIS;
+		} else if (value.contains("opus")) {
+			return FormatConfiguration.OPUS;
+		} else if (value.startsWith("wavpack")) {
+			return FormatConfiguration.WAVPACK;
+		} else if (value.startsWith("wav") || value.contains("pcm")) {
+			return FormatConfiguration.LPCM;
+		} else if (value.startsWith("monkey")) {
+			return FormatConfiguration.MONKEYS_AUDIO;
+		} else if (value.startsWith("aiff")) {
+			return FormatConfiguration.AIFF;
+		} else if (value.startsWith("asf") || value.startsWith("windows media")) {
+			return FormatConfiguration.WMA;
+		}
+		return value;
+	}
+
+	private static String getContainer(Format format, String codec) {
+		if (format != null && format.getIdentifier() != null) {
+			String container = CONTAINER_BY_IDENTIFIER.get(format.getIdentifier());
+			if (container != null) {
+				return container;
+			}
+		}
+		return codec;
 	}
 
 	public static void parse(MediaInfo media, File file, Format format) {
@@ -114,8 +200,9 @@ public class JaudiotaggerParser {
 					int length = ah.getTrackLength();
 					int rate = ah.getSampleRateAsNumber();
 
-					if (ah.getEncodingType() != null && ah.getEncodingType().toLowerCase().contains("flac 24")) {
-						audio.setBitDepth(24);
+					Matcher bitDepth = BIT_DEPTH_SUFFIX.matcher(StringUtils.lowerCase(StringUtils.trimToEmpty(ah.getEncodingType())));
+					if (bitDepth.find()) {
+						audio.setBitDepth(Integer.parseInt(bitDepth.group(1)));
 					}
 
 					audio.setSampleRate(rate);
@@ -138,11 +225,7 @@ public class JaudiotaggerParser {
 					}
 
 					if (StringUtils.isNotBlank(ah.getEncodingType())) {
-						audio.setCodec(ah.getEncodingType());
-					}
-
-					if (audio.getCodec() != null && audio.getCodec().contains("(windows media")) {
-						audio.setCodec(audio.getCodec().substring(0, audio.getCodec().indexOf("(windows media")).trim());
+						audio.setCodec(normalizeCodec(ah.getEncodingType()));
 					}
 				}
 
@@ -211,7 +294,7 @@ public class JaudiotaggerParser {
 			media.setAudioMetadata(audioMetadata);
 			media.addAudioTrack(audio);
 			if (StringUtils.isBlank(media.getContainer())) {
-				media.setContainer(audio.getCodec());
+				media.setContainer(getContainer(format, audio.getCodec()));
 			}
 			Parser.postParse(media, Format.AUDIO);
 			media.setMediaParser(PARSER_NAME);
