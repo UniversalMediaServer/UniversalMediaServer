@@ -549,7 +549,7 @@ public class UmsExtendedServices {
 	public void restoreRatings() throws UmsExtendedServicesException {
 		if (MediaScanner.isMediaScanRunning()) {
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED,
-					"A media scan is running. Please wait until scan finished.");
+					"A media scan is running. Please wait until scan finished before restoring ratings.");
 		}
 		LOG.debug("restoring audio ratings ... ");
 		try {
