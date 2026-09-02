@@ -35,6 +35,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.store.MediaStore;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
@@ -169,8 +170,14 @@ public class RadioBrowser4j {
 					mediaInfo.setBitRate(station.getBitrate());
 					mediaInfo.getDefaultAudioTrack().setBitRate(station.getBitrate());
 				}
+				// If station announces its genre itself via icy-genre it's better and not overwritten.
 				if (genre != null) {
-					mediaInfo.getAudioMetadata().setGenre(genre);
+					if (!mediaInfo.hasAudioMetadata()) {
+						mediaInfo.setAudioMetadata(new MediaAudioMetadata());
+					}
+					if (StringUtils.isBlank(mediaInfo.getAudioMetadata().getGenre())) {
+						mediaInfo.getAudioMetadata().setGenre(genre);
+					}
 				}
 				if (StringUtils.isNotBlank(station.getFavicon()) && !ThumbnailSource.RADIOBROWSER.equals(mediaInfo.getThumbnailSource())) {
 					ThumbnailStore.enqueueThumbnailUpdate(station.getFavicon(), url, ThumbnailSource.RADIOBROWSER);
@@ -186,18 +193,23 @@ public class RadioBrowser4j {
 	/**
 	 * Splits tag list " / " separator.
 	 *
-	 * @param tags
-	 * @return
+	 * @return joined tags, or NULL when the station has none.
 	 */
 	protected static String getGenres(List<String> tags) {
+		if (tags == null) {
+			return null;
+		}
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < tags.size(); i++) {
-			sb.append(tags.get(i));
-			if (i < tags.size() - 1) {
+		for (String tag : tags) {
+			if (StringUtils.isBlank(tag)) {
+				continue;
+			}
+			if (sb.length() > 0) {
 				sb.append(" / ");
 			}
+			sb.append(tag.trim());
 		}
-		return sb.toString();
+		return sb.length() > 0 ? sb.toString() : null;
 	}
 
 	/**

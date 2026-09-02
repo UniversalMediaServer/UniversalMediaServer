@@ -94,6 +94,28 @@ public class WebStreamParser {
 		return type;
 	}
 
+	/**
+	 * If a station lists its genres comma separated convert them to " / " : like tags in RealFiles
+	 *
+	 * @return NULL when the station announced nothing.
+	 */
+	private static String normalizeGenre(String genre) {
+		if (StringUtils.isBlank(genre)) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (String part : genre.split(",")) {
+			if (StringUtils.isBlank(part)) {
+				continue;
+			}
+			if (sb.length() > 0) {
+				sb.append(" / ");
+			}
+			sb.append(part.trim());
+		}
+		return sb.length() > 0 ? sb.toString() : null;
+	}
+
 	/*
 	 * Extracts audio information from ice or icecast protocol.
 	 */
@@ -116,7 +138,7 @@ public class WebStreamParser {
 		if (sampleRate != null && mediaInfo.hasAudio()) {
 			mediaInfo.getDefaultAudioTrack().setSampleRate(sampleRate);
 		}
-		String genre = headers.firstValue("icy-genre").orElse(null);
+		String genre = normalizeGenre(headers.firstValue("icy-genre").orElse(null));
 		if (genre != null) {
 			if (!mediaInfo.hasAudioMetadata()) {
 				mediaInfo.setAudioMetadata(new MediaAudioMetadata());
