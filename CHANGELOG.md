@@ -3,10 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
-
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 6.1.2 to 6.1.3 ([#6300](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6300))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 6.1.2 to 6.1.3 ([#6300](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6300))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
 
 ## [15.8.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.0...15.8.1) (2026-08-23)
