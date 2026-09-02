@@ -111,11 +111,16 @@ public final class MediaTableResourceRatings extends MediaTable {
 
 	public static final String FILE_OBJECT_TYPE = "RealFile";
 
-	// The tag is the import state of file rating
-	private static final String SQL_INSERT_TAG_RATING = INSERT_INTO + TABLE_NAME + "(" + COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE +
-		COMMA + COL_RATING + COMMA + COL_MODIFIED + ") " +
-		SELECT + "?" + COMMA + "?" + COMMA + "?" + COMMA + "CURRENT_TIMESTAMP" +
-		WHERE + "NOT " + EXISTS + "(" + SELECT + "1" + FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + PARAMETER + ")";
+	/**
+	 * The tag is the import state of file rating.
+	 */
+	private static final String SQL_INSERT_TAG_RATING = "MERGE INTO " + TABLE_NAME + " AS T USING (" +
+		SELECT + "CAST(? AS " + VARCHAR_1024.trim() + ") AS " + COL_RESOURCE_KEY +
+		COMMA + "CAST(? AS " + VARCHAR.trim() + ") AS " + COL_OBJECT_TYPE +
+		COMMA + "CAST(? AS " + INTEGER.trim() + ") AS " + COL_RATING + ") AS S" +
+		ON + "T." + COL_RESOURCE_KEY + EQUAL + "S." + COL_RESOURCE_KEY +
+		" WHEN NOT MATCHED THEN INSERT (" + COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE + COMMA + COL_RATING + COMMA + COL_MODIFIED + ")" +
+		" VALUES (S." + COL_RESOURCE_KEY + COMMA + "S." + COL_OBJECT_TYPE + COMMA + "S." + COL_RATING + COMMA + "CURRENT_TIMESTAMP)";
 
 	/**
 	 * Stores the rating an audio file carries in its tag, unless the resource is already rated.
@@ -128,7 +133,6 @@ public final class MediaTableResourceRatings extends MediaTable {
 			statement.setString(1, resourceKey);
 			statement.setString(2, FILE_OBJECT_TYPE);
 			statement.setInt(3, rating);
-			statement.setString(4, resourceKey);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing tag rating", rating, TABLE_NAME, resourceKey, e.getMessage());
