@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,13 +19,19 @@ public class IcyMetadataReaderInputStream extends InputStream {
 
 	private final InputStream in;
 	private final int metaInt;
+	private final Consumer<String> titleListener;
 
 	private volatile String streamTitle;
 	private int bytesUntilMeta;
 
 	public IcyMetadataReaderInputStream(InputStream in, int metaInt) {
+		this(in, metaInt, null);
+	}
+
+	public IcyMetadataReaderInputStream(InputStream in, int metaInt, Consumer<String> titleListener) {
 		this.in = in;
 		this.metaInt = metaInt;
+		this.titleListener = titleListener;
 		this.bytesUntilMeta = metaInt;
 		LOGGER.debug("ICY: reading upstream metadata every {} bytes", metaInt);
 	}
@@ -103,6 +110,11 @@ public class IcyMetadataReaderInputStream extends InputStream {
 		}
 		if (!title.equals(streamTitle)) {
 			LOGGER.debug("ICY: upstream announced StreamTitle='{}'", title);
+			streamTitle = title;
+			if (titleListener != null) {
+				titleListener.accept(title);
+			}
+			return;
 		}
 		streamTitle = title;
 	}

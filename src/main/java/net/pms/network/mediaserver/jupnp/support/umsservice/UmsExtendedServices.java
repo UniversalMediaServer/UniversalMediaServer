@@ -26,6 +26,7 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
+import net.pms.store.WebStreamNowPlaying;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.util.artistImageProvider.UmsArtistImageProvider;
 import net.pms.store.container.audioaddict.AudioAddictPlaylistInputStream;
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.jupnp.internal.compat.java.beans.PropertyChangeSupport;
 
 @UpnpService(
 	serviceId = @UpnpServiceId("UmsExtendedServices"),
@@ -93,7 +95,20 @@ public class UmsExtendedServices {
 	@UpnpStateVariable(name = "PlaylistLoop", defaultValue = "false", sendEvents = true)
 	public boolean playlistLoop = false;
 
+	/**
+	 * The stream title last announced by any web radio this server is serving, as JSON.
+	 */
+	@UpnpStateVariable(name = "WebStreamNowPlaying", defaultValue = "", sendEvents = true)
+	public String webStreamNowPlaying = "";
+
+	private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+
+	public PropertyChangeSupport getPropertyChangeSupport() {
+		return propertyChangeSupport;
+	}
+
 	public UmsExtendedServices() {
+		WebStreamNowPlaying.addListener(this::onWebStreamTitleChanged);
 		readConfig();
 		this.readConfigTimer = new TimerTask() {
 			@Override
@@ -104,31 +119,58 @@ public class UmsExtendedServices {
 		timer.schedule(readConfigTimer, 0, 60000);
 	}
 
+	private void onWebStreamTitleChanged(String resourceId, String streamTitle) {
+		Map<String, String> event = new LinkedHashMap<>();
+		event.put("objectID", resourceId);
+		event.put("streamTitle", streamTitle != null ? streamTitle : "");
+		try {
+			this.webStreamNowPlaying = new ObjectMapper().writeValueAsString(event);
+		} catch (JsonProcessingException e) {
+			LOG.warn("cannot serialize web stream now-playing event for {}", resourceId, e);
+			return;
+		}
+		propertyChangeSupport.firePropertyChange("WebStreamNowPlaying", null, this.webStreamNowPlaying);
+	}
+
 	private void readConfig() {
+		String changed = "";
 		if (this.audioUpdateRatingTag != PMS.getConfiguration().isAudioUpdateTag()) {
 			LOG.debug("isAudioUpdateTag has changed to {} ", PMS.getConfiguration().isAudioUpdateTag());
 			this.audioUpdateRatingTag = PMS.getConfiguration().isAudioUpdateTag();
+			changed = appendChanged(changed, "AudioUpdateRating");
 		}
 		if (this.audioLikesVisibleRoot != PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 			LOG.debug("audioLikesVisibleRoot has changed to {} ", PMS.getConfiguration().displayAudioLikesInRootFolder());
 			this.audioLikesVisibleRoot = PMS.getConfiguration().displayAudioLikesInRootFolder();
+			changed = appendChanged(changed, "AudioLikesVisibleRoot");
 		}
 		if (this.upnpCdsWrite != PMS.getConfiguration().isUpnpCdsWrite()) {
 			LOG.debug("upnpCdsWrite has changed to {} ", PMS.getConfiguration().isUpnpCdsWrite());
 			this.upnpCdsWrite = PMS.getConfiguration().isUpnpCdsWrite();
+			changed = appendChanged(changed, "UpnpCdsWrite");
 		}
 		if (this.anonymousDevicesWrite != PMS.getConfiguration().isAnonymousDevicesWrite()) {
 			LOG.debug("anonymousDevicesWrite has changed to {} ", PMS.getConfiguration().isAnonymousDevicesWrite());
 			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
+			changed = appendChanged(changed, "AnonymousDevicesWrite");
 		}
 		if (this.preferEuropeanServer != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
 			LOG.debug("prefer european servers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
 			this.preferEuropeanServer = PMS.getConfiguration().isAudioAddictEuropeanServer();
+			changed = appendChanged(changed, "PreferEuropeanServer");
 		}
 		if (this.playlistLoop != PMS.getConfiguration().isAudioAddictPlaylistLoop()) {
 			LOG.debug("playlistLoop has changed to {} ", PMS.getConfiguration().isAudioAddictPlaylistLoop());
 			this.playlistLoop = PMS.getConfiguration().isAudioAddictPlaylistLoop();
+			changed = appendChanged(changed, "PlaylistLoop");
 		}
+		if (!changed.isEmpty()) {
+			propertyChangeSupport.firePropertyChange(changed, null, null);
+		}
+	}
+
+	private static String appendChanged(String changed, String stateVariable) {
+		return changed.isEmpty() ? stateVariable : changed + "," + stateVariable;
 	}
 
 	@UpnpAction
@@ -136,6 +178,7 @@ public class UmsExtendedServices {
 		LOG.debug("updating preferEuropeanServer to {}. Value changed from : {}", preferEuropeanServer, this.preferEuropeanServer);
 		PMS.getConfiguration().setAudioAddictEuropeanServer(preferEuropeanServer);
 		this.preferEuropeanServer = preferEuropeanServer;
+		propertyChangeSupport.firePropertyChange("PreferEuropeanServer", null, this.preferEuropeanServer);
 	}
 
 	@UpnpAction
@@ -143,6 +186,7 @@ public class UmsExtendedServices {
 		LOG.debug("updating playlistLoop to {}. Value changed from : {}", playlistLoop, this.playlistLoop);
 		PMS.getConfiguration().setAudioAddictPlaylistLoop(playlistLoop);
 		this.playlistLoop = playlistLoop;
+		propertyChangeSupport.firePropertyChange("PlaylistLoop", null, this.playlistLoop);
 	}
 
 	/**
@@ -168,9 +212,29 @@ public class UmsExtendedServices {
 		}
 	}
 
+	/**
+	 * Returns the title a web radio is currently announcing via ICY as a JSON object passed on verbatim.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "NowPlaying"))
+	public String getWebStreamNowPlaying(@UpnpInputArgument(name = "ObjectID") String objectId) {
+		String streamTitle = WebStreamNowPlaying.get(StringUtils.substringBefore(objectId, "#"));
+		if (StringUtils.isBlank(streamTitle)) {
+			return "";
+		}
+		Map<String, String> nowPlaying = new LinkedHashMap<>();
+		nowPlaying.put("streamTitle", streamTitle);
+		try {
+			return new ObjectMapper().writeValueAsString(nowPlaying);
+		} catch (JsonProcessingException e) {
+			LOG.warn("cannot serialize web stream now-playing for {}", objectId, e);
+			return "";
+		}
+	}
+
 	@UpnpAction
 	public void setAudioUpdateRatingTag(@UpnpInputArgument(name = "AudioUpdateRating") boolean newAudioUpdateRatingTag) {
 		this.audioUpdateRatingTag = newAudioUpdateRatingTag;
+		propertyChangeSupport.firePropertyChange("AudioUpdateRating", null, this.audioUpdateRatingTag);
 		boolean changed = PMS.getConfiguration().setAudioUpdateTag(newAudioUpdateRatingTag);
 		LOG.debug("updating audioUpdateRatingTag to {}. Value changed : {}", newAudioUpdateRatingTag, changed);
 	}
@@ -178,6 +242,7 @@ public class UmsExtendedServices {
 	@UpnpAction
 	public void setAudioLikesVisibleRoot(@UpnpInputArgument(name = "AudioLikesVisibleRoot") boolean newAudioLikesVisibleRoot) {
 		this.audioLikesVisibleRoot = newAudioLikesVisibleRoot;
+		propertyChangeSupport.firePropertyChange("AudioLikesVisibleRoot", null, this.audioLikesVisibleRoot);
 		boolean changed = PMS.getConfiguration().setDisplayAudioLikesInRootFolder(newAudioLikesVisibleRoot);
 		LOG.debug("updating audioLikesVisibleRoot to {}. Value changed : {}", newAudioLikesVisibleRoot, changed);
 	}
@@ -185,6 +250,7 @@ public class UmsExtendedServices {
 	@UpnpAction
 	public void setUpnpCdsWrite(@UpnpInputArgument(name = "UpnpCdsWrite") boolean newUpnpCdsWrite) {
 		this.upnpCdsWrite = newUpnpCdsWrite;
+		propertyChangeSupport.firePropertyChange("UpnpCdsWrite", null, this.upnpCdsWrite);
 		boolean changed = PMS.getConfiguration().setUpnpCdsWrite(newUpnpCdsWrite);
 		LOG.debug("updating upnpCdsWrite to {}. Value changed : {}", newUpnpCdsWrite, changed);
 	}
@@ -192,6 +258,7 @@ public class UmsExtendedServices {
 	@UpnpAction
 	public void setAnonymousDevicesWrite(@UpnpInputArgument(name = "AnonymousDevicesWrite") boolean newAnonymousDevicesWrite) {
 		this.anonymousDevicesWrite = newAnonymousDevicesWrite;
+		propertyChangeSupport.firePropertyChange("AnonymousDevicesWrite", null, this.anonymousDevicesWrite);
 		boolean changed = PMS.getConfiguration().setAnonymousDevicesWrite(newAnonymousDevicesWrite);
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
 	}
