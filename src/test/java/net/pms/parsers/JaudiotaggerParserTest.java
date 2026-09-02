@@ -59,7 +59,7 @@ public class JaudiotaggerParserTest {
 				getTestFileMediaInfo("audio-mp3-infos.mp3").toString()
 		);
 		assertEquals(
-				"Container: FLAC 24 BITS, Size: 3208022, Overall Bitrate: 1231, Duration: 0:00:21.000, Audio Tracks: 1 [Audio Id: 0, Codec: flac 24 bits, Bitrate: 0, Bits per Sample: 24, Channels: 2, Sample Frequency: 48000 Hz], Track Name: audio-flac24.flac, Track: 1, Mime Type: audio/x-flac",
+				"Container: FLAC 24 BITS, Size: 3208022, Overall Bitrate: 1231, Duration: 0:00:21.000, Audio Tracks: 1 [Audio Id: 0, Codec: flac 24 bits, Bitrate: 0, Bits per Sample: 24, Channels: 2, Sample Frequency: 48000 Hz], Track Name: audio-flac24.flac, Track: 1, Mime Type: audio/flac",
 				getTestFileMediaInfo("audio-flac24.flac").toString()
 		);
 
