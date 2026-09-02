@@ -56,6 +56,7 @@ import net.pms.external.audioaddict.mapper.PlaylistPlayResponse;
 import net.pms.external.audioaddict.mapper.PlaylistTrackJson;
 import net.pms.external.audioaddict.mapper.PlaylistsResponse;
 import net.pms.external.audioaddict.mapper.Root;
+import net.pms.external.audioaddict.mapper.Tag;
 import net.pms.store.container.audioaddict.INetworkInitialized;
 import net.pms.external.audioaddict.mapper.TrackHistoryJson;
 
@@ -404,6 +405,23 @@ public class RadioNetwork {
 		return sb.length() > 0 ? sb.toString() : null;
 	}
 
+	private static String joinTags(List<Tag> tags) {
+		if (tags == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Tag tag : tags) {
+			if (tag.name == null || tag.name.isBlank()) {
+				continue;
+			}
+			if (sb.length() > 0) {
+				sb.append(", ");
+			}
+			sb.append(tag.name.trim());
+		}
+		return sb.length() > 0 ? sb.toString() : null;
+	}
+
 	private ChannelFilter getChannelByName(String filterName) {
 		Optional<ChannelFilter> allFilter = networkBatchRoot.channelFilters.stream()
 			.filter(filter -> filter.name.equalsIgnoreCase(filterName)).findAny();
@@ -614,7 +632,11 @@ public class RadioNetwork {
 					dto.duration = p.duration;
 					dto.trackCount = p.trackCount;
 					dto.albumArt = imageUrlFromMap(p.images);
+					// Only some playlists sit in a genre filter; the others still carry tags.
 					dto.genres = joinGenres(p.channelFilterIds, genreFilters);
+					if (dto.genres == null) {
+						dto.genres = joinTags(p.tags);
+					}
 					dto.curator = p.curator != null ? p.curator.name : null;
 					result.add(dto);
 				}

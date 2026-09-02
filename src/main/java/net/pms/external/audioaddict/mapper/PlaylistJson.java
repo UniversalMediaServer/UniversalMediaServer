@@ -1,5 +1,6 @@
 package net.pms.external.audioaddict.mapper;
 
+import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -19,4 +20,5 @@ public class PlaylistJson {
 	public Curator curator;
 	@JsonProperty("channel_filter_ids")
 	public int[] channelFilterIds;
+	public List<Tag> tags;
 }
