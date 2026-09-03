@@ -526,7 +526,7 @@ public class DidlHelper extends DlnaHelper {
 					if (audioMetadata.getDiscogsReleaseId() != null) {
 						addXMLTagAndAttribute(sb, "discogsreleaseid", audioMetadata.getDiscogsReleaseId());
 					}
-					addXMLTagAndAttribute(sb, "resourceid", mediaInfo.getResourceId());
+					addXMLTagAndAttribute(sb, "resourceid", encodeXML(mediaInfo.getResourceId()));
 					if (audioMetadata.getDisc() > 0) {
 						addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
 					}
@@ -1013,8 +1013,21 @@ public class DidlHelper extends DlnaHelper {
 		sb.append(' ');
 		sb.append(attribute);
 		sb.append("=\"");
-		sb.append(value);
+		sb.append(encodeXMLAttribute(value));
 		sb.append("\"");
+	}
+
+	/**
+	 * Attribute values sit inside double quotes, so unlike text nodes " must be
+	 * escaped too - one stray quote kills the whole DIDL. Escaped twice like
+	 * {@link #encodeXML(String)}, because this DIDL is itself embedded escaped
+	 * in the SOAP Result.
+	 */
+	private static String encodeXMLAttribute(Object value) {
+		if (value == null) {
+			return "";
+		}
+		return StringEscapeUtils.escapeXml10(StringEscapeUtils.escapeXml10(value.toString()));
 	}
 
 	private static void addXMLTagAndAttribute(StringBuilder sb, String tag, Object value) {

@@ -627,6 +627,12 @@ public abstract class StoreItem extends StoreResource {
 			mime = HTTPResource.getDefaultMimeType(getType());
 		}
 
+		// DLNA protocolInfo wants a bare mime type; parameters like YouTube's codecs="avc1.64002a" break the profile lookup and the DIDL.
+		int parameter = mime.indexOf(';');
+		if (parameter > -1) {
+			mime = mime.substring(0, parameter).trim();
+		}
+
 		return mime;
 	}
 
