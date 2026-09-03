@@ -152,8 +152,12 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				SortedHeaderMap headerMap = getHeaderMapFromRequest(req);
 				renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headerMap, getInetAddress(req));
 				if (renderer == null) {
+					// Fallback to IP association
+					renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
+				}
+				if (renderer == null) {
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Renderer not identified by header, using default renderer. Request headers were: {}", headerMap);
+						LOGGER.trace("Renderer not identified by header or address, using default renderer. Request headers were: {}", headerMap);
 					}
 					renderer = RendererConfigurations.getDefaultRenderer();
 				}
