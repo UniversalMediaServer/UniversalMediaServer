@@ -41,29 +41,43 @@ public class MediaStatusStore {
 	}
 
 	public static MediaStatus getMediaStatus(int userId, String filename) {
+		MediaStatus stored = getStoredMediaStatus(userId, filename);
+		if (stored != null) {
+			return stored;
+		}
+
+		MediaStatus mediaStatus = null;
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				mediaStatus = MediaTableFilesStatus.getMediaStatus(connection, filename, userId);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		if (mediaStatus == null) {
+			mediaStatus = new MediaStatus();
+		}
 		synchronized (STORE) {
-			if (STORE.containsKey(userId) && STORE.get(userId) != null && STORE.get(userId).containsKey(filename)) {
-				return STORE.get(userId).get(filename);
+			MediaStatus known = getStoredMediaStatusLocked(userId, filename);
+			if (known != null) {
+				return known;
 			}
-			MediaStatus mediaStatus = null;
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					mediaStatus = MediaTableFilesStatus.getMediaStatus(connection, filename, userId);
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-			if (mediaStatus == null) {
-				mediaStatus = new MediaStatus();
-			}
-			if (!STORE.containsKey(userId)) {
-				STORE.put(userId, new HashMap<>());
-			}
-			STORE.get(userId).put(filename, mediaStatus);
+			STORE.computeIfAbsent(userId, id -> new HashMap<>()).put(filename, mediaStatus);
 			return mediaStatus;
 		}
+	}
+
+	private static MediaStatus getStoredMediaStatus(int userId, String filename) {
+		synchronized (STORE) {
+			return getStoredMediaStatusLocked(userId, filename);
+		}
+	}
+
+	private static MediaStatus getStoredMediaStatusLocked(int userId, String filename) {
+		Map<String, MediaStatus> userStatus = STORE.get(userId);
+		return userStatus != null ? userStatus.get(filename) : null;
 	}
 
 	/**

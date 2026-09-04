@@ -24,7 +24,11 @@ import java.nio.file.StandardWatchEventKinds;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,6 +73,48 @@ public class MediaScanner implements SharedContentListener {
 	private static final MediaScanner INSTANCE = new MediaScanner();
 	private static final List<String> FILES_PARSING = Collections.synchronizedList(new ArrayList<>());
 
+	/**
+	 * File events used to spawn one thread per file! Keep a small pool.
+	 */
+	private static final ExecutorService FILE_EVENT_EXECUTOR = Executors.newFixedThreadPool(
+			Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())),
+			runnable -> {
+				Thread thread = new Thread(runnable, "MediaScanner File Parser");
+				thread.setPriority(Thread.MIN_PRIORITY);
+				return thread;
+			});
+
+	/**
+	 * Partial scans all wait for SCANNER_LOCK anyway, so running them one after another avoids a pile of parked threads.
+	 */
+	private static final ExecutorService PARTIAL_SCAN_EXECUTOR = Executors.newSingleThreadExecutor(
+			runnable -> {
+				Thread thread = new Thread(runnable, "scanFileOrFolder");
+				thread.setPriority(Thread.MIN_PRIORITY);
+				return thread;
+			});
+
+	/**
+	 * media file watchers executor for walking the whole shared folder tree.
+	 */
+	private static final ExecutorService FILEWATCHER_EXECUTOR = Executors.newSingleThreadExecutor(
+			runnable -> {
+				Thread thread = new Thread(runnable, "MediaScanner FileWatcher Registrar");
+				thread.setPriority(Thread.MIN_PRIORITY);
+				thread.setDaemon(true);
+				return thread;
+			});
+
+	/**
+	 * Upper bound for the wait on a file that is still being written.
+	 */
+	private static final int MAX_FILE_SETTLE_WAITS = 120;
+
+	/**
+	 * A file that has not been touched for this long is not being written anymore.
+	 */
+	private static final long FILE_SETTLED_AGE_MS = 10000;
+
 	@GuardedBy("DEFAULT_FOLDERS_LOCK")
 	private static List<String> defaultFolders = null;
 	private static Thread scannerThread;
@@ -79,7 +125,7 @@ public class MediaScanner implements SharedContentListener {
 
 	@Override
 	public synchronized void updateSharedContent() {
-		setMediaFileWatchers();
+		FILEWATCHER_EXECUTOR.execute(MediaScanner::setMediaFileWatchers);
 		setSharedFolders();
 	}
 
@@ -104,9 +150,16 @@ public class MediaScanner implements SharedContentListener {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
 					scan(RENDERER.getMediaStore());
+					try {
+						MediaStore.awaitPendingResources();
+					} catch (InterruptedException ex) {
+						running = false;
+						Thread.currentThread().interrupt();
+					}
 					// Running might have been set false during scan
 					if (running) {
 						MediaTableFiles.cleanup(connection);
+						resolvePlaylists(connection);
 					}
 				}
 			} finally {
@@ -117,6 +170,42 @@ public class MediaScanner implements SharedContentListener {
 		reset();
 		GuiManager.setMediaScanStatus(false);
 		GuiManager.setStatusLine(null);
+	}
+
+	/**
+	 * Reads every playlist when the walk is done and resolves them.
+	 */
+	private static void resolvePlaylists(Connection connection) {
+		List<String> playlists = MediaTableFiles.getFilenamesByFormatType(connection, Format.PLAYLIST);
+		if (playlists.isEmpty()) {
+			return;
+		}
+		long started = System.currentTimeMillis();
+		int resolved = 0;
+		for (String filename : playlists) {
+			if (!running) {
+				break;
+			}
+			File file = new File(filename);
+			if (!file.isFile()) {
+				continue;
+			}
+			try {
+				StoreContainer playlist = PlaylistManager.getPlaylist(RENDERER, file.getName(), filename, 0);
+				if (playlist == null) {
+					continue;
+				}
+				playlist.setParent(RENDERER.getMediaStore());
+				playlist.syncResolve();
+				// the tree of a scan is thrown away, only what it wrote into the database counts
+				playlist.getChildren().clear();
+				resolved++;
+			} catch (Exception e) {
+				LOGGER.debug("Could not read the playlist \"{}\" ahead of time : {}", filename, e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		LOGGER.info("Read {} playlists ahead in {} seconds", resolved, (System.currentTimeMillis() - started) / 1000);
 	}
 
 	private static void scan(StoreContainer resource) {
@@ -212,6 +301,8 @@ public class MediaScanner implements SharedContentListener {
 						start = System.currentTimeMillis();
 						MediaDatabase.analyzeDb();
 						LOGGER.info("Database analyze completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
+						MediaStoreIds.incrementSystemUpdateId();
+						StoreResourceRatings.clearCache();
 					}
 				} catch (Exception e) {
 					LOGGER.error("Unhandled exception during media scan: {}", e.getMessage());
@@ -239,8 +330,7 @@ public class MediaScanner implements SharedContentListener {
 					scanFileOrFolder(filename);
 				}
 			};
-			Thread scanThread = new Thread(scan, "scanFileOrFolder");
-			scanThread.start();
+			PARTIAL_SCAN_EXECUTOR.execute(scan);
 		}
 	}
 
@@ -282,23 +372,26 @@ public class MediaScanner implements SharedContentListener {
 			} else {
 				LOGGER.debug("Scanning folder \"{}\"", file.getAbsolutePath());
 			}
-			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-			if (systemFileResources.isEmpty()) {
-				if (isInSharedFolders(filename)) {
-					internalScanFileOrFolder(filename);
-					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
-				}
-			}
-			if (!systemFileResources.isEmpty()) {
-				//if it is still empty, it mean the tree is no more accessible
-				for (StoreResource storeResource : systemFileResources) {
-					if (storeResource instanceof StoreContainer storeContainer) {
-						storeContainer.discoverChildren();
-						storeContainer.setDiscovered(true);
+
+			File parentFile = file.getParentFile();
+			if (parentFile != null) {
+				String parent = parentFile.getAbsolutePath();
+				if (isInSharedFolders(parent) && !parent.equals(filename)) {
+					internalScanFileOrFolder(parent);
+					List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
+					if (!systemFileResources.isEmpty()) {
+						for (StoreResource storeResource : systemFileResources) {
+							if (storeResource instanceof StoreContainer storeContainer) {
+								storeContainer.discoverChildren();
+								storeContainer.setDiscovered(true);
+							}
+						}
+					} else {
+						LOGGER.debug("Given folder was not found in store : " + file.getAbsolutePath());
 					}
+				} else {
+					LOGGER.debug("Not in shared folders or parent is current file : " + filename);
 				}
-			} else {
-				LOGGER.warn("Given folder was not found in store : " + file.getAbsolutePath());
 			}
 		} else {
 			LOGGER.warn("Given file or folder doesn't share same base path as this server : " + filename);
@@ -363,7 +456,7 @@ public class MediaScanner implements SharedContentListener {
 				}
 			}
 		};
-		new Thread(r, "MediaScanner File Parser - update").start();
+		FILE_EVENT_EXECUTOR.execute(r);
 	}
 
 	private synchronized static final Pattern getFileExtensionAllowlistPattern() {
@@ -431,15 +524,28 @@ public class MediaScanner implements SharedContentListener {
 				if (advise) {
 					LOGGER.debug("File {} was created on the hard drive", filename);
 				}
-				long currentSize = file.length();
-				//wait 500 ms
-				Thread.sleep(500);
-				//Check if size changed (copying, downloading)
-				while (file.exists() && (currentSize != file.length() || FileUtil.isLocked(file))) {
-					//loop until file size is not changing anymore and file is unlocked.
-					LOGGER.trace("Waiting until file {} is fully written", filename);
-					currentSize = file.length();
+				// Watching a file settle costs at least the 500 ms per file and on a. Only watch what can still be in flight.
+				if (System.currentTimeMillis() - file.lastModified() < FILE_SETTLED_AGE_MS || FileUtil.isLocked(file)) {
+					long currentSize = file.length();
+					//wait 500 ms
 					Thread.sleep(500);
+					//Check if size changed (copying, downloading)
+					int waits = 0;
+					while (file.exists() && (currentSize != file.length() || FileUtil.isLocked(file))) {
+						//loop until file size is not changing anymore and file is unlocked.
+						if (waits++ >= MAX_FILE_SETTLE_WAITS) {
+							LOGGER.debug("Giving up waiting for file {} to be fully written", filename);
+							synchronized (FILES_PARSING) {
+								FILES_PARSING.remove(filename);
+							}
+							return;
+						}
+						LOGGER.trace("Waiting until file {} is fully written", filename);
+						currentSize = file.length();
+						Thread.sleep(500);
+					}
+				} else {
+					LOGGER.trace("File {} was last modified a while ago, not waiting for it to settle", filename);
 				}
 				//here the file should be fully written, deleted or moved.
 				synchronized (FILES_PARSING) {
@@ -493,10 +599,14 @@ public class MediaScanner implements SharedContentListener {
 								System.gc();
 							}
 
+							ConnectedRenderers.audioMetadataChanged(file);
+
 							if (advise || isCrawlingParentDirectory) {
-								// Advise renderers about added file.
-								for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-									connectedRenderer.getMediaStore().fileAdded(file);
+								for (Renderer connectedRenderer : ConnectedRenderers.getRenderersWithMediaStore()) {
+									MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
+									if (rendererStore != null) {
+										rendererStore.fileAdded(file);
+									}
 								}
 							}
 						}
@@ -510,7 +620,7 @@ public class MediaScanner implements SharedContentListener {
 				Thread.currentThread().interrupt();
 			}
 		};
-		new Thread(r, "MediaScanner File Parser").start();
+		FILE_EVENT_EXECUTOR.execute(r);
 	}
 
 	private static void addFolderEntry(File directory) {
@@ -536,13 +646,34 @@ public class MediaScanner implements SharedContentListener {
 		}
 	}
 
+	/**
+	 * Updates cover
+	 */
+	private static void coverChanged(File cover) {
+		File folder = cover.getParentFile();
+		if (folder == null) {
+			return;
+		}
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(folder.getAbsolutePath(), RealFolder.class);
+		if (ids.isEmpty()) {
+			return;
+		}
+		LOGGER.debug("Cover {} changed, refreshing folder {}", cover.getName(), folder.getAbsolutePath());
+		MediaStoreIds.incrementUpdateIds(ids);
+	}
+
 	private static void removeFolderEntry(String filename) {
 		LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 		//folder may be empty
 		File folder = new File(filename);
-		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-			connectedRenderer.getMediaStore().fileRemoved(folder);
+		Set<Long> refreshedIds = new LinkedHashSet<>();
+		for (Renderer connectedRenderer : ConnectedRenderers.getRenderersWithMediaStore()) {
+			MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
+			if (rendererStore != null) {
+				refreshedIds.addAll(rendererStore.fileRemoved(folder));
+			}
 		}
+		MediaStoreIds.incrementUpdateIds(refreshedIds);
 		if (MediaInfoStore.removeMediaEntriesInFolder(filename)) {
 			MediaStoreIds.incrementSystemUpdateId();
 		}
@@ -552,9 +683,14 @@ public class MediaScanner implements SharedContentListener {
 		LOGGER.info("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 		if (MediaInfoStore.removeMediaEntry(filename)) {
 			File file = new File(filename);
-			for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-				connectedRenderer.getMediaStore().fileRemoved(file);
+			Set<Long> refreshedIds = new LinkedHashSet<>();
+			for (Renderer connectedRenderer : ConnectedRenderers.getRenderersWithMediaStore()) {
+				MediaStore rendererStore = connectedRenderer.getMediaStoreIfInitialized();
+				if (rendererStore != null) {
+					refreshedIds.addAll(rendererStore.fileRemoved(file));
+				}
 			}
+			MediaStoreIds.incrementUpdateIds(refreshedIds);
 			MediaStoreIds.incrementSystemUpdateId();
 		}
 	}
@@ -578,6 +714,9 @@ public class MediaScanner implements SharedContentListener {
 					removeFolderEntry(filename);
 				}
 			} else {
+				if (SystemFilesHelper.isPotentialThumbnail(f.getName())) {
+					coverChanged(f);
+				}
 				if (ENTRY_CREATE.equals(event)) {
 					parseFileEntry(f, true, false);
 				} else if (ENTRY_DELETE.equals(event)) {

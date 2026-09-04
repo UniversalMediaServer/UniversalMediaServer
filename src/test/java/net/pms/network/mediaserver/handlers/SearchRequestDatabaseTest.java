@@ -1,6 +1,7 @@
 package net.pms.network.mediaserver.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -9,6 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -25,6 +29,7 @@ import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableResourceRatings;
 import net.pms.database.MediaTableStoreIds;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
@@ -116,11 +121,17 @@ public class SearchRequestDatabaseTest {
 		Path subDir2 = testMusicFolder.resolve("2");
 		Path subDir3 = testMusicFolder.resolve("3");
 		Path subSearchDir = subDir1.resolve("search_for_me");
+		// A folder search must match folder names, not paths, so "search_for_me" must not report this child as well
+		Path subSearchChildDir = subSearchDir.resolve("inner");
+		// A folder name holding a quote must not break the folder search statement
+		Path quotedDir = subDir2.resolve("Bob's Music");
 
 		Files.createDirectories(subDir1);
 		Files.createDirectories(subDir2);
 		Files.createDirectories(subDir3);
 		Files.createDirectories(subSearchDir);
+		Files.createDirectories(subSearchChildDir);
+		Files.createDirectories(quotedDir);
 
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration(false));
@@ -594,6 +605,131 @@ public class SearchRequestDatabaseTest {
 	}
 
 
+	/**
+	 * Liked playlists : the rating is keyed on the playlist file path in RESOURCE_RATINGS.
+	 */
+	@Test
+	public void testGlobalLikedPlaylistSearch() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("( upnp:class derivedfrom \"object.container.playlistContainer\" and upnp:rating = \"5\" )");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		assertFalse(new LuceneSearchRequestHandler(sr).canHandle(), "a rating search must fall back to the database handler");
+		assertEquals(0, new DbSearchRequestHandler(sr).getSearchCountElements(sr), "nothing is liked yet");
+
+		StoreResource playlist = findJazzPlaylist();
+		playlist.setRating(MediaTableResourceRatings.RATING_LIKED);
+		try {
+			DbSearchRequestHandler handler = new DbSearchRequestHandler(sr);
+			assertEquals(1, handler.getSearchCountElements(sr));
+			List<StoreResource> resources = handler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+			assertEquals(1, resources.size());
+			assertEquals("Jazz.m3u8", resources.get(0).getName());
+		} finally {
+			playlist.setRating(null);
+		}
+
+		assertEquals(0, new DbSearchRequestHandler(sr).getSearchCountElements(sr), "the like was taken back");
+	}
+
+	/**
+	 * A search without a rating criterion must not be narrowed by the RESOURCE_RATINGS join.
+	 */
+	@Test
+	public void testPlaylistSearchIgnoresRatingWhenNotAsked() {
+		StoreResource playlist = findJazzPlaylist();
+		playlist.setRating(null);
+
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"Jazz\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+
+		assertEquals(1, new DbSearchRequestHandler(sr).getSearchCountElements(sr));
+	}
+
+	/**
+	 * The scan stores the rating an audio file carries in its tag, and never over an existing one :
+	 * with audio_update_tag off the tag stays stale while the user rating is the truth.
+	 */
+	@Test
+	public void testScanStoresTagRatingWithoutOverwriting() throws Exception {
+		Path file = testMusicFolder.resolve("Zzz Tag Probe.flac");
+		Files.createFile(file);
+		Files.writeString(file, "TAGGED");
+		String resourceKey = file.toAbsolutePath().toString();
+
+		MediaInfo media = new MediaInfo();
+		MediaAudioMetadata metadata = new MediaAudioMetadata();
+		metadata.setSongname("Zzz Tag Probe");
+		metadata.setArtist("Zzz");
+		metadata.setAlbum("Zzz");
+		metadata.setGenre("Zzz");
+		metadata.setRating(4);
+		media.setAudioMetadata(metadata);
+
+		MediaTableFiles.insertOrUpdateData(resourceKey, file.toFile().lastModified(), Format.AUDIO, media);
+		assertEquals(4, readStoredRating(resourceKey), "the tag rating reached RESOURCE_RATINGS");
+
+		try (Connection c = MediaDatabase.get().getConnection()) {
+			MediaTableResourceRatings.setRating(c, resourceKey, MediaTableResourceRatings.FILE_OBJECT_TYPE, 2);
+		}
+		MediaTableFiles.insertOrUpdateData(resourceKey, file.toFile().lastModified() + 1, Format.AUDIO, media);
+		assertEquals(2, readStoredRating(resourceKey), "a rescan must not revert the rating the user gave");
+	}
+
+	/**
+	 * Upgrade path of an existing database : AUDIO_METADATA.RATING is moved into RESOURCE_RATINGS
+	 * before MediaTableAudioMetadata drops that column.
+	 */
+	@Test
+	public void testMigrateAudioTagRatings() throws Exception {
+		try (Connection c = MediaDatabase.get().getConnection(); Statement st = c.createStatement()) {
+			String filename;
+			try (ResultSet rs = st.executeQuery("select F.FILENAME from FILES F join AUDIO_METADATA A on A.FILEID = F.ID " +
+					"where F.FORMAT_TYPE = 1 and not exists (select 1 from RESOURCE_RATINGS RR where RR.RESOURCE_KEY = F.FILENAME) limit 1")) {
+				assertTrue(rs.next(), "an unrated audio file to migrate");
+				filename = rs.getString(1);
+			}
+			String quoted = filename.replace("'", "''");
+			// bring back the column an old database still has
+			st.execute("ALTER TABLE AUDIO_METADATA ADD COLUMN IF NOT EXISTS RATING INTEGER");
+			try {
+				st.execute("UPDATE AUDIO_METADATA SET RATING = 3 WHERE FILEID IN (SELECT ID FROM FILES WHERE FILENAME = '" + quoted + "')");
+				MediaTableResourceRatings.migrateAudioTagRatings(c);
+				assertEquals(3, MediaTableResourceRatings.getRating(c, filename), "the tag rating was moved over");
+
+				st.execute("UPDATE AUDIO_METADATA SET RATING = 5 WHERE FILEID IN (SELECT ID FROM FILES WHERE FILENAME = '" + quoted + "')");
+				MediaTableResourceRatings.migrateAudioTagRatings(c);
+				assertEquals(3, MediaTableResourceRatings.getRating(c, filename), "the migration is insert only");
+			} finally {
+				st.execute("DELETE FROM RESOURCE_RATINGS WHERE RESOURCE_KEY = '" + quoted + "'");
+				st.execute("ALTER TABLE AUDIO_METADATA DROP COLUMN IF EXISTS RATING");
+			}
+		}
+	}
+
+	private Integer readStoredRating(String resourceKey) throws SQLException {
+		try (Connection c = MediaDatabase.get().getConnection()) {
+			return MediaTableResourceRatings.getRating(c, resourceKey);
+		}
+	}
+
+	private StoreResource findJazzPlaylist() {
+		SearchRequest byTitle = new SearchRequest();
+		byTitle.setSearchCriteria("upnp:class = \"object.container.playlistContainer\" and dc:title contains \"Jazz\"");
+		byTitle.setContainerId("0");
+		byTitle.setRequestedCount(0);
+		byTitle.setStartingIndex(0);
+		List<StoreResource> found = new LuceneSearchRequestHandler(byTitle)
+			.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, found.size());
+		return found.get(0);
+	}
+
 	@Test
 	public void testGlobalVideoSearch() {
 		SearchRequest sr = new SearchRequest();
@@ -615,7 +751,7 @@ public class SearchRequestDatabaseTest {
 		sr.setStartingIndex(0);
 		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		int results = searchRequestHandler.getSearchCountElements(sr);
-		assertEquals(1, results);
+		assertEquals(1, results, () -> describeVideoTreeState(dir1));
 
 		sr.setSearchCriteria("upnp:class = \"object.item.videoItem\" and dc:title contains \"Spider\"");
 		sr.setContainerId(dir2.getId());
@@ -623,7 +759,38 @@ public class SearchRequestDatabaseTest {
 		sr.setStartingIndex(0);
 		searchRequestHandler = new LuceneSearchRequestHandler(sr);
 		results = searchRequestHandler.getSearchCountElements(sr);
-		assertEquals(0, results);
+		assertEquals(0, results, () -> describeVideoTreeState(dir2));
+	}
+
+	/**
+	 * Describes the state the tree scoped search depends on, for when it does
+	 * not find what it should.
+	 */
+	private String describeVideoTreeState(StoreContainer container) {
+		StringBuilder sb = new StringBuilder("\nsearch was scoped to container id=");
+		sb.append(container.getId()).append(" name=").append(container.getName()).append('\n');
+		try (Connection connection = MediaDatabase.get().getConnection(); Statement statement = connection.createStatement()) {
+			sb.append("STORE_IDS (files and folders):\n");
+			try (ResultSet rs = statement.executeQuery(
+				"SELECT ID, PARENT_ID, OBJECT_TYPE, NAME FROM STORE_IDS " +
+				"WHERE OBJECT_TYPE IN ('RealFolder', 'RealFile', 'PlaylistFolder') ORDER BY ID"
+			)) {
+				while (rs.next()) {
+					sb.append(String.format("  %s | parent %s | %s | %s%n", rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
+				}
+			}
+			sb.append("FILES with \"Spider\" in the name:\n");
+			try (ResultSet rs = statement.executeQuery(
+				"SELECT ID, FORMAT_TYPE, FILENAME FROM FILES WHERE FILENAME LIKE '%Spider%'"
+			)) {
+				while (rs.next()) {
+					sb.append(String.format("  %s | format type %s | %s%n", rs.getString(1), rs.getString(2), rs.getString(3)));
+				}
+			}
+		} catch (SQLException e) {
+			sb.append("could not read the tables: ").append(e);
+		}
+		return sb.toString();
 	}
 
 	@Test
@@ -669,6 +836,62 @@ public class SearchRequestDatabaseTest {
 
 		resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
 		assertEquals(0, resources.size());
+	}
+
+	/**
+	 * A folder search has to match the name of the folder. STORE_IDS holds absolute paths, so matching those would
+	 * report every folder below a matching folder as a hit as well - here the child "inner" of "search_for_me".
+	 */
+	@Test
+	public void testFolderSearchMatchesFolderNameAndNotPath() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"search_for_me\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		assertEquals(1, searchRequestHandler.getSearchCountElements(sr));
+
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		assertEquals("search_for_me", resources.get(0).getName());
+	}
+
+	/**
+	 * A shared folder is a child of the store itself, not of another folder, and has to be found nevertheless.
+	 */
+	@Test
+	public void testFolderSearchFindsSharedFolder() {
+		String sharedFolderName = testMusicFolder.getFileName().toString();
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"" + sharedFolderName + "\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		assertEquals(1, searchRequestHandler.getSearchCountElements(sr));
+
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		assertEquals(sharedFolderName, resources.get(0).getName());
+	}
+
+	/**
+	 * A folder name may hold a quote, which must reach the database as a value and not as part of the statement.
+	 */
+	@Test
+	public void testFolderSearchWithQuoteInFolderName() {
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria("upnp:class = \"object.container.storageFolder\" and dc:title contains \"Bob's\"");
+		sr.setContainerId("0");
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
+		LuceneSearchRequestHandler searchRequestHandler = new LuceneSearchRequestHandler(sr);
+		assertEquals(1, searchRequestHandler.getSearchCountElements(sr));
+
+		List<StoreResource> resources = searchRequestHandler.getLibraryResourceFromSQL(RendererConfigurations.getDefaultRenderer());
+		assertEquals(1, resources.size());
+		assertEquals("Bob's Music", resources.get(0).getName());
 	}
 
 	public MediaInfo createMediaInfo() {

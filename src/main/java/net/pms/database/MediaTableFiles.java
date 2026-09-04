@@ -39,12 +39,14 @@ import net.pms.configuration.sharedcontent.FileTypeForgivingAdapter;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.formats.Format;
 import net.pms.configuration.sharedcontent.SharedContentTypeAdapter;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
+import net.pms.store.MediaScanner;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
@@ -103,9 +105,10 @@ public class MediaTableFiles extends MediaTable {
 	 * - 44: added DATEADDED and RUID
 	 * - 45: added lucene column and index
 	 * - 46: implemented new ruid algorithm
-	 * - 47: ruid algorithm reads samples again
+	 * - 47: new ruid algorithm, all RUID are dropped and recalculated on the next scan
+	 * - 48: index on RUID, the rating backup looks files up by it
 	 */
-	private static final int TABLE_VERSION = 47;
+	private static final int TABLE_VERSION = 49;
 
 	/**
 	 * COLUMNS NAMES
@@ -173,7 +176,13 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_DELETE_BY_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
+	private static final String SQL_GET_RESOURCE_UID_BY_FILENAME = SELECT + COL_RESOURCE_UID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_UPDATE_RESOURCE_UID_BY_FILENAME = UPDATE + TABLE_NAME + SET + COL_RESOURCE_UID + EQUAL + PARAMETER + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
+	private static final String SQL_GET_FILENAMES_BY_RESOURCE_UID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + COL_RESOURCE_UID + EQUAL + PARAMETER;
+	private static final String SQL_GET_FILENAMES_BY_FORMAT_TYPE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FORMAT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_USER_THUMBID_BY_FILENAME = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME +
+		WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_NAME + "." + COL_THUMB_SRC + EQUAL + PARAMETER + LIMIT_1;
 
 	/**
 	 * Used by child tables
@@ -524,6 +533,25 @@ public class MediaTableFiles extends MediaTable {
 					case 46 -> {
 						executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_RESOURCE_UID + " = NULL");
 					}
+					case 47 -> {
+						executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_RESOURCE_UID + IDX_MARKER + ON + TABLE_NAME + " (" + COL_RESOURCE_UID + ")");
+					}
+					case 48 -> {
+						try (Statement statement = connection.createStatement()) {
+							// JAudiotagger used to store its audio header description ("FLAC 24 bits") as the container and codec, which no
+							// renderer "Supported" line can match!
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append(UPDATE)
+									.append(TABLE_NAME)
+								.append(SET)
+									.append(COL_PARSER).append(" = NULL")
+								.append(WHERE)
+									.append(COL_FORMAT_TYPE).append(" = ").append(Format.AUDIO);
+							statement.execute(sb.toString());
+						}
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -611,6 +639,9 @@ public class MediaTableFiles extends MediaTable {
 
 		LOGGER.trace("Creating index on " + COL_FILENAME);
 		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + ")");
+
+		LOGGER.trace("Creating index on " + COL_RESOURCE_UID);
+		execute(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_RESOURCE_UID + IDX_MARKER + ON + TABLE_NAME + " (" + COL_RESOURCE_UID + ")");
 
 		LOGGER.trace("Creating view for indexing computed column ONLYFILENAME");
 		executeUpdate(connection, "CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 'net.pms.database.lucene.UmsFullTextLucene.init';");
@@ -936,11 +967,15 @@ public class MediaTableFiles extends MediaTable {
 			MediaTableVideotracks.insertOrUpdateVideoTracks(connection, fileId, media);
 			MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
 			MediaTableAudioMetadata.insertOrUpdateAudioMetadata(connection, fileId, media);
+			if (media.hasAudioMetadata()) {
+				MediaTableResourceRatings.insertTagRating(connection, name, media.getAudioMetadata().getRating());
+			}
 			MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
 			MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
 		}
-		if (fileId != null) {
-			//let store know that we change media metadata
+		if (fileId != null && !MediaScanner.isMediaScanRunning()) {
+			// A full scan touches every file, and the bumps it would make are covered by the single
+			// system bump once the scan is done, so they only cost lock contention here.
 			MediaStoreIds.incrementUpdateIdForFilename(connection, name);
 		}
 		return fileId;
@@ -1383,6 +1418,82 @@ public class MediaTableFiles extends MediaTable {
 		return null;
 	}
 
+	/**
+	 * Returns the resource identifier of a file, which is derived from its content.
+	 */
+	public static String getResourceUidForFilename(final Connection connection, final String filename) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return null;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_RESOURCE_UID_BY_FILENAME)) {
+			statement.setString(1, filename);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getString(1);
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		}
+		return null;
+	}
+
+	public static void updateResourceUidForFilename(final Connection connection, final String filename, final String resourceUid) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_RESOURCE_UID_BY_FILENAME)) {
+			statement.setString(1, resourceUid);
+			statement.setString(2, filename);
+			statement.executeUpdate();
+		} catch (SQLException se) {
+			LOGGER.error("cannot store the resource identifier of \"{}\" : {}", filename, se.getMessage());
+			LOGGER.trace("", se);
+		}
+	}
+
+	/**
+	 * Returns the files that hold the content identified by a resource identifier.
+	 */
+	public static List<String> getFilenamesForResourceUid(final Connection connection, final String resourceUid) {
+		List<String> result = new ArrayList<>();
+		if (connection == null || StringUtils.isBlank(resourceUid)) {
+			return result;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FILENAMES_BY_RESOURCE_UID)) {
+			statement.setString(1, resourceUid);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				while (resultSet.next()) {
+					result.add(resultSet.getString(COL_FILENAME));
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		}
+		return result;
+	}
+
+	/**
+	 * Every file of one format type, playlists for example.
+	 */
+	public static List<String> getFilenamesByFormatType(final Connection connection, final int formatType) {
+		List<String> result = new ArrayList<>();
+		if (connection == null) {
+			return result;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FILENAMES_BY_FORMAT_TYPE)) {
+			statement.setInt(1, formatType);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				while (resultSet.next()) {
+					result.add(resultSet.getString(COL_FILENAME));
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		}
+		return result;
+	}
+
 	public static List<String> getFilenamesInFolder(final Connection connection, final String fullPathToFolder) {
 		List<String> result = new ArrayList<>();
 		if (StringUtils.isBlank(fullPathToFolder)) {
@@ -1401,6 +1512,28 @@ public class MediaTableFiles extends MediaTable {
 			LOGGER.error(null, se);
 		}
 		return result;
+	}
+
+	/**
+	 * The thumbnail a user set explicitly for this file.
+	 */
+	public static Long getUserThumbnailId(final Connection connection, final String filename) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return null;
+		}
+		try (PreparedStatement ps = connection.prepareStatement(SQL_GET_USER_THUMBID_BY_FILENAME)) {
+			ps.setString(1, filename);
+			ps.setString(2, ThumbnailSource.USER.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return toLong(rs, COL_THUMBID);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", filename, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 	/**

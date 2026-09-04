@@ -31,6 +31,7 @@ import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
 import net.pms.media.audio.MediaAudio;
@@ -49,6 +50,8 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.MusicGenre;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.PlaylistContainer;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.StorageFolder;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.AudioBroadcast;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.AudioItem;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Movie;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.MusicTrack;
@@ -65,6 +68,9 @@ import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.DVDISOFile;
+import net.pms.store.container.audioaddict.AudioAddictBroadcastStream;
+import net.pms.store.container.audioaddict.AudioAddictPlaylistStream;
+import net.pms.store.container.audioaddict.AudioAddictRadioStream;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RealFolder;
 import net.pms.store.container.VirtualFolderDbId;
@@ -122,6 +128,9 @@ public class StoreResourceHelper {
 				result = new PlaylistContainer();
 			} else if (container instanceof VirtualFolderDbId virtualFolderDbId) {
 				result = newContainerFromUpnpClass(virtualFolderDbId.getMediaTypeUclass());
+			} else if (container.getAlbumMetadata() != null) {
+				//a folder whose files all belong to one release is that album
+				result = new MusicAlbum();
 			} else {
 				result = new StorageFolder();
 			}
@@ -177,12 +186,38 @@ public class StoreResourceHelper {
 				}
 			}
 		} else if (result instanceof MusicAlbum) {
+			// An album container carries its cover even when folder thumbnails are
+			// off, the same way DidlHelper appends them for
+			// object.container.album.* regardless of isSendFolderThumbnails().
 			for (DLNAImageResElement resElement : getThumbnailResElements(container, mediaType)) {
+				result.addResource(getImageRes(container, resElement));
 				AlbumArtURI albumArtURI = getAlbumArtURI(container, resElement);
 				if (albumArtURI != null) {
 					result.addProperty(albumArtURI);
 				}
 			}
+		}
+		//an album folder has no MediaInfo of its own, so its album metadata is
+		//reported from the resolved album instead
+		AlbumMetadata albumMetadata = container.getAlbumMetadata();
+		if (albumMetadata != null && result instanceof MusicAlbum musicAlbum) {
+			if (StringUtils.isNotBlank(albumMetadata.getArtist())) {
+				musicAlbum.setCreator(albumMetadata.getArtist());
+				musicAlbum.setArtists(new UPNP.Artist[] {new UPNP.Artist(albumMetadata.getArtist())});
+			}
+			if (StringUtils.isNotBlank(albumMetadata.getGenre())) {
+				musicAlbum.setGenres(new String[] {albumMetadata.getGenre()});
+			}
+			if (StringUtils.isNotBlank(albumMetadata.getYear())) {
+				musicAlbum.setDate(albumMetadata.getYear());
+			}
+		}
+
+		//the user rating is supported by any kind of resource, containers as well as items
+		Integer userRating = container.getRating();
+		if (userRating != null) {
+			//not upnp
+			result.addProperty(new UPNP.Rating(userRating.toString()));
 		}
 		return result;
 	}
@@ -204,7 +239,7 @@ public class StoreResourceHelper {
 		} else if (mediaType == MediaType.IMAGE || mediaType == MediaType.UNKNOWN && format != null && format.isImage()) {
 			result = new Photo();
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
-			result = new MusicTrack();
+			result = item.isAudioBroadcast() ? new AudioBroadcast() : new MusicTrack();
 		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || mediaInfo.getVideoMetadata().getYear() != null)) {
 			// videoItem.movie is used for TV episodes and movies
 			result = new Movie();
@@ -307,36 +342,38 @@ public class StoreResourceHelper {
 			result.getProperties().set(new DC.Date(formatDate(new Date(item.getLastModified()))));
 		}
 
-		if (mediaInfo != null && audioMetadata != null && result instanceof MusicTrack musicTrack) {
+		if (mediaInfo != null && audioMetadata != null && result instanceof AudioItem audioItem) {
+			if (StringUtils.isNotBlank(audioMetadata.getGenre())) {
+				audioItem.setGenres(new String[] {audioMetadata.getGenre()});
+			}
+
 			if (StringUtils.isNotBlank(audioMetadata.getAlbum())) {
-				musicTrack.setAlbum(audioMetadata.getAlbum());
+				audioItem.getProperties().set(new UPNP.Album(audioMetadata.getAlbum()));
 			}
 
 			if (StringUtils.isNotBlank(audioMetadata.getArtist())) {
-				musicTrack.setCreator(audioMetadata.getArtist());
-				musicTrack.addArtist(new UPNP.Artist(audioMetadata.getArtist()));
+				audioItem.setCreator(audioMetadata.getArtist());
+				audioItem.getProperties().add(new UPNP.Artist(audioMetadata.getArtist()));
 			}
 
 			if (StringUtils.isNotBlank(audioMetadata.getComposer())) {
-				musicTrack.addArtist(new UPNP.Artist(audioMetadata.getComposer(), "Composer"));
+				audioItem.getProperties().add(new UPNP.Artist(audioMetadata.getComposer(), "Composer"));
 			}
 
 			if (StringUtils.isNotBlank(audioMetadata.getConductor())) {
-				musicTrack.addArtist(new UPNP.Artist(audioMetadata.getConductor(), "Conductor"));
+				audioItem.getProperties().add(new UPNP.Artist(audioMetadata.getConductor(), "Conductor"));
 			}
 
-			if (StringUtils.isNotBlank(audioMetadata.getGenre())) {
-				musicTrack.setGenres(new String[] {audioMetadata.getGenre()});
-			}
-
-			if (audioMetadata.getTrack() > 0) {
+			if (audioMetadata.getTrack() > 0 && result instanceof MusicTrack musicTrack) {
 				musicTrack.setOriginalTrackNumber(audioMetadata.getTrack());
 			}
+		}
 
-			if (audioMetadata.getRating() != null) {
-				//not upnp
-				result.addProperty(new UPNP.Rating(audioMetadata.getRating().toString()));
-			}
+		//the user rating is supported by any kind of resource, items as well as containers
+		Integer userRating = item.getRating();
+		if (userRating != null) {
+			//not upnp
+			result.addProperty(new UPNP.Rating(userRating.toString()));
 		}
 
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata() && result instanceof Movie movie) {
@@ -568,23 +605,38 @@ public class StoreResourceHelper {
 			}
 
 			// DESC Metadata support: add ability for control point to identify
-			// songs by MusicBrainz TrackID or audiotrack-id
-			if (mediaInfo != null && audioMetadata != null && mediaInfo.isAudio()) {
+			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels
+			// so a control point can look up live "now playing" info from the AudioAddict API.
+			boolean isAudioAddictBroadcast = item instanceof AudioAddictBroadcastStream;
+			boolean hasAudioMetadata = mediaInfo != null && mediaInfo.isAudio() && audioMetadata != null;
+			if (hasAudioMetadata || isAudioAddictBroadcast) {
 				// TODO add real namespace
 				Desc desc = new Desc("http://ums/tags");
 				desc.setId("2");
 				desc.setType("ums-tags");
-				desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
-				desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
-				if (audioMetadata.getDiscogsReleaseId() != null) {
-					desc.addMetadata("discogsreleaseid", audioMetadata.getDiscogsReleaseId().toString());
+				if (hasAudioMetadata) {
+					desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
+					desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
+					if (audioMetadata.getDiscogsReleaseId() != null) {
+						desc.addMetadata("discogsreleaseid", audioMetadata.getDiscogsReleaseId().toString());
+					}
+					desc.addMetadata("resourceid", mediaInfo.getResourceId());
+					if (audioMetadata.getDisc() > 0) {
+						desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
+					}
+					if (userRating != null) {
+						desc.addMetadata("rating", Integer.toString(userRating));
+					}
 				}
-				desc.addMetadata("resourceid", mediaInfo.getResourceId());
-				if (audioMetadata.getDisc() > 0) {
-					desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
-				}
-				if (audioMetadata.getRating() != null) {
-					desc.addMetadata("rating", Integer.toString(audioMetadata.getRating()));
+				if (item instanceof AudioAddictRadioStream audioAddictStream) {
+					if (audioAddictStream.getChannelId() != null) {
+						desc.addMetadata("audioaddictchannelid", audioAddictStream.getChannelId().toString());
+					}
+					if (audioAddictStream.getNetworkShortName() != null) {
+						desc.addMetadata("audioaddictnetwork", audioAddictStream.getNetworkShortName());
+					}
+				} else if (item instanceof AudioAddictPlaylistStream audioAddictPlaylist) {
+					desc.addMetadata("audioaddictplaylistid", Integer.toString(audioAddictPlaylist.getPlaylistId()));
 				}
 				result.addDescription(desc);
 			}

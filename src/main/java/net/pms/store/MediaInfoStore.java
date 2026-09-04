@@ -19,6 +19,8 @@ package net.pms.store;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -52,129 +54,215 @@ public class MediaInfoStore {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoStore.class);
 	private static final Map<String, WeakReference<MediaInfo>> STORE = new HashMap<>();
 	private static final Map<Long, WeakReference<TvSeriesMetadata>> TV_SERIES_STORE = new HashMap<>();
-	private static final Map<String, Object> LOCKS = new HashMap<>();
+
+	private static final ReferenceQueue<MediaInfo> STORE_QUEUE = new ReferenceQueue<>();
+	private static final ReferenceQueue<TvSeriesMetadata> TV_SERIES_QUEUE = new ReferenceQueue<>();
+
+	// A weak reference that remembers its key
+	private static final class KeyedReference<V> extends WeakReference<V> {
+		private final Object key;
+
+		private KeyedReference(Object key, V value, ReferenceQueue<? super V> queue) {
+			super(value, queue);
+			this.key = key;
+		}
+	}
+
+	// One lock per file or url
+	private static final Map<String, CountedLock> LOCKS = new HashMap<>();
+
+	// A per key lock that knows how many callers still need it.
+	private static final class CountedLock {
+		private int users;
+	}
 
 	private MediaInfoStore() {
 		//should not be instantiated
 	}
 
-	private static Object getLock(String filename) {
+	private static CountedLock acquireLock(String key) {
 		synchronized (LOCKS) {
-			if (LOCKS.containsKey(filename)) {
-				return LOCKS.get(filename);
-			}
-			Object lock = new Object();
-			LOCKS.put(filename, lock);
+			CountedLock lock = LOCKS.computeIfAbsent(key, k -> new CountedLock());
+			lock.users++;
 			return lock;
+		}
+	}
+
+	private static void releaseLock(String key, CountedLock lock) {
+		synchronized (LOCKS) {
+			lock.users--;
+			if (lock.users <= 0) {
+				LOCKS.remove(key);
+			}
 		}
 	}
 
 	private static MediaInfo getMediaInfoStored(String filename) {
 		synchronized (STORE) {
-			if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
-				return STORE.get(filename).get();
+			purgeStore();
+			WeakReference<MediaInfo> reference = STORE.get(filename);
+			return reference != null ? reference.get() : null;
+		}
+	}
+
+	/**
+	 * Drops the entries whose media info has been collected.
+	 */
+	private static void purgeStore() {
+		Reference<? extends MediaInfo> reference;
+		while ((reference = STORE_QUEUE.poll()) != null) {
+			if (reference instanceof KeyedReference<?> keyed) {
+				STORE.remove(keyed.key, reference);
 			}
 		}
-		return null;
+	}
+
+	private static void purgeTvSeriesStore() {
+		Reference<? extends TvSeriesMetadata> reference;
+		while ((reference = TV_SERIES_QUEUE.poll()) != null) {
+			if (reference instanceof KeyedReference<?> keyed) {
+				TV_SERIES_STORE.remove(keyed.key, reference);
+			}
+		}
+	}
+
+	/**
+	 * Returns the thumbnail id of the media info that is still in memory
+	 */
+	public static Long getStoredThumbnailId(String filename) {
+		MediaInfo mediaInfo = getMediaInfoStored(filename);
+		return mediaInfo != null ? mediaInfo.getThumbnailId() : null;
+	}
+
+	/**
+	 * Returns the thumbnail id of the media info that is still in memory.
+	 */
+	public static Long getStoredUserThumbnailId(String filename) {
+		MediaInfo mediaInfo = getMediaInfoStored(filename);
+		return mediaInfo != null && mediaInfo.getThumbnailSource() == ThumbnailSource.USER ?
+			mediaInfo.getThumbnailId() : null;
+	}
+
+	/**
+	 * Hands a thumbnail made after the file was parsed to the media info that is still in memory.
+	 */
+	public static void updateThumbnail(String filename, Long thumbnailId, ThumbnailSource thumbnailSource) {
+		MediaInfo mediaInfo = getMediaInfoStored(filename);
+		if (mediaInfo != null) {
+			mediaInfo.setThumbnailId(thumbnailId);
+			mediaInfo.setThumbnailSource(thumbnailSource);
+			mediaInfo.setThumbnailPending(false);
+		}
 	}
 
 	private static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
 		synchronized (STORE) {
-			STORE.put(filename, new WeakReference<>(mediaInfo));
+			purgeStore();
+			STORE.put(filename, new KeyedReference<>(filename, mediaInfo, STORE_QUEUE));
 		}
 	}
 
 	public static MediaInfo getMediaInfo(String filename) {
-		Object lock = getLock(filename);
-		synchronized (lock) {
-			MediaInfo mediaInfo = getMediaInfoStored(filename);
-			if (mediaInfo != null) {
-				return mediaInfo;
-			}
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					File file = new File(filename);
-					mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
-					if (mediaInfo != null && mediaInfo.isMediaParsed() && mediaInfo.getMimeType() != null) {
-						storeMediaInfo(filename, mediaInfo);
-					}
+		CountedLock lock = acquireLock(filename);
+		try {
+			synchronized (lock) {
+				MediaInfo mediaInfo = getMediaInfoStored(filename);
+				if (mediaInfo != null) {
 					return mediaInfo;
 				}
-			} catch (IOException | SQLException e) {
-				LOGGER.debug("Error while getting cached information about {}: {}", filename, e.getMessage());
-				LOGGER.trace("", e);
-			} finally {
-				MediaDatabase.close(connection);
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						File file = new File(filename);
+						mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
+						if (mediaInfo != null && mediaInfo.isMediaParsed() && mediaInfo.getMimeType() != null) {
+							storeMediaInfo(filename, mediaInfo);
+						}
+						return mediaInfo;
+					}
+				} catch (IOException | SQLException e) {
+					LOGGER.debug("Error while getting cached information about {}: {}", filename, e.getMessage());
+					LOGGER.trace("", e);
+				} finally {
+					MediaDatabase.close(connection);
+				}
 			}
+		} finally {
+			releaseLock(filename, lock);
 		}
+
 		return null;
 	}
 
 	public static MediaInfo getMediaInfo(String filename, File file, Format format, int type) {
-		Object lock = getLock(filename);
-		synchronized (lock) {
-			MediaInfo mediaInfo = getMediaInfoStored(filename);
-			if (mediaInfo != null) {
-				return mediaInfo;
-			}
-			LOGGER.trace("Store does not yet contain MediaInfo for {}", filename);
-			Connection connection = null;
-			InputFile input = new InputFile();
-			input.setFile(file);
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					connection.setAutoCommit(false);
-					try {
-						mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
-						if (mediaInfo != null) {
-							if (!mediaInfo.isMediaParsed()) {
-								Parser.parse(mediaInfo, input, format, type);
-								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+		CountedLock lock = acquireLock(filename);
+		try {
+			synchronized (lock) {
+				MediaInfo mediaInfo = getMediaInfoStored(filename);
+				if (mediaInfo != null) {
+					return mediaInfo;
+				}
+				LOGGER.trace("Store does not yet contain MediaInfo for {}", filename);
+				Connection connection = null;
+				InputFile input = new InputFile();
+				input.setFile(file);
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						connection.setAutoCommit(false);
+						try {
+							mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
+							if (mediaInfo != null) {
+								if (!mediaInfo.isMediaParsed()) {
+									Parser.parse(mediaInfo, input, format, type);
+									MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+								}
+								//ensure we have the mime type
+								if (mediaInfo.getMimeType() == null) {
+									Parser.postParse(mediaInfo, type);
+									MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+								}
+								//ensure we have the ruid
+								if (mediaInfo.getResourceId() == null) {
+									String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
+									mediaInfo.setResourceId(resourceHash);
+									MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+								}
 							}
-							//ensure we have the mime type
-							if (mediaInfo.getMimeType() == null) {
-								Parser.postParse(mediaInfo, type);
-								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
-							}
-							//ensure we have the ruid
-							if (mediaInfo.getResourceId() == null) {
-								String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
-								mediaInfo.setResourceId(resourceHash);
-								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
-							}
+						} catch (IOException | SQLException e) {
+							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", filename, e.getMessage());
+							LOGGER.trace("", e);
 						}
-					} catch (IOException | SQLException e) {
-						LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", filename, e.getMessage());
+					}
+
+					if (mediaInfo == null) {
+						mediaInfo = updateMediaInfoFromFile(filename, file, format, type, connection, input);
+					}
+				} catch (Exception e) {
+					LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
+					LOGGER.trace("", e);
+				} finally {
+					try {
+						if (connection != null) {
+							connection.commit();
+							connection.setAutoCommit(true);
+						}
+					} catch (SQLException e) {
+						LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());
 						LOGGER.trace("", e);
 					}
+					MediaDatabase.close(connection);
 				}
-
-				if (mediaInfo == null) {
-					mediaInfo = updateMediaInfoFromFile(filename, file, format, type, connection, input);
+				if (mediaInfo != null) {
+					storeMediaInfo(filename, mediaInfo);
 				}
-			} catch (Exception e) {
-				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
-				LOGGER.trace("", e);
-			} finally {
-				try {
-					if (connection != null) {
-						connection.commit();
-						connection.setAutoCommit(true);
-					}
-				} catch (SQLException e) {
-					LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());
-					LOGGER.trace("", e);
-				}
-				MediaDatabase.close(connection);
+				return mediaInfo;
 			}
-			if (mediaInfo != null) {
-				storeMediaInfo(filename, mediaInfo);
-			}
-			return mediaInfo;
+		} finally {
+			releaseLock(filename, lock);
 		}
+
 	}
 
 	public static MediaInfo updateMediaInfoFromFile(String filename, File file, Format format, int type, Connection connection, InputFile input) {
@@ -198,6 +286,11 @@ public class MediaInfoStore {
 			if (connection != null && mediaInfo.isMediaParsed()) {
 				try {
 					MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+					if (mediaInfo.isAudio() && mediaInfo.getThumbnailId() == null) {
+						// The file carries no cover, so it has to come from Cover Art Archive. That is an HTTP
+						// round trip and is done in the background, now that the file row exists.
+						AudioCoverResolver.enqueue(file);
+					}
 				} catch (SQLException e) {
 					LOGGER.error(
 						"Database error while trying to add parsed information for \"{}\" to the cache: {}",
@@ -222,36 +315,42 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo getWebStreamMediaInfo(String url, int type) {
-		Object lock = getLock(url);
-		synchronized (lock) {
-			MediaInfo mediaInfo = getMediaInfoStored(url);
-			if (mediaInfo != null) {
+		CountedLock lock = acquireLock(url);
+		try {
+			synchronized (lock) {
+				MediaInfo mediaInfo = getMediaInfoStored(url);
+				if (mediaInfo != null) {
+					return mediaInfo;
+				}
+				LOGGER.trace("Store does not yet contain MediaInfo for {}", url);
+				try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+					mediaInfo = MediaTableFiles.getMediaInfo(connection, url, 0);
+					if (mediaInfo == null) {
+						mediaInfo = new MediaInfo();
+					}
+					//ensure we have the ruid
+					if (mediaInfo.getResourceId() == null) {
+						String resourceHash = ResourceIdentifier.getResourceIdentifier(url);
+						mediaInfo.setResourceId(resourceHash);
+						MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
+					}
+					if (!mediaInfo.isMediaParsed()) {
+						WebStreamParser.parse(mediaInfo, url, type);
+						MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
+					}
+				} catch (Exception e) {
+					LOGGER.error("Error while trying to add parsed information for \"{}\" to the cache: {}", url, e.getMessage());
+					LOGGER.trace("", e);
+				}
+				if (mediaInfo != null) {
+					storeMediaInfo(url, mediaInfo);
+				}
 				return mediaInfo;
 			}
-			LOGGER.trace("Store does not yet contain MediaInfo for {}", url);
-			try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-				mediaInfo = MediaTableFiles.getMediaInfo(connection, url, 0);
-				if (mediaInfo == null) {
-					mediaInfo = new MediaInfo();
-				}
-				//ensure we have the ruid
-				if (mediaInfo.getResourceId() == null) {
-					String resourceHash = ResourceIdentifier.getResourceIdentifier(url);
-					mediaInfo.setResourceId(resourceHash);
-					MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
-				}
-				if (!mediaInfo.isMediaParsed()) {
-					WebStreamParser.parse(mediaInfo, url, type);
-					MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
-				}
-			} catch (Exception e) {
-				LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", url, e.getMessage());
-			}
-			if (mediaInfo != null) {
-				storeMediaInfo(url, mediaInfo);
-			}
-			return mediaInfo;
+		} finally {
+			releaseLock(url, lock);
 		}
+
 	}
 
 	public static MediaVideoMetadata getMediaVideoMetadata(String filename) {
@@ -275,16 +374,16 @@ public class MediaInfoStore {
 
 	private static TvSeriesMetadata getTvSeriesMetadataStored(Long tvSeriesId) {
 		synchronized (TV_SERIES_STORE) {
-			if (TV_SERIES_STORE.containsKey(tvSeriesId) && TV_SERIES_STORE.get(tvSeriesId).get() != null) {
-				return TV_SERIES_STORE.get(tvSeriesId).get();
-			}
+			purgeTvSeriesStore();
+			WeakReference<TvSeriesMetadata> reference = TV_SERIES_STORE.get(tvSeriesId);
+			return reference != null ? reference.get() : null;
 		}
-		return null;
 	}
 
 	private static void storeTvSeriesMetadata(Long tvSeriesId, TvSeriesMetadata tvSeriesMetadata) {
 		synchronized (TV_SERIES_STORE) {
-			TV_SERIES_STORE.put(tvSeriesId, new WeakReference<>(tvSeriesMetadata));
+			purgeTvSeriesStore();
+			TV_SERIES_STORE.put(tvSeriesId, new KeyedReference<>(tvSeriesId, tvSeriesMetadata, TV_SERIES_QUEUE));
 		}
 	}
 

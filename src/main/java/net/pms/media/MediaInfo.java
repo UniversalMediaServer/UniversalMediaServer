@@ -76,6 +76,11 @@ public class MediaInfo implements Cloneable {
 	private Long thumbnailId = null;
 	private ThumbnailSource thumbnailSource = ThumbnailSource.UNKNOWN;
 
+	/**
+	 * Whether a thumbnail for this media is being made right now.
+	 */
+	private boolean thumbnailPending = false;
+
 	private MediaVideoMetadata videoMetadata;
 	private MediaAudioMetadata audioMetadata;
 
@@ -367,6 +372,14 @@ public class MediaInfo implements Cloneable {
 
 	public void setThumbnailId(Long thumbnailId) {
 		this.thumbnailId = thumbnailId;
+	}
+
+	public boolean isThumbnailPending() {
+		return thumbnailPending;
+	}
+
+	public void setThumbnailPending(boolean thumbnailPending) {
+		this.thumbnailPending = thumbnailPending;
 	}
 
 	public ThumbnailSource getThumbnailSource() {

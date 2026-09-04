@@ -252,6 +252,56 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		return getSystemName();
 	}
 
+	/**
+	 * Tells whether GETFILENAME() is a globally unique identity of this
+	 * resource, like a file path or an URL.
+	 *
+	 * Synthetic containers return a name that is only unique within their parent
+	 * container and must override this to return false, so that GETRATINGKEY()
+	 * qualifies it with the ancestor names.
+	 *
+	 * @return true if GETFILENAME() identifies this resource globally.
+	 */
+	protected boolean hasGlobalRatingKey() {
+		return true;
+	}
+
+	/**
+	 * The stable identity used to store the user rating of this resource.
+	 *
+	 * It is independent of the position of the resource in the store tree, so
+	 * the same file rated while browsing a shared folder, the media library or a
+	 * playlist always resolves to the same rating. For files it is also
+	 * independent of the transcode variant, as GETFILENAME() does not carry the
+	 * transcoding suffixes GETSYSTEMNAME() adds.
+	 *
+	 * @return the rating key, never NULL.
+	 */
+	public String getRatingKey() {
+		if (hasGlobalRatingKey()) {
+			return getFileName();
+		}
+		StoreResource parentResource = getParent();
+		return (parentResource == null ? "" : parentResource.getRatingKey()) + "/" + getSystemName();
+	}
+
+	/**
+	 * @return the user rating (0 - 5 stars) of this resource, or NULL if it is
+	 *         not rated.
+	 */
+	public Integer getRating() {
+		return StoreResourceRatings.getRating(this);
+	}
+
+	/**
+	 * Sets the user rating of this resource.
+	 *
+	 * @param rating the rating (0 - 5 stars), or NULL to remove the rating.
+	 */
+	public void setRating(Integer rating) {
+		StoreResourceRatings.setRating(this, rating);
+	}
+
 	public abstract long length();
 
 	public abstract boolean isFolder();
@@ -297,8 +347,15 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * Update the last refresh time.
 	 */
 	protected void notifyRefresh() {
-		lastRefreshTime = System.currentTimeMillis();
+		markRefreshed();
 		MediaStoreIds.incrementUpdateId(getLongId());
+	}
+
+	/**
+	 * Marks this resource as refreshed without touching the update id.
+	 */
+	protected void markRefreshed() {
+		lastRefreshTime = System.currentTimeMillis();
 	}
 
 	@Override
@@ -726,11 +783,11 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * @return The result
 	 */
 	public boolean isHideFullyPlayed() {
-		return CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA &&
-				mediaInfo != null &&
+		return  mediaInfo != null &&
 				mediaInfo.isVideo() &&
 				mediaStatus != null &&
-				mediaStatus.isFullyPlayed();
+				mediaStatus.isFullyPlayed() &&
+				CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA;
 	}
 
 	public boolean isSubSelectable() {
@@ -948,4 +1005,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		return null;
 	}
 
+	public Renderer getRenderer() {
+		return renderer;
+	}
 }

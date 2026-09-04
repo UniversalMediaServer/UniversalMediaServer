@@ -27,13 +27,17 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.concurrent.CompletionException;
 import java.util.Map;
+import java.util.function.BiPredicate;
+import com.google.errorprone.annotations.concurrent.GuardedBy;
 import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.UnknownFormatException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +48,23 @@ public class JavaHttpClient {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHttpClient.class);
 
+	/**
+	 * HttpHeaders.of() throws a NullPointerException on a null filter, so the fallback
+	 * of returning empty headers used to throw instead - the caller then saw an NPE
+	 * without a message where it expected an empty result.
+	 */
+	private static final BiPredicate<String, String> EMPTY_HEADER_FILTER = (name, value) -> true;
+
 	private static final int DEFAULT_CONNECT_SECONDS = 5;
 	private static final int DEFAULT_RESPONSE_SECONDS = 15;
+
+	/**
+	 * request identifies as a browser.
+	 */
+	public static final String BROWSER_USER_AGENT =
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+	private static final String IMAGE_ACCEPT = "image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
 
 	private JavaHttpClient() {
 		throw new UnsupportedOperationException("This class is not meant to be instantiated.");
@@ -78,13 +97,31 @@ public class JavaHttpClient {
 		}
 	}
 
-	private static HttpClient buildClient() {
-		HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS);
-		if (isTimeoutEnabled()) {
-			int sec = Math.max(1, getConnectTimeoutSeconds());
-			builder.connectTimeout(Duration.ofSeconds(sec));
+	// one shared client : each one keeps a selector thread and an executor pool.
+	@GuardedBy("CLIENT_LOCK")
+	private static HttpClient client;
+	@GuardedBy("CLIENT_LOCK")
+	private static int clientConnectSeconds = -1;
+	private static final Object CLIENT_LOCK = new Object();
+
+
+	private static HttpClient getClient() {
+		int connectSeconds = isTimeoutEnabled() ? Math.max(1, getConnectTimeoutSeconds()) : 0;
+		synchronized (CLIENT_LOCK) {
+			if (client == null || clientConnectSeconds != connectSeconds) {
+				HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS);
+				if (connectSeconds > 0) {
+					builder.connectTimeout(Duration.ofSeconds(connectSeconds));
+				}
+				HttpClient previous = client;
+				client = builder.build();
+				clientConnectSeconds = connectSeconds;
+				if (previous != null) {
+					previous.shutdown();
+				}
+			}
+			return client;
 		}
-		return builder.build();
 	}
 
 	private static HttpRequest.Builder addRequestTimeout(HttpRequest.Builder builder) {
@@ -96,7 +133,9 @@ public class JavaHttpClient {
 	}
 
 	private static HttpRequest.Builder newHttpRequest(String uri) {
-		return addRequestTimeout(HttpRequest.newBuilder().uri(URI.create(uri)));
+		return addRequestTimeout(HttpRequest.newBuilder()
+				.uri(URI.create(uri))
+				.header("User-Agent", BROWSER_USER_AGENT));
 	}
 
 	private static IOException handleCompletionException(String uri, CompletionException ex) {
@@ -115,11 +154,17 @@ public class JavaHttpClient {
 	 * @throws IOException
 	 */
 	public static byte[] getBytes(String uri) throws IOException {
+		return getBytes(uri, null);
+	}
+
+	private static byte[] getBytes(String uri, String accept) throws IOException {
 		try {
-			HttpRequest request = newHttpRequest(uri)
-					.GET()
-					.build();
-			HttpResponse<byte[]> response = buildClient()
+			HttpRequest.Builder builder = newHttpRequest(uri).GET();
+			if (accept != null) {
+				builder.header("Accept", accept);
+			}
+			HttpRequest request = builder.build();
+			HttpResponse<byte[]> response = getClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
 					.join();
 			int statusCode = response.statusCode();
@@ -144,7 +189,7 @@ public class JavaHttpClient {
 					.GET()
 					.build();
 			FileBodyHandler responseBodyHandler = new FileBodyHandler(file, uri, callback);
-			HttpResponse<Void> response = buildClient()
+			HttpResponse<Void> response = getClient()
 					.sendAsync(request, responseBodyHandler)
 					.join();
 			int statusCode = response.statusCode();
@@ -169,7 +214,7 @@ public class JavaHttpClient {
 					.headers("Content-Type", "text/plain;charset=UTF-8")
 					.GET()
 					.build();
-			HttpResponse<String> response = buildClient()
+			HttpResponse<String> response = getClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.ofString())
 					.join();
 			int statusCode = response.statusCode();
@@ -189,16 +234,16 @@ public class JavaHttpClient {
 			HttpRequest request = newHttpRequest(uri)
 					.method("HEAD", HttpRequest.BodyPublishers.noBody())
 					.build();
-			HttpResponse<Void> response = buildClient()
+			HttpResponse<Void> response = getClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.discarding())
 					.join();
 			return response.headers();
 		} catch (IllegalArgumentException ex) {
 			LOGGER.error("Unable to read headers for {}", uri, ex);
-			return HttpHeaders.of(Map.of(), null);
+			return HttpHeaders.of(Map.of(), EMPTY_HEADER_FILTER);
 		} catch (CompletionException ex) {
 			LOGGER.error("Unable to read headers for {}", uri, ex);
-			return HttpHeaders.of(Map.of(), null);
+			return HttpHeaders.of(Map.of(), EMPTY_HEADER_FILTER);
 		}
 	}
 
@@ -209,7 +254,26 @@ public class JavaHttpClient {
 			return response.headers();
 		} catch (IOException | IllegalArgumentException ex) {
 			LOGGER.error("Unable to read headers for request (InputStream) {}", uri, ex);
-			return HttpHeaders.of(Map.of(), null);
+			return HttpHeaders.of(Map.of(), EMPTY_HEADER_FILTER);
+		}
+	}
+
+	/**
+	 * Opens an endless stream (internet radio). Extra request headers are used to negotiate ICY metadata.
+	 */
+	public static HttpResponse<InputStream> getLiveStreamResponse(String uri, Map<String, String> headers) throws IOException {
+		try {
+			HttpRequest.Builder builder = HttpRequest.newBuilder()
+					.uri(URI.create(uri))
+					.header("User-Agent", BROWSER_USER_AGENT);
+			headers.forEach(builder::header);
+			return getClient()
+					.sendAsync(builder.GET().build(), HttpResponse.BodyHandlers.ofInputStream())
+					.join();
+		} catch (IllegalArgumentException ex) {
+			throw new IOException("Unable to open live stream " + uri + ":" + ex.getMessage(), ex);
+		} catch (CompletionException ex) {
+			throw handleCompletionException(uri, ex);
 		}
 	}
 
@@ -218,7 +282,7 @@ public class JavaHttpClient {
 			HttpRequest request = newHttpRequest(uri)
 					.GET()
 					.build();
-			return buildClient()
+			return getClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
 					.join();
 		} catch (IllegalArgumentException ex) {
@@ -229,9 +293,17 @@ public class JavaHttpClient {
 	}
 
 	public static DLNAThumbnail getThumbnail(String uri) {
+		if (StringUtils.isBlank(uri)) {
+			return null;
+		}
+
+		if (uri.startsWith("data:")) {
+			return handleDataUri(uri);
+		}
+
 		try {
 			LOGGER.trace("Downloading image from {}", uri);
-			byte[] image = getBytes(uri);
+			byte[] image = getBytes(uri, IMAGE_ACCEPT);
 			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
 		} catch (EOFException e) {
 			LOGGER.debug(
@@ -243,6 +315,38 @@ public class JavaHttpClient {
 			LOGGER.debug("Could not read thumbnail from uri \"{}\": {}", uri, e.getMessage(), e);
 		} catch (IOException e) {
 			LOGGER.error("Error reading thumbnail from uri \"{}\": {}", uri, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	/**
+	 * Convert data: URI to DLNAThumbnail without making an HTTP request.
+	 * Format: data:[<mediatype>][;base64],<data>
+	 * @param uri
+	 * @return
+	 */
+	private static DLNAThumbnail handleDataUri(String uri) {
+		try {
+			int commaIndex = uri.indexOf(',');
+			if (commaIndex < 0) {
+				LOGGER.debug("Invalid data URI (no comma found): {}", uri.substring(0, Math.min(uri.length(), 100)));
+				return null;
+			}
+			String meta = uri.substring(5, commaIndex); // skip "data:"
+			String data = uri.substring(commaIndex + 1);
+			byte[] image;
+			if (meta.endsWith(";base64")) {
+				image = Base64.getDecoder().decode(data);
+			} else {
+				// plain text / URL-encoded data
+				image = data.getBytes(StandardCharsets.UTF_8);
+			}
+			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+		} catch (EOFException e) {
+			LOGGER.debug("Error reading thumbnail from data URI: Unexpected end of stream, probably corrupt or read error.", e);
+		} catch (Exception e) {
+			LOGGER.error("Error reading thumbnail from data URI: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return null;

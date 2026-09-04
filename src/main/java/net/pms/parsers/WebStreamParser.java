@@ -32,6 +32,7 @@ import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class WebStreamParser {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebStreamParser.class.getName());
@@ -43,11 +44,6 @@ public class WebStreamParser {
 	}
 
 	public static void parse(MediaInfo mediaInfo, String url, int type) {
-		if (Strings.CI.contains(url, "youtube")) {
-			LOGGER.debug("Not attempting to parse YouTube URL with FFmpeg which does not support that");
-			return;
-		}
-
 		//ensure mediaInfo is not already parsing or is parsed
 		mediaInfo.waitMediaParsing(5);
 		if (mediaInfo.isMediaParsed()) {
@@ -66,9 +62,14 @@ public class WebStreamParser {
 			addAudioIcyInfos(mediaInfo, url, getHeaders);
 		}
 		mediaInfo.setParsing(false);
-		FFmpegParser.parseUrl(mediaInfo, url);
+		if (Strings.CI.contains(url, "youtube")) {
+			YoutubeParser.parseUrl(mediaInfo, url);
+		} else {
+			FFmpegParser.parseUrl(mediaInfo, url);
+		}
 		mediaInfo.setMediaParser("WEBSTREAM");
 	}
+
 
 	public static int getWebStreamType(String url, int defaultType) {
 		int type = getTypeFromUrl(url, defaultType);
@@ -93,6 +94,28 @@ public class WebStreamParser {
 		return type;
 	}
 
+	/**
+	 * If a station lists its genres comma separated convert them to " / " : like tags in RealFiles
+	 *
+	 * @return NULL when the station announced nothing.
+	 */
+	private static String normalizeGenre(String genre) {
+		if (StringUtils.isBlank(genre)) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (String part : genre.split(",")) {
+			if (StringUtils.isBlank(part)) {
+				continue;
+			}
+			if (sb.length() > 0) {
+				sb.append(" / ");
+			}
+			sb.append(part.trim());
+		}
+		return sb.length() > 0 ? sb.toString() : null;
+	}
+
 	/*
 	 * Extracts audio information from ice or icecast protocol.
 	 */
@@ -115,7 +138,7 @@ public class WebStreamParser {
 		if (sampleRate != null && mediaInfo.hasAudio()) {
 			mediaInfo.getDefaultAudioTrack().setSampleRate(sampleRate);
 		}
-		String genre = headers.firstValue("icy-genre").orElse(null);
+		String genre = normalizeGenre(headers.firstValue("icy-genre").orElse(null));
 		if (genre != null) {
 			if (!mediaInfo.hasAudioMetadata()) {
 				mediaInfo.setAudioMetadata(new MediaAudioMetadata());

@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
@@ -47,12 +48,17 @@ import org.h2.store.fs.FileUtils;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * COPIED from h2 version 2.2.240 - Moved all references from FullTextLucene to
- * UmsFullTextLucene - Added UmsAnalyzer for indexing
+ * UmsFullTextLucene - Added UmsAnalyzer for indexing & batch index writer.
+ *
  */
 public class UmsFullTextLucene extends FullText {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(UmsFullTextLucene.class.getName());
 
 	/**
 	 * Whether the text content should be stored in the Lucene index.
@@ -66,6 +72,14 @@ public class UmsFullTextLucene extends FullText {
 	private static final String LUCENE_FIELD_QUERY = "_QUERY";
 	private static final String LUCENE_FIELD_MODIFIED = "_modified";
 	private static final String LUCENE_FIELD_COLUMN_PREFIX = "_";
+
+	// Number of documents a trigger may add before the index is committed.
+	private static final int PENDING_DOCUMENTS_BEFORE_COMMIT = 1000;
+
+	/**
+	 * Nano timestamp of the last finished reindex
+	 */
+	private static long lastReindexFinished = 0;
 
 	/**
 	 * The prefix for a in-memory path. This prefix is only used internally
@@ -175,22 +189,32 @@ public class UmsFullTextLucene extends FullText {
 	}
 
 	/**
-	 * Re-creates the full text index for this database. Calling this method is
-	 * usually not needed, as the index is kept up-to-date automatically.
-	 *
-	 * @param conn the connection
-	 * @throws SQLException on failure
+	 * Re-creates the full text index for this database. Calling this method is usually not needed, as the index is kept up-to-date
+	 * automatically.
 	 */
 	public static void reindex(Connection conn) throws SQLException {
-		init(conn);
-		removeAllTriggers(conn, TRIGGER_PREFIX);
-		removeIndexFiles(conn);
-		try (Statement stat = conn.createStatement(); ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES")) {
-			while (rs.next()) {
-				String schema = rs.getString("SCHEMA");
-				String table = rs.getString("TABLE");
-				createTrigger(conn, schema, table);
-				indexExistingRows(conn, schema, table);
+		/*
+		 * Do not run concurrently with itself: parallel calls used to fail with "this IndexWriter is
+		 * closed".
+		 */
+		long requested = System.nanoTime();
+		synchronized (INDEX_ACCESS) {
+			if (lastReindexFinished - requested > 0) {
+				LOGGER.debug("Skipping full text reindex, the index has just been rebuilt by another request");
+				return;
+			}
+			init(conn);
+			removeAllTriggers(conn, TRIGGER_PREFIX);
+			removeIndexFiles(conn);
+			try (Statement stat = conn.createStatement(); ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES")) {
+				while (rs.next()) {
+					String schema = rs.getString("SCHEMA");
+					String table = rs.getString("TABLE");
+					createTrigger(conn, schema, table);
+					indexExistingRows(conn, schema, table);
+				}
+			} finally {
+				lastReindexFinished = System.nanoTime();
 			}
 		}
 	}
@@ -620,6 +644,21 @@ public class UmsFullTextLucene extends FullText {
 		}
 
 		/**
+		 * Leaves the changes to the Lucene index uncommitted until enough of them have
+		 * piled up. A search commits whatever is pending, so this is not visible to
+		 * readers.
+		 *
+		 * @throws SQLException on failure
+		 */
+		void commitIndexIfDue() throws SQLException {
+			try {
+				indexAccess.commitIfDue();
+			} catch (IOException e) {
+				throw convertException(e);
+			}
+		}
+
+		/**
 		 * Add a row to the index.
 		 *
 		 * @param row the row
@@ -667,7 +706,7 @@ public class UmsFullTextLucene extends FullText {
 			try {
 				indexAccess.writer.addDocument(doc);
 				if (commitIndex) {
-					commitIndex();
+					commitIndexIfDue();
 				}
 			} catch (IOException e) {
 				throw convertException(e);
@@ -693,7 +732,7 @@ public class UmsFullTextLucene extends FullText {
 				Term term = new Term(LUCENE_FIELD_QUERY, query);
 				indexAccess.writer.deleteDocuments(term);
 				if (commitIndex) {
-					commitIndex();
+					commitIndexIfDue();
 				}
 			} catch (IOException e) {
 				throw convertException(e);
@@ -738,6 +777,16 @@ public class UmsFullTextLucene extends FullText {
 		 */
 		private IndexSearcher searcher;
 
+		/**
+		 * Documents added since the last commit.
+		 */
+		private final AtomicInteger pendingDocuments = new AtomicInteger();
+
+		/**
+		 * Whether the searcher still shows the state of a previous commit.
+		 */
+		private boolean searcherStale;
+
 		IndexAccess(IndexWriter writer) throws IOException {
 			this.writer = writer;
 			initializeSearcher();
@@ -746,26 +795,61 @@ public class UmsFullTextLucene extends FullText {
 		/**
 		 * Start using the searcher.
 		 *
+		 * Commits first if a trigger left documents uncommitted, because a commit is
+		 * what makes them visible to a search. That keeps the batching below invisible
+		 * to readers: they always get the current state.
+		 *
 		 * @return the searcher
 		 * @throws IOException on failure
 		 */
 		synchronized IndexSearcher getSearcher() throws IOException {
+			if (pendingDocuments.get() > 0) {
+				commit();
+			}
+			if (searcherStale) {
+				refreshSearcher();
+			}
 			if (!searcher.getIndexReader().tryIncRef()) {
 				initializeSearcher();
 			}
 			return searcher;
 		}
 
+		/**
+		 * Commits the changes if enough documents have piled up since the last commit.
+		 */
+		void commitIfDue() throws IOException {
+			// Counting is lock free on purpose
+			if (pendingDocuments.incrementAndGet() >= PENDING_DOCUMENTS_BEFORE_COMMIT) {
+				commitIfStillDue();
+			}
+		}
+
+		private synchronized void commitIfStillDue() throws IOException {
+			// Another thread may have committed while this one waited for the monitor.
+			if (pendingDocuments.get() >= PENDING_DOCUMENTS_BEFORE_COMMIT) {
+				commit();
+			}
+		}
+
 		private void initializeSearcher() throws IOException {
 			IndexReader reader = DirectoryReader.open(writer);
 			searcher = new IndexSearcher(reader);
+			searcherStale = false;
+		}
+
+		/**
+		 * Replaces the searcher with one that sees the committed state and releases the old reader.
+		 */
+		private void refreshSearcher() throws IOException {
+			IndexReader oldReader = searcher.getIndexReader();
+			searcher = new IndexSearcher(DirectoryReader.open(writer));
+			searcherStale = false;
+			oldReader.close();
 		}
 
 		/**
 		 * Stop using the searcher.
-		 *
-		 * @param searcher the searcher
-		 * @throws IOException on failure
 		 */
 		synchronized void returnSearcher(IndexSearcher searcher) throws IOException {
 			searcher.getIndexReader().decRef();
@@ -773,20 +857,16 @@ public class UmsFullTextLucene extends FullText {
 
 		/**
 		 * Commit the changes.
-		 *
-		 * @throws IOException on failure
 		 */
 		public synchronized void commit() throws IOException {
+			pendingDocuments.set(0);
 			writer.commit();
-			IndexReader oldReader = searcher.getIndexReader();
-			searcher = new IndexSearcher(DirectoryReader.open(writer));
-			oldReader.close();
+			// The searcher is rebuilt when somebody actually searches.
+			searcherStale = true;
 		}
 
 		/**
 		 * Close the index.
-		 *
-		 * @throws IOException on failure
 		 */
 		public synchronized void close() throws IOException {
 			if (searcher != null) {
