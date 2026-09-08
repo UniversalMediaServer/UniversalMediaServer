@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### General
+- Fixed slow browsing since 15.8.0
+- Fixed DVD ISO browsing
+
+### Translation updates via Crowdin
+- Russian (100%) (thanks, vanapro1!)
+
 ### Dependencies
 - Bump `@humanfs/node` from 0.16.6 to 0.16.8 ([#6309](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6309))
 - Bump `@xmldom/xmldom` from 0.8.13 to 0.8.15 ([#6313](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6313))
@@ -12,6 +19,8 @@
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
 - Bump `org.jsoup:jsoup` from 1.23.1 to 1.23.2 ([#6308](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6308))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 6.1.2 to 6.1.3 ([#6300](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6300))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 6.1.2 to 6.1.3 ([#6300](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6300))
 
 ## [15.8.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.0...15.8.1) (2026-08-23)
 
