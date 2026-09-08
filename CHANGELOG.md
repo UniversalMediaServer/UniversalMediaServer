@@ -7,6 +7,8 @@
 - Bump `@xmldom/xmldom` from 0.8.13 to 0.8.15 ([#6313](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6313))
 - Bump `actions/setup-java` from 5 to 6 ([#6306](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6306))
 - Bump `browserslist` from 4.25.1 to 4.28.9 ([#6312](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6312))
+- Bump `ch.qos.logback:logback-classic` from 1.6.1 to 1.6.3 ([#6301](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6301))
+- Bump `ch.qos.logback:logback-core` from 1.6.1 to 1.6.3 ([#6301](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6301))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
