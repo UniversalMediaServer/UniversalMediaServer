@@ -2,9 +2,12 @@
 
 ## [Unreleased]
 
+## [15.8.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.1...15.8.2) (2026-09-08)
+
 ### General
 - Fixed slow browsing since 15.8.0
 - Fixed DVD ISO browsing
+- Fixed broken browsing of parent when new folder is added
 
 ### Translation updates via Crowdin
 - Russian (100%) (thanks, vanapro1!)
