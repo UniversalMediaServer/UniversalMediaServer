@@ -6,6 +6,9 @@
 - Fixed slow browsing since 15.8.0
 - Fixed DVD ISO browsing
 
+### Translation updates via Crowdin
+- Russian (100%) (thanks, vanapro1!)
+
 ### Dependencies
 - Bump `@humanfs/node` from 0.16.6 to 0.16.8 ([#6309](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6309))
 - Bump `@xmldom/xmldom` from 0.8.13 to 0.8.15 ([#6313](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6313))
