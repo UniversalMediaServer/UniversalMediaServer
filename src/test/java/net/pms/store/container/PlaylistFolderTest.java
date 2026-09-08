@@ -22,7 +22,7 @@ public class PlaylistFolderTest {
 
 	@BeforeAll
 	static void initTest() throws Exception {
-		System.setProperty("surefire.real.class.path", "/tmp");
+		System.setProperty(PMS.PROPERTY_RUNNING_TESTS, "true");
 
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration(false));

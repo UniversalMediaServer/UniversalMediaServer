@@ -771,6 +771,16 @@
 					<version>${surefire-version}</version>
 					<configuration>
 						<argLine>-Dfile.encoding=${project.encoding} --add-opens java.base/sun.nio.ch=ALL-UNNAMED</argLine>
+						<!--
+							Mark the whole forked JVM as a test run before any UMS class is loaded.
+						-->
+						<systemPropertyVariables>
+							<ums.running.tests>true</ums.running.tests>
+							<ums.test.db.dir>${project.build.directory}/test-db</ums.test.db.dir>
+						</systemPropertyVariables>
+						<environmentVariables>
+							<RUNNING_TESTS>true</RUNNING_TESTS>
+						</environmentVariables>
 					</configuration>
 				</plugin>
 

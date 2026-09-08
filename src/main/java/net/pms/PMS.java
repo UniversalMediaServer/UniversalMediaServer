@@ -124,6 +124,12 @@ public class PMS {
 	private static final String TRACE = "trace";
 	private static final String DBLOG = "dblog";
 	private static final String DBTRACE = "dbtrace";
+
+	/**
+	 * System property that marks the current JVM as a test run.
+	 */
+	public static final String PROPERTY_RUNNING_TESTS = "ums.running.tests";
+
 	/**
 	 * The logger used for all logging.
 	 */
@@ -1396,15 +1402,16 @@ public class PMS {
 	/**
 	 * @return whether UMS is being run by Surefire, Playwright, or a CI
 	 * environment like GitHub Actions.
+	 *
+	 * Tests that are not started by Surefire (for example when run from an IDE)
+	 * can announce themselves by setting the {@link #PROPERTY_RUNNING_TESTS}
+	 * system property before any UMS class is loaded.
 	 */
 	public static boolean isRunningTests() {
-		return System.getProperty("surefire.real.class.path") != null || (
-			System.getenv("CI") != null &&
-			System.getenv("CI").equals("true")
-		) || (
-			System.getenv("RUNNING_TESTS") != null &&
-			System.getenv("RUNNING_TESTS").equals("true")
-		);
+		return System.getProperty("surefire.real.class.path") != null ||
+			"true".equalsIgnoreCase(System.getProperty(PROPERTY_RUNNING_TESTS)) ||
+			"true".equalsIgnoreCase(System.getenv("CI")) ||
+			"true".equalsIgnoreCase(System.getenv("RUNNING_TESTS"));
 	}
 
 	/**
