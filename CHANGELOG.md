@@ -5,6 +5,7 @@
 ### Dependencies
 - Bump `@humanfs/node` from 0.16.6 to 0.16.8 ([#6309](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6309))
 - Bump `@xmldom/xmldom` from 0.8.13 to 0.8.15 ([#6313](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6313))
+- Bump `actions/setup-java` from 5 to 6 ([#6306](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6306))
 - Bump `browserslist` from 4.25.1 to 4.28.9 ([#6312](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6312))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.11 to 12.1.12 ([#6298](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6298))
