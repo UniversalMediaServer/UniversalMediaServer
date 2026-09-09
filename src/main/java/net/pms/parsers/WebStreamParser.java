@@ -51,15 +51,13 @@ public class WebStreamParser {
 		}
 		mediaInfo.setParsing(true);
 		mediaInfo.resetParser();
-		HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
-		String contentType = headHeaders.firstValue("content-type").orElse(null);
+		HttpHeaders headers = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+		String contentType = headers.firstValue("content-type").orElse(null);
 		if (contentType != null) {
 			mediaInfo.setMimeType(contentType);
 		}
 		if (type == Format.AUDIO) {
-			HttpHeaders getHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
-			addAudioIcyInfos(mediaInfo, url, headHeaders);
-			addAudioIcyInfos(mediaInfo, url, getHeaders);
+			addAudioIcyInfos(mediaInfo, url, headers);
 		}
 		mediaInfo.setParsing(false);
 		if (Strings.CI.contains(url, "youtube")) {
@@ -75,12 +73,9 @@ public class WebStreamParser {
 		int type = getTypeFromUrl(url, defaultType);
 		if (type == 0 || type == Format.UNKNOWN) {
 			LOGGER.debug("Analyzing internet resource type from content-type HEADER : {}", url);
-			HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
-			type = getTypeFromHttpHeaders(headHeaders, 0);
-			if (type == 0) {
-				HttpHeaders getHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
-				type = getTypeFromHttpHeaders(getHeaders, 0);
-			}
+			// GET rather than HEAD, for the reasons given in parse().
+			HttpHeaders headers = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+			type = getTypeFromHttpHeaders(headers, 0);
 			if (type == 0) {
 				LOGGER.debug("Couldn't determine stream content type from content-type HEADER for {}", url);
 			} else {

@@ -229,34 +229,15 @@ public class JavaHttpClient {
 		}
 	}
 
-	public static HttpHeaders getHeaders(String uri) {
-		try {
-			HttpRequest request = newHttpRequest(uri)
-					.method("HEAD", HttpRequest.BodyPublishers.noBody())
-					.build();
-			HttpResponse<Void> response = getClient()
-					.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-					.join();
-			int statusCode = response.statusCode();
-			if (statusCode < 200 || statusCode > 299) {
-				// Not every server implements HEAD.
-				LOGGER.debug("HEAD request for {} was answered with {}, ignoring its headers", uri, statusCode);
-				return HttpHeaders.of(Map.of(), EMPTY_HEADER_FILTER);
-			}
-			return response.headers();
-		} catch (IllegalArgumentException ex) {
-			LOGGER.error("Unable to read headers for {}", uri, ex);
-			return HttpHeaders.of(Map.of(), EMPTY_HEADER_FILTER);
-		} catch (CompletionException ex) {
-			LOGGER.error("Unable to read headers for {}", uri, ex);
-			return HttpHeaders.of(Map.of(), EMPTY_HEADER_FILTER);
-		}
-	}
-
 	public static HttpHeaders getHeadersFromInputStreamRequest(String uri) {
 		try {
 			HttpResponse<InputStream> response = getHttpResponseInputStream(uri);
 			response.body().close();
+			int statusCode = response.statusCode();
+			if (statusCode < 200 || statusCode > 299) {
+				LOGGER.debug("GET request for {} was answered with {}, ignoring its headers", uri, statusCode);
+				return HttpHeaders.of(Map.of(), EMPTY_HEADER_FILTER);
+			}
 			return response.headers();
 		} catch (IOException | IllegalArgumentException ex) {
 			LOGGER.error("Unable to read headers for request (InputStream) {}", uri, ex);
