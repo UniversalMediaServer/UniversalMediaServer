@@ -237,6 +237,12 @@ public class JavaHttpClient {
 			HttpResponse<Void> response = getClient()
 					.sendAsync(request, HttpResponse.BodyHandlers.discarding())
 					.join();
+			int statusCode = response.statusCode();
+			if (statusCode < 200 || statusCode > 299) {
+				// Not every server implements HEAD.
+				LOGGER.debug("HEAD request for {} was answered with {}, ignoring its headers", uri, statusCode);
+				return HttpHeaders.of(Map.of(), EMPTY_HEADER_FILTER);
+			}
 			return response.headers();
 		} catch (IllegalArgumentException ex) {
 			LOGGER.error("Unable to read headers for {}", uri, ex);

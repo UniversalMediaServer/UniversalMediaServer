@@ -400,7 +400,7 @@ public class DlnaHelper {
 
 			} else if (mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME)) {
 				profileId = "MP3";
-			} else if (mime.substring(0, 9).equals(HTTPResource.AUDIO_LPCM_TYPEMIME) || mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME)) {
+			} else if (mime.startsWith(HTTPResource.AUDIO_LPCM_TYPEMIME) || mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME)) {
 				profileId = "LPCM";
 			}
 		}
