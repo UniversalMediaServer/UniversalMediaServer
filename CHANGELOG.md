@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `jna-version` from 5.18.1 to 5.19.1 ([#6316](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6316))
+
 ## [15.8.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.1...15.8.2) (2026-09-08)
 
 ### General
