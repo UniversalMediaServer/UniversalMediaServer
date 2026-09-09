@@ -54,6 +54,7 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.parsers.WebStreamParser;
+import net.pms.parsers.WebStreamParser.WebStreamProbe;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStore;
@@ -528,13 +529,14 @@ public final class PlaylistFolder extends StoreContainer {
 	private ResolvedWebEntry resolveWebEntry(Entry entry) {
 		IN_WEB_ENTRY_POOL.set(true);
 		String u = FileUtil.urlJoin(uri, entry.fileName());
-		int type = WebStreamParser.getWebStreamType(entry.fileName(), defaultContent);
+		WebStreamProbe probe = WebStreamParser.probe(u, defaultContent);
+		int type = probe.type();
 		StoreResource d = createWebResource(entry, u, type);
 		if (d == null) {
 			throw new WebEntryResolveException(entry, "Unsupported web stream type for entry");
 		}
 		if (d instanceof WebStream) {
-			MediaInfoStore.getWebStreamMediaInfo(u, type);
+			MediaInfoStore.getWebStreamMediaInfo(u, type, probe.headers());
 		}
 		return new ResolvedWebEntry(entry, u, type, d);
 	}
@@ -654,8 +656,9 @@ public final class PlaylistFolder extends StoreContainer {
 	private void warmWebEntry(String url) {
 		WEB_ENTRY_EXECUTOR.execute(() -> {
 			try {
-				int type = WebStreamParser.getWebStreamType(url, defaultContent);
-				MediaInfoStore.getWebStreamMediaInfo(url, type);
+				WebStreamProbe probe = WebStreamParser.probe(url, defaultContent);
+				int type = probe.type();
+				MediaInfoStore.getWebStreamMediaInfo(url, type, probe.headers());
 				MediaTableFiles.getOrInsertFileId(url, 0L, type);
 			} catch (Exception e) {
 				LOGGER.debug("could not resolve the new playlist entry {} up front: {}", url, e.getMessage());

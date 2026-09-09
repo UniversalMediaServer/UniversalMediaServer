@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.net.http.HttpHeaders;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -315,6 +316,10 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo getWebStreamMediaInfo(String url, int type) {
+		return getWebStreamMediaInfo(url, type, null);
+	}
+
+	public static MediaInfo getWebStreamMediaInfo(String url, int type, HttpHeaders probeHeaders) {
 		CountedLock lock = acquireLock(url);
 		try {
 			synchronized (lock) {
@@ -335,7 +340,7 @@ public class MediaInfoStore {
 						MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
 					}
 					if (!mediaInfo.isMediaParsed()) {
-						WebStreamParser.parse(mediaInfo, url, type);
+						WebStreamParser.parse(mediaInfo, url, type, probeHeaders);
 						MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
 					}
 				} catch (Exception e) {

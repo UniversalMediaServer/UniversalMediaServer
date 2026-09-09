@@ -37,13 +37,17 @@ public class WebStreamParser {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebStreamParser.class.getName());
 
+	// Remember the type and headers of the stream, so we don't have to probe it again.
+	public record WebStreamProbe(int type, HttpHeaders headers) {
+	}
+
 	/**
 	 * This class is not meant to be instantiated.
 	 */
 	private WebStreamParser() {
 	}
 
-	public static void parse(MediaInfo mediaInfo, String url, int type) {
+	public static void parse(MediaInfo mediaInfo, String url, int type, HttpHeaders probeHeaders) {
 		//ensure mediaInfo is not already parsing or is parsed
 		mediaInfo.waitMediaParsing(5);
 		if (mediaInfo.isMediaParsed()) {
@@ -51,7 +55,7 @@ public class WebStreamParser {
 		}
 		mediaInfo.setParsing(true);
 		mediaInfo.resetParser();
-		HttpHeaders headers = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+		HttpHeaders headers = probeHeaders != null ? probeHeaders : JavaHttpClient.getHeadersFromInputStreamRequest(url);
 		String contentType = headers.firstValue("content-type").orElse(null);
 		if (contentType != null) {
 			mediaInfo.setMimeType(contentType);
@@ -69,12 +73,12 @@ public class WebStreamParser {
 	}
 
 
-	public static int getWebStreamType(String url, int defaultType) {
+	public static WebStreamProbe probe(String url, int defaultType) {
 		int type = getTypeFromUrl(url, defaultType);
+		HttpHeaders headers = null;
 		if (type == 0 || type == Format.UNKNOWN) {
 			LOGGER.debug("Analyzing internet resource type from content-type HEADER : {}", url);
-			// GET rather than HEAD, for the reasons given in parse().
-			HttpHeaders headers = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+			headers = JavaHttpClient.getHeadersFromInputStreamRequest(url);
 			type = getTypeFromHttpHeaders(headers, 0);
 			if (type == 0) {
 				LOGGER.debug("Couldn't determine stream content type from content-type HEADER for {}", url);
@@ -86,7 +90,7 @@ public class WebStreamParser {
 			type = defaultType;
 			LOGGER.debug("Stream content type set to default {} for {}", Format.getStringType(type), url);
 		}
-		return type;
+		return new WebStreamProbe(type, headers);
 	}
 
 	/**
