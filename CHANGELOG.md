@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Dependencies
+
+- Bump `commons-codec:commons-codec` from 1.22.0 to 1.22.1 ([#6315](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6315))
+
 ## [15.8.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.1...15.8.2) (2026-09-08)
 
 ### General
