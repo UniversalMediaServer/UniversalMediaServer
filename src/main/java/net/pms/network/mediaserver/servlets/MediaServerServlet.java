@@ -28,10 +28,12 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnailInputStream;
@@ -51,17 +53,23 @@ import net.pms.network.HTTPResource;
 import net.pms.network.StartStopListener;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.MediaServerRequest;
+import net.pms.network.mediaserver.MediaServerRequestType;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.service.Services;
 import net.pms.service.sleep.SleepManager;
+import net.pms.store.IcyMetadataSource;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
+import net.pms.store.ThumbnailStore;
+import net.pms.store.item.WebStream;
 import net.pms.util.ByteRange;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
+import net.pms.util.SortedHeaderMap;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.TimeRange;
@@ -103,43 +111,56 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				return;
 			}
 
-			//find renderer by uuid
-			renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
+			if (CONFIGURATION.isAuthenticationEnabled()) {
+				// Authentication enabled: the renderer is bound to the browse UUID (2-box setup)
+				// and access is filtered per account/renderer.
+				renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
 
-			if (renderer == null) {
-				//find renderer by uuid and ip for non registred upnp devices
-				renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
-				if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
+				if (renderer == null) {
+					renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
+					if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
+						}
 					}
-					/**
-					 * here, that mean the originated renderer advised is no more available.
-					 * It may be a caster/proxy control point, so let change to the real renderer.
-					 * fixme : non-renderer should advise a special uuid.
-					 * renderer = null;
-					 */
 				}
-			}
 
-			if (renderer == null) {
-				// If uuid not known, it mean the renderer is not registred
-				if (LOGGER.isTraceEnabled()) {
-					logHttpServletRequest(req, "");
+				if (renderer == null) {
+					// If uuid not known, it mean the renderer is not registred
+					if (LOGGER.isTraceEnabled()) {
+						logHttpServletRequest(req, "");
+					}
+					//Forbidden
+					respondForbidden(req, resp);
+					return;
 				}
-				//Forbidden
-				respondForbidden(req, resp);
-				return;
-			}
 
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					logHttpServletRequest(req, "", getRendererNameForLogging(req, renderer));
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				if (!renderer.isAllowed()) {
+					if (LOGGER.isTraceEnabled()) {
+						logHttpServletRequest(req, "", getRendererNameForLogging(req, renderer));
+						LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+					}
+					//Unauthorized
+					respondUnauthorized(req, resp);
+					return;
 				}
-				//Unauthorized
-				respondUnauthorized(req, resp);
-				return;
+			} else {
+				// Authentication disabled: flexible 3-box UPnP setup. The browse UUID in the URL
+				// belongs to the control point, not the playback renderer, so identify the real
+				// renderer just-in-time from the request headers (User-Agent etc.) and IP.
+				// Transcoding is then resolved for that renderer via its own media store.
+				SortedHeaderMap headerMap = getHeaderMapFromRequest(req);
+				renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headerMap, getInetAddress(req));
+				if (renderer == null) {
+					// Fallback to IP association
+					renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
+				}
+				if (renderer == null) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Renderer not identified by header or address, using default renderer. Request headers were: {}", headerMap);
+					}
+					renderer = RendererConfigurations.getDefaultRenderer();
+				}
 			}
 
 			if (req.getHeader("X-PANASONIC-DMP-Profile") != null) {
@@ -154,7 +175,15 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 
 			if (GET.equals(method) || HEAD.equals(method)) {
 				// Get resource
-				StoreResource resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
+				StoreResource resource = null;
+				if (!CONFIGURATION.isAuthenticationEnabled() &&
+						mediaServerRequest.getRequestType() == MediaServerRequestType.THUMBNAIL &&
+						ControlPoint.getRenderer() != null) {
+					resource = ControlPoint.getRenderer().getMediaStore().getResource(mediaServerRequest.getResourceId());
+				}
+				if (resource == null) {
+					resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
+				}
 				if (resource == null) {
 					// resource not found
 					respondNotFound(req, resp);
@@ -189,6 +218,14 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				LOGGER.error("Http request error:", e);
 			}
 		}
+	}
+
+	private SortedHeaderMap getHeaderMapFromRequest(HttpServletRequest req) {
+		SortedHeaderMap headerMap = new SortedHeaderMap();
+		for (String headerField : Collections.list(req.getHeaderNames())) {
+			headerMap.put(headerField, req.getHeader(headerField));
+		}
+		return headerMap;
 	}
 
 	private static void sendResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, int code, String message, String contentType) throws IOException {
@@ -393,7 +430,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				if (isHttp10(req)) {
 					resp.setHeader("Expires", getFutureDate() + " GMT");
 				} else {
-					resp.setHeader("Cache-Control", "max-age=86400");
+					// We have ETag support
+					resp.setHeader("Cache-Control", "no-cache");
 				}
 				try {
 					InputStream imageInputStream;
@@ -460,7 +498,31 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						range.setStart(0L);
 						range.setEnd(0L);
 					}
-					inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
+					try {
+						if ("1".equals(req.getHeader("Icy-MetaData")) && item instanceof IcyMetadataSource icySource && icySource.isIcyMetadataEnabled()) {
+							// Renderer asked for SHOUTcast/Icecast in-band metadata: advertise the
+							// interval and interleave the metadata blocks into the stream.
+							int metaInt = icySource.getIcyMetaInt();
+							resp.setHeader("icy-metaint", Integer.toString(metaInt));
+							inputStream = icySource.getIcyInputStream(metaInt);
+						} else {
+							inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
+						}
+					} catch (IOException ie) {
+						LOGGER.error("Cannot open the source of \"{}\": {}", item.getDisplayName(), ie.getMessage());
+						LOGGER.trace("", ie);
+						respondBadGateway(req, resp, "Cannot read the source of \"" + item.getDisplayName() + "\": " + ie.getMessage());
+						return;
+					}
+					if (item.isUnboundedLiveStream()) {
+						// Endless, non-seekable stream: answer 200 without Content-Range/Content-Length
+						// so the renderer treats it like internet radio (one persistent connection)
+						// instead of byte-range reconnects that would restart the play session on a
+						// different track.
+						status = 200;
+						range.setStart(0L);
+						range.setEnd(0L);
+					}
 
 					if (item.isResume()) {
 						// Update range to possibly adjusted resume time
@@ -529,6 +591,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					if (!ignoreTranscodeByteRangeRequests) {
 						// No inputStream indicates that transcoding / remuxing probably crashed.
 						LOGGER.error("There is no inputstream to return for " + name);
+						respondBadGateway(req, resp, getStreamFailureReason(item, name));
+						return;
 					}
 				} else {
 					if (!isVideoThumbnailRequest && GET.equals(req.getMethod().toUpperCase())) {
@@ -595,10 +659,16 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						resp.setHeader("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
 					}
 
-					if (!item.isTranscoded() || renderer.isTranscodeSeekByByte()) {
+					if (item.isUnboundedLiveStream()) {
+						resp.setHeader("Accept-Ranges", "none");
+					} else if (!item.isTranscoded() || renderer.isTranscodeSeekByByte()) {
 						resp.setHeader("Accept-Ranges", "bytes");
 					}
-					if (GET.equals(req.getMethod().toUpperCase())) {
+					if (item.isUnboundedLiveStream()) {
+						// Endless stream with no Content-Length/chunked: signal read-until-close so the
+						// renderer keeps one connection open instead of stopping after a buffer's worth.
+						resp.setHeader("Connection", "close");
+					} else if (GET.equals(req.getMethod().toUpperCase())) {
 						resp.setHeader("Connection", "keep-alive");
 					}
 				}
@@ -617,6 +687,14 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		} else {
 			respondBadRequest(req, resp);
 		}
+	}
+
+	private static String getStreamFailureReason(StoreItem item, String name) {
+		String upstreamError = item instanceof WebStream webStream ? webStream.getLastStreamError() : null;
+		if (upstreamError != null) {
+			return "Cannot read the source of \"" + name + "\": " + upstreamError;
+		}
+		return "No source stream for \"" + name + "\"";
 	}
 
 	private static ByteRange getRange(String rangeStr, long streamLength) {
@@ -729,7 +807,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		if (isHttp10(req)) {
 			resp.setHeader("Expires", getFutureDate() + " GMT");
 		} else {
-			resp.setHeader("Cache-Control", "max-age=86400");
+			// We have ETag support
+			resp.setHeader("Cache-Control", "no-cache");
 		}
 
 		DLNAThumbnailInputStream thumbInputStream;
@@ -747,7 +826,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		filterChain = resource.addFlagFilters(filterChain);
 
 		if (thumbInputStream != null) {
-			inputStream = thumbInputStream.transcode(
+			inputStream = ThumbnailStore.getTranscodedThumbnailInputStream(
+					thumbInputStream,
 					imageProfile,
 					renderer.isThumbnailPadding(),
 					filterChain
@@ -798,7 +878,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			if (isHttp10(req)) {
 				resp.setHeader("Expires", getFutureDate() + " GMT");
 			} else {
-				resp.setHeader("Cache-Control", "max-age=86400");
+				resp.setHeader("Cache-Control", "no-cache");
 			}
 			MediaSubtitle sub = item.getMediaSubtitle();
 			if (sub != null) {

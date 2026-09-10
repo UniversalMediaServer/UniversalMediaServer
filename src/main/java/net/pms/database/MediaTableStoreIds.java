@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.store.MediaStoreId;
@@ -41,7 +42,7 @@ public class MediaTableStoreIds extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 4;
 
 	/**
 	 * COLUMNS
@@ -59,18 +60,21 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String TABLE_COL_PARENT_ID = TABLE_NAME + "." + COL_PARENT_ID;
 	private static final String TABLE_COL_NAME = TABLE_NAME + "." + COL_NAME;
 	private static final String TABLE_COL_OBJECT_TYPE = TABLE_NAME + "." + COL_OBJECT_TYPE;
+	private static final String TABLE_COL_UPDATE_ID = TABLE_NAME + "." + COL_UPDATE_ID;
 
 	/**
 	 * SQL Queries
 	 */
 	private static final String SQL_GET_ALL_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_PARENTID_NAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_PARENT_ID + EQUAL + PARAMETER + AND + TABLE_COL_NAME + EQUAL + PARAMETER;
+	private static final String SQL_INSERT_STORE_ID = INSERT_INTO + TABLE_NAME + "(" + COL_PARENT_ID + ", " + COL_NAME + ", " + COL_OBJECT_TYPE + ", " + COL_UPDATE_ID + ") VALUES (?, ?, ?, ?)";
 	private static final String SQL_GET_ID_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_NAME_ID = SELECT + COL_NAME + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_TYPE = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME_TYPE = SQL_GET_ID_NAME + AND + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME_TYPE_PARENTTYPE = SQL_GET_ID_NAME_TYPE + AND + TABLE_COL_PARENT_ID + IN + "(" + SQL_GET_ID_TYPE + ")";
 	private static final String SQL_UPDATE_UPDATEID_ID = UPDATE + TABLE_NAME + SET + COL_UPDATE_ID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_UPDATEID_ID_IF_HIGHER = SQL_UPDATE_UPDATEID_ID + AND + TABLE_COL_UPDATE_ID + LESS_THAN + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -108,6 +112,13 @@ public class MediaTableStoreIds extends MediaTable {
 					LOGGER.trace("Creating index " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + IDX_MARKER);
 					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ", " + COL_OBJECT_TYPE + ")");
 				}
+				case 2 -> {
+					// version 2 had no schema changes
+				}
+				case 3 -> {
+					LOGGER.trace("Creating index " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_PARENT_ID + COL_NAME + IDX_MARKER);
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_PARENT_ID + COL_NAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_PARENT_ID + ", " + COL_NAME + ")");
+				}
 				default -> {
 					throw new IllegalStateException(
 							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -136,6 +147,7 @@ public class MediaTableStoreIds extends MediaTable {
 				")",
 				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_PARENT_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_PARENT_ID + ")",
 				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ")",
+				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_PARENT_ID + COL_NAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_PARENT_ID + ", " + COL_NAME + ")",
 				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + COL_PARENT_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ", " + COL_OBJECT_TYPE + ", " + COL_PARENT_ID + ")",
 				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ", " + COL_OBJECT_TYPE + ")"
 		);
@@ -158,20 +170,31 @@ public class MediaTableStoreIds extends MediaTable {
 		long parentId = resource.getParent().getLongId();
 		String name = resource.getSystemName();
 
-		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_PARENTID_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+		// Read-only lookup – much faster than CONCUR_UPDATABLE
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_PARENTID_NAME)) {
 			stmt.setLong(1, parentId);
 			stmt.setString(2, name);
 			try (ResultSet elements = stmt.executeQuery()) {
 				if (elements.next()) {
 					return getMediaStoreId(connection, elements.getLong(COL_ID));
-				} else {
-					elements.moveToInsertRow();
-					elements.updateLong(COL_PARENT_ID, parentId);
-					elements.updateString(COL_NAME, name);
-					elements.updateString(COL_OBJECT_TYPE, resource.getClass().getSimpleName());
-					elements.updateLong(COL_UPDATE_ID, 0);
-					elements.insertRow();
-					return getResourceMediaStoreId(connection, resource);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", resource.getDisplayName(), e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
+
+		// Row not found – insert and return the new id via generated keys
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_INSERT_STORE_ID, Statement.RETURN_GENERATED_KEYS)) {
+			stmt.setLong(1, parentId);
+			stmt.setString(2, name);
+			stmt.setString(3, resource.getClass().getSimpleName());
+			stmt.setLong(4, 0);
+			stmt.executeUpdate();
+			try (ResultSet keys = stmt.getGeneratedKeys()) {
+				if (keys.next()) {
+					return getMediaStoreId(connection, keys.getLong(1));
 				}
 			}
 		} catch (SQLException e) {
@@ -223,6 +246,26 @@ public class MediaTableStoreIds extends MediaTable {
 		try (PreparedStatement stmt = connection.prepareStatement(SQL_UPDATE_UPDATEID_ID)) {
 			stmt.setLong(1, updateId);
 			stmt.setLong(2, id);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", id, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Stores the update id only when it is higher than the one already there.
+	 *
+	 * Writers are no longer serialised, so a slower thread must not persist an older value.
+	 */
+	public static void setMediaStoreUpdateIdIfHigher(Connection connection, long id, long updateId) {
+		if (connection == null) {
+			return;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_UPDATE_UPDATEID_ID_IF_HIGHER)) {
+			stmt.setLong(1, updateId);
+			stmt.setLong(2, id);
+			stmt.setLong(3, updateId);
 			stmt.executeUpdate();
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", id, e.getMessage());

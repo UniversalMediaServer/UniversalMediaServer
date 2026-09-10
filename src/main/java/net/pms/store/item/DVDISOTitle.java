@@ -17,7 +17,6 @@
 package net.pms.store.item;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import net.pms.Messages;
@@ -28,6 +27,7 @@ import net.pms.media.MediaInfo;
 import net.pms.parsers.MPlayerParser;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -137,7 +137,7 @@ public class DVDISOTitle extends StoreItem {
 		}
 
 		if (cachedThumbnail != null) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
+			return ThumbnailStore.getThumbnailInputStreamForFile(cachedThumbnail);
 		} else if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 			return getMediaInfo().getThumbnailInputStream();
 		} else {

@@ -43,9 +43,11 @@ import net.pms.store.MediaStatusStore;
 import net.pms.store.StoreItem;
 import net.pms.store.SystemFileResource;
 import net.pms.store.SystemFilesHelper;
+import net.pms.store.ThumbnailStore;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
+import net.pms.util.GenericIcons;
 import net.pms.util.InputFile;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -261,6 +263,14 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		File cachedThumbnail = null;
 		MediaType mediaType = getMediaInfo() != null ? getMediaInfo().getMediaType() : MediaType.UNKNOWN;
 
+		// An audio track with a stored cover uses it anyway
+		if (getType() == Format.AUDIO && getMediaInfo() != null && getMediaInfo().getThumbnailId() != null) {
+			DLNAThumbnailInputStream stored = getMediaInfo().getThumbnailInputStream();
+			if (stored != null) {
+				return stored;
+			}
+		}
+
 		if (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) {
 			String alternativeFolder = renderer.getUmsConfiguration().getAlternateThumbFolder();
 			ArrayList<File> folders = new ArrayList<>(2);
@@ -292,7 +302,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		DLNAThumbnailInputStream result = null;
 		try {
 			if (cachedThumbnail != null && !hasAlreadyEmbeddedCoverArt) {
-				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
+				result = ThumbnailStore.getThumbnailInputStreamForFile(cachedThumbnail);
 			} else if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 				result = getMediaInfo().getThumbnailInputStream();
 			}
@@ -300,7 +310,13 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
 			LOGGER.trace("", e);
 		}
-		return result != null ? result : super.getThumbnailInputStream();
+		if (result != null) {
+			return result;
+		}
+		if (getMediaInfo() != null && getMediaInfo().isThumbnailPending()) {
+			return GenericIcons.INSTANCE.getCoverPendingIcon(this);
+		}
+		return super.getThumbnailInputStream();
 	}
 
 	@Override

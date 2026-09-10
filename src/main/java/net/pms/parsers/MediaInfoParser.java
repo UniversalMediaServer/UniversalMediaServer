@@ -187,11 +187,11 @@ public class MediaInfoParser {
 			// set cover
 			value = StreamContainer.getCoverData(mediaInfoHelper, 0);
 			if (!value.isEmpty()) {
-				String[] thumbs = value.split(" / ");
+				int separatorIndex = value.indexOf(" / ");
+				String firstThumb = (separatorIndex != -1) ? value.substring(0, separatorIndex).trim() : value.trim();
 				try {
-					thumbs[0] = thumbs[0].trim();
 					DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
-						Base64.getDecoder().decode(thumbs[0]),
+						Base64.getDecoder().decode(firstThumb),
 						640,
 						480,
 						ScaleType.MAX,

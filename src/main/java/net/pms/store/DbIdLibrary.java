@@ -26,7 +26,7 @@ import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MusicAlbumFolder;
-import net.pms.store.container.MusicBrainzPersonFolder;
+import net.pms.store.container.PersonFolder;
 import net.pms.store.container.VirtualFolderDbId;
 
 /**
@@ -164,13 +164,13 @@ public class DbIdLibrary {
 	 * @param typeIdent Can be composer, conductor or regular person.
 	 * @return
 	 */
-	public static MusicBrainzPersonFolder addLibraryResourcePerson(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+	public static PersonFolder addLibraryResourcePerson(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		if (StringUtils.isAllBlank(typeIdent.ident)) {
 			LOGGER.warn("no person name given.");
 			return null;
 		}
 
-		MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
+		PersonFolder personFolder = new PersonFolder(renderer, typeIdent.ident, typeIdent);
 		personFolder.getPersonFolder(renderer).addChild(personFolder);
 		personFolder.discoverChildren();
 		return personFolder;
@@ -205,7 +205,7 @@ public class DbIdLibrary {
 
 				// Lookup person's album folder as parent
 				DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, album.getArtist());
-				MusicBrainzPersonFolder person = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, tiPerson);
+				PersonFolder person = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, tiPerson);
 				if (person == null) {
 					person = DbIdLibrary.addLibraryResourcePerson(renderer, tiPerson);
 				}

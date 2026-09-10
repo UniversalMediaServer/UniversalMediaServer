@@ -60,6 +60,11 @@ public enum GenericIcons {
 	private final BufferedImage genericImageIcon = readBufferedImage("store/formats/image.png");
 	private final BufferedImage genericVideoIcon = readBufferedImage("store/formats/video.png");
 	private final BufferedImage genericUnknownIcon = readBufferedImage("store/formats/unknown.png");
+
+	/**
+	 * Shown while a cover is being made.
+	 */
+	private final BufferedImage coverPendingIcon = readBufferedImage("store/formats/audio-cover-pending.png");
 	private final DLNAThumbnail genericFolderThumbnail;
 	private final ReentrantLock cacheLock = new ReentrantLock();
 	/**
@@ -86,6 +91,29 @@ public enum GenericIcons {
 	 * @return The appropriate {@link DLNAThumbnailInputStream} or {@code null}
 	 *         if one couldn't be generated.
 	 */
+	/**
+	 * The picture to show while the real cover is still being made.
+	 *
+	 * @param resource the resource waiting for its cover
+	 * @return the placeholder, or the generic icon of the resource when no placeholder image is
+	 *         bundled
+	 */
+	public DLNAThumbnailInputStream getCoverPendingIcon(StoreResource resource) {
+		if (coverPendingIcon == null) {
+			return getGenericIcon(resource);
+		}
+		ImageIO.setUseCache(false);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try {
+			ImageIOTools.imageIOWrite(coverPendingIcon, ImageFormat.PNG.toString(), out);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
+		} catch (IOException e) {
+			LOGGER.warn("Unexpected error while generating the cover placeholder: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return getGenericIcon(resource);
+		}
+	}
+
 	public DLNAThumbnailInputStream getGenericIcon(StoreResource resource) {
 		/*
 		 * This should be the same format as the source images since OpenJDK

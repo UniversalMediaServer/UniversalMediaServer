@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableResourceRatings;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.store.DbIdMediaType;
 
@@ -49,6 +50,17 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 	}
 
 	/**
+	 * Rating join, empty when the request does not use the rating.
+	 */
+	private String addRatingJoin() {
+		if (!usesRating()) {
+			return "";
+		}
+		return " left outer join " + MediaTableResourceRatings.TABLE_NAME + " as RR on RR." +
+			MediaTableResourceRatings.COL_RESOURCE_KEY + " = F.FILENAME ";
+	}
+
+	/**
 	 * Beginning part of SQL statement, by type.
 	 *
 	 * @param requestType
@@ -57,7 +69,7 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 	private String addSqlSelectByType() {
 		switch (getRequestType()) {
 			case TYPE_AUDIO -> {
-				return "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+				return "select A.GENRE, F.FILENAME, F.MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIO_METADATA as A on F.ID = A.FILEID " + addRatingJoin() + "where ";
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
@@ -72,16 +84,18 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select DISTINCT ON (album) mbid_release as liked, DISCOGS_RELEASE_ID, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
+				return "select DISTINCT ON (album) DISCOGS_RELEASE_ID, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from AUDIO_METADATA as a left outer join " +
+					MediaTableResourceRatings.TABLE_NAME + " as RR on RR." + MediaTableResourceRatings.COL_RESOURCE_KEY + " = '" +
+					DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID + "' || CAST(A.MBID_RECORD AS VARCHAR) where ";
 			}
 			case TYPE_PLAYLIST -> {
-				return "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
+				return "select DISTINCT ON (F.FILENAME) F.FILENAME, F.MODIFIED, F.ID as FID, F.ID as oid from FILES as F " + addRatingJoin() + "where ";
 			}
 			case TYPE_FOLDER -> {
 				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
+				return "select F.FILENAME, F.MODIFIED, F.ID as FID, F.ID as oid from FILES as F " + addRatingJoin() + "where ";
 			}
 			default -> throw new RuntimeException("not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
 		}
@@ -96,7 +110,7 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 	private String addSqlSelectByType(String subtreeId) {
 		switch (getRequestType()) {
 			case TYPE_AUDIO -> {
-				return getTreeStatement(subtreeId) + "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+				return getTreeStatement(subtreeId) + "select A.GENRE, F.FILENAME, F.MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name left outer join AUDIO_METADATA as A on F.ID = A.FILEID " + addRatingJoin() + "where ";
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
@@ -111,16 +125,18 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select DISTINCT ON (album) mbid_release as liked, DISCOGS_RELEASE_ID, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
+				return "select DISTINCT ON (album) DISCOGS_RELEASE_ID, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from AUDIO_METADATA as a left outer join " +
+					MediaTableResourceRatings.TABLE_NAME + " as RR on RR." + MediaTableResourceRatings.COL_RESOURCE_KEY + " = '" +
+					DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID + "' || CAST(A.MBID_RECORD AS VARCHAR) where ";
 			}
 			case TYPE_PLAYLIST -> {
-				return getTreeStatement(subtreeId) + "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+				return getTreeStatement(subtreeId) + "select DISTINCT ON (F.FILENAME) F.FILENAME, F.MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name " + addRatingJoin() + "where ";
 			}
 			case TYPE_FOLDER -> {
 				return getTreeStatement(subtreeId) + "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from tree JOIN STORE_IDS child on tree.name = child.name, STORE_IDS parent where ";
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return getTreeStatement(subtreeId) + "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+				return getTreeStatement(subtreeId) + "select F.FILENAME, F.MODIFIED, F.ID as FID, F.ID as oid FROM tree JOIN FILES F ON F.FILENAME = tree.name " + addRatingJoin() + "where ";
 			}
 			default -> throw new RuntimeException("not implemented request type : " + (getRequestType() != null ? getRequestType() : "NULL"));
 		}
@@ -135,7 +151,7 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 	private  String addSqlSelectCountByType() {
 		switch (getRequestType()) {
 			case TYPE_AUDIO -> {
-				return "select count(DISTINCT F.id) from FILES as F left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+				return "select count(DISTINCT F.id) from FILES as F left outer join AUDIO_METADATA as A on F.ID = A.FILEID " + addRatingJoin() + "where ";
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -153,10 +169,10 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 				return "select count(DISTINCT A.ALBUM) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PLAYLIST -> {
-				return "select count(DISTINCT F.id) from FILES as F where ";
+				return "select count(DISTINCT F.id) from FILES as F " + addRatingJoin() + "where ";
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return "select count(DISTINCT F.id) from FILES as F where ";
+				return "select count(DISTINCT F.id) from FILES as F " + addRatingJoin() + "where ";
 			}
 			case TYPE_FOLDER -> {
 				return "select count(DISTINCT child.NAME) from STORE_IDS child, STORE_IDS parent where ";
@@ -174,7 +190,7 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 	private String addSqlSelectCountByType(String subtreeId) {
 		switch (getRequestType()) {
 			case TYPE_AUDIO -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
+				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name left outer join AUDIO_METADATA as A on F.ID = A.FILEID " + addRatingJoin() + "where ";
 			}
 			case TYPE_PERSON -> {
 				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
@@ -192,10 +208,10 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 				return "select count(DISTINCT A.ALBUM) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PLAYLIST -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name " + addRatingJoin() + "where ";
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
-				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name where ";
+				return getTreeStatement(subtreeId) + "select count(DISTINCT F.id) FROM tree JOIN FILES F ON F.FILENAME = tree.name " + addRatingJoin() + "where ";
 			}
 			case TYPE_FOLDER -> {
 				return getTreeStatement(subtreeId) + "select count(DISTINCT child.NAME) from tree JOIN STORE_IDS child on tree.id = child.id, STORE_IDS parent where ";
@@ -206,8 +222,8 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 
 	public String convertToFilesSql() {
 		StringBuilder sb = new StringBuilder();
-		String subtreeId = getRequestMessage().getContainerId();
-		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+		String subtreeId = getSubtreeId();
+		if (subtreeId == null) {
 			sb.append(addSqlSelectByType());
 		} else {
 			sb.append(addSqlSelectByType(subtreeId));
@@ -260,9 +276,9 @@ public class DbSearchRequestHandler extends BaseSearchRequestHandler {
 
 	public String convertToCountSql() {
 		StringBuilder sb = new StringBuilder();
-		String subtreeId = getRequestMessage().getContainerId();
+		String subtreeId = getSubtreeId();
 		String upnpSearch = getRequestMessage().getSearchCriteria();
-		if ("0".equals(subtreeId) || StringUtils.isAllBlank(subtreeId)) {
+		if (subtreeId == null) {
 			sb.append(addSqlSelectCountByType());
 		} else {
 			sb.append(addSqlSelectCountByType(subtreeId));

@@ -37,7 +37,7 @@ Section ""
 	; Change for your purpose (-jar, -Xmx etc.)
 	${GetParameters} $1
 
-	StrCpy $0 '"$R0" -classpath update.jar;${PROJECT_JARFILE} -Djava.net.preferIPv4Stack=true -Dfile.encoding=${PROJECT_ENCODING} --add-opens java.base/sun.nio.ch=ALL-UNNAMED ${PROJECT_MAIN_CLASS} $1'
+	StrCpy $0 '"$R0" -classpath update.jar;${PROJECT_JARFILE} -Djava.net.preferIPv4Stack=true -Dfile.encoding=${PROJECT_ENCODING} ${PROJECT_MAIN_CLASS} $1'
 	SetOutPath $EXEDIR
 	Exec $0
 SectionEnd

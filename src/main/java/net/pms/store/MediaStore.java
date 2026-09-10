@@ -20,6 +20,9 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -42,6 +45,7 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.ApertureLibraries;
 import net.pms.store.container.AudiosFeed;
+import net.pms.store.container.Feed;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.CueFolder;
 import net.pms.store.container.DVDISOFile;
@@ -88,6 +92,35 @@ public class MediaStore extends StoreContainer {
 	 */
 	private static final AtomicInteger WORKERS = new AtomicInteger(0);
 	private static final String TEMP_TAG = "$Temp$";
+
+	private static final int RESOLVE_THREADS = CONFIGURATION.getMediaResolveThreads();
+
+	// Bound of the queue in front of the resolver pool.
+	private static final int RESOLVE_QUEUE_CAPACITY = 256;
+
+	// Set while a thread answers a UPnP request (browse or playback lookup), so work that would make
+	// the caller wait can be moved off that thread.
+	private static final ThreadLocal<Boolean> SERVING_REQUEST = ThreadLocal.withInitial(() -> false);
+
+	// Set on the pool threads only, so the caller runs path can be told apart from a real worker.
+	private static final ThreadLocal<Boolean> IS_RESOLVER_THREAD = ThreadLocal.withInitial(() -> false);
+
+	private static final ThreadPoolExecutor RESOLVE_EXECUTOR = new ThreadPoolExecutor(
+		RESOLVE_THREADS, RESOLVE_THREADS, 0L, TimeUnit.MILLISECONDS,
+		new ArrayBlockingQueue<>(RESOLVE_QUEUE_CAPACITY),
+		runnable -> {
+			Thread thread = new Thread(() -> {
+				IS_RESOLVER_THREAD.set(true);
+				runnable.run();
+			}, "MediaStore Resolver");
+			thread.setDaemon(true);
+			thread.setPriority(Thread.MIN_PRIORITY);
+			return thread;
+		},
+		new ThreadPoolExecutor.CallerRunsPolicy());
+
+	// Set while a thread runs a resolve task, so a nested call resolves inline instead of waiting for a pool that it occupies itself.
+	private static final ThreadLocal<Boolean> IN_RESOLVER = ThreadLocal.withInitial(() -> false);
 
 	private final Map<Long, WeakReference<StoreResource>> weakResources = new HashMap<>();
 	private final Map<Long, Object> idLocks = new HashMap<>();
@@ -417,6 +450,15 @@ public class MediaStore extends StoreContainer {
 		}
 	}
 
+	/**
+	 * Hangs a feed into the tree and lets it read itself in the background: a feed costs an HTTP
+	 * request per entry, and this runs while the store is being built under its lock.
+	 */
+	private static void addFeed(StoreContainer parent, Feed feed) {
+		parent.addChild(feed);
+		feed.discoverChildrenInBackground();
+	}
+
 	private void setExternalContent(SharedContentWithPath sharedContent) {
 		StoreContainer parent = getSharedContentParent(sharedContent.getParent());
 		// Handle web playlists stream
@@ -428,11 +470,11 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 		if (sharedContent instanceof FeedAudioContent feedAudioContent) {
-			parent.addChild(new AudiosFeed(renderer, feedAudioContent.getUri()));
+			addFeed(parent, new AudiosFeed(renderer, feedAudioContent.getUri()));
 		} else if (sharedContent instanceof FeedImageContent feedImageContent) {
-			parent.addChild(new ImagesFeed(renderer, feedImageContent.getUri()));
+			addFeed(parent, new ImagesFeed(renderer, feedImageContent.getUri()));
 		} else if (sharedContent instanceof FeedVideoContent feedVideoContent) {
-			parent.addChild(new VideosFeed(renderer, feedVideoContent.getUri()));
+			addFeed(parent, new VideosFeed(renderer, feedVideoContent.getUri()));
 		} else if (sharedContent instanceof StreamAudioContent streamAudioContent) {
 			parent.addChild(new WebAudioStream(renderer, streamAudioContent.getName(), streamAudioContent.getUri(), streamAudioContent.getThumbnail()));
 		} else if (sharedContent instanceof StreamVideoContent streamVideoContent) {
@@ -489,8 +531,10 @@ public class MediaStore extends StoreContainer {
 		// this method returns exactly ONE (1) LibraryResource
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
+		boolean wasServingRequest = SERVING_REQUEST.get();
 		try {
 			WORKERS.incrementAndGet();
+			SERVING_REQUEST.set(true);
 			if (StringUtils.isEmpty(objectId)) {
 				return null;
 			}
@@ -530,6 +574,7 @@ public class MediaStore extends StoreContainer {
 			String[] ids = objectId.split("\\.");
 			return getWeakResource(ids[ids.length - 1]);
 		} finally {
+			SERVING_REQUEST.set(wasServingRequest);
 			WORKERS.decrementAndGet();
 		}
 	}
@@ -661,6 +706,28 @@ public class MediaStore extends StoreContainer {
 				}
 			}
 		}
+
+		if (systemFileResources.isEmpty()) {
+			StoreResource sr = null;
+			if (file.isDirectory()) {
+				sr = DbIdResourceLocator.getLibraryResourceRealFolder(renderer, file.getAbsolutePath());
+			} else if (PlaylistManager.isValidPlaylist(file.getName())) {
+				sr = DbIdResourceLocator.getLibraryResourcePlaylist(renderer, file.getAbsolutePath());
+			} else {
+				sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
+			}
+			if (sr != null) {
+				systemFileResources.add(sr);
+			} else {
+				LOGGER.debug("resource not in database {}", file.getAbsolutePath());
+				sr = createResourceFromFile(file, false);
+				if (sr != null) {
+					systemFileResources.add(sr);
+				} else {
+					LOGGER.debug("findSystemFileResources has failed for {}", file.getAbsolutePath());
+				}
+			}
+		}
 		return systemFileResources;
 	}
 
@@ -675,8 +742,10 @@ public class MediaStore extends StoreContainer {
 	 * @throws IOException
 	 */
 	public List<StoreResource> getResources(String objectId, boolean returnChildren) {
+		boolean wasServingRequest = SERVING_REQUEST.get();
 		try {
 			WORKERS.incrementAndGet();
+			SERVING_REQUEST.set(true);
 			ArrayList<StoreResource> resources = new ArrayList<>();
 			if (StringUtils.isEmpty(objectId)) {
 				return resources;
@@ -747,6 +816,7 @@ public class MediaStore extends StoreContainer {
 
 			return resources;
 		} finally {
+			SERVING_REQUEST.set(wasServingRequest);
 			WORKERS.decrementAndGet();
 		}
 	}
@@ -773,11 +843,33 @@ public class MediaStore extends StoreContainer {
 		return getWeakResource(searchIds[searchIds.length - 1]);
 	}
 
-	public void fileRemoved(File file) {
+	public List<Long> fileRemoved(File file) {
+		List<Long> refreshedIds = new ArrayList<>();
 		for (StoreResource storeResource : findSystemFileResources(file)) {
-			storeResource.getParent().removeChild(storeResource);
-			storeResource.getParent().notifyRefresh();
+			StoreContainer parent = storeResource.getParent();
+			parent.removeChild(storeResource);
+			parent.markRefreshed();
+			refreshedIds.add(parent.getLongId());
 		}
+		return refreshedIds;
+	}
+
+	/*
+	 * Called once the file was parsed, so the folder asks the database again with the new tags.
+	 */
+	public List<Long> audioMetadataUpdated(File file) {
+		List<Long> refreshedIds = new ArrayList<>();
+		File parentFile = file.getParentFile();
+		if (parentFile == null) {
+			return refreshedIds;
+		}
+		for (StoreResource storeResource : findSystemFileResources(parentFile)) {
+			if (storeResource instanceof RealFolder realFolder) {
+				realFolder.resetAlbumMetadata();
+				refreshedIds.add(realFolder.getLongId());
+			}
+		}
+		return refreshedIds;
 	}
 
 	public void fileAdded(File file) {
@@ -793,8 +885,18 @@ public class MediaStore extends StoreContainer {
 	 * File can have different structure after an update. Therefore, read file metadata again.
 	 * @param file
 	 */
-	public void fileUpdated(File file) {
+	public List<Long> fileUpdated(File file) {
+		List<Long> refreshedIds = new ArrayList<>();
 		for (StoreResource storeResource : findSystemFileResources(file)) {
+			if (storeResource instanceof PlaylistFolder playlistFolder) {
+				playlistFolder.setDiscovered(false);
+				// Only invalidated here. The store id is the same for every renderer, so the caller bumps
+				// it once for all of them instead of once per renderer.
+				playlistFolder.markRefreshed();
+				refreshedIds.add(playlistFolder.getLongId());
+				LOGGER.debug("Playlist {} updated, children will be read again on the next browse.", file.toString());
+				continue;
+			}
 			if (storeResource instanceof RealFile rf) {
 				rf.setMediaInfo(null);
 				rf.resolve();
@@ -805,8 +907,11 @@ public class MediaStore extends StoreContainer {
 				rf.doRefreshChildren();
 				LOGGER.debug("Folder {} updated, media info refreshed and children refreshed.", file.toString());
 			}
-			storeResource.getParent().discoverChildren();
+			StoreContainer parent = storeResource.getParent();
+			refreshedIds.add(parent.getLongId());
+			parent.discoverChildren();
 		}
+		return refreshedIds;
 	}
 
 
@@ -859,20 +964,84 @@ public class MediaStore extends StoreContainer {
 		return null;
 	}
 
+	/**
+	 * Resolves the given files concurrently, so that the sequential handling of a
+	 * folder finds their metadata in the MediaInfoStore instead of parsing one file
+	 * after another.
+	 */
+	public void prepareResources(Collection<File> files) {
+		if (files == null || files.isEmpty()) {
+			return;
+		}
+		// On purpose no sync: the per filename lock in MediaInfoStore makes sure it is parsed once either way.
+		for (File file : files) {
+			if (file != null && file.isFile()) {
+				if (Boolean.TRUE.equals(IN_RESOLVER.get())) {
+					resolveAhead(file);
+				} else {
+					RESOLVE_EXECUTOR.execute(() -> resolveAhead(file));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Waits until the resolver pool finished processing submitted tasks.
+	 */
+	public static void awaitPendingResources() throws InterruptedException {
+		while (!RESOLVE_EXECUTOR.getQueue().isEmpty() || RESOLVE_EXECUTOR.getActiveCount() > 0) {
+			Thread.sleep(50);
+		}
+	}
+
+	private void resolveAhead(File file) {
+		if (Boolean.TRUE.equals(IS_RESOLVER_THREAD.get())) {
+			try {
+				// Browsing and playback come first. Without this the resolver threads keep the disk busy and make the whole store
+				// feel stuck while a scan runs.
+				waitWorkers();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+		}
+		IN_RESOLVER.set(true);
+		try {
+			StoreResource resource = createResourceFromFile(file);
+			if (resource instanceof StoreItem item) {
+				item.resolveFormat();
+				item.syncResolve();
+			}
+		} catch (Exception e) {
+			LOGGER.trace("Could not resolve {} ahead of time : {}", file, e.getMessage());
+		} finally {
+			IN_RESOLVER.set(false);
+		}
+	}
+
 	public StoreResource createResourceFromFile(File file) {
 		return createResourceFromFile(file, false);
 	}
 
 	public StoreResource createResourceFromFile(File file, boolean allowHidden) {
+		return createResourceFromFile(file, allowHidden, false);
+	}
+
+	/**
+	 * @param allowEmptyFolder keeps a directory that holds no media yet.
+	 */
+	public StoreResource createResourceFromFile(File file, boolean allowHidden, boolean allowEmptyFolder) {
+		if (file == null) {
+			LOGGER.trace("createResourceFromFile return null as file is null.");
+			return null;
+		}
+
 		String fileExt = FilenameUtils.getExtension(file.getName());
 		if (renderer.getUmsConfiguration().getIgnoredFileExtensions().contains(fileExt.toLowerCase())) {
 			return null;
 		}
 
-		if (file == null) {
-			LOGGER.trace("createResourceFromFile return null as file is null.");
-			return null;
-		} else if (!allowHidden && file.isHidden()) {
+		if (!allowHidden && file.isHidden()) {
 			LOGGER.trace("createResourceFromFile return null as {} is hidden.", file.toString());
 			return null;
 		} else if (!file.canRead()) {
@@ -916,7 +1085,7 @@ public class MediaStore extends StoreContainer {
 			List<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
 
 			/* Optionally ignore empty directories */
-			if (file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
+			if (!allowEmptyFolder && file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
 				LOGGER.debug("Ignoring empty/non-relevant directory: " + file.toString());
 				return null;
 			} else if (file.isDirectory() && !"".equals(lcFilename) && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
@@ -1023,21 +1192,35 @@ public class MediaStore extends StoreContainer {
 	}
 
 	private static void sortChildrenWithAudioElements(StoreContainer resource) {
-		Collections.sort(resource.getChildren(), (StoreResource o1, StoreResource o2) -> {
-			if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
-				if (o1 instanceof StoreItem item1 && item1.getFormat() != null && item1.getFormat().isAudio()) {
-					if (o2 instanceof StoreItem item2 && item2.getFormat() != null && item2.getFormat().isAudio()) {
-						return getTrackNum(o1).compareTo(getTrackNum(o2));
+		synchronized (resource) {
+			Collections.sort(resource.getChildren(), (StoreResource o1, StoreResource o2) -> {
+				if (o1 == null || o2 == null) {
+					return o1 == o2 ? 0 : (o1 == null ? 1 : -1);
+				}
+				if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
+					if (o1 instanceof StoreItem item1 && item1.getFormat() != null && item1.getFormat().isAudio()) {
+						if (o2 instanceof StoreItem item2 && item2.getFormat() != null && item2.getFormat().isAudio()) {
+							return getTrackNum(o1).compareTo(getTrackNum(o2));
+						} else {
+							return compareDisplayNames(o1, o2);
+						}
 					} else {
-						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+						return compareDisplayNames(o1, o2);
 					}
 				} else {
-					return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+					return getDiscNum(o1).compareTo(getDiscNum(o2));
 				}
-			} else {
-				return getDiscNum(o1).compareTo(getDiscNum(o2));
-			}
-		});
+			});
+		}
+	}
+
+	private static int compareDisplayNames(StoreResource o1, StoreResource o2) {
+		String name1 = o1.getDisplayNameBase();
+		String name2 = o2.getDisplayNameBase();
+		if (name1 == null || name2 == null) {
+			return name1 == name2 ? 0 : (name1 == null ? 1 : -1);
+		}
+		return name1.compareTo(name2);
 	}
 
 	private static Integer getTrackNum(StoreResource res) {
@@ -1052,6 +1235,28 @@ public class MediaStore extends StoreContainer {
 			return res.getMediaInfo().getAudioMetadata().getDisc();
 		}
 		return 0;
+	}
+
+	/**
+	 * Wraps work that belongs to a request but runs on a helper thread
+	 */
+	public static Runnable asRequestWork(Runnable work) {
+		return () -> {
+			boolean wasServingRequest = SERVING_REQUEST.get();
+			SERVING_REQUEST.set(true);
+			try {
+				work.run();
+			} finally {
+				SERVING_REQUEST.set(wasServingRequest);
+			}
+		};
+	}
+
+	/**
+	 * @return whether the current thread is answering a UPnP request right now.
+	 */
+	public static boolean isServingRequest() {
+		return Boolean.TRUE.equals(SERVING_REQUEST.get());
 	}
 
 	public static void waitWorkers() throws InterruptedException {

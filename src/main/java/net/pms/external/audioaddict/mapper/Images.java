@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Images {
 
+	@JsonProperty("default")
 	public String mydefault;
 	@JsonProperty("horizontal_banner")
 	public String horizontalBanner;

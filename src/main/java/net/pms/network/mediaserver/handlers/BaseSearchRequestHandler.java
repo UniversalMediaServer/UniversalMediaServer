@@ -1,9 +1,9 @@
 package net.pms.network.mediaserver.handlers;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
+import net.pms.database.MediaTableResourceRatings;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
 import net.pms.media.audio.metadata.AlbumMetadata;
@@ -29,7 +30,7 @@ import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MusicAlbumFolder;
-import net.pms.store.container.MusicBrainzPersonFolder;
+import net.pms.store.container.PersonFolder;
 
 public abstract class BaseSearchRequestHandler {
 
@@ -44,6 +45,11 @@ public abstract class BaseSearchRequestHandler {
 	private DbIdMediaType requestType = null;
 	private List<SearchToken> tokens = null;
 	private MediaTypeHandler mediaTypeHandler = null;
+
+	/**
+	 * Values for the placeholders of the built statement, in order.
+	 */
+	private final List<String> sqlParameters = new ArrayList<>();
 
 	private static UmsConfiguration umsConfiguration;
 
@@ -88,7 +94,8 @@ public abstract class BaseSearchRequestHandler {
 		} else if ("upnp:album".equals(property)) {
 			return " A.ALBUM ";
 		} else if ("upnp:rating".equals(property)) {
-			return " rating ";
+			// RESOURCE_RATINGS only. AUDIO_METADATA.RATING is just the tag mirror.
+			return " RR." + MediaTableResourceRatings.COL_RATING + " ";
 		} else if ("ums:likedalbum".equals(property)) {
 			// Makes less sense in a  score based search. Maybe we can use this property in a future implementation to mark albums as
 			// liked in the database and then use this information to boost the score of liked albums in the search results.
@@ -207,12 +214,39 @@ public abstract class BaseSearchRequestHandler {
 		return requestMessage;
 	}
 
+	/**
+	 * Returns the ContainerID of the request as validated subtree id.
+	 */
+	protected String getSubtreeId() {
+		String containerId = getRequestMessage().getContainerId();
+		if (StringUtils.isAllBlank(containerId) || "0".equals(containerId.trim())) {
+			return null;
+		}
+		try {
+			return Long.toString(Long.parseLong(containerId.trim()));
+		} catch (NumberFormatException e) {
+			LOGGER.debug("Searching the whole store because the ContainerID \"{}\" is not an object id", containerId);
+			return null;
+		}
+	}
+
 	protected DbIdMediaType getRequestType() {
 		return requestType;
 	}
 
 	protected List<SearchToken> getTokens() {
 		return tokens;
+	}
+
+	/**
+	 * @return true if the request references upnp:rating, as criterion or as sort key
+	 */
+	protected boolean usesRating() {
+		if (tokens.stream().anyMatch(token -> "upnp:rating".equalsIgnoreCase(token.attr()))) {
+			return true;
+		}
+		String sortCriteria = requestMessage.getSortCriteria();
+		return sortCriteria != null && sortCriteria.toLowerCase().contains("upnp:rating");
 	}
 
 	protected static UmsConfiguration getUmsConfiguration() {
@@ -266,13 +300,15 @@ public abstract class BaseSearchRequestHandler {
 		ArrayList<StoreResource> result = new ArrayList<>();
 
 		// SQL statements having 'FILENAME' as a result identifier.
+		sqlParameters.clear();
 		String query = convertToFilesSql();
 
 		LOGGER.debug("RequestType {} : {}", getRequestType().dbidPrefix, query);
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
-				try (Statement statement = connection.createStatement()) {
-					try (ResultSet resultSet = statement.executeQuery(query)) {
+				try (PreparedStatement statement = connection.prepareStatement(query)) {
+					setSqlParameters(statement);
+					try (ResultSet resultSet = statement.executeQuery()) {
 						Set<String> foundAlbums = new HashSet<>();
 						while (resultSet.next()) {
 							String filenameField = extractDisplayName(resultSet);
@@ -312,7 +348,7 @@ public abstract class BaseSearchRequestHandler {
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(getRequestType(), filenameField);
-									MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
+									PersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
 									if (personFolder == null) {
 										personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, ti);
 									}
@@ -392,21 +428,37 @@ public abstract class BaseSearchRequestHandler {
 	}
 
 	public int getLibraryResourceCountFromSQL() {
+		sqlParameters.clear();
 		String query = convertToCountSql();
 
 		LOGGER.debug("SQL count : {}", query);
 
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable();
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(query)) {
-			if (resultSet.next()) {
-				return resultSet.getInt(1);
+			PreparedStatement statement = connection.prepareStatement(query)) {
+			setSqlParameters(statement);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getInt(1);
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.warn("getLibraryResourceCountFromSQL", e);
 			handleException(e);
 		}
 		return 0;
+	}
+
+	/**
+	 * Binds a value from the search request
+	 */
+	protected void addSqlParameter(String value) {
+		sqlParameters.add(value);
+	}
+
+	private void setSqlParameters(PreparedStatement statement) throws SQLException {
+		for (int i = 0; i < sqlParameters.size(); i++) {
+			statement.setString(i + 1, sqlParameters.get(i));
+		}
 	}
 
 

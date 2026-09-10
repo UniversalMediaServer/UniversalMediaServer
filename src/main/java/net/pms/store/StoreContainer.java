@@ -25,8 +25,10 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.TranscodingSettings;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
+import net.pms.store.item.WebStream;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.FileTranscodeVirtualFolder;
 import net.pms.store.container.LocalizedStoreContainer;
@@ -120,7 +122,12 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (child instanceof StoreItem storeItem) {
-			child.resolve();
+			if (child instanceof WebStream webStream) {
+				// Probing a web stream like youtube item can take half a minute.
+				webStream.resolveInBackground();
+			} else {
+				child.resolve();
+			}
 			addChildItem(storeItem, isNew, isAddGlobally);
 		} else if (child instanceof StoreContainer storeContainer) {
 			addChildContainer(storeContainer, isNew, isAddGlobally);
@@ -467,8 +474,25 @@ public class StoreContainer extends StoreResource {
 	protected void refreshChildrenIfNeeded() {
 		if (isDiscovered() && isRefreshNeeded()) {
 			refreshChildren();
+			notifyRefreshIfChanged();
+		}
+	}
+
+	/**
+	 * Reports a change, but only if the children really differ from the last report.
+	 */
+	protected void notifyRefreshIfChanged() {
+		if (MediaStoreIds.isReportableChange(getLongId(), childrenSignature())) {
 			notifyRefresh();
 		}
+	}
+
+	private String childrenSignature() {
+		StringBuilder names = new StringBuilder();
+		for (StoreResource child : children) {
+			names.append(child.getSystemName()).append('\n');
+		}
+		return children.size() + ":" + names.toString().hashCode();
 	}
 
 	private void addDynamicPls(final StoreResource child) {
@@ -546,6 +570,40 @@ public class StoreContainer extends StoreResource {
 	}
 
 	/**
+	 * The default container name is only unique within its parent container, so
+	 * GETRATINGKEY() has to qualify it with the ancestor names. Containers
+	 * backed by a file path or an URL override this to return true.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return false;
+	}
+
+	/**
+	 * Tells whether this container represents exactly one music album, and if so
+	 * supplies its metadata. Used to report a musicAlbum instead of a plain folder,
+	 * and to rate the album rather than the folder.
+	 *
+	 * @return the album metadata, or NULL when this container is not an album
+	 */
+	public AlbumMetadata getAlbumMetadata() {
+		return null;
+	}
+
+	/**
+	 * A container that holds exactly one album is rated as that album, so rating
+	 * it in the file tree and rating it in the media library end up on the same row.
+	 */
+	@Override
+	public String getRatingKey() {
+		AlbumMetadata album = getAlbumMetadata();
+		if (album != null) {
+			return album.getTypeIdent().toString();
+		}
+		return super.getRatingKey();
+	}
+
+	/**
 	 * Returns a {@link InputStream} that represents the thumbnail used.
 	 *
 	 * @throws IOException
@@ -563,7 +621,9 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (FileUtil.isUrl(thumbnailIcon)) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.downloadAndSend(thumbnailIcon, true));
+			// Downloaded, decoded and cached once per URL, so container folders whose thumbnail is a
+			// remote image (e.g. AudioAddict show folders) are not re-fetched and re-decoded on every browse.
+			return ThumbnailStore.getThumbnailInputStreamForUrl(thumbnailIcon);
 		} else {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.getResourceInputStream(thumbnailIcon));
 		}
@@ -704,7 +764,7 @@ public class StoreContainer extends StoreResource {
 
 			discoverChildren();
 			setDiscovered(true);
-			notifyRefresh();
+			notifyRefreshIfChanged();
 		} else {
 			// if forced, then call the old 'refreshChildren' method
 			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);
@@ -719,7 +779,7 @@ public class StoreContainer extends StoreResource {
 				// doRefreshChildren, which is what happens below
 				// (refreshChildren is not overridden in VirtualFile)
 				if (refreshChildren()) {
-					notifyRefresh();
+					notifyRefreshIfChanged();
 				} else {
 					sortChildrenIfNeeded();
 				}
@@ -728,7 +788,7 @@ public class StoreContainer extends StoreResource {
 				// pair.
 				if (isRefreshNeeded()) {
 					doRefreshChildren();
-					notifyRefresh();
+					notifyRefreshIfChanged();
 				} else {
 					sortChildrenIfNeeded();
 				}

@@ -32,9 +32,14 @@ import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class WebStreamParser {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebStreamParser.class.getName());
+
+	// Remember the type and headers of the stream, so we don't have to probe it again.
+	public record WebStreamProbe(int type, HttpHeaders headers) {
+	}
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -42,12 +47,7 @@ public class WebStreamParser {
 	private WebStreamParser() {
 	}
 
-	public static void parse(MediaInfo mediaInfo, String url, int type) {
-		if (Strings.CI.contains(url, "youtube")) {
-			LOGGER.debug("Not attempting to parse YouTube URL with FFmpeg which does not support that");
-			return;
-		}
-
+	public static void parse(MediaInfo mediaInfo, String url, int type, HttpHeaders probeHeaders) {
 		//ensure mediaInfo is not already parsing or is parsed
 		mediaInfo.waitMediaParsing(5);
 		if (mediaInfo.isMediaParsed()) {
@@ -55,31 +55,31 @@ public class WebStreamParser {
 		}
 		mediaInfo.setParsing(true);
 		mediaInfo.resetParser();
-		HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
-		String contentType = headHeaders.firstValue("content-type").orElse(null);
+		HttpHeaders headers = probeHeaders != null ? probeHeaders : JavaHttpClient.getHeadersFromInputStreamRequest(url);
+		String contentType = headers.firstValue("content-type").orElse(null);
 		if (contentType != null) {
 			mediaInfo.setMimeType(contentType);
 		}
 		if (type == Format.AUDIO) {
-			HttpHeaders getHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
-			addAudioIcyInfos(mediaInfo, url, headHeaders);
-			addAudioIcyInfos(mediaInfo, url, getHeaders);
+			addAudioIcyInfos(mediaInfo, url, headers);
 		}
 		mediaInfo.setParsing(false);
-		FFmpegParser.parseUrl(mediaInfo, url);
+		if (Strings.CI.contains(url, "youtube")) {
+			YoutubeParser.parseUrl(mediaInfo, url);
+		} else {
+			FFmpegParser.parseUrl(mediaInfo, url);
+		}
 		mediaInfo.setMediaParser("WEBSTREAM");
 	}
 
-	public static int getWebStreamType(String url, int defaultType) {
+
+	public static WebStreamProbe probe(String url, int defaultType) {
 		int type = getTypeFromUrl(url, defaultType);
+		HttpHeaders headers = null;
 		if (type == 0 || type == Format.UNKNOWN) {
 			LOGGER.debug("Analyzing internet resource type from content-type HEADER : {}", url);
-			HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
-			type = getTypeFromHttpHeaders(headHeaders, 0);
-			if (type == 0) {
-				HttpHeaders getHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
-				type = getTypeFromHttpHeaders(getHeaders, 0);
-			}
+			headers = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+			type = getTypeFromHttpHeaders(headers, 0);
 			if (type == 0) {
 				LOGGER.debug("Couldn't determine stream content type from content-type HEADER for {}", url);
 			} else {
@@ -90,7 +90,29 @@ public class WebStreamParser {
 			type = defaultType;
 			LOGGER.debug("Stream content type set to default {} for {}", Format.getStringType(type), url);
 		}
-		return type;
+		return new WebStreamProbe(type, headers);
+	}
+
+	/**
+	 * If a station lists its genres comma separated convert them to " / " : like tags in RealFiles
+	 *
+	 * @return NULL when the station announced nothing.
+	 */
+	private static String normalizeGenre(String genre) {
+		if (StringUtils.isBlank(genre)) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (String part : genre.split(",")) {
+			if (StringUtils.isBlank(part)) {
+				continue;
+			}
+			if (sb.length() > 0) {
+				sb.append(" / ");
+			}
+			sb.append(part.trim());
+		}
+		return sb.length() > 0 ? sb.toString() : null;
 	}
 
 	/*
@@ -115,7 +137,7 @@ public class WebStreamParser {
 		if (sampleRate != null && mediaInfo.hasAudio()) {
 			mediaInfo.getDefaultAudioTrack().setSampleRate(sampleRate);
 		}
-		String genre = headers.firstValue("icy-genre").orElse(null);
+		String genre = normalizeGenre(headers.firstValue("icy-genre").orElse(null));
 		if (genre != null) {
 			if (!mediaInfo.hasAudioMetadata()) {
 				mediaInfo.setAudioMetadata(new MediaAudioMetadata());

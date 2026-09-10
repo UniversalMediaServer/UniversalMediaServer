@@ -113,8 +113,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
-	private static final String ENV_HOSTNAME = "HOSTNAME";
-	private static final String ENV_COMPUTERNAME = "COMPUTERNAME";
 	private static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
 	private static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 	private static final String PORTABLE_PATH = "portable";
@@ -228,9 +226,14 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER = "audio_addict_episodes_per_container";
 	private static final String KEY_AUDIO_ADDICT_EUROPE = "audio_addict_europe";
+	private static final String KEY_AUDIO_ADDICT_ICY_METADATA = "audio_addict_icy_metadata";
 	private static final String KEY_AUDIO_ADDICT_PASS = "audio_addict_pass";
+	private static final String KEY_AUDIO_ADDICT_PLAYLIST_LOOP = "audio_addict_playlist_loop";
+	private static final String KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES = "audio_addict_tree_cache_ttl_minutes";
 	private static final String KEY_AUDIO_ADDICT_USER = "audio_addict_user";
+	public  static final String KEY_AUDIO_ARTIST_DIR = "audio_artist_dir";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
@@ -348,6 +351,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	private static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
+	private static final String KEY_MEDIA_RESOLVE_THREADS = "media_resolve_threads";
 	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
 	private static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
@@ -449,6 +453,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_UPNP_JUPNP_DIDL = "upnp_jupnp_didl";
 	public static final String KEY_UPNP_LOG_LEVEL = "upnp_log_level";
 	private static final String KEY_UPNP_PORT = "upnp_port";
+	private static final String KEY_UPNP_SUBSCRIBE_SERVICES = "upnp_subscribe_services";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	private static final String KEY_USE_API_INFO = "use_api_info";
 	private static final String KEY_USE_TMDB_INFO = "use_tmdb_info";
@@ -1042,6 +1047,14 @@ public class UmsConfiguration extends BaseConfiguration {
 		return programPaths instanceof ConfigurableProgramPaths;
 	}
 
+	public String getAudioArtistDir() {
+		return getString(KEY_AUDIO_ARTIST_DIR, null);
+	}
+
+	public void setAudioArtistDir(String dir) {
+		configuration.setProperty(KEY_AUDIO_ARTIST_DIR, dir);
+	}
+
 	public String getAudioAddictUser() {
 		return getString(KEY_AUDIO_ADDICT_USER, null);
 	}
@@ -1058,12 +1071,61 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_AUDIO_ADDICT_PASS, password);
 	}
 
+	/**
+	 * @return the maximum number of show episodes to group into one "recent episodes" container in
+	 * the DI.fm Events folder. Shows with more available episodes are split into several containers,
+	 * each labelled with its episode/date range. Minimum 1, default 20.
+	 */
+	public int getAudioAddictEpisodesPerContainer() {
+		return Math.max(1, getInt(KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER, 20));
+	}
+
+	public void setAudioAddictEpisodesPerContainer(int episodesPerContainer) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_EPISODES_PER_CONTAINER, episodesPerContainer);
+	}
+
 	public boolean isAudioAddictEuropeanServer() {
 		return getBoolean(KEY_AUDIO_ADDICT_EUROPE, true);
 	}
 
 	public void setAudioAddictEuropeanServer(boolean europeServer) {
 		configuration.setProperty(KEY_AUDIO_ADDICT_EUROPE, europeServer);
+	}
+
+	/**
+	 * @return whether SHOUTcast/Icecast (ICY) in-band metadata (current track title) should be
+	 * sent to renderers that request it.
+	 */
+	public boolean isAudioAddictIcyMetadata() {
+		return getBoolean(KEY_AUDIO_ADDICT_ICY_METADATA, true);
+	}
+
+	public void setAudioAddictIcyMetadata(boolean icyMetadata) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_ICY_METADATA, icyMetadata);
+	}
+
+	/**
+	 * @return whether curated playlists should loop endlessly instead of stopping after the
+	 * last track.
+	 */
+	public boolean isAudioAddictPlaylistLoop() {
+		return getBoolean(KEY_AUDIO_ADDICT_PLAYLIST_LOOP, false);
+	}
+
+	public void setAudioAddictPlaylistLoop(boolean loop) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_PLAYLIST_LOOP, loop);
+	}
+
+	/**
+	 * @return how long (in minutes) the fetched AudioAddict events/episodes trees are cached before
+	 * being refetched from the API. 0 disables the cache (not recommended !!!). Default 60.
+	 */
+	public int getAudioAddictTreeCacheTtlMinutes() {
+		return Math.max(0, getInt(KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES, 60));
+	}
+
+	public void setAudioAddictTreeCacheTtlMinutes(int minutes) {
+		configuration.setProperty(KEY_AUDIO_ADDICT_TREE_CACHE_TTL_MINUTES, minutes);
 	}
 
 	public boolean isAudioUpdateTag() {
@@ -2691,6 +2753,15 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public int getNumberOfCpuCores() {
 		return getInt(KEY_NUMBER_OF_CPU_CORES, getNumberOfSystemCpuCores());
+	}
+
+	/**
+	 * The number of threads used to resolve the files of a folder ahead of their sequential handling.
+	 * Resolving waits on disk seeks and metadata lookups far more than it computes, so on slow storage
+	 * (spinning disks, encrypted volumes, network shares) more threads than CPU cores pay off.
+	 */
+	public int getMediaResolveThreads() {
+		return Math.max(1, Math.min(64, getInt(KEY_MEDIA_RESOLVE_THREADS, 4)));
 	}
 
 	/**
@@ -5521,6 +5592,16 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public boolean isUpnpJupnpDidl() {
 		return getBoolean(KEY_UPNP_JUPNP_DIDL, false);
+	}
+
+	/**
+	 * Whether UMS subscribes to the AVTransport and RenderingControl services of a discovered
+	 * renderer. Subscribing is what gives UMS playback control over the device, but in a setup where
+	 * an external control point drives playback the subscriptions are unwanted traffic and can make
+	 * UMS fight the control point over the device state.
+	 */
+	public boolean isUpnpSubscribeServices() {
+		return getBoolean(KEY_UPNP_SUBSCRIBE_SERVICES, true);
 	}
 
 	/**

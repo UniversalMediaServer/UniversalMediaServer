@@ -408,6 +408,10 @@ public abstract class HttpServletHelper extends HttpServlet {
 		respondError(req, resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, msg);
 	}
 
+	protected static void respondBadGateway(HttpServletRequest req, HttpServletResponse resp, String msg) throws IOException {
+		respondError(req, resp, HttpServletResponse.SC_BAD_GATEWAY, msg);
+	}
+
 	protected static void respondServiceUnavailable(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		respondServiceUnavailable(req, resp, null);
 	}

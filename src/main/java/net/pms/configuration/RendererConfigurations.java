@@ -27,8 +27,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import net.pms.PMS;
@@ -51,17 +53,6 @@ public class RendererConfigurations {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfigurations.class);
 	public static final String ALL_RENDERERS_KEY = "All renderers";
 
-	/**
-	 * {@link #ENABLED_RENDERERS_CONFS} doesn't normally need locking since
-	 * modification is rare and {@link #loadRendererConfigurations(UmsConfiguration)}
-	 * is only called during {@link PMS#init()} (To avoid any chance of a
-	 * race condition proper locking should be implemented though). During
-	 * build on the other hand the method is called repeatedly and it is random
-	 * if a {@link ConcurrentModificationException} is thrown as a result.
-	 *
-	 * To avoid build problems, this is used to make sure that calls to
-	 * {@link #loadRendererConfigurations(UmsConfiguration)} is serialized.
-	 */
 	private static final Object LOAD_RENDERER_CONFIGURATIONS_LOCK = new Object();
 	private static final List<String> ALL_RENDERERS_NAMES = Collections.synchronizedList(new ArrayList<>());
 
@@ -85,6 +76,20 @@ public class RendererConfigurations {
 		return r1.getConfName().compareToIgnoreCase(r2.getConfName());
 	};
 	private static final SortedSet<RendererConfiguration> ENABLED_RENDERERS_CONFS = Collections.synchronizedSortedSet(new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR));
+
+	// Immutable view of ENABLED_RENDERERS_CONFS in loading priority order.
+	private static volatile List<RendererConfiguration> enabledRenderersSnapshot = List.of();
+
+	/**
+	 * Header matching walks every enabled configuration and runs a regular expression for each of
+	 * them, on every single media request. The outcome only depends on the headers, so it is
+	 * remembered here, misses included : a request that matches nothing is the case that pays for
+	 * the whole walk. Deliberately not keyed by address. Which renderer an address belongs to is
+	 * decided in {@code ConnectedRenderers.resolve()}, and one address can host several renderers.
+	 */
+	private static final int MAX_HEADER_MATCHES = 256;
+	private static final Map<String, Optional<RendererConfiguration>> HEADER_MATCHES =
+			Collections.synchronizedMap(new HeaderMatchCache());
 	private static final Map<String, ManagedPropertiesConfiguration> DEVICES_CONFS = Collections.synchronizedMap(new HashMap<>());
 
 	private static RendererConfiguration defaultConf;
@@ -116,6 +121,24 @@ public class RendererConfigurations {
 
 	private static void addRendererConfiguration(RendererConfiguration r) {
 		ENABLED_RENDERERS_CONFS.add(r);
+		refreshEnabledRenderersSnapshot();
+	}
+
+	/**
+	 * Forgets the remembered header matches. Needed whenever the set of configurations or the
+	 * header patterns of one of them change, for instance when a renderer conf file is edited
+	 * while UMS runs and the file watcher resets that configuration.
+	 */
+	public static void clearHeaderMatches() {
+		HEADER_MATCHES.clear();
+	}
+
+	private static void refreshEnabledRenderersSnapshot() {
+		synchronized (ENABLED_RENDERERS_CONFS) {
+			enabledRenderersSnapshot = List.copyOf(ENABLED_RENDERERS_CONFS);
+		}
+		// what was matched against no longer exists in that form
+		clearHeaderMatches();
 	}
 
 	/**
@@ -129,8 +152,8 @@ public class RendererConfigurations {
 	 *
 	 * @since 1.50.1
 	 */
-	public static synchronized RendererConfiguration getRendererConfigurationByName(String name) {
-		for (RendererConfiguration conf : ENABLED_RENDERERS_CONFS) {
+	public static RendererConfiguration getRendererConfigurationByName(String name) {
+		for (RendererConfiguration conf : enabledRenderersSnapshot) {
 			if (conf.getConfName().toLowerCase().contains(name.toLowerCase())) {
 				return conf;
 			}
@@ -138,24 +161,37 @@ public class RendererConfigurations {
 		return null;
 	}
 
-	public static synchronized RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
 		if (PMS.getConfiguration().isRendererForceDefault()) {
 			// Force default renderer
 			RendererConfiguration r = getDefaultConf();
 			LOGGER.debug("Forcing renderer match to \"" + r.getRendererName() + "\"");
 			return r;
 		}
-		for (RendererConfiguration r : ENABLED_RENDERERS_CONFS) {
+		// The joined headers are the identity of the request as far as matching is concerned, and
+		// SortedHeaderMap builds that string only once. Using it as the key instead of a hash of it
+		// keeps the lookup exact : a hash collision here would hand out the wrong renderer.
+		String headerKey = sortedHeaders.joined();
+		Optional<RendererConfiguration> known = HEADER_MATCHES.get(headerKey);
+		if (known != null) {
+			if (known.isPresent()) {
+				LOGGER.debug("Matched media renderer \"" + known.get().getRendererName() + "\" based on headers " + sortedHeaders);
+			}
+			return known.orElse(null);
+		}
+		for (RendererConfiguration r : enabledRenderersSnapshot) {
 			if (r.match(sortedHeaders)) {
 				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+				HEADER_MATCHES.put(headerKey, Optional.of(r));
 				return r;
 			}
 		}
+		HEADER_MATCHES.put(headerKey, Optional.empty());
 		return null;
 	}
 
-	public static synchronized RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
-		for (RendererConfiguration r : ENABLED_RENDERERS_CONFS) {
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
+		for (RendererConfiguration r : enabledRenderersSnapshot) {
 			if (r.matchUPNPDetails(details)) {
 				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
 				return r;
@@ -366,6 +402,7 @@ public class RendererConfigurations {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
 			ALL_RENDERERS_NAMES.clear();
 			ENABLED_RENDERERS_CONFS.clear();
+			refreshEnabledRenderersSnapshot();
 			try {
 				defaultConf = new RendererConfiguration(null);
 				defaultRenderer = new Renderer(defaultConf);
@@ -448,7 +485,7 @@ public class RendererConfigurations {
 		}
 
 		if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(ALL_RENDERERS_KEY)) {
-			ENABLED_RENDERERS_CONFS.add(rendererConf);
+			addRendererConfiguration(rendererConf);
 		} else {
 			LOGGER.debug("Ignored \"{}\" configuration", rendererName);
 		}
@@ -526,4 +563,20 @@ public class RendererConfigurations {
 		});
 	}
 
+	/**
+	 * Access ordered map that drops the least recently matched header combination once it is full.
+	 */
+	private static class HeaderMatchCache extends LinkedHashMap<String, Optional<RendererConfiguration>> {
+
+		private static final long serialVersionUID = 1L;
+
+		HeaderMatchCache() {
+			super(16, 0.75f, true);
+		}
+
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<String, Optional<RendererConfiguration>> eldest) {
+			return size() > MAX_HEADER_MATCHES;
+		}
+	}
 }

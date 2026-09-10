@@ -18,13 +18,20 @@ package net.pms.store.container;
 
 import com.sun.jna.Platform;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.Connection;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudioMetadata;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.store.SystemFileResource;
 import net.pms.store.SystemFilesHelper;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +40,8 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFolder.class);
 	private final File directory;
+	private AlbumMetadata albumMetadata;
+	private boolean albumResolved;
 
 	public RealFolder(Renderer renderer, File directory) {
 		this(renderer, directory, null);
@@ -67,6 +76,91 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 		return ProcessUtil.getSystemPathName(directory.getAbsolutePath());
 	}
 
+	/**
+	 * GETSYSTEMNAME() returns a file path or an URL, which identifies this
+	 * container globally, so GETRATINGKEY() can use it as is.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
+	}
+
+	/**
+	 * When every audio file in this folder belongs to one release, the folder is
+	 * that album, no matter that it was reached by browsing folders instead of the
+	 * media library.
+	 *
+	 * Resolved once per instance, because it costs a database query and is asked
+	 * for while rendering every browse response.
+	 *
+	 * @return the album metadata, or NULL if this folder is not a single album
+	 */
+	@Override
+	public AlbumMetadata getAlbumMetadata() {
+		if (!albumResolved) {
+			if (!canBeAlbum()) {
+				albumResolved = true;
+				return null;
+			}
+			albumResolved = true;
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection == null) {
+					//without a database we cannot tell, try again later
+					albumResolved = false;
+					return null;
+				}
+				albumMetadata = MediaTableAudioMetadata.getAlbumMetadataForFolder(connection, getSystemName());
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return albumMetadata;
+	}
+
+	/**
+	 * Forgets what was resolved, so the next browse asks the database again.
+	 */
+	public void resetAlbumMetadata() {
+		albumResolved = false;
+		albumMetadata = null;
+	}
+
+	/**
+	 * An album holds its tracks and nothing that browses further. A folder that
+	 * also contains sub folders or playlists is a place where music is filed, not
+	 * an album, even when the tracks in it happen to share a release id.
+	 *
+	 * Checked on the file system, so it does not force the children to be
+	 * discovered.
+	 *
+	 * @return false if this folder cannot be an album
+	 */
+	private boolean canBeAlbum() {
+		File[] entries = directory.listFiles();
+		if (entries == null) {
+			return false;
+		}
+		for (File entry : entries) {
+			if (entry.isDirectory()) {
+				return false;
+			}
+			Format format = FormatFactory.getAssociatedFormat(entry.getAbsolutePath());
+			if (format != null && format.getType() == Format.PLAYLIST) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Stores a cover as folder.<EXT> inside this directory.
+	 */
+	public File writeCoverFile(DLNAThumbnail thumbnail) throws IOException {
+		return SystemFilesHelper.storeThumbnail(directory, "folder", thumbnail);
+	}
+
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File cachedThumbnail = SystemFilesHelper.getFolderThumbnail(directory);
@@ -74,7 +168,7 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 		DLNAThumbnailInputStream result = null;
 		try {
 			if (cachedThumbnail != null) {
-				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
+				result = ThumbnailStore.getThumbnailInputStreamForFile(cachedThumbnail);
 			} else if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 				result = getMediaInfo().getThumbnailInputStream();
 			}

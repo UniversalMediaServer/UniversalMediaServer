@@ -1112,17 +1112,6 @@ public class PMS {
 		Services.destroy();
 
 		LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
-		/**
-		 * Stopping logging gracefully (flushing logs) No logging is available
-		 * after this point
-		 */
-		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
-		if (iLoggerContext instanceof LoggerContext loggerContext) {
-			loggerContext.stop();
-		} else {
-			LOGGER.error("Unable to shut down logging gracefully");
-			System.err.println("Unable to shut down logging gracefully");
-		}
 
 		// Shut down media scanner
 		if (MediaScanner.isMediaScanRunning()) {
@@ -1141,6 +1130,18 @@ public class PMS {
 			LOGGER.debug("Shutting down user database");
 			UserDatabase.shutdown();
 			UserDatabase.createDatabaseReportIfNeeded();
+		}
+
+		/**
+		 * Stopping logging gracefully (flushing logs). This has to be the last step of the shutdown, otherwise everything above
+		 * (especially the database shutdown) happens silently. No logging is available after this point.
+		 */
+		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
+		if (iLoggerContext instanceof LoggerContext loggerContext) {
+			loggerContext.stop();
+		} else {
+			LOGGER.error("Unable to shut down logging gracefully");
+			System.err.println("Unable to shut down logging gracefully");
 		}
 	}
 
@@ -1402,16 +1403,30 @@ public class PMS {
 	/**
 	 * @return whether UMS is being run by Surefire, Playwright, or a CI
 	 * environment like GitHub Actions.
-	 *
-	 * Tests that are not started by Surefire (for example when run from an IDE)
-	 * can announce themselves by setting the {@link #PROPERTY_RUNNING_TESTS}
-	 * system property before any UMS class is loaded.
 	 */
 	public static boolean isRunningTests() {
-		return System.getProperty("surefire.real.class.path") != null ||
-			"true".equalsIgnoreCase(System.getProperty(PROPERTY_RUNNING_TESTS)) ||
-			"true".equalsIgnoreCase(System.getenv("CI")) ||
-			"true".equalsIgnoreCase(System.getenv("RUNNING_TESTS"));
+		return getTestRunSignal() != null;
+	}
+
+	/**
+	 * Returns which signal marks this JVM as a test run, for logging purposes.
+	 *
+	 * @return The name of the matching signal, or NULL when this is not a test run
+	 */
+	public static String getTestRunSignal() {
+		if (System.getProperty("surefire.real.class.path") != null) {
+			return "system property \"surefire.real.class.path\" (set by Surefire)";
+		}
+		if ("true".equalsIgnoreCase(System.getProperty(PROPERTY_RUNNING_TESTS))) {
+			return "system property \"" + PROPERTY_RUNNING_TESTS + "\"";
+		}
+		if ("true".equalsIgnoreCase(System.getenv("CI"))) {
+			return "environment variable \"CI\"";
+		}
+		if ("true".equalsIgnoreCase(System.getenv("RUNNING_TESTS"))) {
+			return "environment variable \"RUNNING_TESTS\"";
+		}
+		return null;
 	}
 
 	/**

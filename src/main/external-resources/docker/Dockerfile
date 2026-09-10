@@ -1,10 +1,9 @@
-FROM ubuntu:22.04
-
+FROM bellsoft/liberica-openjre-debian:25.0.3-11
 LABEL org.opencontainers.image.title="Universal Media Server"
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
-RUN apt-get install coreutils ffmpeg mediainfo openjdk-17-jre-headless iputils-ping mplayer fonts-dejavu -y
+RUN apt-get install coreutils ffmpeg mediainfo iputils-ping mplayer fonts-dejavu -y
 
 WORKDIR /profile
 

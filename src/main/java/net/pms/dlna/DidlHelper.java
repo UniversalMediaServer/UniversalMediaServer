@@ -30,6 +30,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
 import net.pms.media.audio.MediaAudio;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
@@ -43,6 +44,9 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.DVDISOFile;
 import net.pms.store.container.PlaylistFolder;
+import net.pms.store.container.audioaddict.AudioAddictBroadcastStream;
+import net.pms.store.container.audioaddict.AudioAddictPlaylistStream;
+import net.pms.store.container.audioaddict.AudioAddictRadioStream;
 import net.pms.store.container.VirtualFolderDbId;
 import net.pms.store.item.RealFile;
 import net.pms.util.FullyPlayed;
@@ -212,9 +216,13 @@ public class DidlHelper extends DlnaHelper {
 			addBookmark(resource, sb, renderer.getDcTitle(title, resource.getDisplayNameSuffix(), resource));
 		}
 
+		AlbumMetadata containerAlbumMetadata = resource instanceof StoreContainer albumContainer ? albumContainer.getAlbumMetadata() : null;
 		if (audioMetadata != null && renderer.isSendDateMetadataYearForAudioTags() && audioMetadata.getYear() > 1000) {
 			addXMLTagAndAttribute(sb, "dc:date", Integer.toString(audioMetadata.getYear()));
-		} else if (resource.getLastModified() > 0 && renderer.isSendDateMetadata()) {
+		} else if (containerAlbumMetadata != null && StringUtils.isNotBlank(containerAlbumMetadata.getYear())) {
+			//an album is dated by its release year, not by when its folder was touched
+			addXMLTagAndAttribute(sb, "dc:date", encodeXML(containerAlbumMetadata.getYear()));
+		} else if (container == null && resource.getLastModified() > 0 && renderer.isSendDateMetadata()) {
 			addXMLTagAndAttribute(sb, "dc:date", formatDate(new Date(resource.getLastModified())));
 		}
 
@@ -250,10 +258,27 @@ public class DidlHelper extends DlnaHelper {
 			if (audioMetadata.getTrack() > 0) {
 				addXMLTagAndAttribute(sb, "upnp:originalTrackNumber", "" + audioMetadata.getTrack());
 			}
+		}
 
-			if (audioMetadata.getRating() != null) {
-				addXMLTagAndAttribute(sb, "upnp:rating", "" + audioMetadata.getRating());
+		//an album folder has no MediaInfo of its own, so its album metadata is reported from the resolved album instead
+		if (resource instanceof StoreContainer albumContainer && albumContainer.getAlbumMetadata() != null) {
+			AlbumMetadata albumMetadata = albumContainer.getAlbumMetadata();
+			if (StringUtils.isNotBlank(albumMetadata.getAlbum())) {
+				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(albumMetadata.getAlbum()));
 			}
+			if (StringUtils.isNotBlank(albumMetadata.getArtist())) {
+				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(albumMetadata.getArtist()));
+				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(albumMetadata.getArtist()));
+			}
+			if (StringUtils.isNotBlank(albumMetadata.getGenre())) {
+				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(albumMetadata.getGenre()));
+			}
+		}
+
+		//the user rating is supported by any kind of resource, items as well as containers
+		Integer userRating = resource.getRating();
+		if (userRating != null) {
+			addXMLTagAndAttribute(sb, "upnp:rating", "" + userRating);
 		}
 
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
@@ -479,30 +504,45 @@ public class DidlHelper extends DlnaHelper {
 					}
 				}
 
-				sb.append(item.getMediaURL()).append(transcodedExtension);
+				sb.append(encodeXML(item.getMediaURL() + transcodedExtension));
 				closeTag(sb, "res");
 			}
 
 			// DESC Metadata support: add ability for control point to identify
-			// songs by MusicBrainz TrackID or audiotrack-id
-			if (mediaInfo != null && audioMetadata != null && mediaInfo.isAudio()) {
+			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels so
+			// a control point can look up live "now playing" info from the AudioAddict API.
+			boolean isAudioAddictBroadcast = item instanceof AudioAddictBroadcastStream;
+			boolean hasAudioMetadata = mediaInfo != null && mediaInfo.isAudio() && audioMetadata != null;
+			if (hasAudioMetadata || isAudioAddictBroadcast) {
 				openTag(sb, "desc");
 				addAttribute(sb, "id", "2");
 				// TODO add real namespace
 				addAttribute(sb, "nameSpace", "http://ums/tags");
 				addAttribute(sb, "type", "ums-tags");
 				endTag(sb);
-				addXMLTagAndAttribute(sb, "musicbrainztrackid", audioMetadata.getMbidTrack());
-				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", audioMetadata.getMbidRecord());
-				if (audioMetadata.getDiscogsReleaseId() != null) {
-					addXMLTagAndAttribute(sb, "discogsreleaseid", audioMetadata.getDiscogsReleaseId());
+				if (hasAudioMetadata) {
+					addXMLTagAndAttribute(sb, "musicbrainztrackid", audioMetadata.getMbidTrack());
+					addXMLTagAndAttribute(sb, "musicbrainzreleaseid", audioMetadata.getMbidRecord());
+					if (audioMetadata.getDiscogsReleaseId() != null) {
+						addXMLTagAndAttribute(sb, "discogsreleaseid", audioMetadata.getDiscogsReleaseId());
+					}
+					addXMLTagAndAttribute(sb, "resourceid", encodeXML(mediaInfo.getResourceId()));
+					if (audioMetadata.getDisc() > 0) {
+						addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
+					}
+					if (userRating != null) {
+						addXMLTagAndAttribute(sb, "rating", Integer.toString(userRating));
+					}
 				}
-				addXMLTagAndAttribute(sb, "resourceid", mediaInfo.getResourceId());
-				if (audioMetadata.getDisc() > 0) {
-					addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
-				}
-				if (audioMetadata.getRating() != null) {
-					addXMLTagAndAttribute(sb, "rating", Integer.toString(audioMetadata.getRating()));
+				if (item instanceof AudioAddictRadioStream audioAddictStream) {
+					if (audioAddictStream.getChannelId() != null) {
+						addXMLTagAndAttribute(sb, "audioaddictchannelid", audioAddictStream.getChannelId().toString());
+					}
+					if (audioAddictStream.getNetworkShortName() != null) {
+						addXMLTagAndAttribute(sb, "audioaddictnetwork", audioAddictStream.getNetworkShortName());
+					}
+				} else if (item instanceof AudioAddictPlaylistStream audioAddictPlaylist) {
+					addXMLTagAndAttribute(sb, "audioaddictplaylistid", Integer.toString(audioAddictPlaylist.getPlaylistId()));
 				}
 				closeTag(sb, "desc");
 			}
@@ -513,7 +553,7 @@ public class DidlHelper extends DlnaHelper {
 					openTag(sb, "sec:CaptionInfoEx");
 					addAttribute(sb, "sec:type", "srt");
 					endTag(sb);
-					sb.append(subsURL);
+					sb.append(encodeXML(subsURL));
 					closeTag(sb, "sec:CaptionInfoEx");
 					LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
 				} else if (renderer.offerSubtitlesAsResource()) {
@@ -525,7 +565,7 @@ public class DidlHelper extends DlnaHelper {
 
 					addAttribute(sb, "protocolInfo", "http-get:*:text/" + subtitlesFormat + ":*");
 					endTag(sb);
-					sb.append(subsURL);
+					sb.append(encodeXML(subsURL));
 					closeTag(sb, "res");
 					LOGGER.trace("Network debugger: http-get:*:text/" + subtitlesFormat + ":*" + subsURL);
 				}
@@ -540,6 +580,9 @@ public class DidlHelper extends DlnaHelper {
 				uclass = "object.container.playlistContainer";
 			} else if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
 				uclass = virtualFolderDbId.getMediaTypeUclass();
+			} else if (resource instanceof StoreContainer storeContainer && storeContainer.getAlbumMetadata() != null) {
+				//a folder whose files all belong to one release is that album
+				uclass = "object.container.album.musicAlbum";
 			} else {
 				//FIXME : it break upnp standard
 				//object.container.storageFolder require the upnp:storageUsed property set
@@ -558,7 +601,7 @@ public class DidlHelper extends DlnaHelper {
 		} else if (mediaType == MediaType.IMAGE || mediaType == MediaType.UNKNOWN && format != null && format.isImage()) {
 			uclass = "object.item.imageItem.photo";
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
-			uclass = "object.item.audioItem.musicTrack";
+			uclass = item != null && item.isAudioBroadcast() ? "object.item.audioItem.audioBroadcast" : "object.item.audioItem.musicTrack";
 		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || mediaInfo.getVideoMetadata().getYear() != null)) {
 			// videoItem.movie is used for TV episodes and movies
 			uclass = "object.item.videoItem.movie";
@@ -889,7 +932,7 @@ public class DidlHelper extends DlnaHelper {
 					url += "?update=" + updateId;
 				}
 			}
-			sb.append(url);
+			sb.append(encodeXML(url));
 			closeTag(sb, "res");
 		}
 	}
@@ -913,7 +956,7 @@ public class DidlHelper extends DlnaHelper {
 			addAttribute(sb, "dlna:profileID", thumbnailProfile);
 			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			endTag(sb);
-			sb.append(albumArtURL);
+			sb.append(encodeXML(albumArtURL));
 			closeTag(sb, "upnp:albumArtURI");
 		}
 	}
@@ -970,8 +1013,21 @@ public class DidlHelper extends DlnaHelper {
 		sb.append(' ');
 		sb.append(attribute);
 		sb.append("=\"");
-		sb.append(value);
+		sb.append(encodeXMLAttribute(value));
 		sb.append("\"");
+	}
+
+	/**
+	 * Attribute values sit inside double quotes, so unlike text nodes " must be
+	 * escaped too - one stray quote kills the whole DIDL. Escaped twice like
+	 * {@link #encodeXML(String)}, because this DIDL is itself embedded escaped
+	 * in the SOAP Result.
+	 */
+	private static String encodeXMLAttribute(Object value) {
+		if (value == null) {
+			return "";
+		}
+		return StringEscapeUtils.escapeXml10(StringEscapeUtils.escapeXml10(value.toString()));
 	}
 
 	private static void addXMLTagAndAttribute(StringBuilder sb, String tag, Object value) {
