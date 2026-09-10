@@ -537,18 +537,25 @@ public class RendererConfigurationTest {
 			"Sony Bravia XR",
 			"X-av-client-info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XR-55X90K\"; mv=\"3.0\";",
 			"X-av-physical-unit-info: pa=\"BRAVIA XR-55X90K\";",
-			"X-av-physical-unit-info: K-65XR90\";"
+			"X-av-physical-unit-info: K-65XR90\";",
+			"X-av-physical-unit-info: K-65XR90M2\";"
 		);
 		testUPNPDetails(
 			"Sony Bravia XR",
 			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=XR-55X90K, manufacturerURL=http://www.sony.net/}",
-			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=K-65XR90, manufacturerURL=http://www.sony.net/}"
+			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=K-65XR90, manufacturerURL=http://www.sony.net/}",
+			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=K-65XR90M2, manufacturerURL=http://www.sony.net/}"
 		);
 
-		testHeaders("Sony X Series TV", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-50X80J\"; mv=\"3.0\";");
+		testHeaders(
+			"Sony X Series TV",
+			"X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-50X80J\"; mv=\"3.0\";",
+			"X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-85X80L\"; mv=\"3.0\";"
+		);
 		testUPNPDetails(
 			"Sony X Series TV",
-			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=KD-50X80J, manufacturerURL=http://www.sony.net/}"
+			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=KD-50X80J, manufacturerURL=http://www.sony.net/}",
+			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=KD-85X80L, manufacturerURL=http://www.sony.net/}"
 		);
 
 		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
