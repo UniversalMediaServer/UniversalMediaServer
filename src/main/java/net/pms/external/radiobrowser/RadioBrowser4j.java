@@ -126,7 +126,7 @@ public class RadioBrowser4j {
 					mediaInfo.getAudioMetadata().setGenre(genre);
 				}
 				if (StringUtils.isNotBlank(station.getFavicon()) && !ThumbnailSource.RADIOBROWSER.equals(mediaInfo.getThumbnailSource())) {
-					ThumbnailStore.updateThumbnailByURI(station.getFavicon(), url, ThumbnailSource.RADIOBROWSER);
+					ThumbnailStore.enqueueThumbnailUpdate(station.getFavicon(), url, ThumbnailSource.RADIOBROWSER);
 				}
 				return true;
 			} catch (Exception e) {
