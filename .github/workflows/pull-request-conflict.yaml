@@ -18,11 +18,24 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-    - name: check if prs are dirty
-      if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    - name: check if dependabot PR is dirty
+      if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.user.login == 'dependabot[bot]' }}
       uses: eps1lon/actions-label-merge-conflict@v3
-      id: check
       with:
         dirtyLabel: "conflicting"
         repoToken: "${{ secrets.AUTOMATION_TOKEN }}"
         commentOnDirty: '@dependabot recreate'
+
+    # The `if` above only ever matches a dependabot PR being synchronized, so a plain `push` to
+    # the base branch (which doesn't have a `pull_request` context at all) never reached this
+    # step for anyone -- bot or human. This second step covers that path: on `push`, the action
+    # checks every open PR against the base branch directly (it doesn't use
+    # `github.event.pull_request`), so this is what actually surfaces conflicts for human PRs
+    # like #6025 and #4727.
+    - name: check if any open PRs are dirty
+      if: ${{ github.event_name == 'push' }}
+      uses: eps1lon/actions-label-merge-conflict@v3
+      with:
+        dirtyLabel: "conflicting"
+        repoToken: "${{ secrets.AUTOMATION_TOKEN }}"
+        commentOnDirty: "This pull request now has a merge conflict with the base branch. Please rebase or merge the latest changes to resolve it."
