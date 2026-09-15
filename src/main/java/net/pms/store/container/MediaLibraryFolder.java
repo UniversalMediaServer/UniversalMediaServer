@@ -36,7 +36,6 @@ import net.pms.database.MediaTableVideoMetadataDirectors;
 import net.pms.database.MediaTableVideoMetadataGenres;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
-import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.item.MediaLibraryTvEpisode;
 import net.pms.store.item.RealFile;
@@ -730,10 +729,10 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		for (StoreResource newResource : newFilesResources) {
 			addChild(newResource);
 		}
-		if (isDiscovered()) {
-			MediaStoreIds.incrementUpdateId(getLongId());
-		}
 		sortChildrenIfNeeded();
+		if (isDiscovered()) {
+			notifyRefreshIfChanged();
+		}
 	}
 
 	/**

@@ -487,6 +487,14 @@ public class StoreContainer extends StoreResource {
 		}
 	}
 
+	/**
+	 * Records the children without reporting a change.
+	 */
+	protected void rememberChildren() {
+		markRefreshed();
+		MediaStoreIds.rememberReportedContent(getLongId(), childrenSignature());
+	}
+
 	private String childrenSignature() {
 		StringBuilder names = new StringBuilder();
 		for (StoreResource child : children) {
@@ -764,7 +772,7 @@ public class StoreContainer extends StoreResource {
 
 			discoverChildren();
 			setDiscovered(true);
-			notifyRefreshIfChanged();
+			rememberChildren();
 		} else {
 			// if forced, then call the old 'refreshChildren' method
 			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);

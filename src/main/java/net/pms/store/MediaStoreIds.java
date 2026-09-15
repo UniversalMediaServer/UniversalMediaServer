@@ -278,7 +278,8 @@ public class MediaStoreIds {
 					}
 				}
 				if (value == null) {
-					value = getSystemUpdateId();
+					// Use a copy, not a shared instance.
+					value = new UnsignedIntegerFourBytes(getSystemUpdateId().getValue());
 				}
 				UPDATE_IDS.put(id, value);
 			} finally {
@@ -421,10 +422,21 @@ public class MediaStoreIds {
 	 * Whether the given container differs from what it last reported
 	 */
 	public static boolean isReportableChange(long id, String contentSignature) {
+		return !contentSignature.equals(remember(id, contentSignature));
+	}
+
+	/**
+	 * Takes the content as reported without reporting it, so the next comparison starts from here.
+	 */
+	public static void rememberReportedContent(long id, String contentSignature) {
+		remember(id, contentSignature);
+	}
+
+	private static String remember(long id, String contentSignature) {
 		if (LAST_REPORTED.size() >= MAX_LAST_REPORTED && !LAST_REPORTED.containsKey(id)) {
 			LAST_REPORTED.clear();
 		}
-		return !contentSignature.equals(LAST_REPORTED.put(id, contentSignature));
+		return LAST_REPORTED.put(id, contentSignature);
 	}
 
 	/**
