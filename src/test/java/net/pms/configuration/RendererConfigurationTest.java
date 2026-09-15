@@ -548,13 +548,17 @@ public class RendererConfigurationTest {
 		);
 
 		testHeaders(
-			"Sony X Series TV",
+			"Sony X Series TV (2019 and later)",
+			// 2021
 			"X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-50X80J\"; mv=\"3.0\";",
+			// 2023
 			"X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-85X80L\"; mv=\"3.0\";"
 		);
 		testUPNPDetails(
-			"Sony X Series TV",
+			"Sony X Series TV (2019 and later)",
+			// 2021
 			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=KD-50X80J, manufacturerURL=http://www.sony.net/}",
+			// 2023
 			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=KD-85X80L, manufacturerURL=http://www.sony.net/}"
 		);
 
