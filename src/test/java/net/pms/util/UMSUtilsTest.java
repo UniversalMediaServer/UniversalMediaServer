@@ -16,9 +16,14 @@
  */
 package net.pms.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import net.pms.PMS;
 import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.media.MediaInfo;
+import net.pms.store.StoreResource;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,5 +55,87 @@ public class UMSUtilsTest {
 		assertTrue(UMSUtils.isYouTubeURL("https://youtu.be/watch?v=9egtCHGlgoM"));
 		assertTrue(UMSUtils.isYouTubeURL("https://www.youtube.com/shorts/jsBOx45iBX0"));
 		assertFalse(UMSUtils.isYouTubeURL("https://www.somewebsite.com/shorts/jsBOx45iBX0"));
+	}
+
+	@Test
+	public void testFilterResourcesByNameDoesNotLoadMediaForNameMatch() {
+		TestResource matchingResource = new TestResource("Matching resource");
+		TestResource otherResource = new TestResource("Other resource");
+		List<StoreResource> resources = new ArrayList<>(List.of(matchingResource, otherResource));
+
+		UMSUtils.filterResourcesByName(resources, "matching", false, false);
+
+		assertEquals(List.of(matchingResource), resources);
+		assertEquals(0, matchingResource.getMediaInfoCalls);
+		assertEquals(1, otherResource.getMediaInfoCalls);
+	}
+
+	@Test
+	public void testFilterResourcesByNameUsesLocaleIndependentCaseConversion() {
+		Locale previousLocale = Locale.getDefault();
+		try {
+			Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+			TestResource resource = new TestResource("TITLE");
+			List<StoreResource> resources = new ArrayList<>(List.of(resource));
+
+			UMSUtils.filterResourcesByName(resources, "title", false, true);
+
+			assertEquals(List.of(resource), resources);
+		} finally {
+			Locale.setDefault(previousLocale);
+		}
+	}
+
+	@Test
+	public void testFilterResourcesByNameExpectOneResultKeepsLastMatch() {
+		TestResource first = new TestResource("match first");
+		TestResource last = new TestResource("match last");
+		List<StoreResource> resources = new ArrayList<>(List.of(first, last));
+
+		UMSUtils.filterResourcesByName(resources, "match", true, false);
+
+		assertEquals(List.of(last), resources);
+		assertEquals(0, last.getMediaInfoCalls);
+	}
+
+	private static final class TestResource extends StoreResource {
+		private final String name;
+		private int getMediaInfoCalls;
+
+		private TestResource(String name) {
+			super(null);
+			this.name = name;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public String getSystemName() {
+			return name;
+		}
+
+		@Override
+		public long length() {
+			return 0;
+		}
+
+		@Override
+		public boolean isFolder() {
+			return false;
+		}
+
+		@Override
+		public boolean isValid() {
+			return true;
+		}
+
+		@Override
+		public MediaInfo getMediaInfo() {
+			getMediaInfoCalls++;
+			return null;
+		}
 	}
 }
