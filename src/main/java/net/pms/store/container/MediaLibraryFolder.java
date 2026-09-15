@@ -251,14 +251,15 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 							}
 							case FILES_NOSORT_DEDUPED -> {
-								populatedFilesListFromDb = new ArrayList<>();
-								filesListFromDb = new ArrayList<>();
+								Set<String> populatedFiles = new LinkedHashSet<>();
+								List<File> deduplicatedFiles = new ArrayList<>();
 								for (File item : MediaTableFiles.getFiles(connection, firstSql)) {
-									if (!populatedFilesListFromDb.contains(item.getAbsolutePath())) {
-										filesListFromDb.add(item);
-										populatedFilesListFromDb.add(item.getAbsolutePath());
+									if (populatedFiles.add(item.getAbsolutePath())) {
+										deduplicatedFiles.add(item);
 									}
 								}
+								populatedFilesListFromDb = new ArrayList<>(populatedFiles);
+								filesListFromDb = deduplicatedFiles;
 							}
 							case EPISODES -> {
 								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
@@ -374,28 +375,23 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		}
 		Set<File> newFiles = new LinkedHashSet<>();
 		Set<String> newVirtualFolders = new LinkedHashSet<>();
-		List<StoreResource> oldFiles = new ArrayList<>();
-		List<StoreResource> oldVirtualFolders = new ArrayList<>();
+		boolean replaceChildren = filesListFromDb != null || virtualFoldersListFromDb != null;
 
 		if (filesListFromDb != null) {
-			getChildren().forEach(oldFiles::add);
-
 			for (File file : filesListFromDb) {
 				newFiles.add(file);
 			}
 		}
 
 		if (virtualFoldersListFromDb != null) {
-			getChildren().forEach(oldVirtualFolders::add);
-
 			for (String f : virtualFoldersListFromDb) {
 				newVirtualFolders.add(f);
 			}
 		}
 
-		oldFiles.forEach(fileResource -> getChildren().remove(fileResource));
-
-		oldVirtualFolders.forEach(virtualFolderResource -> getChildren().remove(virtualFolderResource));
+		if (replaceChildren) {
+			getChildren().clear();
+		}
 
 		// Add filters at the top
 		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS || expectedOutput == EMPTY_FILES_WITH_FILTERS) {

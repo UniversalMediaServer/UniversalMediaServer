@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
@@ -39,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 public class UMSUtils {
+	private static final Pattern YOUTUBE_URL_PATTERN = Pattern.compile("(youtube\\.|youtu\\.be)");
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -76,48 +78,55 @@ public class UMSUtils {
 		if (resources == null || searchString == null) {
 			return;
 		}
-		searchString = searchString.toLowerCase();
-		for (int i = resources.size() - 1; i >= 0; i--) {
-			StoreResource res = resources.get(i);
-
-			if (res.isSearched()) {
-				continue;
-			}
-
-			boolean keep;
-			if (isExactMatch) {
-				keep = res.getName().toLowerCase().equals(searchString);
-			} else {
-				keep = res.getName().toLowerCase().contains(searchString);
-			}
-
-			final MediaInfo media = res.getMediaInfo();
-
-			if (keep && isExpectOneResult) {
-				resources.clear();
-				resources.add(res);
-				break;
-			}
-
-			if (!keep) {
-				if (media != null && media.hasAudioMetadata()) {
-					MediaAudioMetadata audioMetadata = media.getAudioMetadata();
-					if (audioMetadata.getAlbum() != null) {
-						keep |= audioMetadata.getAlbum().toLowerCase().contains(searchString);
-					}
-					//TODO maciekberry: check whether it makes sense to use Album Artist
-					if (audioMetadata.getArtist() != null) {
-						keep |= audioMetadata.getArtist().toLowerCase().contains(searchString);
-					}
-					if (audioMetadata.getSongname() != null) {
-						keep |= audioMetadata.getSongname().toLowerCase().contains(searchString);
-					}
+		String normalizedSearchString = searchString.toLowerCase(Locale.ROOT);
+		if (isExpectOneResult) {
+			for (int i = resources.size() - 1; i >= 0; i--) {
+				StoreResource resource = resources.get(i);
+				if (!resource.isSearched() && resourceMatches(resource, normalizedSearchString, isExactMatch)) {
+					resources.clear();
+					resources.add(resource);
+					return;
 				}
 			}
-			if (!keep) {
-				resources.remove(i);
+			List<StoreResource> searchedResources = new ArrayList<>();
+			for (StoreResource resource : resources) {
+				if (resource.isSearched()) {
+					searchedResources.add(resource);
+				}
+			}
+			resources.clear();
+			resources.addAll(searchedResources);
+			return;
+		}
+
+		List<StoreResource> matchingResources = new ArrayList<>(resources.size());
+		for (StoreResource resource : resources) {
+			if (resource.isSearched() || resourceMatches(resource, normalizedSearchString, isExactMatch)) {
+				matchingResources.add(resource);
 			}
 		}
+		resources.clear();
+		resources.addAll(matchingResources);
+	}
+
+	private static boolean resourceMatches(StoreResource resource, String searchString, boolean exactMatch) {
+		String resourceName = resource.getName().toLowerCase(Locale.ROOT);
+		if (exactMatch ? resourceName.equals(searchString) : resourceName.contains(searchString)) {
+			return true;
+		}
+
+		MediaInfo media = resource.getMediaInfo();
+		if (media == null || !media.hasAudioMetadata()) {
+			return false;
+		}
+		MediaAudioMetadata audioMetadata = media.getAudioMetadata();
+		return containsIgnoreCase(audioMetadata.getAlbum(), searchString) ||
+			containsIgnoreCase(audioMetadata.getArtist(), searchString) ||
+			containsIgnoreCase(audioMetadata.getSongname(), searchString);
+	}
+
+	private static boolean containsIgnoreCase(String value, String normalizedSearchString) {
+		return value != null && value.toLowerCase(Locale.ROOT).contains(normalizedSearchString);
 	}
 
 	public static String playedDurationStr(String current, String duration) {
@@ -279,7 +288,7 @@ public class UMSUtils {
 	 * @return an array of objects in the format: [ { "value": "bar", "label":
 	 * "foo" }, ... ]
 	 */
-	public static synchronized JsonArray getListsAsJsonArrayOfObjects(List<String> values, List<String> labels, JsonArray jsonArray) {
+	public static JsonArray getListsAsJsonArrayOfObjects(List<String> values, List<String> labels, JsonArray jsonArray) {
 		if (jsonArray == null) {
 			jsonArray = new JsonArray();
 		}
@@ -297,9 +306,7 @@ public class UMSUtils {
 	}
 
 	public static boolean isYouTubeURL(String youTubeUrl) {
-		String pattern = "(youtube\\.|youtu\\.be)";
-		Pattern compiledPattern = Pattern.compile(pattern);
-		Matcher matcher = compiledPattern.matcher(youTubeUrl);
+		Matcher matcher = YOUTUBE_URL_PATTERN.matcher(youTubeUrl);
 		return matcher.find();
 	}
 }
