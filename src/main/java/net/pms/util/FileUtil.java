@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
+	private static final Pattern URL_PATTERN = Pattern.compile("\\S+://.*");
 
 	/**
 	 * An array of chars that qualifies as file path separators. For Windows
@@ -272,7 +273,7 @@ public class FileUtil {
 	public static boolean isUrl(String filename) {
 		// We're intentionally avoiding stricter URI() methods, which can throw
 		// URISyntaxException for psuedo-urls (e.g. librtmp-style urls containing spaces)
-		return filename != null && filename.matches("\\S+://.*");
+		return filename != null && URL_PATTERN.matcher(filename).matches();
 	}
 
 	public static String getProtocol(String filename) {
@@ -520,7 +521,7 @@ public class FileUtil {
 		String edition = null;
 		Matcher m = COMMON_FILE_EDITIONS_PATTERN.matcher(formattedName);
 		if (m.find()) {
-			edition = m.group().replaceAll("\\.", " ");
+			edition = m.group().replace('.', ' ');
 			edition = "(" + WordUtils.capitalizeFully(edition) + ")";
 			formattedName = formattedName.replaceAll(" - " + COMMON_FILE_EDITIONS, "");
 			formattedName = formattedName.replaceAll(COMMON_FILE_EDITIONS, "");
@@ -588,8 +589,8 @@ public class FileUtil {
 	 * source, etc.
 	 */
 	private static String removeFilenameEndMetadata(String formattedName) {
-		formattedName = formattedName.replaceAll(COMMON_FILE_ENDS_CASE_SENSITIVE, "");
-		formattedName = formattedName.replaceAll("(?i)" + COMMON_FILE_ENDS, "");
+		formattedName = FILE_ENDS_CASE_SENSITIVE_PATTERN.matcher(formattedName).replaceAll("");
+		formattedName = FILE_ENDS_IGNORE_CASE_PATTERN.matcher(formattedName).replaceAll("");
 		return formattedName;
 	}
 
@@ -633,6 +634,15 @@ public class FileUtil {
 	 * false-positive by being case-sensitive.
 	 */
 	private static final String COMMON_FILE_ENDS_CASE_SENSITIVE = "\\sPROPER\\s.*|\\siNTERNAL\\s.*|\\sLIMITED\\s.*|\\sLiMiTED\\s.*|\\sFESTiVAL\\s.*|\\sNORDIC\\s.*|\\sREAL\\s.*|\\sSUBBED\\s.*|\\sDUBBED\\s.*|\\sRETAIL\\s.*|\\sEXTENDED\\s.*|\\sNEWEDIT\\s.*|\\sMULTi\\s.*|\\sWEB\\s.*";
+
+	// Reuse compiled expressions; matchers remain local to each filename.
+	private static final Pattern FILE_ENDS_CASE_SENSITIVE_PATTERN = Pattern.compile(COMMON_FILE_ENDS_CASE_SENSITIVE);
+	private static final Pattern FILE_ENDS_IGNORE_CASE_PATTERN = Pattern.compile("(?i)" + COMMON_FILE_ENDS);
+	private static final Pattern FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN = Pattern.compile("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")");
+	private static final Pattern FILE_ENDS_GROUP_PATTERN = Pattern.compile("(" + COMMON_FILE_ENDS + ")");
+	private static final Pattern ANIME_FILE_ENDS_PATTERN = Pattern.compile(COMMON_ANIME_FILE_ENDS);
+	private static final Pattern FILE_ENDS_MATCH_PATTERN = Pattern.compile(COMMON_FILE_ENDS_MATCH);
+	private static final Pattern ANIME_FILE_ENDS_MATCH_PATTERN = Pattern.compile(COMMON_ANIME_FILE_ENDS_MATCH);
 
 	/**
 	 * Editions to be added to the end of the prettified name
@@ -963,8 +973,8 @@ public class FileUtil {
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION + "\\s", " S" + tvSeason + "E$2-$3 - ");
 			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION, " S" + tvSeason + "E$2-$3");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
@@ -1001,8 +1011,8 @@ public class FileUtil {
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 			formattedName = formattedName.replaceAll("(?i)\\s" + SCENE_P2P_EPISODE_REGEX + "\\s", " S" + tvSeason + "E$2 - ");
 			formattedName = formattedName.replaceAll("(?i)\\s" + SCENE_P2P_EPISODE_REGEX, " S" + tvSeason + "E$2");
 			formattedName = formattedName.replaceAll(SCENE_P2P_EPISODE_REGEX, " S" + tvSeason + "E$2");
@@ -1033,8 +1043,8 @@ public class FileUtil {
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 
 			// Here we match existing case, otherwise we risk breaking the Title Case conversion later
 			String seasonLetterReplace = "S";
@@ -1070,8 +1080,8 @@ public class FileUtil {
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 			formattedName = formattedName.replaceAll("(?i)\\s" + SCENE_P2P_EPISODE_SPECIAL_REGEX, " S" + tvSeason + " - $2");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
@@ -1098,8 +1108,8 @@ public class FileUtil {
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 			formattedName = formattedName.replaceAll("(?i)[\\s-\\.](\\d{1,2})[xX](\\d{1,})[\\s-\\.]", " S" + tvSeason + "E$2 - ");
 			formattedName = formattedName.replaceAll("(?i)[\\s-\\.](\\d{1,2})[xX](\\d{1,})", " S" + tvSeason + "E$2");
 			formattedName = formattedName.replaceAll("[\\s-\\.](\\d{1,2})[xX](\\d{1,})", " S" + tvSeason + "E$2");
@@ -1126,8 +1136,8 @@ public class FileUtil {
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 			formattedName = formattedName.replaceAll("(?i)\\s-\\s(\\d{3})\\s-\\s", " S" + tvSeason + "E" + tvEpisodeNumber + " - ");
 			formattedName = formattedName.replaceAll("(?i)\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
 			formattedName = formattedName.replaceAll("\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
@@ -1155,8 +1165,8 @@ public class FileUtil {
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 
 			// Here we match existing case, otherwise we risk breaking the Title Case conversion later
 			String seasonLetterReplace = "S";
@@ -1187,8 +1197,8 @@ public class FileUtil {
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 
 			// Here we match existing case, otherwise we risk breaking the Title Case conversion later
 			String seasonLetterReplace = "S";
@@ -1214,8 +1224,8 @@ public class FileUtil {
 			}
 
 			// Rename the date. For example, "2013.03.18" changes to "2013/03/18"
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = FILE_ENDS_CASE_SENSITIVE_GROUP_PATTERN.matcher(formattedName).replaceAll("");
+			formattedName = FILE_ENDS_GROUP_PATTERN.matcher(formattedName).replaceAll("");
 			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)\\s", " $1$2/$3/$4 - ");
 			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)", " $1$2/$3/$4");
 			formattedName = formattedName.replaceAll("\\s(19|20)(\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)", " $1$2/$3/$4");
@@ -1269,7 +1279,7 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$") || formattedName.matches(".*\\s-\\s\\d{1,3}$") || formattedName.matches(COMMON_ANIME_FILE_ENDS_MATCH)) {
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$") || formattedName.matches(".*\\s-\\s\\d{1,3}$") || ANIME_FILE_ENDS_MATCH_PATTERN.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("anime: " + formattedName);
 			}
@@ -1279,7 +1289,7 @@ public class FileUtil {
 			 */
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll(COMMON_ANIME_FILE_ENDS, "");
+			formattedName = ANIME_FILE_ENDS_PATTERN.matcher(formattedName).replaceAll("");
 
 			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
 			if (matcher.find()) {
@@ -1325,7 +1335,7 @@ public class FileUtil {
 			}
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
+		} else if (FILE_ENDS_MATCH_PATTERN.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("COMMON_FILE_ENDS_MATCH: " + formattedName);
 			}
@@ -2175,13 +2185,12 @@ public class FileUtil {
 		String fileName = f.getName().toLowerCase();
 		return (
 			(
-				configuration.isArchiveBrowsing() &&
 				(
 					fileName.endsWith(".zip") ||
 					fileName.endsWith(".cbz") ||
 					fileName.endsWith(".rar") ||
 					fileName.endsWith(".cbr")
-				)
+				) && configuration.isArchiveBrowsing()
 			) ||
 			fileName.endsWith(".iso") ||
 			fileName.endsWith(".img") ||
@@ -2214,7 +2223,7 @@ public class FileUtil {
 					}
 
 					if (child.isFile()) {
-						if (FormatFactory.getAssociatedFormat(child.getName()) != null || isFileRelevant(child, configuration)) {
+						if (isFileRelevant(child, configuration) || FormatFactory.getAssociatedFormat(child.getName()) != null) {
 							return true;
 						}
 					} else {
@@ -2244,7 +2253,7 @@ public class FileUtil {
 		filename = removeGroupNameFromBeginning(filename);
 
 		// Replace periods and underscores with spaces
-		return  filename.replaceAll("\\.|_", " ");
+		return filename.replace('.', ' ').replace('_', ' ');
 	}
 
 	public static String renameForSorting(String filename) {

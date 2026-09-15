@@ -231,14 +231,13 @@ public abstract class Format implements Cloneable {
 		String[] supportedExtensions = getSupportedExtensions();
 
 		if (supportedExtensions != null) {
-			String protocol = FileUtil.getProtocol(filename);
-			if (protocol != null) { // URIs are handled by WEB.match
-				return false;
-			}
-
 			for (String extension : supportedExtensions) {
 				String ext = extension.toLowerCase(Locale.ROOT);
 				if (filename.endsWith("." + ext)) {
+					// Only matching extensions need the URL check; URIs are handled by WEB.match.
+					if (FileUtil.isUrl(filename)) {
+						return false;
+					}
 					setMatchedExtension(ext);
 					return true;
 				}
