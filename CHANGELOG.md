@@ -23,6 +23,10 @@
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.15.0 to 3.16.0 ([#6314](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6314))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 
 ## [15.8.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.1...15.8.2) (2026-09-08)
 
