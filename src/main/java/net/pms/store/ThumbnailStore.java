@@ -16,10 +16,7 @@
  */
 package net.pms.store;
 
-import java.lang.ref.WeakReference;
 import java.sql.Connection;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
@@ -34,33 +31,24 @@ public class ThumbnailStore {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailStore.class.getName());
 
-	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new HashMap<>();
-
-	private static Long tempId = Long.MAX_VALUE;
+	private static final ThumbnailCache<DLNAThumbnail> STORE =
+		new ThumbnailCache<>(ThumbnailStore::loadThumbnail, ThumbnailStore::saveThumbnail);
 
 	private ThumbnailStore() {
 		//should not be instantiated
 	}
 
 	public static Long getId(DLNAThumbnail thumbnail) {
-		if (thumbnail == null) {
-			return null;
-		}
-		synchronized (STORE) {
-			Connection connection = null;
-			Long id = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					id = MediaTableThumbnails.setThumbnail(connection, thumbnail);
-					if (id != null) {
-						STORE.put(id, new WeakReference<>(thumbnail));
-					}
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-			return id;
+		return STORE.put(thumbnail, false);
+	}
+
+	private static Long saveThumbnail(DLNAThumbnail thumbnail) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			return connection == null ? null : MediaTableThumbnails.setThumbnail(connection, thumbnail);
+		} finally {
+			MediaDatabase.close(connection);
 		}
 	}
 
@@ -118,40 +106,21 @@ public class ThumbnailStore {
 	}
 
 	public static Long getTempId(DLNAThumbnail thumbnail) {
-		if (thumbnail == null) {
-			return null;
-		}
-		synchronized (STORE) {
-			//resume/temp thumbnail
-			Long id = tempId--;
-			STORE.put(id, new WeakReference<>(thumbnail));
-			return id;
-		}
+		return STORE.put(thumbnail, true);
 	}
 
 	public static DLNAThumbnail getThumbnail(Long id) {
-		if (id == null) {
-			return null;
+		return STORE.get(id);
+	}
+
+	private static DLNAThumbnail loadThumbnail(long id) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			return connection == null ? null : MediaTableThumbnails.getThumbnail(connection, id);
+		} finally {
+			MediaDatabase.close(connection);
 		}
-		synchronized (STORE) {
-			if (STORE.containsKey(id) && STORE.get(id).get() != null) {
-				return STORE.get(id).get();
-			}
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					DLNAThumbnail thumbnail = MediaTableThumbnails.getThumbnail(connection, id);
-					if (thumbnail != null) {
-						STORE.put(id, new WeakReference<>(thumbnail));
-						return thumbnail;
-					}
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-		}
-		return null;
 	}
 
 	public static DLNAThumbnailInputStream getThumbnailInputStream(Long id) {
@@ -160,9 +129,7 @@ public class ThumbnailStore {
 	}
 
 	public static void resetLanguage() {
-		synchronized (STORE) {
-			STORE.clear();
-			tempId = Long.MAX_VALUE;
+		STORE.invalidate(true, () -> {
 			Connection connection = null;
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
@@ -174,7 +141,7 @@ public class ThumbnailStore {
 			} finally {
 				MediaDatabase.close(connection);
 			}
-		}
+		});
 	}
 
 	/**
@@ -183,8 +150,7 @@ public class ThumbnailStore {
 	 * regenerated on demand.
 	 */
 	public static void deleteAll() {
-		synchronized (STORE) {
-			STORE.clear();
+		STORE.invalidate(false, () -> {
 			Connection connection = null;
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
@@ -194,7 +160,7 @@ public class ThumbnailStore {
 			} finally {
 				MediaDatabase.close(connection);
 			}
-		}
+		});
 	}
 
 }
