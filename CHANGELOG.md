@@ -3,10 +3,30 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-core` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-hdr` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-icns` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-iff` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-jpeg` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-metadata` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-pcx` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-pict` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-pnm` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-psd` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-sgi` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-tga` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
+- Bump `com.twelvemonkeys.imageio:imageio-webp` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
 - Bump `commons-codec:commons-codec` from 1.22.0 to 1.22.1 ([#6315](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6315))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
-- Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.15.0 to 3.16.0 ([#6314](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6314))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
+- Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.15.0 to 3.16.0 ([#6314](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6314))
+- Bump `org.eclipse.jetty:jetty-client` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 
 ## [15.8.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.1...15.8.2) (2026-09-08)
 
