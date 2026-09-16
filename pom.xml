@@ -21,7 +21,7 @@
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
 
-	<version>15.8.2</version>
+	<version>15.8.2-SNAPSHOT</version>
 	
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
@@ -147,7 +147,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.22.0</version>
+			<version>1.22.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -942,7 +942,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.15.0</version>
+				<version>3.16.0</version>
 				<configuration>
 					<release>${project.jre-version}</release>
 					<testSource>${project.jre-version}</testSource>
