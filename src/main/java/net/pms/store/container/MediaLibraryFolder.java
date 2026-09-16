@@ -247,8 +247,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						switch (expectedOutput) {
 							case FILES, FILES_NOSORT, PLAYLISTS, ISOS, EPISODES_WITHIN_SEASON -> {
 								firstSql = firstSql.replaceAll(SELECT_DISTINCT_TVSEASON, SELECT_ALL + FROM_FILES_VIDEOMETA);
-								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+								filesListFromDb = loadFilesWithSnapshot(connection, firstSql);
 							}
 							case FILES_NOSORT_DEDUPED -> {
 								Set<String> populatedFiles = new LinkedHashSet<>();
@@ -262,8 +261,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								filesListFromDb = deduplicatedFiles;
 							}
 							case EPISODES -> {
-								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+								filesListFromDb = loadFilesWithSnapshot(connection, firstSql);
 
 								// Build the season filter folders
 								int indexAfterFromInFirstQuery = firstSql.indexOf(FROM_FILES) + FROM_FILES.length();
@@ -290,8 +288,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 									populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 								} else if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-									filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-									populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+									filesListFromDb = loadFilesWithSnapshot(connection, firstSql);
 								}
 
 								if (!firstSql.toUpperCase().startsWith(SELECT)) {
@@ -730,6 +727,12 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			MediaStoreIds.incrementUpdateId(getLongId());
 		}
 		sortChildrenIfNeeded();
+	}
+
+	private List<File> loadFilesWithSnapshot(Connection connection, String sql) {
+		MediaTableFiles.FileQueryResult result = MediaTableFiles.getFilesWithSnapshot(connection, sql);
+		populatedFilesListFromDb = result.snapshot();
+		return result.files();
 	}
 
 	/**

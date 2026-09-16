@@ -1265,52 +1265,49 @@ public class MediaTableFiles extends MediaTable {
 					while (rs.next()) {
 						String filename = rs.getString(COL_FILENAME);
 						Long id = toLong(rs, COL_ID);
-						if (Boolean.FALSE.equals(MediaTableContainerFiles.isInContainer(connection, id))) {
-							if (!FileUtil.isUrl(filename)) {
-								// this is a real file, not in a container or online
-								long modified = rs.getTimestamp(COL_MODIFIED).getTime();
-								File file = new File(filename);
-								if (
-									!file.exists() ||
-									file.lastModified() != modified
-								) {
-									// the file no longer exists on the hard drive but it might comes back later (e.g. disconnected drive)
-									boolean isFileStillShared = false;
-									if (foldersToIgnore != null) {
-										for (SharedContent sharedContent : foldersToIgnore) {
-											if (filename.startsWith(sharedContent.toString())) {
-												isFileStillShared = true;
-												break;
-											}
-										}
-									}
-
-									if (isFileStillShared) {
-										LOGGER.trace("Not removing the file {} from our database because it might come back later", filename);
-										continue;
-									}
-
-									LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
-									rs.deleteRow();
-									removedIds.add(id);
-								} else {
-									// the file exists on the hard drive, but now check if we are still sharing it
-									boolean isFileStillShared = false;
-									for (File folder : sharedFolders) {
-										if (filename.contains(folder.getAbsolutePath())) {
+						// URLs are excluded from filesystem cleanup, so they need no membership query.
+						if (!FileUtil.isUrl(filename) && Boolean.FALSE.equals(MediaTableContainerFiles.isInContainer(connection, id))) {
+							// this is a real file, not in a container or online
+							long modified = rs.getTimestamp(COL_MODIFIED).getTime();
+							File file = new File(filename);
+							if (
+								!file.exists() ||
+								file.lastModified() != modified
+							) {
+								// the file no longer exists on the hard drive but it might comes back later (e.g. disconnected drive)
+								boolean isFileStillShared = false;
+								if (foldersToIgnore != null) {
+									for (SharedContent sharedContent : foldersToIgnore) {
+										if (filename.startsWith(sharedContent.toString())) {
 											isFileStillShared = true;
 											break;
 										}
 									}
+								}
 
-									if (!isFileStillShared) {
-										LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
-										rs.deleteRow();
-										removedIds.add(id);
+								if (isFileStillShared) {
+									LOGGER.trace("Not removing the file {} from our database because it might come back later", filename);
+									continue;
+								}
+
+								LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
+								rs.deleteRow();
+								removedIds.add(id);
+							} else {
+								// the file exists on the hard drive, but now check if we are still sharing it
+								boolean isFileStillShared = false;
+								for (File folder : sharedFolders) {
+									if (filename.contains(folder.getAbsolutePath())) {
+										isFileStillShared = true;
+										break;
 									}
 								}
-							} else {
-								// TODO: check for url shared content
+
+								if (!isFileStillShared) {
+									LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
+									rs.deleteRow();
+									removedIds.add(id);
+								}
 							}
 						}
 						i++;
@@ -1433,7 +1430,19 @@ public class MediaTableFiles extends MediaTable {
 
 	//TODO : review this
 	public static List<File> getFiles(final Connection connection, String sql) {
+		return readFileRows(connection, sql, false).files();
+	}
+
+	/** Reads valid files and the unfiltered first-column snapshot with one query. */
+	public static FileQueryResult getFilesWithSnapshot(final Connection connection, String sql) {
+		return readFileRows(connection, sql, true);
+	}
+
+	public record FileQueryResult(List<File> files, List<String> snapshot) { }
+
+	private static FileQueryResult readFileRows(final Connection connection, String sql, boolean includeSnapshot) {
 		List<File> list = new ArrayList<>();
+		Set<String> snapshot = includeSnapshot ? new LinkedHashSet<>() : null;
 		String psSql = sql.toUpperCase().startsWith(SELECT) || sql.toUpperCase().startsWith(WITH) ? sql : (SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_MODIFIED + FROM + TABLE_NAME + WHERE + sql);
 		try {
 			try (
@@ -1441,6 +1450,10 @@ public class MediaTableFiles extends MediaTable {
 				ResultSet rs = ps.executeQuery();
 			) {
 				while (rs.next()) {
+					if (snapshot != null) {
+						String value = rs.getString(1);
+						snapshot.add(StringUtils.isBlank(value) ? NONAME : value);
+					}
 					String filename = rs.getString(COL_FILENAME);
 					long modified = rs.getTimestamp(COL_MODIFIED).getTime();
 					File file = new File(filename);
@@ -1452,9 +1465,9 @@ public class MediaTableFiles extends MediaTable {
 		} catch (SQLException se) {
 			LOGGER.trace("Error get files with sql: {}", psSql);
 			LOGGER.error(null, se);
-			return list;
+			return new FileQueryResult(list, null);
 		}
-		return list;
+		return new FileQueryResult(list, snapshot == null ? null : new ArrayList<>(snapshot));
 	}
 
 }

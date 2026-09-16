@@ -42,7 +42,7 @@ public class MediaTableContainerFiles extends MediaTable {
 	 *
 	 * Table upgrade SQL must also be added to {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * COLUMNS NAMES
@@ -65,6 +65,8 @@ public class MediaTableContainerFiles extends MediaTable {
 	private static final String SQL_GET_ALL_BY_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_CONTAINER_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_BY_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_BY_ID_FILEID = SQL_GET_ALL_BY_ID + AND + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_CREATE_FILEID_INDEX = CREATE_INDEX + IF_NOT_EXISTS +
+		TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILEID + ")";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -97,7 +99,8 @@ public class MediaTableContainerFiles extends MediaTable {
 					COL_CONTAINER_ID  + BIGINT    + COMMA +
 					COL_FILEID        + BIGINT            +
 				")",
-				CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_CONTAINER_ID + CONSTRAINT_SEPARATOR + COL_FILEID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_CONTAINER_ID + COMMA + COL_FILEID + ")"
+				CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_CONTAINER_ID + CONSTRAINT_SEPARATOR + COL_FILEID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_CONTAINER_ID + COMMA + COL_FILEID + ")",
+				SQL_CREATE_FILEID_INDEX
 		);
 	}
 
@@ -106,6 +109,7 @@ public class MediaTableContainerFiles extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1 -> executeUpdate(connection, SQL_CREATE_FILEID_INDEX);
 				default -> {
 					throw new IllegalStateException(
 							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -246,7 +250,7 @@ public class MediaTableContainerFiles extends MediaTable {
 		if (connection == null || fileId == null) {
 			return null;
 		}
-		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_BY_FILEID)) {
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_BY_FILEID + LIMIT_1)) {
 			stmt.setLong(1, fileId);
 			try (ResultSet rs = stmt.executeQuery()) {
 				return rs.next();
