@@ -52,6 +52,7 @@ import net.pms.store.item.RealFile;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.InputFile;
+import net.pms.util.SettledFileQueue;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -69,7 +70,6 @@ public class MediaScanner implements SharedContentListener {
 	private static final List<String> SHARED_FOLDERS = new ArrayList<>();
 	private static final Renderer RENDERER = MediaScannerDevice.getRenderer();
 	private static final MediaScanner INSTANCE = new MediaScanner();
-	private static final List<String> FILES_PARSING = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * File events used to spawn one thread per file! Keep a small pool.
@@ -96,6 +96,10 @@ public class MediaScanner implements SharedContentListener {
 	 * Upper bound for the wait on a file that is still being written.
 	 */
 	private static final int MAX_FILE_SETTLE_WAITS = 120;
+	private static final SettledFileQueue FILE_SETTLEMENT_QUEUE = new SettledFileQueue(
+			Executors.newScheduledThreadPool(2,
+					Thread.ofPlatform().daemon().name("MediaScanner File Settlement-", 0).factory()),
+			FILE_EVENT_EXECUTOR, FileUtil::isLocked, 500, MAX_FILE_SETTLE_WAITS);
 
 	@GuardedBy("DEFAULT_FOLDERS_LOCK")
 	private static List<String> defaultFolders = null;
@@ -442,107 +446,73 @@ public class MediaScanner implements SharedContentListener {
 			return;
 		}
 
-		synchronized (FILES_PARSING) {
-			if (FILES_PARSING.contains(filename)) {
-				//parsing of this file is already in progress
-				return;
-			} else {
-				FILES_PARSING.add(filename);
-			}
-		}
 		Runnable r = () -> {
-			try {
-				if (advise) {
-					LOGGER.debug("File {} was created on the hard drive", filename);
+			if (advise) {
+				LOGGER.debug("File {} was created on the hard drive", filename);
+			}
+
+			if (file.exists()) {
+				LOGGER.debug("Analyzing file {}", filename);
+
+				if (!SystemFilesHelper.isPotentialMediaFile(file.getAbsolutePath())) {
+					LOGGER.trace("Not parsing file that can't be media");
+					return;
 				}
-				long currentSize = file.length();
-				//wait 500 ms
-				Thread.sleep(500);
-				//Check if size changed (copying, downloading)
-				int waits = 0;
-				while (file.exists() && (currentSize != file.length() || FileUtil.isLocked(file))) {
-					//loop until file size is not changing anymore and file is unlocked.
-					if (waits++ >= MAX_FILE_SETTLE_WAITS) {
-						LOGGER.debug("Giving up waiting for file {} to be fully written", filename);
-						synchronized (FILES_PARSING) {
-							FILES_PARSING.remove(filename);
+
+				if (!file.exists()) {
+					LOGGER.trace("Not parsing file that no longer exists");
+					return;
+				}
+
+				if (FileUtil.isLocked(file)) {
+					LOGGER.debug("File will not be parsed because it is open in another process");
+					return;
+				}
+
+				if (!isInSharedFolders(file.getAbsolutePath())) {
+					LOGGER.debug("File will not be parsed because it is not in a shared folder");
+					return;
+				}
+
+				StoreResource rf = RENDERER.getMediaStore().createResourceFromFile(file);
+				if (rf != null) {
+					if (rf instanceof StoreItem storeItem) {
+						storeItem.resolveFormat();
+					}
+					rf.syncResolve();
+					if (rf.isValid()) {
+						LOGGER.info("New file {} was detected and added to the media store", file.getName());
+						MediaStoreIds.incrementSystemUpdateId();
+
+						/*
+						 * Something about this process causes Java to hold onto the
+						 * file, which prevents things happening to it on the filesystem
+						 * until the garbage collector runs.
+						 * Some sources say it is a symptom of the nio namespace itself
+						 * and the fix is to use older syntax, and others say other things,
+						 * but until we have a real fix for it we ask Java to collect the
+						 * garbage. It might not do it, but usually it does, which is better
+						 * than what we had before.
+						 */
+						if (FileUtil.isLocked(file)) {
+							System.gc();
 						}
-						return;
-					}
-					LOGGER.trace("Waiting until file {} is fully written", filename);
-					currentSize = file.length();
-					Thread.sleep(500);
-				}
-				//here the file should be fully written, deleted or moved.
-				synchronized (FILES_PARSING) {
-					FILES_PARSING.remove(filename);
-				}
 
-				if (file.exists()) {
-					LOGGER.debug("Analyzing file {}", filename);
-
-					if (!SystemFilesHelper.isPotentialMediaFile(file.getAbsolutePath())) {
-						LOGGER.trace("Not parsing file that can't be media");
-						return;
-					}
-
-					if (!file.exists()) {
-						LOGGER.trace("Not parsing file that no longer exists");
-						return;
-					}
-
-					if (FileUtil.isLocked(file)) {
-						LOGGER.debug("File will not be parsed because it is open in another process");
-						return;
-					}
-
-					if (!isInSharedFolders(file.getAbsolutePath())) {
-						LOGGER.debug("File will not be parsed because it is not in a shared folder");
-						return;
-					}
-
-					StoreResource rf = RENDERER.getMediaStore().createResourceFromFile(file);
-					if (rf != null) {
-						if (rf instanceof StoreItem storeItem) {
-							storeItem.resolveFormat();
-						}
-						rf.syncResolve();
-						if (rf.isValid()) {
-							LOGGER.info("New file {} was detected and added to the media store", file.getName());
-							MediaStoreIds.incrementSystemUpdateId();
-
-							/*
-							 * Something about this process causes Java to hold onto the
-							 * file, which prevents things happening to it on the filesystem
-							 * until the garbage collector runs.
-							 * Some sources say it is a symptom of the nio namespace itself
-							 * and the fix is to use older syntax, and others say other things,
-							 * but until we have a real fix for it we ask Java to collect the
-							 * garbage. It might not do it, but usually it does, which is better
-							 * than what we had before.
-							 */
-							if (FileUtil.isLocked(file)) {
-								System.gc();
-							}
-
-							if (advise || isCrawlingParentDirectory) {
-								// Advise renderers about added file.
-								for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-									connectedRenderer.getMediaStore().fileAdded(file);
-								}
+						if (advise || isCrawlingParentDirectory) {
+							// Advise renderers about added file.
+							for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+								connectedRenderer.getMediaStore().fileAdded(file);
 							}
 						}
-					} else {
-						LOGGER.trace("File {} was not recognized as valid media so was not added to the media store", file.getName());
 					}
 				} else {
-					LOGGER.debug("File {} does not exist anymore", filename);
+					LOGGER.trace("File {} was not recognized as valid media so was not added to the media store", file.getName());
 				}
-			} catch (InterruptedException ex) {
-				Thread.currentThread().interrupt();
+			} else {
+				LOGGER.debug("File {} does not exist anymore", filename);
 			}
 		};
-		FILE_EVENT_EXECUTOR.execute(r);
+		FILE_SETTLEMENT_QUEUE.submit(file, r);
 	}
 
 	private static void addFolderEntry(File directory) {
