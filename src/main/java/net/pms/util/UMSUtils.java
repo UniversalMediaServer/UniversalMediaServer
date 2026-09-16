@@ -22,9 +22,10 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
@@ -216,7 +217,7 @@ public class UMSUtils {
 	}
 
 	/**
-	 * @see https://stackoverflow.com/a/19155453/2049714
+	 * Compares lists regardless of order, preserving duplicate counts and inputs.
 	 * @param a first list to compare
 	 * @param b second list to compare
 	 * @return whether the lists are equal
@@ -231,11 +232,27 @@ public class UMSUtils {
 			return false;
 		}
 
-		// Sort and compare the two lists
-		Collections.sort(a);
-		Collections.sort(b);
-
-		return a.equals(b);
+		// Most refreshes return the same order. Avoid allocating in that case.
+		if (a.equals(b)) {
+			return true;
+		}
+		// Compare multiplicities without sorting or changing the stored snapshot.
+		Map<String, Integer> counts = new HashMap<>();
+		for (String value : a) {
+			counts.merge(value, 1, Integer::sum);
+		}
+		for (String value : b) {
+			Integer count = counts.get(value);
+			if (count == null) {
+				return false;
+			}
+			if (count == 1) {
+				counts.remove(value);
+			} else {
+				counts.put(value, count - 1);
+			}
+		}
+		return true;
 	}
 
 	/**

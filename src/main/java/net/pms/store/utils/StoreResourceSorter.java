@@ -24,10 +24,13 @@ import java.nio.file.Path;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -42,7 +45,8 @@ import org.slf4j.LoggerFactory;
 public class StoreResourceSorter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StoreResourceSorter.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final Pattern TITLE_ARTICLES = Pattern.compile("^(?i)A[ .]|The[ .]");
+	private static final Pattern REPEATED_WHITESPACE = Pattern.compile("\\s{2,}");
 
 	// Sort constants
 	// Sort by title ascending, with compatibility decomposition (all accent/special char handled).
@@ -101,7 +105,7 @@ public class StoreResourceSorter {
 	}
 
 	public static void sortResourcesByDefault(List<StoreResource> resources, String lang) {
-		int sortMethod = CONFIGURATION.getSortMethod();
+		int sortMethod = PMS.getConfiguration().getSortMethod();
 		switch (sortMethod) {
 			case SORT_TITLE_ASC -> {
 				// Default value.
@@ -139,6 +143,8 @@ public class StoreResourceSorter {
 	}
 
 	private static void sortResourcesByTitle(List<StoreResource> resources, boolean asc, String lang) {
+		Map<StoreResource, String> titles = new IdentityHashMap<>();
+		boolean ignoreArticles = PMS.getConfiguration().isIgnoreTheWordAandThe();
 		Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
 			if (resources1 instanceof StoreResource && resources2 instanceof StoreResource) {
 				if (resources1 instanceof StoreItem && resources2 instanceof StoreContainer) {
@@ -154,13 +160,9 @@ public class StoreResourceSorter {
 				} else if (!resources2.isSortable()) {
 					return asc ? 1 : -1;
 				}
-				String str1 = resources1.getLocalizedDisplayName(lang);
-				String str2 = resources2.getLocalizedDisplayName(lang);
-				if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
-					str1 = str1 != null ? str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
-					str2 = str2 != null ? str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
-				}
-				return compareToNormalizedString(str1, str2, asc);
+				String str1 = getTitleSortKey(resources1, lang, ignoreArticles, titles);
+				String str2 = getTitleSortKey(resources2, lang, ignoreArticles, titles);
+				return compareStrings(str1, str2, asc);
 			} else {
 				return 0;
 			}
@@ -168,6 +170,7 @@ public class StoreResourceSorter {
 	}
 
 	private static void sortResourcesByModifiedDate(List<StoreResource> resources, boolean asc) {
+		Map<File, Long> modifiedTimes = new HashMap<>();
 		try {
 			Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
 				if (resources1 instanceof SystemFileResource systemFileResource1 && resources2 instanceof SystemFileResource systemFileResource2) {
@@ -183,8 +186,8 @@ public class StoreResourceSorter {
 					} else if (file1 == null) {
 						return -1;
 					}
-					long lastModified1 = getFileLastModifiedTime(file1);
-					long lastModified2 = getFileLastModifiedTime(file2);
+					long lastModified1 = modifiedTimes.computeIfAbsent(file1, StoreResourceSorter::getFileLastModifiedTime);
+					long lastModified2 = modifiedTimes.computeIfAbsent(file2, StoreResourceSorter::getFileLastModifiedTime);
 					if (asc) {
 						return Long.compare(lastModified1, lastModified2);
 					} else {
@@ -241,14 +244,33 @@ public class StoreResourceSorter {
 		}
 	}
 
+	private static String getTitleSortKey(StoreResource resource, String lang, boolean ignoreArticles, Map<StoreResource, String> titles) {
+		String title = titles.get(resource);
+		if (title == null && !titles.containsKey(resource)) {
+			title = resource.getLocalizedDisplayName(lang);
+			if (title != null) {
+				if (ignoreArticles) {
+					title = REPEATED_WHITESPACE.matcher(TITLE_ARTICLES.matcher(title).replaceAll("")).replaceAll(" ");
+				}
+				title = Normalizer.normalize(title, Normalizer.Form.NFKD);
+			}
+			titles.put(resource, title);
+		}
+		return title;
+	}
+
 	private static int compareToNormalizedString(String str1, String str2, boolean asc) {
+		return compareStrings(
+				str1 == null ? null : Normalizer.normalize(str1, Normalizer.Form.NFKD),
+				str2 == null ? null : Normalizer.normalize(str2, Normalizer.Form.NFKD), asc);
+	}
+
+	private static int compareStrings(String str1, String str2, boolean asc) {
 		if (str2 == null) {
 			return str1 == null ? 0 : 1;
 		} else if (str1 == null) {
 			return -1;
 		}
-		str1 = Normalizer.normalize(str1, Normalizer.Form.NFKD);
-		str2 = Normalizer.normalize(str2, Normalizer.Form.NFKD);
 		if (asc) {
 			return str1.compareToIgnoreCase(str2);
 		} else {

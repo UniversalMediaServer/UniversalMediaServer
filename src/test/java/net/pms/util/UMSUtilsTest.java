@@ -43,6 +43,23 @@ public class UMSUtilsTest {
 	}
 
 	@Test
+	void listComparisonIgnoresOrderButPreservesDuplicatesAndInputs() {
+		List<String> first = new ArrayList<>(List.of("z", "a", "z"));
+		List<String> second = new ArrayList<>(List.of("z", "z", "a"));
+		assertTrue(UMSUtils.isListsEqual(first, second));
+		assertEquals(List.of("z", "a", "z"), first);
+		assertEquals(List.of("z", "z", "a"), second);
+		assertFalse(UMSUtils.isListsEqual(first, List.of("a", "a", "z")));
+		assertTrue(UMSUtils.isListsEqual(List.of("b", "a"), List.of("a", "b")));
+		assertTrue(UMSUtils.isListsEqual(List.of("b", "a"), List.of("b", "a")));
+		assertTrue(UMSUtils.isListsEqual(List.of(), List.of()));
+		assertTrue(UMSUtils.isListsEqual(null, null));
+		assertFalse(UMSUtils.isListsEqual(null, List.of()));
+		assertFalse(UMSUtils.isListsEqual(List.of(), null));
+		assertFalse(UMSUtils.isListsEqual(first, List.of("a")));
+	}
+
+	@Test
 	public void testPlayedDurationStr() throws Exception {
 		assertEquals(UMSUtils.playedDurationStr("01:23:45:67.89", "01:23:45:67"), "23:45:67 / 23:45:67");
 		assertEquals(UMSUtils.playedDurationStr("01:23", "01:23:45"), "1:23 / 1:23:45");
