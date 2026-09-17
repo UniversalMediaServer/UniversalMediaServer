@@ -61,13 +61,22 @@ public class MediaInfoStore {
 
 	// A weak reference that remembers its key
 	private static final class KeyedReference<V> extends WeakReference<V> {
+
 		private final Object key;
+		private final long lastModified;
 
 		private KeyedReference(Object key, V value, ReferenceQueue<? super V> queue) {
+			this(key, value, queue, UNKNOWN_MODIFIED);
+		}
+
+		private KeyedReference(Object key, V value, ReferenceQueue<? super V> queue, long lastModified) {
 			super(value, queue);
 			this.key = key;
+			this.lastModified = lastModified;
 		}
 	}
+
+	private static final long UNKNOWN_MODIFIED = -1;
 
 	// One lock per file or url
 	private static final Map<String, CountedLock> LOCKS = new HashMap<>();
@@ -99,10 +108,25 @@ public class MediaInfoStore {
 	}
 
 	private static MediaInfo getMediaInfoStored(String filename) {
+		return getMediaInfoStored(filename, UNKNOWN_MODIFIED);
+	}
+
+	private static MediaInfo getMediaInfoStored(String filename, long lastModified) {
 		synchronized (STORE) {
 			purgeStore();
 			WeakReference<MediaInfo> reference = STORE.get(filename);
-			return reference != null ? reference.get() : null;
+			if (reference == null) {
+				return null;
+			}
+			if (lastModified != UNKNOWN_MODIFIED &&
+					reference instanceof KeyedReference<MediaInfo> keyed &&
+					keyed.lastModified != UNKNOWN_MODIFIED &&
+					keyed.lastModified != lastModified) {
+				LOGGER.debug("Stored media info for {} is from another version of the file, parsing it again", filename);
+				STORE.remove(filename, reference);
+				return null;
+			}
+			return reference.get();
 		}
 	}
 
@@ -157,9 +181,13 @@ public class MediaInfoStore {
 	}
 
 	private static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
+		storeMediaInfo(filename, mediaInfo, UNKNOWN_MODIFIED);
+	}
+
+	private static void storeMediaInfo(String filename, MediaInfo mediaInfo, long lastModified) {
 		synchronized (STORE) {
 			purgeStore();
-			STORE.put(filename, new KeyedReference<>(filename, mediaInfo, STORE_QUEUE));
+			STORE.put(filename, new KeyedReference<>(filename, mediaInfo, STORE_QUEUE, lastModified));
 		}
 	}
 
@@ -176,9 +204,10 @@ public class MediaInfoStore {
 					connection = MediaDatabase.getConnectionIfAvailable();
 					if (connection != null) {
 						File file = new File(filename);
-						mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
+						long fileModified = file.lastModified();
+						mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, fileModified);
 						if (mediaInfo != null && mediaInfo.isMediaParsed() && mediaInfo.getMimeType() != null) {
-							storeMediaInfo(filename, mediaInfo);
+							storeMediaInfo(filename, mediaInfo, fileModified);
 						}
 						return mediaInfo;
 					}
@@ -200,7 +229,8 @@ public class MediaInfoStore {
 		CountedLock lock = acquireLock(filename);
 		try {
 			synchronized (lock) {
-				MediaInfo mediaInfo = getMediaInfoStored(filename);
+				long lastModified = file.lastModified();
+				MediaInfo mediaInfo = getMediaInfoStored(filename, lastModified);
 				if (mediaInfo != null) {
 					return mediaInfo;
 				}
@@ -213,22 +243,22 @@ public class MediaInfoStore {
 					if (connection != null) {
 						connection.setAutoCommit(false);
 						try {
-							mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
+							mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, lastModified);
 							if (mediaInfo != null) {
 								if (!mediaInfo.isMediaParsed()) {
 									Parser.parse(mediaInfo, input, format, type);
-									MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+									MediaTableFiles.insertOrUpdateData(connection, filename, lastModified, type, mediaInfo);
 								}
 								//ensure we have the mime type
 								if (mediaInfo.getMimeType() == null) {
 									Parser.postParse(mediaInfo, type);
-									MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+									MediaTableFiles.insertOrUpdateData(connection, filename, lastModified, type, mediaInfo);
 								}
 								//ensure we have the ruid
 								if (mediaInfo.getResourceId() == null) {
 									String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
 									mediaInfo.setResourceId(resourceHash);
-									MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+									MediaTableFiles.insertOrUpdateData(connection, filename, lastModified, type, mediaInfo);
 								}
 							}
 						} catch (IOException | SQLException e) {
@@ -256,7 +286,7 @@ public class MediaInfoStore {
 					MediaDatabase.close(connection);
 				}
 				if (mediaInfo != null) {
-					storeMediaInfo(filename, mediaInfo);
+					storeMediaInfo(filename, mediaInfo, lastModified);
 				}
 				return mediaInfo;
 			}
