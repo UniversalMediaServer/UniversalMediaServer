@@ -30,7 +30,7 @@ export default function GeneralSettings({
   setAdvancedSettings,
 }: {
   i18n: I18nInterface
-  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
+  form: UseFormReturnType<Record<string, any>, Record<string, any>, undefined>
   defaultConfiguration: Record<string, unknown>
   selectionSettings: SelectionSettingsData | undefined
   advancedSettings: boolean
