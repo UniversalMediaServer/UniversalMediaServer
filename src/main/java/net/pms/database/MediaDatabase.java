@@ -255,6 +255,18 @@ public class MediaDatabase extends Database {
 		return isInstantiated() && instance.isOpened();
 	}
 
+
+	private static final java.util.concurrent.atomic.AtomicLong CONNECTION_NANOS = new java.util.concurrent.atomic.AtomicLong();
+	private static final java.util.concurrent.atomic.AtomicLong CONNECTION_COUNT = new java.util.concurrent.atomic.AtomicLong();
+
+	public static long getConnectionNanos() {
+		return CONNECTION_NANOS.get();
+	}
+
+	public static long getConnectionCount() {
+		return CONNECTION_COUNT.get();
+	}
+
 	/**
 	 * Get a MediaDatabase connection.
 	 *
@@ -268,6 +280,7 @@ public class MediaDatabase extends Database {
 	 */
 	public static Connection getConnectionIfAvailable() {
 		if (isAvailable()) {
+			long startedAt = System.nanoTime();
 			try {
 				return instance.getConnection();
 			} catch (SQLException ex) {
@@ -275,6 +288,9 @@ public class MediaDatabase extends Database {
 				// drop writes (a thumbnail id that is never stored, an update id that is never bumped).
 				LOGGER.warn("No database connection available: {}", ex.getMessage());
 				LOGGER.trace("", ex);
+			} finally {
+				CONNECTION_NANOS.addAndGet(System.nanoTime() - startedAt);
+				CONNECTION_COUNT.incrementAndGet();
 			}
 		}
 		return null;

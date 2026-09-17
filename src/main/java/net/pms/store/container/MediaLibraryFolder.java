@@ -220,6 +220,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	public synchronized void doRefreshChildren() {
 		long startedAt = System.nanoTime();
 		long dbNanos = 0;
+		long connectionNanosAtStart = MediaDatabase.getConnectionNanos();
+		long connectionCountAtStart = MediaDatabase.getConnectionCount();
 		List<File> filesListFromDb = null;
 		List<String> virtualFoldersListFromDb = null;
 
@@ -743,8 +745,11 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		if (totalMs >= REFRESH_LOG_THRESHOLD_MS) {
 			long dbMs = dbNanos / 1_000_000;
 			int childCount = getChildren().size();
-			LOGGER.info("Slow refresh of \"{}\": {} ms total, {} ms database, {} ms per child, {} children",
-					getName(), totalMs, dbMs, childCount > 0 ? (totalMs * 1000 / childCount) / 1000.0 : 0, childCount);
+			long connectionMs = (MediaDatabase.getConnectionNanos() - connectionNanosAtStart) / 1_000_000;
+			long connections = MediaDatabase.getConnectionCount() - connectionCountAtStart;
+			LOGGER.info("Slow refresh of \"{}\": {} ms total, {} ms folder query, {} ms per child, {} children, {} connections taking {} ms",
+					getName(), totalMs, dbMs, childCount > 0 ? (totalMs * 1000 / childCount) / 1000.0 : 0, childCount,
+					connections, connectionMs);
 		}
 	}
 
