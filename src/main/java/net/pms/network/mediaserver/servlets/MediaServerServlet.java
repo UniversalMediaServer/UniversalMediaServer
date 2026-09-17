@@ -499,12 +499,20 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						range.setEnd(0L);
 					}
 					try {
+						IcyMetadataSource icyMetadataSource = null;
 						if ("1".equals(req.getHeader("Icy-MetaData")) && item instanceof IcyMetadataSource icySource && icySource.isIcyMetadataEnabled()) {
+							if (item.isTranscoded()) {
+								LOGGER.debug("Not sending ICY metadata for \"{}\": the stream is transcoded by {}", item.getName(), item.getTranscodingSettings());
+							} else {
+								icyMetadataSource = icySource;
+							}
+						}
+						if (icyMetadataSource != null) {
 							// Renderer asked for SHOUTcast/Icecast in-band metadata: advertise the
 							// interval and interleave the metadata blocks into the stream.
-							int metaInt = icySource.getIcyMetaInt();
+							int metaInt = icyMetadataSource.getIcyMetaInt();
 							resp.setHeader("icy-metaint", Integer.toString(metaInt));
-							inputStream = icySource.getIcyInputStream(metaInt);
+							inputStream = icyMetadataSource.getIcyInputStream(metaInt);
 						} else {
 							inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
 						}
