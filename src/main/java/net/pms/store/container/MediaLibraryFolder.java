@@ -743,7 +743,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		if (totalMs >= REFRESH_LOG_THRESHOLD_MS) {
 			long dbMs = dbNanos / 1_000_000;
 			int childCount = getChildren().size();
-			LOGGER.info("doRefreshChildren \"{}\": {} ms total, {} ms database, {} ms per child, {} children",
+			LOGGER.info("Slow refresh of \"{}\": {} ms total, {} ms database, {} ms per child, {} children",
 					getName(), totalMs, dbMs, childCount > 0 ? (totalMs * 1000 / childCount) / 1000.0 : 0, childCount);
 		}
 	}
