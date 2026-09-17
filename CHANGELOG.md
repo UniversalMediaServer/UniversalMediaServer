@@ -21,6 +21,7 @@
 - Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
 - Bump `com.twelvemonkeys.imageio:imageio-webp` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
 - Bump `commons-codec:commons-codec` from 1.22.0 to 1.22.1 ([#6315](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6315))
+- Bump `jna-version` from 5.18.1 to 5.19.1 ([#6316](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6316))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.15.0 to 3.16.0 ([#6314](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6314))
