@@ -1032,8 +1032,11 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * Whether a "contains" search also tolerates typos.
 	 *
-	 * @return true : Use fuzzy search for contains matches, false : use exact search for contains matches.
+	 * Disabled, only the prefix counts.
+	 *
+	 * @return true : prefix and fuzzy, false : prefix only.
 	 */
 	public boolean getLuceneContainsFuzzySearch() {
 		return getBoolean(KEY_SEARCH_LUCENE_CONTAINS_FUZZ, true);
