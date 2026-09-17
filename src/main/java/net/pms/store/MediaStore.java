@@ -693,6 +693,10 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
+		return findSystemFileResources(file, true);
+	}
+
+	public List<StoreResource> findSystemFileResources(File file, boolean createIfMissing) {
 		if (file == null) {
 			return new ArrayList<>();
 		}
@@ -707,7 +711,7 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 
-		if (systemFileResources.isEmpty()) {
+		if (systemFileResources.isEmpty() && createIfMissing) {
 			StoreResource sr = null;
 			if (file.isDirectory()) {
 				sr = DbIdResourceLocator.getLibraryResourceRealFolder(renderer, file.getAbsolutePath());
@@ -887,7 +891,7 @@ public class MediaStore extends StoreContainer {
 	 */
 	public List<Long> fileUpdated(File file) {
 		List<Long> refreshedIds = new ArrayList<>();
-		for (StoreResource storeResource : findSystemFileResources(file)) {
+		for (StoreResource storeResource : findSystemFileResources(file, false)) {
 			if (storeResource instanceof PlaylistFolder playlistFolder) {
 				playlistFolder.setDiscovered(false);
 				// Only invalidated here. The store id is the same for every renderer, so the caller bumps
@@ -900,7 +904,7 @@ public class MediaStore extends StoreContainer {
 			if (storeResource instanceof RealFile rf) {
 				rf.setMediaInfo(null);
 				rf.resolve();
-				LOGGER.debug("File {} updated, media info refreshed and parent folder refreshed.", file.toString());
+				LOGGER.debug("File {} updated, media info refreshed, parent will be read again on the next browse.", file.toString());
 			} else if (storeResource instanceof RealFolder rf) {
 				rf.setMediaInfo(null);
 				rf.resolve();
@@ -909,7 +913,8 @@ public class MediaStore extends StoreContainer {
 			}
 			StoreContainer parent = storeResource.getParent();
 			refreshedIds.add(parent.getLongId());
-			parent.discoverChildren();
+			parent.setDiscovered(false);
+			parent.markRefreshed();
 		}
 		return refreshedIds;
 	}
