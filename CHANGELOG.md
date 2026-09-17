@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `com.github.junrar:junrar` from 7.6.0 to 7.6.1 ([#6328](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6328))
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
 - Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
 - Bump `com.twelvemonkeys.imageio:imageio-core` from 3.14.0 to 3.15.0 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322))
