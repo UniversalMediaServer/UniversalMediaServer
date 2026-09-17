@@ -608,6 +608,24 @@ public class MediaStore extends StoreContainer {
 	}
 
 	/**
+	 * Walks the ancestors of a resource so it can be found in the store again.
+	 *
+	 * @param rebuild if true, forces a container that is already discovered to read its children again.
+	 */
+	private void discoverTree(List<MediaStoreId> libraryIds, boolean rebuild) {
+		for (MediaStoreId libraryId : libraryIds) {
+			StoreResource parent = getWeakResource(libraryId.getId());
+			if (parent instanceof StoreContainer container) {
+				if (rebuild) {
+					container.discoverChildren();
+				} else {
+					container.discover(false);
+				}
+			}
+		}
+	}
+
+	/**
 	 * Try to recreate the item tree if possible.
 	 *
 	 * @param id
@@ -617,14 +635,13 @@ public class MediaStore extends StoreContainer {
 		LOGGER.trace("try recreating resource with id '{}'", id);
 		List<MediaStoreId> libraryIds = MediaStoreIds.getMediaStoreResourceTree(id);
 		if (!libraryIds.isEmpty()) {
-			for (MediaStoreId libraryId : libraryIds) {
-				StoreResource parent = getWeakResource(libraryId.getId());
-				if (parent instanceof StoreContainer container) {
-					container.discoverChildren();
-				}
-			}
-			//now that parent folders are discovered, try to get the resource
+			discoverTree(libraryIds, false);
 			StoreResource resource = getWeakResource(id);
+			if (resource == null) {
+				LOGGER.trace("resource with id '{}' not found in the discovered tree, rebuilding it", id);
+				discoverTree(libraryIds, true);
+				resource = getWeakResource(id);
+			}
 			if (resource != null) {
 				LOGGER.trace("resource with id '{}' recreacted succefully", id);
 				return resource;
