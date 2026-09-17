@@ -27,7 +27,8 @@
             "preLaunchTask": "copy website",
             "request": "launch",
             "mainClass": "net.pms.PMS",
-            "projectName": "ums"
+            "projectName": "ums",
+            "vmArgs": "--enable-preview --add-modules jdk.incubator.vector --add-opens java.base/sun.nio.ch=ALL-UNNAMED"
         }
     ]
 }
