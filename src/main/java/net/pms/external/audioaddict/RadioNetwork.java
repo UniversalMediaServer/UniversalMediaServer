@@ -991,6 +991,25 @@ public class RadioNetwork {
 	}
 
 	/**
+	 * Tells the service that the stream behind that token is still being listened to. The official
+	 * player does this every minute for as long as a track plays; the token out of the content url is
+	 * the whole credential, it needs neither api key nor session.
+	 */
+	public void pingStreaming(String audioToken) {
+		if (StringUtils.isBlank(audioToken)) {
+			return;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/streaming/%s", network.shortName, audioToken);
+		try {
+			httpBlocking.newRequest(url).method(HttpMethod.POST).send();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} catch (ExecutionException | TimeoutException e) {
+			LOGGER.debug("{} : streaming ping failed : {}", network.displayName, e.getMessage());
+		}
+	}
+
+	/**
 	 * @param channelId the channel id.
 	 * @return the currently playing track on that channel as "Artist - Title", or NULL when unknown.
 	 */

@@ -1,14 +1,12 @@
 package net.pms.store.container.audioaddict;
 
-import java.io.InputStream;
 import net.pms.encoders.TranscodingSettings;
 import net.pms.external.audioaddict.AudioAddictPlaylistDto;
 import net.pms.external.audioaddict.Platform;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
-import net.pms.store.IcyMetadataInputStream;
-import net.pms.store.NowPlayingWatchInputStream;
+import net.pms.store.LiveStreamRelay.Source;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -50,21 +48,16 @@ public class AudioAddictPlaylistStream extends AudioAddictBroadcastStream {
 		return playlistId;
 	}
 
-	@Override
-	public InputStream getInputStream() {
-		AudioAddictPlaylistInputStream source = new AudioAddictPlaylistInputStream(network, playlistId, loop);
-		return new NowPlayingWatchInputStream(source, getResourceId(), source::getNowPlaying);
-	}
-
 	/**
-	 * Provides the same continuous playlist stream but with ICY metadata interleaved, so a
-	 * renderer that asked for "Icy-MetaData" can display the current track.
+	 * The playlist is put together here, so this stream knows itself what it is playing. It is opened
+	 * through the relay of the base class like any other endless stream: one session serves every
+	 * listener, which is also what keeps the playlist cursor of the account from being advanced once
+	 * per listener.
 	 */
 	@Override
-	public InputStream getIcyInputStream(int metaInt) {
+	protected Source openSource() {
 		AudioAddictPlaylistInputStream source = new AudioAddictPlaylistInputStream(network, playlistId, loop);
-		return new NowPlayingWatchInputStream(new IcyMetadataInputStream(source, metaInt, source::getStreamTitle),
-				getResourceId(), source::getNowPlaying);
+		return new Source(source, source::getNowPlaying);
 	}
 
 	/**

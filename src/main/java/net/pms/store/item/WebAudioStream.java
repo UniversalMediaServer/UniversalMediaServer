@@ -141,12 +141,12 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 			if (listener == null) {
 				return null;
 			}
-			return connection(listener, listener.hasStreamTitle() ? listener::getStreamTitle : null);
+			return connection(listener, listener.hasNowPlaying() ? listener::getNowPlaying : null);
 		}
 		try {
 			Source source = openSource();
 			if (source != null) {
-				return connection(source.stream(), source.title());
+				return connection(source.stream(), source.nowPlaying());
 			}
 		} catch (IOException e) {
 			LOGGER.warn("cannot open the stream {} : {}", getUrl(), e.getMessage());
@@ -156,30 +156,33 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 	}
 
 
-	private Source openSource() throws IOException {
+	/**
+	 * Opens the bytes of the station and says where it announces what it is playing. A stream that
+	 * knows its own playback - a playlist this server puts together itself - overrides this.
+	 */
+	protected Source openSource() throws IOException {
 		IcyMetadataReaderInputStream reader = isIcyPassThrough() ? openIcyReader() : null;
 		if (reader != null) {
-			return new Source(reader, reader::getStreamTitle);
+			// The station announces a single line, which still has to be split into artist and title.
+			IcyStreamTitleParser parser = newTitleParser();
+			return new Source(reader, () -> parser.parse(reader.getStreamTitle()));
 		}
 		InputStream plain = super.getInputStream();
-		return plain == null ? null : new Source(plain, null);
+		return plain == null ? null : new Source(plain, this::getNowPlaying);
 	}
 
 	/**
-	 * Binds the two consumers of the title: the ICY output towards the renderer and the push towards a control point.
+	 * Binds the two consumers of what is playing: the ICY output towards the renderer and the push
+	 * towards a control point. Both read the same source, so they can never disagree.
 	 *
-	 * @param upstreamTitle where the stream announces its title, NULL when it does not
+	 * @param nowPlaying what the opened stream announces, NULL when it announces nothing
 	 */
-	private Connection connection(InputStream stream, Supplier<String> upstreamTitle) {
-		if (upstreamTitle != null) {
-			IcyStreamTitleParser parser = newTitleParser();
-			return new Connection(stream, upstreamTitle, () -> parser.parse(upstreamTitle.get()));
-		}
-		return new Connection(stream, this::currentStreamTitle, this::getNowPlaying);
+	private Connection connection(InputStream stream, Supplier<NowPlayingInfo> nowPlaying) {
+		Supplier<NowPlayingInfo> source = nowPlaying != null ? nowPlaying : this::getNowPlaying;
+		return new Connection(stream, () -> streamTitleOf(source.get()), source);
 	}
 
-	private String currentStreamTitle() {
-		NowPlayingInfo info = getNowPlaying();
+	private static String streamTitleOf(NowPlayingInfo info) {
 		return info == null ? null : info.streamTitle;
 	}
 

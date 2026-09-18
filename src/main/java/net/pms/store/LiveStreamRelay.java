@@ -24,7 +24,10 @@ public final class LiveStreamRelay {
 		Source open() throws IOException;
 	}
 
-	public record Source(InputStream stream, Supplier<String> title) {
+	/**
+	 * The bytes of a live stream, free of ICY blocks, and where it says what it is playing.
+	 */
+	public record Source(InputStream stream, Supplier<NowPlayingInfo> nowPlaying) {
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LiveStreamRelay.class.getName());
@@ -113,16 +116,16 @@ public final class LiveStreamRelay {
 		/**
 		 * @return whether the shared stream knows what it is playing
 		 */
-		public boolean hasStreamTitle() {
-			return relay.source.title() != null;
+		public boolean hasNowPlaying() {
+			return relay.source.nowPlaying() != null;
 		}
 
 		/**
 		 * @return what the shared stream is playing, NULL when unknown
 		 */
-		public String getStreamTitle() {
-			Supplier<String> title = relay.source.title();
-			return title == null ? null : title.get();
+		public NowPlayingInfo getNowPlaying() {
+			Supplier<NowPlayingInfo> nowPlaying = relay.source.nowPlaying();
+			return nowPlaying == null ? null : nowPlaying.get();
 		}
 
 		@Override

@@ -110,6 +110,13 @@ public class AudioAddictService implements EventListener<ConfigurationEvent> {
 	}
 
 	/**
+	 * Keeps the service informed that we are still listening to the stream behind that token.
+	 */
+	public void pingStreaming(Platform platform, String audioToken) {
+		getNetwork(platform).pingStreaming(audioToken);
+	}
+
+	/**
 	 * @return the track currently playing on the given channel as "Artist - Title", or NULL when
 	 * unknown.
 	 */
