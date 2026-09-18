@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.URI;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -79,6 +80,18 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	private volatile String audioToken;
 	private ScheduledFuture<?> ping;
 
+	/*
+	 * The bytes go out at the speed they are listened to.
+	 */
+	private static final long BURST_MS = 4000;
+	private static final long MAX_SLEEP_MS = 250;
+	// 320 kbit/s, the premium quality, for a track that does not say how long it is.
+	private static final int FALLBACK_BYTES_PER_SECOND = 40000;
+
+	private long pacingStartedAt;
+	private double deliveredMs;
+	private double msPerByte;
+
 	public AudioAddictPlaylistInputStream(Platform network, int playlistId, boolean loop) {
 		this.network = network;
 		this.playlistId = playlistId;
@@ -98,6 +111,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			if (current != null) {
 				int n = current.read(b, off, len);
 				if (n != -1) {
+					pace(n);
 					return n;
 				}
 				closeCurrent(false);
@@ -183,16 +197,18 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			return false;
 		}
 		try {
-			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 64 * 1024);
+			URLConnection connection = URI.create(next.contentUrl).toURL().openConnection();
+			BufferedInputStream in = new BufferedInputStream(connection.getInputStream(), 64 * 1024);
 			currentTrack = next;
 			scheduleTrack(next);
 			startStreamingPing(next.contentUrl);
 			trackNumber++;
 			// Strip the original ID3v2 tag (it carries large cover art that desyncs strict decoders at
 			// concatenated track boundaries) and prepend a tiny synthetic one.
-			stripId3v2(in);
+			int stripped = stripId3v2(in);
 			byte[] id3 = buildId3v2(next.artist, next.title);
 			current = new SequenceInputStream(new ByteArrayInputStream(id3), in);
+			setPace(next, connection.getContentLengthLong() - stripped + id3.length);
 			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (prepended {} byte ID3v2)", network.displayName,
 				playlistId, trackNumber, next.id, next.artist, next.title, id3.length);
 			return true;
@@ -245,16 +261,43 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 
 	/**
 	 * Skips a leading ID3v2 tag so the rest of the stream begins at the first MP3 audio frame.
+	 *
+	 * @return how many bytes of tag were skipped, so they do not count as playing time
 	 */
-	private void stripId3v2(BufferedInputStream in) throws IOException {
+	private int stripId3v2(BufferedInputStream in) throws IOException {
 		in.mark(16);
 		byte[] header = in.readNBytes(10);
 		if (header.length == 10 && header[0] == 'I' && header[1] == 'D' && header[2] == '3') {
 			int size = ((header[6] & 0x7F) << 21) | ((header[7] & 0x7F) << 14) | ((header[8] & 0x7F) << 7) | (header[9] & 0x7F);
 			in.skipNBytes(size);
 			LOGGER.debug("{} : playlist {} - track #{} stripped ID3v2 ({} bytes)", network.displayName, playlistId, trackNumber, size);
-		} else {
-			in.reset();
+			return size + 10;
+		}
+		in.reset();
+		return 0;
+	}
+
+	private void setPace(AudioAddictTrackDto track, long audioBytes) {
+		msPerByte = track.length > 0 && audioBytes > 0 ?
+			track.length * 1000.0 / audioBytes :
+			1000.0 / FALLBACK_BYTES_PER_SECOND;
+	}
+
+	/**
+	 * Holds the stream back to the speed of listening.
+	 */
+	private void pace(int bytes) {
+		if (pacingStartedAt == 0) {
+			pacingStartedAt = System.currentTimeMillis();
+		}
+		deliveredMs += bytes * msPerByte;
+		long wait = pacingStartedAt + (long) deliveredMs - BURST_MS - System.currentTimeMillis();
+		if (wait > 0) {
+			try {
+				Thread.sleep(Math.min(wait, MAX_SLEEP_MS));
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 
