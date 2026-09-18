@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.AuthenticationStore;
 import org.eclipse.jetty.client.BasicAuthentication;
 import org.eclipse.jetty.client.CompletableResponseListener;
@@ -65,6 +66,7 @@ public class RadioNetwork {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RadioNetwork.class.getName());
 
 	private final static String EUROPE_SERVER = "http://prem2";
+	private final static String CHANNEL_KEY_PLACEHOLDER = "{channelKey}";
 	private final static String FAV = "Favorites";
 
 	private final static ExecutorService EXEC_SERVICE = Executors.newSingleThreadExecutor();
@@ -440,29 +442,62 @@ public class RadioNetwork {
 	 */
 	private Channel[] convertPlsToUrl(ChannelJson[] allChannels) {
 		LOGGER.debug("converting PLS to stream url");
-		Channel[] preferredChannels = new Channel[allChannels.length];
-		int i = 0;
+		String template = readUrlTemplate(allChannels);
+		List<Channel> preferredChannels = new ArrayList<>(allChannels.length);
 		for (ChannelJson channelJson : allChannels) {
-			int errorConter = 0;
-			try {
-				String plsRequest = String.format("%s?listen_key=%s", channelJson.getPlaylist(), listenKey);
-				ContentResponse response = httpBlocking.GET(plsRequest);
-				String pls = response.getContentAsString();
-				String url = getBestUrlFromPlaylist(pls);
-				preferredChannels[i] = new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url);
-			} catch (InterruptedException | ExecutionException | TimeoutException e) {
-				LOGGER.error("{} : convert playlist to url failed for item {} : {}", this.network.displayName, i, channelJson.getPlaylist(),
-					e);
-				if (errorConter < 2) {
-					i--;
-					LOGGER.warn("couldn't read playlist. Will try again ... ");
-				}
-				errorConter++;
+			String url = template != null ? template.replace(CHANNEL_KEY_PLACEHOLDER, channelJson.getKey()) : readPlaylistUrl(channelJson);
+			if (url == null) {
+				continue;
 			}
-			i++;
+			preferredChannels.add(new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url));
 		}
-		LOGGER.debug("{} : received {} streaming url's.", this.network.displayName, preferredChannels.length);
-		return preferredChannels;
+		LOGGER.debug("{} : received {} streaming url's.", this.network.displayName, preferredChannels.size());
+		return preferredChannels.toArray(new Channel[0]);
+	}
+
+	/**
+	 * Reads one playlist and turns its url into the pattern of all of them.
+	 *
+	 * @return NULL when no pattern could be read
+	 */
+	private String readUrlTemplate(ChannelJson[] allChannels) {
+		for (ChannelJson channelJson : allChannels) {
+			String key = channelJson.getKey();
+			String url = readPlaylistUrl(channelJson);
+			if (StringUtils.isBlank(url) || StringUtils.isBlank(key)) {
+				continue;
+			}
+			int pathEnd = url.indexOf('?') > -1 ? url.indexOf('?') : url.length();
+			int at = url.lastIndexOf(key, pathEnd);
+			if (at < 0) {
+				LOGGER.debug("{} : the url {} does not carry the channel key {}, reading the playlist of every channel",
+					network.displayName, url, key);
+				return null;
+			}
+			String template = url.substring(0, at) + CHANNEL_KEY_PLACEHOLDER + url.substring(at + key.length());
+			LOGGER.debug("{} : stream url pattern is {}", network.displayName, template);
+			return template;
+		}
+		return null;
+	}
+
+	/**
+	 * @return the stream url the channel's playlist points at, NULL when it could not be read
+	 */
+	private String readPlaylistUrl(ChannelJson channelJson) {
+		try {
+			String plsRequest = String.format("%s?listen_key=%s", channelJson.getPlaylist(), listenKey);
+			ContentResponse response = httpBlocking.GET(plsRequest);
+			return getBestUrlFromPlaylist(response.getContentAsString());
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			LOGGER.error("{} : reading the playlist {} was interrupted", network.displayName, channelJson.getPlaylist());
+			return null;
+		} catch (ExecutionException | TimeoutException e) {
+			LOGGER.error("{} : convert playlist to url failed for {} : {}", network.displayName, channelJson.getPlaylist(), e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
 	}
 
 	/**
