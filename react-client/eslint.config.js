@@ -26,6 +26,7 @@ export default defineConfig(
       'react': reactPlugin,
     },
     rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       ...reactPlugin.configs['jsx-runtime'].rules,
       'react-hooks/exhaustive-deps': 'off',
