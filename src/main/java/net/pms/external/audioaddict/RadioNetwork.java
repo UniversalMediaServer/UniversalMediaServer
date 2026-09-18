@@ -1025,9 +1025,12 @@ public class RadioNetwork {
 		EXEC_SERVICE.submit(() -> {
 			try {
 				AudioAddictTrackDto detail = fetchCurrentTrackDetail(channelId);
-				if (detail != null) {
+				if (detail != null && isSameTrack(detail, line)) {
 					currentTrackDetails.put(channelId, detail);
 					currentTrackDetailLines.put(channelId, line);
+				} else if (detail != null) {
+					LOGGER.debug("{} : track history for channel {} still reports \"{} - {}\" while \"{}\" is playing",
+						network.displayName, channelId, detail.artist, detail.title, line);
 				}
 			} catch (Exception e) {
 				LOGGER.warn("{} : failed to refresh track detail for channel {}", network.displayName, channelId, e);
@@ -1110,6 +1113,14 @@ public class RadioNetwork {
 		}
 		currentlyPlaying = map;
 		LOGGER.debug("{} : refreshed currently_playing for {} channels", network.displayName, map.size());
+	}
+
+	private static boolean isSameTrack(AudioAddictTrackDto detail, String line) {
+		if (line == null) {
+			return false;
+		}
+		String detailLine = detail.artist != null && detail.title != null ? detail.artist + " - " + detail.title : detail.title;
+		return detailLine != null && detailLine.trim().equalsIgnoreCase(line.trim());
 	}
 
 	private static String formatCurrentTitle(CurrentlyPlayingJson.Track t) {
