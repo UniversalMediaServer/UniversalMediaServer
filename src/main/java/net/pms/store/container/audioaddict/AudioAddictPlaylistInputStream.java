@@ -293,12 +293,14 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			pacingStartedAt = System.currentTimeMillis();
 		}
 		deliveredMs += bytes * msPerByte;
-		long wait = pacingStartedAt + (long) deliveredMs - BURST_MS - System.currentTimeMillis();
-		if (wait > 0) {
+		long due = pacingStartedAt + (long) deliveredMs - BURST_MS;
+		long wait;
+		while ((wait = due - System.currentTimeMillis()) > 0) {
 			try {
 				Thread.sleep(Math.min(wait, MAX_SLEEP_MS));
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+				return;
 			}
 		}
 	}
