@@ -100,8 +100,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 				if (n != -1) {
 					return n;
 				}
-				// Current track finished: close it and advance the server session.
-				closeCurrent(true);
+				closeCurrent(false);
 			}
 			if (finished || !openNextTrack()) {
 				return -1;
@@ -146,13 +145,13 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			return announcedTrack;
 		}
 		long elapsed = System.currentTimeMillis() - streamStartedAt;
-		// Everything before the one that is audible now is of no further interest.
+		// What the clock has left behind has been listened to, so that is when the service hears of it.
 		while (schedule.size() > 1) {
 			ScheduledTrack next = schedule.stream().skip(1).findFirst().orElse(null);
 			if (next == null || next.fromMs() > elapsed) {
 				break;
 			}
-			schedule.removeFirst();
+			markPlayed(schedule.removeFirst().track());
 		}
 		AudioAddictTrackDto audible = schedule.getFirst().track();
 		if (audible != announcedTrack) {
@@ -310,6 +309,18 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		buf[offset + 3] = (byte) (value & 0x7F);
 	}
 
+	/**
+	 * Reports a track as played, the way the official player does it.
+	 */
+	private void markPlayed(AudioAddictTrackDto track) {
+		if (track == null) {
+			return;
+		}
+		LOGGER.debug("{} : playlist {} - listened through {} - {} (id={}), marking played", network.displayName, playlistId,
+			track.artist, track.title, track.id);
+		AudioAddictService.get().markPlaylistTrackPlayed(network, playlistId, track.id);
+	}
+
 	private void closeCurrent(boolean markPlayed) {
 		if (current != null) {
 			try {
@@ -341,6 +352,7 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			if (token != null) {
 				AudioAddictService.get().pingStreaming(network, token);
 			}
+			audibleTrack();
 		}, STREAMING_PING_SECONDS, STREAMING_PING_SECONDS, TimeUnit.SECONDS);
 	}
 
