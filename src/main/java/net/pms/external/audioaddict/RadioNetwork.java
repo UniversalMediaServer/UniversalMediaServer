@@ -42,6 +42,7 @@ import org.eclipse.jetty.util.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -78,6 +79,8 @@ public class RadioNetwork {
 		return thread;
 	});
 	private final static long RETRY_DELAY_SECONDS = 5;
+	private int memberId;
+
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
 	private static final DateTimeFormatter EVENT_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
@@ -89,6 +92,9 @@ public class RadioNetwork {
 	// The episodes endpoint caps per_page at 100; we page through it until exhausted (bounded).
 	private static final int EPISODES_PER_PAGE = 100;
 	private static final int EPISODES_MAX_PAGES = 20;
+
+	private static final int PLAYLISTS_PER_PAGE = 100;
+	private static final int PLAYLISTS_MAX_PAGES = 20;
 
 	// Basic auth for "ephemeron:dayeiph0ne@pp" - required by the play
 	private static final String BASIC_AUTH_HEADER = "Basic ZXBoZW1lcm9uOmRheWVpcGgwbmVAcHA=";
@@ -256,6 +262,11 @@ public class RadioNetwork {
 
 	protected void extractAuthInfo(String resp) {
 		authenticated = true;
+		try {
+			memberId = om.readTree(resp).path("id").asInt(0);
+		} catch (JsonProcessingException e) {
+			LOGGER.warn("{} : member id not readable from the login answer", network.displayName);
+		}
 		Matcher m = API_KEY_PATTERN.matcher(resp);
 		if (m.find()) {
 			apiKey = m.group(1);
@@ -653,27 +664,22 @@ public class RadioNetwork {
 			LOGGER.warn("{} : cannot read playlists, not authenticated.", network.displayName);
 			return result;
 		}
-		String url = String.format("https://api.audioaddict.com/v1/%s/playlists?api_key=%s", network.shortName, apiKey);
 		try {
-			ContentResponse response = httpBlocking.GET(url);
-			PlaylistsResponse resp = om.readValue(response.getContentAsString(), PlaylistsResponse.class);
-			if (resp.results != null) {
-				Map<Integer, String> genreFilters = buildGenreFilterMap();
+			Map<Integer, String> genreFilters = buildGenreFilterMap();
+			for (int page = 1; page <= PLAYLISTS_MAX_PAGES; page++) {
+				String url = String.format("https://api.audioaddict.com/v1/%s/playlists?per_page=%d&page=%d&api_key=%s",
+					network.shortName, PLAYLISTS_PER_PAGE, page, apiKey);
+				ContentResponse response = httpBlocking.GET(url);
+				PlaylistsResponse resp = om.readValue(response.getContentAsString(), PlaylistsResponse.class);
+				if (resp.results == null || resp.results.isEmpty()) {
+					break;
+				}
 				for (PlaylistJson p : resp.results) {
-					AudioAddictPlaylistDto dto = new AudioAddictPlaylistDto();
-					dto.id = p.id;
-					dto.name = p.name;
-					dto.description = p.description;
-					dto.duration = p.duration;
-					dto.trackCount = p.trackCount;
-					dto.albumArt = imageUrlFromMap(p.images);
-					// Only some playlists sit in a genre filter; the others still carry tags.
-					dto.genres = joinGenres(p.channelFilterIds, genreFilters);
-					if (dto.genres == null) {
-						dto.genres = joinTags(p.tags);
-					}
-					dto.curator = p.curator != null ? p.curator.name : null;
-					result.add(dto);
+					result.add(toPlaylistDto(p, genreFilters));
+				}
+				if (resp.results.size() < PLAYLISTS_PER_PAGE) {
+					// A short page is the last one.
+					break;
 				}
 			}
 			LOGGER.info("{} : received {} playlists.", network.displayName, result.size());
@@ -681,6 +687,51 @@ public class RadioNetwork {
 			LOGGER.error("{} : failed reading playlists", network.displayName, e);
 		}
 		return result;
+	}
+
+	/**
+	 * Reads the playlists this member follows.
+	 */
+	public List<AudioAddictPlaylistDto> getFollowedPlaylists() {
+		List<AudioAddictPlaylistDto> result = new ArrayList<>();
+		if (apiKey == null || memberId <= 0) {
+			LOGGER.debug("{} : cannot read followed playlists, no member id yet.", network.displayName);
+			return result;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/members/%d/followed_items/playlist?api_key=%s",
+			network.shortName, memberId, apiKey);
+		try {
+			ContentResponse response = httpBlocking.GET(url);
+			JsonNode root = om.readTree(response.getContentAsString());
+			// The service answers with a bare array here, but a wrapped one costs nothing to allow.
+			JsonNode items = root.isArray() ? root : root.path("results");
+			Map<Integer, String> genreFilters = buildGenreFilterMap();
+			for (JsonNode item : items) {
+				JsonNode playlist = item.has("playlist") ? item.get("playlist") : item;
+				result.add(toPlaylistDto(om.treeToValue(playlist, PlaylistJson.class), genreFilters));
+			}
+			LOGGER.info("{} : received {} followed playlists.", network.displayName, result.size());
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading followed playlists", network.displayName, e);
+		}
+		return result;
+	}
+
+	private AudioAddictPlaylistDto toPlaylistDto(PlaylistJson p, Map<Integer, String> genreFilters) {
+		AudioAddictPlaylistDto dto = new AudioAddictPlaylistDto();
+		dto.id = p.id;
+		dto.name = p.name;
+		dto.description = p.description;
+		dto.duration = p.duration;
+		dto.trackCount = p.trackCount;
+		dto.albumArt = imageUrlFromMap(p.images);
+		// Only some playlists sit in a genre filter; the others still carry tags.
+		dto.genres = joinGenres(p.channelFilterIds, genreFilters);
+		if (dto.genres == null) {
+			dto.genres = joinTags(p.tags);
+		}
+		dto.curator = p.curator != null ? p.curator.name : null;
+		return dto;
 	}
 
 	/**

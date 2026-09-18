@@ -281,6 +281,8 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		msPerByte = track.length > 0 && audioBytes > 0 ?
 			track.length * 1000.0 / audioBytes :
 			1000.0 / FALLBACK_BYTES_PER_SECOND;
+		LOGGER.debug("{} : playlist {} - track #{} paced at {} kbit/s ({} s, {} bytes)", network.displayName, playlistId,
+			trackNumber, Math.round(8 / msPerByte), track.length, audioBytes);
 	}
 
 	/**

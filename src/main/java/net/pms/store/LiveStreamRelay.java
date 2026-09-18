@@ -2,7 +2,9 @@ package net.pms.store;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -34,6 +36,8 @@ public final class LiveStreamRelay {
 
 	// Read size towards the upstream.
 	private static final int CHUNK_SIZE = 32 * 1024;
+
+	private static final int BACKLOG_BYTES = 256 * 1024;
 
 	// Slack per listener before it is dropped, about 50 seconds of a 320 kbit/s stream.
 	private static final int LISTENER_CHUNKS = 64;
@@ -223,6 +227,8 @@ public final class LiveStreamRelay {
 		private final String key;
 		private final Source source;
 		private final List<Listener> listeners = new CopyOnWriteArrayList<>();
+		private final Deque<byte[]> backlog = new ArrayDeque<>();
+		private int backlogBytes;
 		private volatile long emptySince = System.currentTimeMillis();
 		private volatile boolean stopped;
 
@@ -246,8 +252,26 @@ public final class LiveStreamRelay {
 				return null;
 			}
 			Listener listener = new Listener(this);
+			synchronized (backlog) {
+				for (byte[] chunk : backlog) {
+					listener.offer(chunk);
+				}
+			}
 			listeners.add(listener);
 			return listener;
+		}
+
+		/**
+		 * Keeps the last seconds of the stream for the next listener to join.
+		 */
+		private void remember(byte[] chunk) {
+			synchronized (backlog) {
+				backlog.addLast(chunk);
+				backlogBytes += chunk.length;
+				while (backlogBytes > BACKLOG_BYTES && backlog.size() > 1) {
+					backlogBytes -= backlog.removeFirst().length;
+				}
+			}
 		}
 
 		private void removeListener(Listener listener) {
@@ -279,6 +303,7 @@ public final class LiveStreamRelay {
 						continue;
 					}
 					byte[] chunk = Arrays.copyOf(buffer, read);
+					remember(chunk);
 					for (Listener listener : listeners) {
 						listener.offer(chunk);
 					}
@@ -298,6 +323,10 @@ public final class LiveStreamRelay {
 				listener.endOfStream();
 			}
 			listeners.clear();
+			synchronized (backlog) {
+				backlog.clear();
+				backlogBytes = 0;
+			}
 			try {
 				source.stream().close();
 			} catch (IOException e) {
