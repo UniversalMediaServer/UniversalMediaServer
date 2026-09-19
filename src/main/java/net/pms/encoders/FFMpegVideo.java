@@ -499,6 +499,16 @@ public class FFMpegVideo extends Engine {
 							transcodeOptions.add("31");
 						}
 
+						// Tell x264 to signal frame-packed 3D in the elementary stream,
+						// otherwise renderers that auto-detect 3D show the video flat
+						if (!customFFmpegOptions.contains("-x264-params")) {
+							String framePackingArrangement = getFramePackingArrangement(defaultVideoTrack, renderer);
+							if (framePackingArrangement != null) {
+								transcodeOptions.add("-x264-params");
+								transcodeOptions.add("frame-packing=" + framePackingArrangement);
+							}
+						}
+
 						// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
 					} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
 						if (!customFFmpegOptions.contains("-preset")) {
@@ -539,6 +549,50 @@ public class FFMpegVideo extends Engine {
 		}
 
 		return transcodeOptions;
+	}
+
+	/**
+	 * Returns the x264 {@code frame-packing} value for the 3D layout this
+	 * transcode outputs, or {@code null} when the output is not frame-packed 3D.
+	 *
+	 * Renderers that auto-detect 3D read the {@code frame_packing_arrangement}
+	 * SEI message in the H.264 elementary stream (ITU-T H.264 Annex D, payload
+	 * type 45), which x264 only writes when it is asked to. Container-level
+	 * stereoscopic tags are a separate signal: they do not survive a remux to
+	 * MPEG-TS, and the frame-compatible 3DTV spec (ETSI TS 101 547-2) gives the
+	 * in-stream SEI precedence over them. Without this the transcode is correct
+	 * frame-packed video that the renderer has no way to recognise, so it plays
+	 * flat.
+	 *
+	 * @param defaultVideoTrack the video track being transcoded
+	 * @param renderer the renderer being transcoded for
+	 * @return the x264 {@code frame-packing} value, or {@code null}
+	 */
+	private static String getFramePackingArrangement(MediaVideo defaultVideoTrack, Renderer renderer) {
+		if (defaultVideoTrack == null || !defaultVideoTrack.is3d() || defaultVideoTrack.multiViewIsAnaglyph()) {
+			return null;
+		}
+
+		// The renderer may have asked for a layout other than the one the source carries
+		String outputLayout = renderer.getOutput3DFormat();
+		if (StringUtils.isBlank(outputLayout)) {
+			MediaVideo.Mode3D sourceLayout = defaultVideoTrack.get3DLayout();
+			if (sourceLayout == null) {
+				return null;
+			}
+			outputLayout = sourceLayout.toString().toLowerCase(Locale.ROOT);
+		}
+
+		// Anything else is either 2D output (ml, mr) or anaglyph, which is not frame-packed
+		if (outputLayout.startsWith("sbs")) {
+			return "3";
+		} else if (outputLayout.startsWith("ab")) {
+			return "4";
+		} else if (outputLayout.startsWith("ir")) {
+			return "2";
+		}
+
+		return null;
 	}
 
 	/**
