@@ -18,7 +18,9 @@ package net.pms.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import net.pms.PMS;
 import net.pms.store.MediaScanner;
+import net.pms.store.StoreResourceRatings;
 import net.pms.swing.Splash;
 import net.pms.util.ProcessUtil;
 
@@ -48,8 +50,11 @@ public class MediaDatabase extends Database {
 	 * there if it doesn't exist, in order to prevent overwriting real
 	 * databases.
 	 */
+	private static final int MINIMUM_POOL_SIZE = 10;
+
 	public MediaDatabase() {
 		super(DATABASE_NAME);
+		setMaximumPoolSize(Math.max(MINIMUM_POOL_SIZE, PMS.getConfiguration().getMediaResolveThreads() * 2));
 	}
 
 	@Override
@@ -97,6 +102,7 @@ public class MediaDatabase extends Database {
 				MediaTableMusicBrainzReleases.checkTable(connection);
 				MediaTableCoverArtArchive.checkTable(connection);
 				MediaTableFilesStatus.checkTable(connection);
+				MediaTableResourceRatings.checkTable(connection);
 				MediaTableThumbnails.checkTable(connection);
 
 				MediaTableTVSeries.checkTable(connection);
@@ -147,6 +153,8 @@ public class MediaDatabase extends Database {
 	public static synchronized void dropAllTables(Connection connection) {
 		dropAllTablesExceptFilesStatus(connection);
 		dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableResourceRatings.TABLE_NAME);
+		StoreResourceRatings.clearCache();
 		dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
 		try {
 			executeUpdate(connection, "CALL FTL_DROP_INDEX('PUBLIC', 'FILES');");
@@ -247,6 +255,18 @@ public class MediaDatabase extends Database {
 		return isInstantiated() && instance.isOpened();
 	}
 
+
+	private static final java.util.concurrent.atomic.AtomicLong CONNECTION_NANOS = new java.util.concurrent.atomic.AtomicLong();
+	private static final java.util.concurrent.atomic.AtomicLong CONNECTION_COUNT = new java.util.concurrent.atomic.AtomicLong();
+
+	public static long getConnectionNanos() {
+		return CONNECTION_NANOS.get();
+	}
+
+	public static long getConnectionCount() {
+		return CONNECTION_COUNT.get();
+	}
+
 	/**
 	 * Get a MediaDatabase connection.
 	 *
@@ -260,9 +280,17 @@ public class MediaDatabase extends Database {
 	 */
 	public static Connection getConnectionIfAvailable() {
 		if (isAvailable()) {
+			long startedAt = System.nanoTime();
 			try {
 				return instance.getConnection();
 			} catch (SQLException ex) {
+				// Callers read NULL as "database not available", so an exhausted pool would silently
+				// drop writes (a thumbnail id that is never stored, an update id that is never bumped).
+				LOGGER.warn("No database connection available: {}", ex.getMessage());
+				LOGGER.trace("", ex);
+			} finally {
+				CONNECTION_NANOS.addAndGet(System.nanoTime() - startedAt);
+				CONNECTION_COUNT.incrementAndGet();
 			}
 		}
 		return null;

@@ -239,6 +239,23 @@ public abstract class StoreItem extends StoreResource {
 		return getTranscodingSettings() != null;
 	}
 
+	/**
+	 * @return whether this item is an unbounded, non-seekable live stream (radio-style) that must
+	 * be served as a single persistent HTTP 200 response without byte ranges, rather than as a
+	 * seekable file.
+	 */
+	public boolean isUnboundedLiveStream() {
+		return false;
+	}
+
+	/**
+	 * @return whether this audio item should be advertised with the UPnP class
+	 * "object.item.audioItem.audioBroadcast" (internet radio) instead of "musicTrack".
+	 */
+	public boolean isAudioBroadcast() {
+		return false;
+	}
+
 	public boolean isTimeSeekable() {
 		return isTranscoded() ? getTranscodingSettings().getEngine().isTimeSeekable() : true;
 	}
@@ -439,7 +456,7 @@ public abstract class StoreItem extends StoreResource {
 		}
 
 		if (renderer.getUmsConfiguration().isDisableTranscoding()) {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
+			LOGGER.trace("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
 			return null;
 		}
 
@@ -496,7 +513,7 @@ public abstract class StoreItem extends StoreResource {
 		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
 
 		if (skipTranscode) {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed since it is forced by configuration", getName());
+			LOGGER.trace("Final verdict: \"{}\" will be streamed since it is forced by configuration", getName());
 			return null;
 		}
 
@@ -581,17 +598,17 @@ public abstract class StoreItem extends StoreResource {
 			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.debug("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\" with mime type \"{}\"", getName(),
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\" with mime type \"{}\"", getName(),
 							resolvedTranscodingSettings.toString(), getMimeType());
 				} else {
-					LOGGER.debug("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\"", getName(), resolvedTranscodingSettings.toString());
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\"", getName(), resolvedTranscodingSettings.toString());
 				}
 			} else {
 				resolvedTranscodingSettings = null;
-				LOGGER.debug("Final verdict: \"{}\" will be streamed", getName());
+				LOGGER.trace("Final verdict: \"{}\" will be streamed", getName());
 			}
 		} else {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed because no compatible engine was found", getName());
+			LOGGER.trace("Final verdict: \"{}\" will be streamed because no compatible engine was found", getName());
 		}
 		return resolvedTranscodingSettings;
 	}
@@ -608,6 +625,12 @@ public abstract class StoreItem extends StoreResource {
 		// Use our best guess if we have no valid mime type
 		if (mime == null || mime.contains("/transcode")) {
 			mime = HTTPResource.getDefaultMimeType(getType());
+		}
+
+		// DLNA protocolInfo wants a bare mime type; parameters like YouTube's codecs="avc1.64002a" break the profile lookup and the DIDL.
+		int parameter = mime.indexOf(';');
+		if (parameter > -1) {
+			mime = mime.substring(0, parameter).trim();
 		}
 
 		return mime;

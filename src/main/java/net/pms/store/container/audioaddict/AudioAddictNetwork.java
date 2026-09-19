@@ -1,6 +1,5 @@
 package net.pms.store.container.audioaddict;
 
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.external.audioaddict.AudioAddictService;
@@ -31,11 +30,18 @@ public class AudioAddictNetwork extends StoreContainer implements INetworkInitia
 
 	private void addChildren() {
 		clearChildren();
-		LOGGER.debug("AudioAddictNetwork store container {} : adding childs ... ", network.displayName);
-		List<String> filterList = AudioAddictService.get().getFiltersForNetwork(this.network);
-		for (String filter : filterList) {
-			LOGGER.debug("AudioAddictNetwork store container {} : adding child {}", network.displayName, filter);
-			addChild(new AudioAddictNetworkFilter(renderer, network, filter));
+		if (network == Platform.DI_FM) {
+			// Only DI.fm exposes curated playlists and events, so group the content into
+			// separate "Radio", "Playlists" and "Events" folders.
+			LOGGER.debug("AudioAddictNetwork store container {} : adding Radio, Playlists and Events folders.", network.displayName);
+			addChild(new AudioAddictRadio(renderer, network));
+			addChild(new AudioAddictPlaylists(renderer, network));
+			addChild(new AudioAddictEvents(renderer, network));
+		} else {
+			LOGGER.debug("AudioAddictNetwork store container {} : adding radio filters directly.", network.displayName);
+			for (String filter : AudioAddictService.get().getFiltersForNetwork(network)) {
+				addChild(new AudioAddictNetworkFilter(renderer, network, filter));
+			}
 		}
 	}
 }

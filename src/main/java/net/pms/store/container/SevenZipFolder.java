@@ -61,6 +61,15 @@ public class SevenZipFolder extends StoreContainer {
 		return file.getAbsolutePath() + "#" + entryName;
 	}
 
+	/**
+	 * GETSYSTEMNAME() returns a file path or an URL, which identifies this
+	 * container globally, so GETRATINGKEY() can use it as is.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
+	}
+
 	@Override
 	public boolean isValid() {
 		return file.exists();
