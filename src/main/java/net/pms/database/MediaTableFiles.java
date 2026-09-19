@@ -42,7 +42,6 @@ import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.formats.Format;
 import net.pms.configuration.sharedcontent.SharedContentTypeAdapter;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
@@ -771,7 +770,44 @@ public class MediaTableFiles extends MediaTable {
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
+
+	/** Exclusive wall-clock phases, including SQL, mapping and any nested work. */
+	static final class DatabaseReadTimer {
+		private final String[] labels;
+		private final long[] elapsed;
+		private final long started = System.nanoTime();
+		private long phaseStarted = started;
+		private int current;
+
+		DatabaseReadTimer(String... labels) {
+			this.labels = labels;
+			elapsed = new long[labels.length];
+		}
+
+		void phase(int next) {
+			long now = System.nanoTime();
+			elapsed[current] += now - phaseStarted;
+			phaseStarted = now;
+			current = next;
+		}
+
+		void finish(String kind, Object resource) {
+			phase(current);
+			long totalMs = (phaseStarted - started) / 1_000_000;
+			if (totalMs >= 50) {
+				StringBuilder details = new StringBuilder();
+				for (int i = 0; i < labels.length; i++) {
+					if (i > 0) {
+						details.append(", ");
+					}
+					details.append(labels[i]).append(' ').append(elapsed[i] / 1_000_000).append(" ms");
+				}
+				LOGGER.info("Slow database {} for \"{}\": {} ms total; {}", kind, resource, totalMs, details);
+			}
+		}
+	}
 	public static MediaInfo getMediaInfo(final Connection connection, String filename, long modified) throws IOException, SQLException {
+		DatabaseReadTimer timer = new DatabaseReadTimer("file query", "base fields", "image info", "audio tracks", "video tracks", "subtitle tracks", "chapters", "audio metadata", "video metadata", "close");
 		MediaInfo media = null;
 		try (
 			PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
@@ -782,6 +818,7 @@ public class MediaTableFiles extends MediaTable {
 				ResultSet rs = stmt.executeQuery();
 			) {
 				if (rs.next()) {
+					timer.phase(1);
 					media = new MediaInfo();
 					long fileId = rs.getLong(COL_ID);
 					media.setFileId(fileId);
@@ -798,6 +835,7 @@ public class MediaTableFiles extends MediaTable {
 					media.setThumbnailSource(rs.getString(COL_THUMB_SRC));
 					//not media related
 					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
+					timer.phase(2);
 					byte[] imageBytes = rs.getBytes(COL_IMAGEINFO);
 					Object deserializedImageInfo = deserialize(imageBytes);
 					ImageInfo info = deserializedImageInfo instanceof ImageInfo imageInfo ? imageInfo : null;
@@ -807,30 +845,23 @@ public class MediaTableFiles extends MediaTable {
 					media.setImageInfo(info);
 					media.setImageCount(rs.getInt(COL_IMAGECOUNT));
 
+					timer.phase(3);
 					media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, fileId));
+					timer.phase(4);
 					media.setVideoTracks(MediaTableVideotracks.getVideoTracks(connection, fileId));
+					timer.phase(5);
 					media.setSubtitlesTracks(MediaTableSubtracks.getSubtitleTracks(connection, fileId));
+					timer.phase(6);
 					media.setChapters(MediaTableChapters.getChapters(connection, fileId));
+					timer.phase(7);
 					media.setAudioMetadata(MediaTableAudioMetadata.getAudioMetadataByFileId(connection, fileId));
+					timer.phase(8);
 					media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, fileId));
-					//get localized thumb if thumb was not localized
-					if (media.getVideoMetadata() != null &&
-						media.getVideoMetadata().getPoster() != null &&
-						!media.getThumbnailSource().equals(ThumbnailSource.TMDB_LOC)
-						) {
-						DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(media.getVideoMetadata().getPoster());
-						if (thumbnail != null) {
-							Long thumbnailId = ThumbnailStore.getId(thumbnail);
-							if (!Objects.equals(thumbnailId, media.getThumbnailId())) {
-								media.setThumbnailId(thumbnailId);
-								MediaStoreIds.incrementUpdateIdForFilename(connection, filename);
-							}
-							media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
-							updateThumbnailId(connection, fileId, thumbnailId, ThumbnailSource.TMDB_LOC.toString());
-						}
-					}
+					timer.phase(9);
 				}
 			}
+		} finally {
+			timer.finish("file metadata", filename);
 		}
 		return media;
 	}
@@ -1565,8 +1596,21 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	//TODO : review this
+	public record FileQueryResult(List<File> files, List<String> snapshot) {
+	}
+
 	public static List<File> getFiles(final Connection connection, String sql) {
+		return queryFiles(connection, sql, false).files();
+	}
+
+	/** Shares one result set between file validation and the refresh snapshot. */
+	public static FileQueryResult getFilesAndSnapshot(final Connection connection, String sql) {
+		return queryFiles(connection, sql, true);
+	}
+
+	private static FileQueryResult queryFiles(final Connection connection, String sql, boolean collectSnapshot) {
 		List<File> list = new ArrayList<>();
+		Set<String> snapshot = collectSnapshot ? new LinkedHashSet<>() : null;
 		String psSql = sql.toUpperCase().startsWith(SELECT) || sql.toUpperCase().startsWith(WITH) ? sql : (SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_MODIFIED + FROM + TABLE_NAME + WHERE + sql);
 		try {
 			try (
@@ -1574,6 +1618,10 @@ public class MediaTableFiles extends MediaTable {
 				ResultSet rs = ps.executeQuery();
 			) {
 				while (rs.next()) {
+					if (collectSnapshot) {
+						String value = rs.getString(1);
+						snapshot.add(StringUtils.isBlank(value) ? NONAME : value);
+					}
 					String filename = rs.getString(COL_FILENAME);
 					long modified = rs.getTimestamp(COL_MODIFIED).getTime();
 					File file = new File(filename);
@@ -1585,9 +1633,9 @@ public class MediaTableFiles extends MediaTable {
 		} catch (SQLException se) {
 			LOGGER.trace("Error get files with sql: {}", psSql);
 			LOGGER.error(null, se);
-			return list;
+			return new FileQueryResult(list, null);
 		}
-		return list;
+		return new FileQueryResult(list, collectSnapshot ? new ArrayList<>(snapshot) : null);
 	}
 
 }

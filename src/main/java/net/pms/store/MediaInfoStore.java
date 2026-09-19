@@ -53,6 +53,44 @@ import org.slf4j.LoggerFactory;
 public class MediaInfoStore {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoStore.class);
+
+	private enum MetadataPhase {
+		LOCK, STAT, CACHE, CONNECTION, TRANSACTION_SETUP, READ, HASH, PARSE, PARSE_WAIT, WRITE, COMMIT, OTHER
+	}
+
+	/** Per-call timings; phases are exclusive so nested parsing is not counted twice. */
+	private static final class MetadataLoadTimer {
+		private final long startedAt = System.nanoTime();
+		private final long[] nanos = new long[MetadataPhase.values().length];
+		private long phaseStartedAt = startedAt;
+		private MetadataPhase current = MetadataPhase.OTHER;
+		private String source = "unavailable";
+		private String parser;
+
+		private void phase(MetadataPhase next) {
+			long now = System.nanoTime();
+			nanos[current.ordinal()] += now - phaseStartedAt;
+			phaseStartedAt = now;
+			current = next;
+		}
+
+		private long ms(MetadataPhase phase) {
+			return nanos[phase.ordinal()] / 1_000_000;
+		}
+
+		private void finish(String filename) {
+			phase(MetadataPhase.OTHER);
+			long totalMs = (phaseStartedAt - startedAt) / 1_000_000;
+			if (totalMs >= 50) {
+				LOGGER.info("Slow metadata load for \"{}\": {} ms total, source {}, parser {}; lock {} ms, file stat {} ms, memory cache {} ms, connection {} ms, transaction setup {} ms, database read {} ms, file hash {} ms, parse {} ms, parser wait {} ms, database write {} ms, commit/close {} ms, other {} ms",
+					filename, totalMs, source, parser, ms(MetadataPhase.LOCK), ms(MetadataPhase.STAT), ms(MetadataPhase.CACHE),
+					ms(MetadataPhase.CONNECTION), ms(MetadataPhase.TRANSACTION_SETUP), ms(MetadataPhase.READ), ms(MetadataPhase.HASH),
+					ms(MetadataPhase.PARSE), ms(MetadataPhase.PARSE_WAIT), ms(MetadataPhase.WRITE),
+					ms(MetadataPhase.COMMIT), ms(MetadataPhase.OTHER));
+			}
+		}
+	}
+
 	private static final Map<String, WeakReference<MediaInfo>> STORE = new HashMap<>();
 	private static final Map<Long, WeakReference<TvSeriesMetadata>> TV_SERIES_STORE = new HashMap<>();
 
@@ -226,39 +264,74 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo getMediaInfo(String filename, File file, Format format, int type) {
+		MetadataLoadTimer timer = new MetadataLoadTimer();
+		// Published cache entries can be read without joining the per-file load queue.
+		timer.phase(MetadataPhase.STAT);
+		long cachedModified = file.lastModified();
+		timer.phase(MetadataPhase.CACHE);
+		MediaInfo cached = getMediaInfoStored(filename, cachedModified);
+		if (cached != null) {
+			timer.source = "memory";
+			timer.parser = cached.getMediaParser();
+			timer.finish(filename);
+			return cached;
+		}
+		timer.phase(MetadataPhase.LOCK);
 		CountedLock lock = acquireLock(filename);
 		try {
 			synchronized (lock) {
+				timer.phase(MetadataPhase.STAT);
 				long lastModified = file.lastModified();
+				timer.phase(MetadataPhase.CACHE);
 				MediaInfo mediaInfo = getMediaInfoStored(filename, lastModified);
 				if (mediaInfo != null) {
+					timer.source = "memory";
+					timer.parser = mediaInfo.getMediaParser();
 					return mediaInfo;
 				}
+				timer.phase(MetadataPhase.OTHER);
 				LOGGER.trace("Store does not yet contain MediaInfo for {}", filename);
 				Connection connection = null;
 				InputFile input = new InputFile();
 				input.setFile(file);
 				try {
+					timer.phase(MetadataPhase.CONNECTION);
 					connection = MediaDatabase.getConnectionIfAvailable();
+					timer.phase(MetadataPhase.TRANSACTION_SETUP);
 					if (connection != null) {
 						connection.setAutoCommit(false);
 						try {
+							timer.phase(MetadataPhase.READ);
 							mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, lastModified);
+							timer.phase(MetadataPhase.OTHER);
 							if (mediaInfo != null) {
+								timer.source = "database";
 								if (!mediaInfo.isMediaParsed()) {
+									timer.source = "database+repair";
+									timer.phase(MetadataPhase.PARSE);
 									Parser.parse(mediaInfo, input, format, type);
+									timer.phase(MetadataPhase.WRITE);
 									MediaTableFiles.insertOrUpdateData(connection, filename, lastModified, type, mediaInfo);
+									timer.phase(MetadataPhase.OTHER);
 								}
 								//ensure we have the mime type
 								if (mediaInfo.getMimeType() == null) {
+									timer.source = "database+repair";
+									timer.phase(MetadataPhase.PARSE);
 									Parser.postParse(mediaInfo, type);
+									timer.phase(MetadataPhase.WRITE);
 									MediaTableFiles.insertOrUpdateData(connection, filename, lastModified, type, mediaInfo);
+									timer.phase(MetadataPhase.OTHER);
 								}
 								//ensure we have the ruid
 								if (mediaInfo.getResourceId() == null) {
+									timer.source = "database+repair";
+									timer.phase(MetadataPhase.HASH);
 									String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
 									mediaInfo.setResourceId(resourceHash);
+									timer.phase(MetadataPhase.WRITE);
 									MediaTableFiles.insertOrUpdateData(connection, filename, lastModified, type, mediaInfo);
+									timer.phase(MetadataPhase.OTHER);
 								}
 							}
 						} catch (IOException | SQLException e) {
@@ -268,12 +341,13 @@ public class MediaInfoStore {
 					}
 
 					if (mediaInfo == null) {
-						mediaInfo = updateMediaInfoFromFile(filename, file, format, type, connection, input);
+						mediaInfo = updateMediaInfoFromFile(filename, file, format, type, connection, input, timer);
 					}
 				} catch (Exception e) {
 					LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
 					LOGGER.trace("", e);
 				} finally {
+					timer.phase(MetadataPhase.COMMIT);
 					try {
 						if (connection != null) {
 							connection.commit();
@@ -284,23 +358,38 @@ public class MediaInfoStore {
 						LOGGER.trace("", e);
 					}
 					MediaDatabase.close(connection);
+					timer.phase(MetadataPhase.OTHER);
 				}
 				if (mediaInfo != null) {
+					timer.parser = mediaInfo.getMediaParser();
 					storeMediaInfo(filename, mediaInfo, lastModified);
 				}
 				return mediaInfo;
 			}
 		} finally {
 			releaseLock(filename, lock);
+			timer.finish(filename);
 		}
 
 	}
 
 	public static MediaInfo updateMediaInfoFromFile(String filename, File file, Format format, int type, Connection connection, InputFile input) {
+		MetadataLoadTimer timer = new MetadataLoadTimer();
+		try {
+			return updateMediaInfoFromFile(filename, file, format, type, connection, input, timer);
+		} finally {
+			timer.finish(filename);
+		}
+	}
+
+	private static MediaInfo updateMediaInfoFromFile(String filename, File file, Format format, int type, Connection connection, InputFile input, MetadataLoadTimer timer) {
+		timer.source = "file";
+		timer.phase(MetadataPhase.HASH);
 		MediaInfo mediaInfo;
 		mediaInfo = new MediaInfo();
 		String resourceHash = ResourceIdentifier.getResourceIdentifier(filename);
 		mediaInfo.setResourceId(resourceHash);
+		timer.phase(MetadataPhase.PARSE);
 		if (format != null) {
 			Parser.parse(mediaInfo, input, format, type);
 		} else {
@@ -308,15 +397,21 @@ public class MediaInfoStore {
 			FFmpegParser.parse(mediaInfo, input, format, type);
 		}
 
+		timer.phase(MetadataPhase.PARSE_WAIT);
 		mediaInfo.waitMediaParsing(5);
+		timer.parser = mediaInfo.getMediaParser();
 
 		if (connection == null) {
+			timer.phase(MetadataPhase.CONNECTION);
 			connection = MediaDatabase.getConnectionIfAvailable();
 		}
+		timer.phase(MetadataPhase.OTHER);
 		try {
 			if (connection != null && mediaInfo.isMediaParsed()) {
 				try {
+					timer.phase(MetadataPhase.WRITE);
 					MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+					timer.phase(MetadataPhase.OTHER);
 					if (mediaInfo.isAudio() && mediaInfo.getThumbnailId() == null) {
 						// The file carries no cover, so it has to come from Cover Art Archive. That is an HTTP
 						// round trip and is done in the background, now that the file row exists.
@@ -519,6 +614,40 @@ public class MediaInfoStore {
 	 * @param mediaInfo
 	 */
 	public static void setMetadataFromFileName(final File file, MediaInfo mediaInfo) {
+		FilenameMetadataTimer timer = new FilenameMetadataTimer();
+		try {
+			setMetadataFromFileName(file, mediaInfo, timer);
+		} finally {
+			timer.finish(file);
+		}
+	}
+
+	private static final class FilenameMetadataTimer {
+		private final long started = System.nanoTime();
+		private final long[] nanos = new long[5];
+		private long phaseStarted = started;
+		private int current;
+		private boolean populated;
+
+		private void phase(int next) {
+			long now = System.nanoTime();
+			nanos[current] += now - phaseStarted;
+			phaseStarted = now;
+			current = next;
+		}
+
+		private void finish(File file) {
+			phase(4);
+			long totalMs = (phaseStarted - started) / 1_000_000;
+			if (totalMs >= 20) {
+				LOGGER.info("Slow filename metadata for \"{}\": {} ms total; checks {} ms, name parse/apply {} ms, database {} ms, background lookup preparation {} ms, other {} ms; populated {}",
+					file, totalMs, nanos[0] / 1_000_000, nanos[1] / 1_000_000, nanos[2] / 1_000_000,
+					nanos[3] / 1_000_000, nanos[4] / 1_000_000, populated);
+			}
+		}
+	}
+
+	private static void setMetadataFromFileName(final File file, MediaInfo mediaInfo, FilenameMetadataTimer timer) {
 		String absolutePath = file.getAbsolutePath();
 		if (absolutePath == null ||
 			(Platform.isMac() &&
@@ -531,6 +660,7 @@ public class MediaInfoStore {
 		// If the in-memory mediaInfo has not already been populated with filename metadata, we attempt it
 		try {
 			if (mediaInfo.isVideo() && !mediaInfo.hasVideoMetadata()) {
+				timer.phase(1);
 				MediaVideoMetadata videoMetadata = new MediaVideoMetadata();
 				FileNameMetadata metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), absolutePath);
 				String titleFromFilename = metadataFromFilename.getMovieOrShowName();
@@ -557,6 +687,8 @@ public class MediaInfoStore {
 				videoMetadata.setIsSample(metadataFromFilename.isSample());
 
 				mediaInfo.setVideoMetadata(videoMetadata);
+				timer.populated = true;
+				timer.phase(2);
 
 				if (MediaDatabase.isAvailable()) {
 					try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
@@ -580,14 +712,18 @@ public class MediaInfoStore {
 				}
 			}
 		} catch (SQLException e) {
+			timer.phase(4);
 			LOGGER.error("Could not update the database with information from the filename for \"{}\": {}", file.getAbsolutePath(),
 				e.getMessage());
 			LOGGER.trace("", e);
 		} catch (Exception e) {
+			timer.phase(4);
 			LOGGER.debug("", e);
 		} finally {
 			// Attempt to enhance the metadata via our API.
+			timer.phase(3);
 			TMDB.backgroundLookupAndAddMetadata(file, mediaInfo);
+			timer.phase(4);
 		}
 	}
 

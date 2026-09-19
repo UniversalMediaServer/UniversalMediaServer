@@ -31,7 +31,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.function.LongFunction;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,8 @@ import net.pms.image.BufferedImageFilter;
 import net.pms.image.BufferedImageFilterChain;
 import net.openhft.hashing.LongHashFunction;
 import net.pms.network.HTTPResource;
+import net.pms.media.MediaInfo;
+import net.pms.media.video.metadata.TvSeriesMetadata;
 
 public class ThumbnailStore {
 
@@ -77,6 +81,14 @@ public class ThumbnailStore {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailStore.class.getName());
 
 	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new HashMap<>();
+	private static long storeGeneration;
+	// Entries exist only while a load is running or a caller is waiting for it.
+	private static final Map<Long, ThumbnailLoadLock> LOAD_LOCKS = new HashMap<>();
+
+	private static final class ThumbnailLoadLock {
+		private int users;
+	}
+
 
 	// Thumbnails already generated for a given remote image URL.
 	private static final Map<String, Long> URL_THUMBNAIL_IDS = new ConcurrentHashMap<>();
@@ -191,6 +203,66 @@ public class ThumbnailStore {
 		return id;
 	}
 
+	/**
+	 * Resolves a remote video poster on thumbnail demand, never while reading media metadata.
+	 * Failed downloads leave the existing thumbnail intact and can be retried later.
+	 */
+	public static void resolveLocalizedPoster(MediaInfo media, String filePath) {
+		resolveLocalizedPoster(media, filePath, (uri, path) ->
+			updateFileThumbnail(path, JavaHttpClient.getThumbnail(uri), ThumbnailSource.TMDB_LOC));
+	}
+
+	static void resolveLocalizedPoster(MediaInfo media, String filePath, BiFunction<String, String, Long> update) {
+		if (media == null || filePath == null) {
+			return;
+		}
+		// Concurrent thumbnail requests for the same media share the completed result.
+		synchronized (media) {
+			if (media.getVideoMetadata() == null || media.getThumbnailSource() == ThumbnailSource.TMDB_LOC ||
+				media.getThumbnailSource() == ThumbnailSource.USER) {
+				return;
+			}
+			String poster = media.getVideoMetadata().getPoster();
+			if (!isUsableThumbnailUri(poster)) {
+				return;
+			}
+			Long id = update.apply(poster, filePath);
+			if (id != null) {
+				media.setThumbnailId(id);
+				media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
+				media.setThumbnailPending(false);
+			}
+		}
+	}
+
+	/** Downloads a series poster only when its thumbnail is requested. */
+	public static void resolveLocalizedSeriesPoster(TvSeriesMetadata metadata) {
+		resolveLocalizedSeriesPoster(metadata, (uri, seriesId) ->
+			getIdForTvSeries(JavaHttpClient.getThumbnail(uri), seriesId, ThumbnailSource.TMDB_LOC));
+	}
+
+	static void resolveLocalizedSeriesPoster(TvSeriesMetadata metadata, BiFunction<String, Long, Long> update) {
+		if (metadata == null) {
+			return;
+		}
+		synchronized (metadata) {
+			Long seriesId = metadata.getTvSeriesId();
+			if (seriesId == null || seriesId < 0 || metadata.getThumbnailSource() == ThumbnailSource.USER ||
+				metadata.getThumbnailSource() == ThumbnailSource.TMDB_LOC) {
+				return;
+			}
+			String poster = metadata.getPoster(null);
+			if (!isUsableThumbnailUri(poster)) {
+				return;
+			}
+			Long id = update.apply(poster, seriesId);
+			if (id != null) {
+				metadata.setThumbnailId(id);
+				metadata.setThumbnailSource(ThumbnailSource.TMDB_LOC);
+			}
+		}
+	}
+
 	public static boolean isUsableThumbnailUri(String uri) {
 		if (StringUtils.isBlank(uri)) {
 			return false;
@@ -278,28 +350,68 @@ public class ThumbnailStore {
 	}
 
 	public static DLNAThumbnail getThumbnail(Long id) {
+		return getThumbnail(id, thumbnailId -> {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				return connection != null ? MediaTableThumbnails.getThumbnail(connection, thumbnailId) : null;
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		});
+	}
+
+	static DLNAThumbnail getThumbnail(Long id, LongFunction<DLNAThumbnail> loader) {
 		if (id == null) {
 			return null;
 		}
 		synchronized (STORE) {
-			if (STORE.containsKey(id) && STORE.get(id).get() != null) {
-				return STORE.get(id).get();
-			}
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					DLNAThumbnail thumbnail = MediaTableThumbnails.getThumbnail(connection, id);
-					if (thumbnail != null) {
-						STORE.put(id, new WeakReference<>(thumbnail));
-						return thumbnail;
-					}
-				}
-			} finally {
-				MediaDatabase.close(connection);
+			WeakReference<DLNAThumbnail> reference = STORE.get(id);
+			DLNAThumbnail cached = reference != null ? reference.get() : null;
+			if (cached != null) {
+				return cached;
 			}
 		}
-		return null;
+		ThumbnailLoadLock lock;
+		synchronized (LOAD_LOCKS) {
+			lock = LOAD_LOCKS.computeIfAbsent(id, ignored -> new ThumbnailLoadLock());
+			lock.users++;
+		}
+		try {
+			synchronized (lock) {
+				long generation;
+				synchronized (STORE) {
+					WeakReference<DLNAThumbnail> reference = STORE.get(id);
+					DLNAThumbnail cached = reference != null ? reference.get() : null;
+					if (cached != null) {
+						return cached;
+					}
+					generation = storeGeneration;
+				}
+				DLNAThumbnail loaded = loader.apply(id);
+				synchronized (STORE) {
+					// A reset during the read must not repopulate the cache with stale data.
+					if (generation != storeGeneration) {
+						return null;
+					}
+					WeakReference<DLNAThumbnail> reference = STORE.get(id);
+					DLNAThumbnail cached = reference != null ? reference.get() : null;
+					if (cached != null) {
+						return cached;
+					}
+					if (loaded != null) {
+						STORE.put(id, new WeakReference<>(loaded));
+					}
+					return loaded;
+				}
+			}
+		} finally {
+			synchronized (LOAD_LOCKS) {
+				if (--lock.users == 0) {
+					LOAD_LOCKS.remove(id);
+				}
+			}
+		}
 	}
 
 	public static DLNAThumbnailInputStream getThumbnailInputStream(Long id) {
@@ -310,6 +422,7 @@ public class ThumbnailStore {
 	public static void resetLanguage() {
 		synchronized (STORE) {
 			STORE.clear();
+			storeGeneration++;
 			TRANSCODED_THUMBNAILS.clear();
 			tempId = Long.MAX_VALUE;
 			Connection connection = null;
@@ -489,6 +602,7 @@ public class ThumbnailStore {
 	public static void deleteAll() {
 		synchronized (STORE) {
 			STORE.clear();
+			storeGeneration++;
 			// the ids these remember are about to be deleted
 			URL_THUMBNAIL_IDS.clear();
 			FILE_THUMBNAIL_IDS.clear();

@@ -17,8 +17,6 @@
 package net.pms.media.video.metadata;
 
 import com.google.gson.JsonObject;
-import java.util.HashMap;
-import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaTableTvSeasonMetadataLocalized;
@@ -36,7 +34,7 @@ public class TvSeasonMetadata {
 	private final Long tmdbTvId;
 	private final ApiSeason apiSeason;
 
-	private Map<String, TvSeasonMetadataLocalized> translations;
+	private final BackgroundTranslations<TvSeasonMetadataLocalized> translations = new BackgroundTranslations<>();
 
 	public TvSeasonMetadata(Long tvSeriesId, Long tmdbTvId, ApiSeason apiSeason) {
 		this.tvSeriesId = tvSeriesId;
@@ -93,35 +91,19 @@ public class TvSeasonMetadata {
 	}
 
 	public void ensureHavingTranslation(String lang) {
-		lang = CONFIGURATION.getTranslationLanguage(lang);
-		if (lang != null && !"en-us".equals(lang) && !hasTranslation(lang) && tmdbTvId != null && tmdbTvId > -1) {
-			TvSeasonMetadataLocalized loc = MediaTableTvSeasonMetadataLocalized.getTvSeasonMetadataLocalized(tvSeriesId, lang, tmdbTvId, apiSeason);
-			if (loc != null) {
-				addTranslation(lang, loc);
-			}
+		String language = CONFIGURATION.getTranslationLanguage(lang);
+		if (language != null && !"en-us".equals(language) && tmdbTvId != null && tmdbTvId > -1) {
+			translations.request(language, () -> MediaTableTvSeasonMetadataLocalized.getTvSeasonMetadataLocalized(tvSeriesId, language, tmdbTvId, apiSeason));
 		}
 	}
 
-	private void addTranslation(String lang, TvSeasonMetadataLocalized value) {
-		if (lang == null || value == null) {
-			return;
-		}
-		if (this.translations == null) {
-			this.translations = new HashMap<>();
-		}
-		this.translations.put(lang.toLowerCase(), value);
-	}
-
-	private boolean hasTranslation(String lang) {
-		return this.translations != null && this.translations.containsKey(lang.toLowerCase());
+	public long getTranslationVersion() {
+		return translations.version();
 	}
 
 	private TvSeasonMetadataLocalized getTranslation(String lang) {
 		lang = CONFIGURATION.getTranslationLanguage(lang);
-		if (lang != null && hasTranslation(lang)) {
-			return this.translations.get(lang);
-		}
-		return null;
+		return translations.get(lang);
 	}
 
 	public JsonObject asJsonObject(String lang) {

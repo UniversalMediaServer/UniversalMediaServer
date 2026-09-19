@@ -33,6 +33,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +50,7 @@ import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.external.BackgroundLookupTimer;
 import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.media.MediaInfo;
@@ -107,6 +111,7 @@ public class APIUtils {
 	}
 
 	private static final Gson GSON = new Gson();
+	private static final ConcurrentMap<MediaInfo, Object> PENDING_METADATA_LOOKUPS = new ConcurrentHashMap<>();
 
 	/**
 	 * These versions are returned to us from the API server. The versions are
@@ -267,21 +272,29 @@ public class APIUtils {
 	}
 
 	private static boolean shouldLookupAndAddMetadata() {
+		return shouldLookupAndAddMetadata(null);
+	}
+
+	private static boolean shouldLookupAndAddMetadata(BackgroundLookupTimer timer) {
+		BackgroundLookupTimer.phase(timer, "executor check");
 		if (BACKGROUND_EXECUTOR.isShutdown()) {
 			LOGGER.trace("Not doing background API lookup because background executor is shutdown");
 			return false;
 		}
 
+		BackgroundLookupTimer.phase(timer, "network config");
 		if (!CONFIGURATION.getExternalNetwork()) {
 			LOGGER.trace("Not doing background API lookup because external network is disabled");
 			return false;
 		}
 
+		BackgroundLookupTimer.phase(timer, "provider config");
 		if (!CONFIGURATION.isUseInfoFromUmsAPI()) {
 			LOGGER.trace("Not doing background API lookup because isUseInfoFromUmsAPI is disabled");
 			return false;
 		}
 
+		BackgroundLookupTimer.phase(timer, "database availability");
 		if (!MediaDatabase.isAvailable()) {
 			LOGGER.trace("Not doing background API lookup because database is closed");
 			return false;
@@ -296,9 +309,19 @@ public class APIUtils {
 	 * @param media
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final MediaInfo media) {
-		if (!shouldLookupAndAddMetadata()) {
+		BackgroundLookupTimer timer = new BackgroundLookupTimer();
+		try {
+			backgroundLookupAndAddMetadata(file, media, timer);
+		} finally {
+			timer.log(LOGGER, "UMS API", file);
+		}
+	}
+
+	private static void backgroundLookupAndAddMetadata(final File file, final MediaInfo media, BackgroundLookupTimer timer) {
+		if (!shouldLookupAndAddMetadata(timer)) {
 			return;
 		}
+		timer.phase("task creation");
 		Runnable r = () -> {
 			try {
 				// wait until MediaStore Workers release before starting
@@ -551,8 +574,36 @@ public class APIUtils {
 				LOGGER.trace("Error in API parsing:", ex);
 			}
 		};
-		LOGGER.trace("Queuing background API lookup for {}", file.getName());
-		BACKGROUND_EXECUTOR.execute(r);
+		timer.phase("deduplication/queue submission");
+		if (executeMetadataLookup(media, r, BACKGROUND_EXECUTOR)) {
+			timer.phase("trace logging");
+			LOGGER.trace("Queued background API lookup for {}", file.getName());
+		}
+	}
+
+	/**
+	 * Coalesce requests sharing cached metadata while queued or running. Separate
+	 * MediaInfo instances must still be populated independently. Completed or
+	 * rejected requests do not prevent a later retry.
+	 */
+	static boolean executeMetadataLookup(MediaInfo media, Runnable lookup, Executor executor) {
+		Object request = new Object();
+		if (PENDING_METADATA_LOOKUPS.putIfAbsent(media, request) != null) {
+			return false;
+		}
+		try {
+			executor.execute(() -> {
+				try {
+					lookup.run();
+				} finally {
+					PENDING_METADATA_LOOKUPS.remove(media, request);
+				}
+			});
+			return true;
+		} catch (RuntimeException | Error ex) {
+			PENDING_METADATA_LOOKUPS.remove(media, request);
+			throw ex;
+		}
 	}
 
 	private static void exitLookupAndAddMetadata(Connection connection) {

@@ -24,7 +24,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Set;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.dlna.DLNAImageProfile;
@@ -68,6 +70,10 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	private final Object displayNameBaseLock = new Object();
 	private String lang;
 	private volatile String baseNamePrettified;
+	private MediaVideoMetadata nameMetadata;
+	private Object nameSeriesMetadata;
+	private long nameTranslationVersion;
+	private long nameSeriesTranslationVersion;
 
 	private final File file;
 	private boolean addToMediaLibrary = true;
@@ -91,29 +97,66 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	 *
 	 * @return true : File is an empty container. Upload by AV client is still missing. No need to check any formats yet.
 	 */
-	private static boolean isUploadResource(File file, int type) {
-		if (type == Format.AUDIO || type == Format.VIDEO) {
-			try {
-				//FIXME : this mean each file that has this length is valid !
-				//UmsContentDirectoryService has nothing to sit in store.
-				//Upload by AV client is still missing, so it is not a valid media.
-				//A new store item class should be added that handle this special things
-				if (Files.size(file.toPath()) == UmsContentDirectoryService.EMPTY_FILE_CONTENT.length()) {
-					LOGGER.trace("isUploadResource true for {}", file.getAbsolutePath());
-					return true;
-				}
-			} catch (Exception e) {
-				LOGGER.error("cannot check file size", e);
-			}
+	private static boolean isUploadResource(File file, int type, long size) {
+		if ((type == Format.AUDIO || type == Format.VIDEO) &&
+				size == UmsContentDirectoryService.EMPTY_FILE_CONTENT.length()) {
+			// Preserve the existing upload-placeholder size check.
+			LOGGER.trace("isUploadResource true for {}", file.getAbsolutePath());
+			return true;
 		}
 		return false;
 	}
 
+	/** Exclusive timings for file validation, including early returns. */
+	private static final class ValidityTimer {
+		private final long started = System.nanoTime();
+		private final long[] nanos = new long[7];
+		private long phaseStarted = started;
+		private int current;
+
+		private void phase(int next) {
+			long now = System.nanoTime();
+			nanos[current] += now - phaseStarted;
+			phaseStarted = now;
+			current = next;
+		}
+
+		private void finish(File file) {
+			phase(6);
+			long totalMs = (phaseStarted - started) / 1_000_000;
+			if (totalMs >= 20) {
+				LOGGER.info("Slow file validity for \"{}\": {} ms total; attributes {} ms, format/upload {} ms, resolve hooks {} ms, validation {} ms, fallback parse {} ms, thumbnail {} ms, other {} ms",
+					file, totalMs, nanos[0] / 1_000_000, nanos[1] / 1_000_000, nanos[2] / 1_000_000,
+					nanos[3] / 1_000_000, nanos[4] / 1_000_000, nanos[5] / 1_000_000, nanos[6] / 1_000_000);
+			}
+		}
+	}
+
 	@Override
 	public boolean isValid() {
-		if (file == null || !file.exists() || !file.isFile()) {
+		ValidityTimer timer = new ValidityTimer();
+		try {
+			return isValid(timer);
+		} finally {
+			timer.finish(file);
+		}
+	}
+
+	private boolean isValid(ValidityTimer timer) {
+		if (file == null) {
 			return false;
 		}
+		BasicFileAttributes attributes;
+		try {
+			// Follows symbolic links, like File.isFile(), and reads the size in the same operation.
+			attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+		} catch (IOException e) {
+			return false;
+		}
+		if (!attributes.isRegularFile()) {
+			return false;
+		}
+		timer.phase(1);
 		resolveFormat();
 
 		if (getType() == Format.SUBTITLE) {
@@ -121,14 +164,17 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			return false;
 		}
 
-		if (isUploadResource(file, getType())) {
+		if (isUploadResource(file, getType(), attributes.size())) {
 			return true;
 		}
 
+		timer.phase(3);
 		boolean valid = getFormat() != null;
 		if (valid && getParent() != null && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the store resource now
+			timer.phase(2);
 			run();
+			timer.phase(3);
 
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
@@ -140,6 +186,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 				} else if (getMediaInfo().getContainer() == null || getMediaInfo().getContainer().equals(MediaLang.UND)) {
 					// problematic media not parsed by MediaInfo try to parse it in a different way by ffmpeg, AudioFileIO or ImagesUtil
 					// this is a quick fix for the MediaInfo insufficient parsing method
+					timer.phase(4);
 					getMediaInfo().setMediaParser(null);
 					InputFile inputfile = new InputFile();
 					inputfile.setFile(file);
@@ -149,12 +196,14 @@ public class RealFile extends StoreItem implements SystemFileResource {
 						valid = false;
 						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
 					}
+					timer.phase(3);
 					//TODO: this should update the db
 				}
 
 			}
 
 			// XXX isMediaInfoThumbnailGeneration is only true for the "default renderer"
+			timer.phase(5);
 			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
 				checkThumbnail();
 			}
@@ -162,6 +211,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			return false;
 		}
 
+		timer.phase(6);
 		return valid;
 	}
 
@@ -239,7 +289,12 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			return;
 		}
 
-		if (file.isFile() && (getMediaInfo() == null || !getMediaInfo().isMediaParsed())) {
+		if ((getMediaInfo() == null || !getMediaInfo().isMediaParsed()) && file.isFile()) {
+			resolveFormat();
+			if (getType() == Format.SUBTITLE) {
+				// isValid() excludes standalone subtitles. Do not parse them before that check.
+				return;
+			}
 			Boolean useSymlinks = renderer.getUmsConfiguration().isUseSymlinksTargetFile();
 			String filename;
 			if (useSymlinks && FileUtil.isSymbolicLink(file)) {
@@ -252,9 +307,16 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			}
 			InputFile input = new InputFile();
 			input.setFile(file);
-			resolveFormat();
+			long metadataStartedAt = System.nanoTime();
 			setMediaInfo(MediaInfoStore.getMediaInfo(filename, file, getFormat(), getType()));
+			long metadataNanos = System.nanoTime() - metadataStartedAt;
+			long statusStartedAt = System.nanoTime();
 			setMediaStatus(MediaStatusStore.getMediaStatus(renderer.getAccountUserId(), filename));
+			long statusNanos = System.nanoTime() - statusStartedAt;
+			if (metadataNanos + statusNanos >= 50_000_000L) {
+				LOGGER.info("Slow file resolve for \"{}\": metadata {} ms, playback status {} ms",
+					filename, metadataNanos / 1_000_000, statusNanos / 1_000_000);
+			}
 		}
 	}
 
@@ -296,6 +358,14 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			if (cachedThumbnail == null && (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) && getParent() instanceof VirtualFolder virtualFolder) {
 				cachedThumbnail = virtualFolder.getPotentialCover();
 			}
+		}
+
+		// Fetch remote posters only when the thumbnail itself is requested.
+		// Local cover files retain priority; browsing does not need this download.
+		if (cachedThumbnail == null && getMediaInfo() != null) {
+			File thumbnailFile = renderer.getUmsConfiguration().isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)
+				? FileUtil.getRealFile(file) : file;
+			ThumbnailStore.resolveLocalizedPoster(getMediaInfo(), thumbnailFile.getAbsolutePath());
 		}
 
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMediaInfo() != null && getMediaInfo().getThumbnail() != null;
@@ -345,12 +415,43 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	}
 
 	@Override
-	public synchronized void syncResolve() {
-		super.syncResolve();
-		if (mediaInfo != null && mediaInfo.isVideo() && getFile() != null) {
-			MediaInfoStore.setMetadataFromFileName(getFile(), mediaInfo);
+	public void syncResolve() {
+		long started = System.nanoTime();
+		long acquired = started;
+		long baseDone = started;
+		long filenameDone = started;
+		int phase = 0;
+		try {
+			synchronized (this) {
+				acquired = System.nanoTime();
+				phase = 1;
+				super.syncResolve();
+				baseDone = System.nanoTime();
+				phase = 2;
+				if (mediaInfo != null && mediaInfo.isVideo() && getFile() != null) {
+					MediaInfoStore.setMetadataFromFileName(getFile(), mediaInfo);
+				}
+				filenameDone = System.nanoTime();
+				phase = 3;
+				checkCoverThumb();
+			}
+		} finally {
+			long finished = System.nanoTime();
+			if (phase < 1) {
+				acquired = finished;
+			}
+			if (phase < 2) {
+				baseDone = finished;
+			}
+			if (phase < 3) {
+				filenameDone = finished;
+			}
+			if (finished - started >= 20_000_000L) {
+				LOGGER.info("Slow file resolve hooks for \"{}\": {} ms total; lock {} ms, base resolve/subtitles {} ms, filename metadata {} ms, cover {} ms",
+					file, (finished - started) / 1_000_000, (acquired - started) / 1_000_000,
+					(baseDone - acquired) / 1_000_000, (filenameDone - baseDone) / 1_000_000, (finished - filenameDone) / 1_000_000);
+			}
 		}
-		checkCoverThumb();
 	}
 
 	/**
@@ -443,7 +544,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	public String getLocalizedDisplayName(String lang) {
 		synchronized (displayNameBaseLock) {
 			lang = CONFIGURATION.getTranslationLanguage(lang);
-			if (lang != null && !lang.equals(this.lang) || this.lang != null) {
+			if (!Objects.equals(lang, this.lang)) {
 				//language changed
 				this.lang = lang;
 				baseNamePrettified = null;
@@ -468,8 +569,16 @@ public class RealFile extends StoreItem implements SystemFileResource {
 
 	protected String getBaseNamePrettified(boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
 		synchronized (displayNameBaseLock) {
-			if (baseNamePrettified == null) {
-				MediaVideoMetadata videoMetadata = getMediaInfo() != null ? getMediaInfo().getVideoMetadata() : null;
+			MediaVideoMetadata videoMetadata = getMediaInfo() != null ? getMediaInfo().getVideoMetadata() : null;
+			var series = videoMetadata != null ? videoMetadata.getSeriesMetadata() : null;
+			long version = videoMetadata != null ? videoMetadata.getTranslationVersion() : 0;
+			long seriesVersion = series != null ? series.getTranslationVersion() : 0;
+			if (baseNamePrettified == null || nameMetadata != videoMetadata || nameSeriesMetadata != series ||
+				nameTranslationVersion != version || nameSeriesTranslationVersion != seriesVersion) {
+				nameMetadata = videoMetadata;
+				nameSeriesMetadata = series;
+				nameTranslationVersion = version;
+				nameSeriesTranslationVersion = seriesVersion;
 				baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), videoMetadata, isEpisodeWithinSeasonFolder, isEpisodeWithinTVSeriesFolder, file.getAbsolutePath(), lang);
 			}
 			return baseNamePrettified;

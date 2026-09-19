@@ -83,8 +83,13 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (getTvSeriesMetadata() != null && getTvSeriesMetadata().getThumbnailId() != null) {
-			return ThumbnailStore.getThumbnailInputStream(getTvSeriesMetadata().getThumbnailId());
+		TvSeriesMetadata metadata = getTvSeriesMetadata();
+		ThumbnailStore.resolveLocalizedSeriesPoster(metadata);
+		if (metadata != null && metadata.getThumbnailId() != null) {
+			DLNAThumbnailInputStream thumbnail = ThumbnailStore.getThumbnailInputStream(metadata.getThumbnailId());
+			if (thumbnail != null) {
+				return thumbnail;
+			}
 		}
 
 		try {

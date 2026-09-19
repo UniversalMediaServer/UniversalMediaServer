@@ -276,7 +276,7 @@ public class FileUtil {
 	public static boolean isUrl(String filename) {
 		// We're intentionally avoiding stricter URI() methods, which can throw
 		// URISyntaxException for psuedo-urls (e.g. librtmp-style urls containing spaces)
-		return filename != null && URL_PATTERN.matcher(filename).matches();
+		return filename != null && filename.indexOf(PROTOCOL_SEPARATOR) >= 0 && URL_PATTERN.matcher(filename).matches();
 	}
 
 	public static String getProtocol(String filename) {
@@ -603,29 +603,29 @@ public class FileUtil {
 	 * removed.
 	 */
 	private static final String COMMON_FILE_ENDS = "\\s\\[BD.*|[\\s\\(]DUBBED.*|[\\s\\(]AC3.*|[\\s\\(]EAC3.*|[\\s\\(]NTSC.*|[\\s\\(]TVNZ\\s.*|[\\s\\(]FP\\s.*|[\\s\\(]AAC.*|[\\s\\(]REPACK.*|[\\s\\(]480p.*|[\\s\\(]720p.*|[\\s\\(]m-720p.*|[\\s\\(]900p.*|[\\s\\(]1080i.*|[\\s\\(]1080p.*|[\\s\\(]2160p.*|[\\s\\(]WEB-DL.*|[\\s\\(]HDTV.*|[\\s\\(]DSR.*|[\\s\\(]PDTV.*|[\\s\\(]SDTV.*|[\\s\\(]WS.*|[\\s\\(]HQ.*|[\\s\\(]DVDRip.*|[\\s\\(]TVRiP.*|[\\s\\(]BDRip.*|[\\s\\(]BRRip.*|[\\s\\(]WEBRip.*|[\\s\\(]BluRay.*|[\\s\\(]Blu-ray.*|[\\s\\(]SUBBED.*|[\\s\\(]x264.*|[\\s\\(]x265.*|[\\s\\(]XviD.*|[\\s\\(]Dual\\sAudio.*|[\\s\\(]HSBS.*|[\\s\\(]H-SBS.*|[\\s\\(]RERiP.*|[\\s\\(]DIRFIX.*|[\\s\\(]READNFO.*|[\\s\\(]60FPS.*|[\\s\\(]HDR.*|[\\s\\(]DV[\\s\\(].*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*\\s\\[BD.*|.*[\\s\\(]DUBBED.*|.*[\\s\\(]AC3.*|[\\s\\(]EAC3.*|.*[\\s\\(]NTSC.*|.*[\\s\\(]TVNZ.*|.*[\\s\\(]FP.*|.*[\\s\\(]AAC.*|.*[\\s\\(]REPACK.*|.*[\\s\\(]480p.*|.*[\\s\\(]720p.*|.*[\\s\\(]m-720p.*|.*[\\s\\(]900p.*|.*[\\s\\(]1080i.*|.*[\\s\\(]1080p.*|.*[\\s\\(]2160p.*|.*[\\s\\(]WEB-DL.*|.*[\\s\\(]HDTV.*|.*[\\s\\(]DSR.*|.*[\\s\\(]PDTV.*|.*[\\s\\(]SDTV.*|.*[\\s\\(]WS.*|.*[\\s\\(]HQ.*|.*[\\s\\(]DVDRip.*|.*[\\s\\(]TVRiP.*|.*[\\s\\(]BDRip.*|.*[\\s\\(]BRRip.*|.*[\\s\\(]WEBRip.*|.*[\\s\\(]BluRay.*|.*[\\s\\(]Blu-ray.*|.*[\\s\\(]SUBBED.*|.*[\\s\\(]x264.*|.*[\\s\\(]x265.*|.*[\\s\\(]XviD.*|.*[\\s\\(]Dual\\sAudio.*|.*[\\s\\(]HSBS.*|.*[\\s\\(]H-SBS.*|.*[\\s\\(]RERiP.*|.*[\\s\\(]DIRFIX.*|.*[\\s\\(]READNFO.*|.*[\\s\\(]60FPS.*|.*[\\s\\(]HDR.*|.*[\\s\\(]DV[\\s\\(].*";
+	private static final Pattern COMMON_FILE_ENDS_MATCH = Pattern.compile(".*\\s\\[BD.*|.*[\\s\\(]DUBBED.*|.*[\\s\\(]AC3.*|[\\s\\(]EAC3.*|.*[\\s\\(]NTSC.*|.*[\\s\\(]TVNZ.*|.*[\\s\\(]FP.*|.*[\\s\\(]AAC.*|.*[\\s\\(]REPACK.*|.*[\\s\\(]480p.*|.*[\\s\\(]720p.*|.*[\\s\\(]m-720p.*|.*[\\s\\(]900p.*|.*[\\s\\(]1080i.*|.*[\\s\\(]1080p.*|.*[\\s\\(]2160p.*|.*[\\s\\(]WEB-DL.*|.*[\\s\\(]HDTV.*|.*[\\s\\(]DSR.*|.*[\\s\\(]PDTV.*|.*[\\s\\(]SDTV.*|.*[\\s\\(]WS.*|.*[\\s\\(]HQ.*|.*[\\s\\(]DVDRip.*|.*[\\s\\(]TVRiP.*|.*[\\s\\(]BDRip.*|.*[\\s\\(]BRRip.*|.*[\\s\\(]WEBRip.*|.*[\\s\\(]BluRay.*|.*[\\s\\(]Blu-ray.*|.*[\\s\\(]SUBBED.*|.*[\\s\\(]x264.*|.*[\\s\\(]x265.*|.*[\\s\\(]XviD.*|.*[\\s\\(]Dual\\sAudio.*|.*[\\s\\(]HSBS.*|.*[\\s\\(]H-SBS.*|.*[\\s\\(]RERiP.*|.*[\\s\\(]DIRFIX.*|.*[\\s\\(]READNFO.*|.*[\\s\\(]60FPS.*|.*[\\s\\(]HDR.*|.*[\\s\\(]DV[\\s\\(].*");
 
 	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s[\\[\\(]\\d{3,4}p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|[\\s_]\\(Dual\\sAudio.*|\\s\\[VOSTFR\\].*|\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
-	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s[\\[\\(]\\d{3,4}p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*[\\s_]\\(Dual\\sAudio.*|.*\\s\\[VOSTFR\\].*|.*\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*|.*\\s\\(\\d{1,2}bit.*";
+	private static final Pattern COMMON_ANIME_FILE_ENDS_MATCH = Pattern.compile(".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s[\\[\\(]\\d{3,4}p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*[\\s_]\\(Dual\\sAudio.*|.*\\s\\[VOSTFR\\].*|.*\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*|.*\\s\\(\\d{1,2}bit.*");
 
 	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,}\\w{1}|\\d{1,})";
 	private static final String SCENE_P2P_EPISODE_SPECIAL_REGEX = "[sS](\\d{2})\\s(\\w{3,})";
 	private static final String MIXED_EPISODE_CONVENTION = "\\s(?:Ep|e)(?:\\s{1,2}|)(\\d{1,4})(?:\\s|$)";
-	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
+	private static final Pattern MIXED_EPISODE_CONVENTION_MATCH = Pattern.compile(".*" + MIXED_EPISODE_CONVENTION + ".*");
 	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
 
 	private static final String MIXED_EPISODE_CONVENTION2 = "[sS](\\d{2})\\s(?:Episode)\\s(\\d{1,2})(?:\\s|$)";
-	private static final String MIXED_EPISODE_CONVENTION2_MATCH = ".*" + MIXED_EPISODE_CONVENTION2 + ".*";
+	private static final Pattern MIXED_EPISODE_CONVENTION2_MATCH = Pattern.compile(".*" + MIXED_EPISODE_CONVENTION2 + ".*");
 	private static final Pattern MIXED_EPISODE_CONVENTION2_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION2);
 
-	private static final String SCENE_P2P_MOVIE_MATCH = "^(?!.*\\d{1,3}[\\s:][\\s-]\\s).*\\s(?:19|20)\\d{2}.*";
+	private static final Pattern SCENE_P2P_MOVIE_MATCH = Pattern.compile("^(?!.*\\d{1,3}[\\s:][\\s-]\\s).*\\s(?:19|20)\\d{2}.*");
 
 	private static final String MINISERIES_CONVENTION = "\\s(\\d{1,2})of\\d{1,2}\\s";
-	private static final String MINISERIES_CONVENTION_MATCH = ".*" + MINISERIES_CONVENTION + ".*";
+	private static final Pattern MINISERIES_CONVENTION_MATCH = Pattern.compile(".*" + MINISERIES_CONVENTION + ".*");
 	private static final Pattern MINISERIES_CONVENTION_PATTERN = Pattern.compile(MINISERIES_CONVENTION);
 
 	private static final String SCENE_MULTI_EPISODE_CONVENTION = "[sS](\\d{1,2})[eE](\\d{1,})([eE]|-[eE])(\\d{1,})";
-	private static final String SCENE_MULTI_EPISODE_CONVENTION_MATCH = ".*" + SCENE_MULTI_EPISODE_CONVENTION + ".*";
+	private static final Pattern SCENE_MULTI_EPISODE_CONVENTION_MATCH = Pattern.compile(".*" + SCENE_MULTI_EPISODE_CONVENTION + ".*");
 	private static final Pattern SCENE_MULTI_EPISODE_CONVENTION_PATTERN = Pattern.compile(SCENE_MULTI_EPISODE_CONVENTION);
 
 	private static final String SHOW_NAME_INDEX_MATCHER = "(?i) (S\\d{2}E\\d{2}\\w{1}|S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})";
@@ -950,7 +950,7 @@ public class FileUtil {
 		// change this to true to get better feedback while working on FileUtilTest
 		boolean verboseDevLogging = false;
 
-		if (formattedName.matches(SCENE_MULTI_EPISODE_CONVENTION_MATCH)) {
+		if (SCENE_MULTI_EPISODE_CONVENTION_MATCH.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("SCENE_MULTI_EPISODE_CONVENTION_MATCH: " + formattedName);
 			}
@@ -1012,7 +1012,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll(SCENE_P2P_EPISODE_REGEX, " S" + tvSeason + "E$2");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(MIXED_EPISODE_CONVENTION2_MATCH)) {
+		} else if (MIXED_EPISODE_CONVENTION2_MATCH.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("MIXED_EPISODE_CONVENTION2_MATCH: " + formattedName);
 			}
@@ -1137,7 +1137,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(MINISERIES_CONVENTION_MATCH)) {
+		} else if (MINISERIES_CONVENTION_MATCH.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("MINISERIES_CONVENTION_MATCH: " + formattedName);
 			}
@@ -1172,7 +1172,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll(MINISERIES_CONVENTION, " " + seasonLetterReplace + tvSeason + episodeLetterReplace + tvEpisodeNumber + " - ");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(MIXED_EPISODE_CONVENTION_MATCH)) {
+		} else if (MIXED_EPISODE_CONVENTION_MATCH.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("MIXED_EPISODE_CONVENTION_MATCH: " + formattedName);
 			}
@@ -1238,7 +1238,7 @@ public class FileUtil {
 			// This matches some sports releases
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches(SCENE_P2P_MOVIE_MATCH)) {
+		} else if (SCENE_P2P_MOVIE_MATCH.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("SCENE_P2P_MOVIE_MATCH: " + formattedName);
 			}
@@ -1273,7 +1273,7 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$") || formattedName.matches(".*\\s-\\s\\d{1,3}$") || formattedName.matches(COMMON_ANIME_FILE_ENDS_MATCH)) {
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$") || formattedName.matches(".*\\s-\\s\\d{1,3}$") || COMMON_ANIME_FILE_ENDS_MATCH.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("anime: " + formattedName);
 			}
@@ -1329,7 +1329,7 @@ public class FileUtil {
 			}
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
+		} else if (COMMON_FILE_ENDS_MATCH.matcher(formattedName).matches()) {
 			if (verboseDevLogging) {
 				System.out.println("COMMON_FILE_ENDS_MATCH: " + formattedName);
 			}

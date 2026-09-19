@@ -41,7 +41,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -767,15 +766,34 @@ public class SubtitleUtils {
 	}
 
 	private static final HashMap<File, CacheFolder> FOLDER_CACHE = new HashMap<>();
+	private static long lastFolderCacheCleanup;
 
-	private static class CacheFolder {
+	static CacheFolder getCachedSubtitleFolder(File folder, boolean forceRefresh, long now) {
+		synchronized (FOLDER_CACHE) {
+			long earliestBirth = now - FOLDER_CACHE_EXPIRATION_TIME;
+			// Limit full-map cleanup while validating the requested entry on every access.
+			if (now < lastFolderCacheCleanup || now - lastFolderCacheCleanup >= 1000) {
+				FOLDER_CACHE.entrySet().removeIf(entry -> entry.getValue().getBirth() < earliestBirth);
+				lastFolderCacheCleanup = now;
+			}
+			CacheFolder cached = FOLDER_CACHE.get(folder);
+			if (forceRefresh || cached == null || cached.getBirth() < earliestBirth) {
+				cached = new CacheFolder(now);
+				FOLDER_CACHE.put(folder, cached);
+			}
+			return cached;
+		}
+	}
+
+
+	static class CacheFolder {
 
 		private File[] items;
 		private final long birth;
 		private boolean populated;
 
-		public CacheFolder() {
-			birth = System.currentTimeMillis();
+		private CacheFolder(long now) {
+			birth = now;
 		}
 
 		public boolean isPopulated() {
@@ -955,39 +973,9 @@ public class SubtitleUtils {
 
 		final Set<String> supportedFileExtensions = SubtitleType.getSupportedFileExtensions();
 
-		boolean cleaned = false;
 		List<File> folderSubtitles = new ArrayList<>();
 		for (File folder : folders) {
-			CacheFolder cacheFolder = null;
-			synchronized (FOLDER_CACHE) {
-				// Clean cache for expired entries and fetch or insert the entry
-				// for the folder under examination
-				if (cleaned) {
-					if (forceRefresh) {
-						FOLDER_CACHE.remove(folder);
-					}
-					cacheFolder = FOLDER_CACHE.get(folder);
-				} else {
-					long earliestBirth = System.currentTimeMillis() - FOLDER_CACHE_EXPIRATION_TIME;
-					for (Iterator<Entry<File, CacheFolder>> iterator = FOLDER_CACHE.entrySet().iterator(); iterator.hasNext();) {
-						Entry<File, CacheFolder> entry = iterator.next();
-						if (entry.getValue().getBirth() < earliestBirth) {
-							iterator.remove();
-						} else if (folder.equals(entry.getKey())) {
-							if (forceRefresh) {
-								iterator.remove();
-							} else {
-								cacheFolder = entry.getValue();
-							}
-						}
-					}
-					cleaned = true;
-				}
-				if (cacheFolder == null) {
-					cacheFolder = new CacheFolder();
-					FOLDER_CACHE.put(folder, cacheFolder);
-				}
-			}
+			CacheFolder cacheFolder = getCachedSubtitleFolder(folder, forceRefresh, System.currentTimeMillis());
 
 			// Populate the CacheFolder if it isn't already and get the files
 			synchronized (cacheFolder) {

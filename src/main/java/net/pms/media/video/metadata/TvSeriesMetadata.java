@@ -21,7 +21,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -48,6 +47,8 @@ public class TvSeriesMetadata {
 	private ApiStringArray countries;
 	private ApiPersonCreditedArray createdBy;
 	private ApiCredits credits;
+	private transient String creditsJson;
+	private final transient Object creditsLock = new Object();
 	private ApiStringArray directors;
 	private Integer endYear;
 	private ApiExternalIDs externalIDs;
@@ -55,6 +56,8 @@ public class TvSeriesMetadata {
 	private ApiStringArray genres;
 	private String homepage;
 	private ApiImages images;
+	private transient String imagesJson;
+	private final transient Object imagesLock = new Object();
 	private String imdbID;
 	private Boolean inProduction;
 	private ApiStringArray languages;
@@ -87,7 +90,7 @@ public class TvSeriesMetadata {
 	private Long thumbnailId;
 	private ThumbnailSource thumbnailSource = ThumbnailSource.UNKNOWN;
 	private Long tvSeriesId;
-	private Map<String, VideoMetadataLocalized> translations;
+	private final BackgroundTranslations<VideoMetadataLocalized> translations = new BackgroundTranslations<>();
 
 	public Long getTvSeriesId() {
 		return tvSeriesId;
@@ -147,19 +150,33 @@ public class TvSeriesMetadata {
 	}
 
 	public ApiCredits getCredits() {
-		return credits;
+		synchronized (creditsLock) {
+			if (creditsJson != null) {
+				try {
+					credits = GSON.fromJson(creditsJson, ApiCredits.class);
+				} catch (JsonSyntaxException e) {
+					LOGGER.error("Error in parsing credits: {}", e.getMessage());
+					credits = null;
+				} finally {
+					creditsJson = null;
+				}
+			}
+			return credits;
+		}
 	}
 
 	public void setCredits(ApiCredits value) {
-		this.credits = value;
+		synchronized (creditsLock) {
+			creditsJson = null;
+			credits = value;
+		}
 	}
 
+	/** Retains JSON until this detail is requested, avoiding parsing during listing. */
 	public void setCredits(String value) {
-		try {
-			this.credits = GSON.fromJson(value, ApiCredits.class);
-		} catch (JsonSyntaxException e) {
-			LOGGER.error("Error in parsing credits: {}", e.getMessage());
-			this.credits = null;
+		synchronized (creditsLock) {
+			credits = null;
+			creditsJson = value;
 		}
 	}
 
@@ -233,19 +250,33 @@ public class TvSeriesMetadata {
 	}
 
 	public ApiImages getImages() {
-		return images;
+		synchronized (imagesLock) {
+			if (imagesJson != null) {
+				try {
+					images = GSON.fromJson(imagesJson, ApiImages.class);
+				} catch (JsonSyntaxException e) {
+					LOGGER.error("Error in parsing images: {}", e.getMessage());
+					images = null;
+				} finally {
+					imagesJson = null;
+				}
+			}
+			return images;
+		}
 	}
 
 	public void setImages(ApiImages value) {
-		this.images = value;
+		synchronized (imagesLock) {
+			imagesJson = null;
+			images = value;
+		}
 	}
 
+	/** Retains JSON until this detail is requested, avoiding parsing during listing. */
 	public void setImages(String value) {
-		try {
-			this.images = GSON.fromJson(value, ApiImages.class);
-		} catch (JsonSyntaxException e) {
-			LOGGER.error("Error in parsing Images: {}", e.getMessage());
-			this.images = null;
+		synchronized (imagesLock) {
+			images = null;
+			imagesJson = value;
 		}
 	}
 
@@ -570,39 +601,23 @@ public class TvSeriesMetadata {
 	}
 
 	public void setTranslations(Map<String, VideoMetadataLocalized> value) {
-		this.translations = value;
+		this.translations.set(value);
 	}
 
 	public void ensureHavingTranslation(String lang) {
-		lang = CONFIGURATION.getTranslationLanguage(lang);
-		if (lang != null && !"en-us".equals(lang) && !hasTranslation(lang) && tvSeriesId != null && tvSeriesId > -1) {
-			VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(tvSeriesId, true, lang, imdbID, "tv", tmdbId, null, null);
-			if (loc != null) {
-				addTranslation(lang, loc);
-			}
+		String language = CONFIGURATION.getTranslationLanguage(lang);
+		if (language != null && !"en-us".equals(language) && tvSeriesId != null && tvSeriesId > -1) {
+			translations.request(language, () -> MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(tvSeriesId, true, language, imdbID, "tv", tmdbId, null, null));
 		}
 	}
 
-	private void addTranslation(String lang, VideoMetadataLocalized value) {
-		if (lang == null || value == null) {
-			return;
-		}
-		if (this.translations == null) {
-			this.translations = new HashMap<>();
-		}
-		this.translations.put(lang.toLowerCase(), value);
-	}
-
-	private boolean hasTranslation(String lang) {
-		return this.translations != null && this.translations.containsKey(lang.toLowerCase());
+	public long getTranslationVersion() {
+		return translations.version();
 	}
 
 	private VideoMetadataLocalized getTranslation(String lang) {
 		lang = CONFIGURATION.getTranslationLanguage(lang);
-		if (lang != null && hasTranslation(lang)) {
-			return this.translations.get(lang);
-		}
-		return null;
+		return translations.get(lang);
 	}
 
 	public String getHomepage(String lang) {
@@ -716,7 +731,7 @@ public class TvSeriesMetadata {
 		}
 		result.add("genres", GSON.toJsonTree(genres));
 		result.addProperty("homepage", getHomepage(lang));
-		result.add("images", GSON.toJsonTree(images));
+		result.add("images", GSON.toJsonTree(getImages()));
 		result.addProperty("imdbID", imdbID);
 		result.addProperty("inProduction", inProduction);
 		result.add("languages", GSON.toJsonTree(languages));

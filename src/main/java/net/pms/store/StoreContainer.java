@@ -50,6 +50,33 @@ public class StoreContainer extends StoreResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StoreResource.class);
 	private static final int DEPTH_WARNING_LIMIT = 7;
 
+	/** Exclusive per-item preparation timings; formatted only for a slow item. */
+	private static final class PreparationTimer {
+		private static final String[] LABELS = {"validity", "filter/name", "resume", "transcoding", "extra folders", "secondary format", "registration", "cleanup"};
+		private final long[] nanos = new long[LABELS.length];
+		private long started = System.nanoTime();
+		private int current;
+
+		private void phase(int next) {
+			long now = System.nanoTime();
+			nanos[current] += now - started;
+			started = now;
+			current = next;
+		}
+
+		private String summary() {
+			StringBuilder result = new StringBuilder();
+			for (int i = 0; i < LABELS.length; i++) {
+				if (i > 0) {
+					result.append(", ");
+				}
+				result.append(LABELS[i]).append(' ').append(nanos[i] / 1_000_000).append(" ms");
+			}
+			return result.toString();
+		}
+	}
+
+
 	protected String name;
 	protected String thumbnailIcon;
 	private boolean isChildrenSorted = false;
@@ -122,22 +149,34 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (child instanceof StoreItem storeItem) {
+			long resolveStartedAt = System.nanoTime();
 			if (child instanceof WebStream webStream) {
 				// Probing a web stream like youtube item can take half a minute.
 				webStream.resolveInBackground();
 			} else {
 				child.resolve();
 			}
-			addChildItem(storeItem, isNew, isAddGlobally);
+			long resolveNanos = System.nanoTime() - resolveStartedAt;
+			long prepareStartedAt = System.nanoTime();
+			PreparationTimer preparation = new PreparationTimer();
+			addChildItem(storeItem, isNew, isAddGlobally, preparation);
+			preparation.phase(7);
+			long prepareNanos = System.nanoTime() - prepareStartedAt;
+			if (resolveNanos + prepareNanos >= 50_000_000L) {
+				LOGGER.info("Slow item in \"{}\" ({}): resolve {} ms, prepare/add {} ms; resource {}; preparation: {}",
+					getName(), child.getClass().getSimpleName(), resolveNanos / 1_000_000, prepareNanos / 1_000_000,
+					child instanceof SystemFileResource fileResource ? fileResource.getSystemFile() : child.getName(), preparation.summary());
+			}
 		} else if (child instanceof StoreContainer storeContainer) {
 			addChildContainer(storeContainer, isNew, isAddGlobally);
 		}
 
 	}
 
-	private void addChildItem(StoreItem item, boolean isNew, boolean isAddGlobally) {
+	private void addChildItem(StoreItem item, boolean isNew, boolean isAddGlobally, PreparationTimer timer) {
 		try {
 			if (item.isValid()) {
+				timer.phase(1);
 				if (isAddGlobally && item.getFormat() != null) {
 					// Do not add unsupported mediaInfo formats to the list
 					if (renderer != null && !renderer.supportsFormat(item.getFormat())) {
@@ -159,6 +198,7 @@ public class StoreContainer extends StoreResource {
 					allChildrenAreContainers = false;
 				}
 
+				timer.phase(2);
 				item.setResumeHash(Math.abs(item.getSystemName().hashCode() + hashCode()));
 
 				StoreItem resumeRes = null;
@@ -177,6 +217,7 @@ public class StoreContainer extends StoreResource {
 					}
 				}
 
+				timer.phase(3);
 				if (isAddGlobally && item.getFormat() != null) {
 					// Determine transcoding possibilities if either
 					// - the format is known to be transcodable
@@ -197,7 +238,9 @@ public class StoreContainer extends StoreResource {
 
 						if (renderer.getUmsConfiguration().isShowRecentlyPlayedFolder()) {
 							transcodingSettings = item.getTranscodingSettings();
-						} else {
+						} else if (StringUtils.endsWith(currentName, "]") ||
+							(getParent() != null && StringUtils.endsWith(getParent().getName(), "]"))) {
+							// Only a name ending in ']' can contain a preferred-engine suffix.
 							for (TranscodingSettings tSettings : TranscodingSettings.getTranscodingsSettings(item)) {
 								String end = "[" + tSettings.getEngine().getEngineId().toString() + "]";
 
@@ -227,6 +270,7 @@ public class StoreContainer extends StoreResource {
 							resumeRes.setMediaSubtitle(item.getMediaSubtitle());
 						}
 
+						timer.phase(4);
 						if (!allChildrenAreContainers) {
 							// Should the item be added to the #--TRANSCODE--# folder?
 							if ((item.getFormat().isVideo() || item.getFormat().isAudio()) && item.isTranscodeFolderAvailable()) {
@@ -249,6 +293,7 @@ public class StoreContainer extends StoreResource {
 						}
 					}
 
+					timer.phase(5);
 					if (resumeRes != null && resumeRes.getMediaInfo() != null) {
 						resumeRes.getMediaInfo().setThumbnailId(null);
 						resumeRes.getMediaInfo().setThumbnailSource(ThumbnailSource.UNKNOWN);
@@ -290,6 +335,7 @@ public class StoreContainer extends StoreResource {
 					}
 				}
 
+				timer.phase(6);
 				if (isNew) {
 					addChildInternal(item, isAddGlobally);
 				} else {
@@ -301,6 +347,7 @@ public class StoreContainer extends StoreResource {
 				}
 			}
 		} catch (Throwable t) {
+			timer.phase(7);
 			LOGGER.debug("Error adding child {}: {}", item.getName(), t);
 
 			item.setParent(null);

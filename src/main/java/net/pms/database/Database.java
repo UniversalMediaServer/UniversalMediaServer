@@ -17,6 +17,7 @@
 package net.pms.database;
 
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 import java.sql.*;
 import net.pms.Messages;
 import net.pms.gui.GuiManager;
@@ -68,7 +69,20 @@ public abstract class Database extends DatabaseHelper {
 	 * @throws SQLException
 	 */
 	public Connection getConnection() throws SQLException {
-		return ds.getConnection();
+		long startedAt = System.nanoTime();
+		try {
+			return ds.getConnection();
+		} finally {
+			long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000;
+			if (elapsedMs >= 50) {
+				// This is a snapshot after the attempt, not proof that the pool was exhausted.
+				HikariPoolMXBean pool = ds.getHikariPoolMXBean();
+				LOGGER.info("Slow database connection acquisition for {}: {} ms; pool after attempt: active {}, idle {}, waiting {}, max {}",
+					dbName, elapsedMs, pool == null ? -1 : pool.getActiveConnections(),
+					pool == null ? -1 : pool.getIdleConnections(), pool == null ? -1 : pool.getThreadsAwaitingConnection(),
+					ds.getMaximumPoolSize());
+			}
+		}
 	}
 
 	/**
