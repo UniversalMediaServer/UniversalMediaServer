@@ -252,13 +252,28 @@ public final class LiveStreamRelay {
 				return null;
 			}
 			Listener listener = new Listener(this);
-			synchronized (backlog) {
-				for (byte[] chunk : backlog) {
-					listener.offer(chunk);
-				}
+			// Handed over as one block
+			byte[] headStart = takeBacklog();
+			if (headStart.length > 0) {
+				listener.offer(headStart);
 			}
 			listeners.add(listener);
 			return listener;
+		}
+
+		/**
+		 * @return the kept seconds of stream as one block, empty when there are none yet
+		 */
+		private byte[] takeBacklog() {
+			synchronized (backlog) {
+				byte[] all = new byte[backlogBytes];
+				int at = 0;
+				for (byte[] chunk : backlog) {
+					System.arraycopy(chunk, 0, all, at, chunk.length);
+					at += chunk.length;
+				}
+				return all;
+			}
 		}
 
 		/**
