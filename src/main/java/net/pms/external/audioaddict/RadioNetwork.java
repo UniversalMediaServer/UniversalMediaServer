@@ -120,7 +120,7 @@ public class RadioNetwork {
 	private volatile Channel[] channelUrls = null;
 	private volatile List<INetworkInitialized> networkInitCallbacks = new ArrayList<>();
 
-	private ObjectMapper om = null;
+	private final ObjectMapper om = JsonMapper.builder().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build();
 	private StreamListQuality quality = StreamListQuality.MP3_320;
 	private LinkedHashMap<String, List<Integer>> channelsFilterMap = new LinkedHashMap<>();
 	private AudioAddictServiceConfig config = null;
@@ -204,7 +204,6 @@ public class RadioNetwork {
 		LOGGER.debug("{} : start() called ...", network.displayName);
 		startHttpClients();
 
-		om = JsonMapper.builder().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build();
 		if (apiKey == null) {
 			authenticate();
 		}
