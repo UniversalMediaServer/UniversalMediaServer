@@ -74,10 +74,10 @@ public abstract class Database extends DatabaseHelper {
 			return ds.getConnection();
 		} finally {
 			long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000;
-			if (elapsedMs >= 50) {
+			if (elapsedMs >= 50 && LOGGER.isDebugEnabled()) {
 				// This is a snapshot after the attempt, not proof that the pool was exhausted.
 				HikariPoolMXBean pool = ds.getHikariPoolMXBean();
-				LOGGER.info("Slow database connection acquisition for {}: {} ms; pool after attempt: active {}, idle {}, waiting {}, max {}",
+				LOGGER.debug("Slow database connection acquisition for {}: {} ms; pool after attempt: active {}, idle {}, waiting {}, max {}",
 					dbName, elapsedMs, pool == null ? -1 : pool.getActiveConnections(),
 					pool == null ? -1 : pool.getIdleConnections(), pool == null ? -1 : pool.getThreadsAwaitingConnection(),
 					ds.getMaximumPoolSize());

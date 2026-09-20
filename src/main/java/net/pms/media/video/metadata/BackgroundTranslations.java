@@ -1,19 +1,3 @@
-/*
- * This file is part of Universal Media Server, based on PS3 Media Server.
- *
- * This program is a free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; version 2 of the License only.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
 package net.pms.media.video.metadata;
 
 import java.util.HashMap;
@@ -31,7 +15,9 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Publishes translations without making a browsing thread wait for a lookup. */
+/**
+ * Publishes translations without making a browsing thread wait for a lookup.
+ */
 final class BackgroundTranslations<T> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundTranslations.class);
 	private static final Executor WORKER = new ThreadPoolExecutor(0, 1, 30, TimeUnit.SECONDS,
@@ -40,6 +26,7 @@ final class BackgroundTranslations<T> {
 			thread.setDaemon(true);
 			return thread;
 		});
+	private final Supplier<TranslationStoreRefresh.Target> refreshTarget;
 	private final Executor executor;
 	private final LongSupplier clock;
 	private final Map<String, T> values = new HashMap<>();
@@ -48,11 +35,16 @@ final class BackgroundTranslations<T> {
 	private long generation;
 	private long version;
 
-	BackgroundTranslations() {
-		this(WORKER, System::nanoTime);
+	BackgroundTranslations(Supplier<TranslationStoreRefresh.Target> refreshTarget) {
+		this(refreshTarget, WORKER, System::nanoTime);
 	}
 
 	BackgroundTranslations(Executor executor, LongSupplier clock) {
+		this(null, executor, clock);
+	}
+
+	BackgroundTranslations(Supplier<TranslationStoreRefresh.Target> refreshTarget, Executor executor, LongSupplier clock) {
+		this.refreshTarget = refreshTarget;
 		this.executor = executor;
 		this.clock = clock;
 	}
@@ -92,6 +84,7 @@ final class BackgroundTranslations<T> {
 		try {
 			executor.execute(() -> {
 				T value = null;
+				boolean published = false;
 				try {
 					value = lookup.get();
 				} catch (Exception e) {
@@ -103,15 +96,18 @@ final class BackgroundTranslations<T> {
 							if (value != null) {
 								values.put(key, value);
 								version++;
+								published = true;
 							} else {
 								failures.put(key, clock.getAsLong());
 							}
 						}
 					}
 				}
+				if (published && refreshTarget != null) {
+					TranslationStoreRefresh.request(refreshTarget.get(), executor);
+				}
 			});
 		} catch (RejectedExecutionException e) {
-			// A full queue must never run network work on the caller or block browsing.
 			pending.remove(key);
 		}
 	}

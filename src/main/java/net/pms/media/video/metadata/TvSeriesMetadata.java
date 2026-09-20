@@ -26,6 +26,7 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaTableVideoMetadataLocalized;
 import net.pms.store.ThumbnailSource;
+import net.pms.store.container.MediaLibraryTvSeries;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +91,9 @@ public class TvSeriesMetadata {
 	private Long thumbnailId;
 	private ThumbnailSource thumbnailSource = ThumbnailSource.UNKNOWN;
 	private Long tvSeriesId;
-	private final BackgroundTranslations<VideoMetadataLocalized> translations = new BackgroundTranslations<>();
+	private final BackgroundTranslations<VideoMetadataLocalized> translations = new BackgroundTranslations<>(
+		() -> tvSeriesId != null && tvSeriesId > -1 ?
+			new TranslationStoreRefresh.Target(null, MediaLibraryTvSeries.getSystemName(tvSeriesId)) : null);
 
 	public Long getTvSeriesId() {
 		return tvSeriesId;

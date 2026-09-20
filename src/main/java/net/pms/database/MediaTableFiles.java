@@ -32,7 +32,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import net.pms.Messages;
 import net.pms.configuration.sharedcontent.FileTypeForgivingAdapter;
@@ -770,44 +769,7 @@ public class MediaTableFiles extends MediaTable {
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-
-	/** Exclusive wall-clock phases, including SQL, mapping and any nested work. */
-	static final class DatabaseReadTimer {
-		private final String[] labels;
-		private final long[] elapsed;
-		private final long started = System.nanoTime();
-		private long phaseStarted = started;
-		private int current;
-
-		DatabaseReadTimer(String... labels) {
-			this.labels = labels;
-			elapsed = new long[labels.length];
-		}
-
-		void phase(int next) {
-			long now = System.nanoTime();
-			elapsed[current] += now - phaseStarted;
-			phaseStarted = now;
-			current = next;
-		}
-
-		void finish(String kind, Object resource) {
-			phase(current);
-			long totalMs = (phaseStarted - started) / 1_000_000;
-			if (totalMs >= 50) {
-				StringBuilder details = new StringBuilder();
-				for (int i = 0; i < labels.length; i++) {
-					if (i > 0) {
-						details.append(", ");
-					}
-					details.append(labels[i]).append(' ').append(elapsed[i] / 1_000_000).append(" ms");
-				}
-				LOGGER.info("Slow database {} for \"{}\": {} ms total; {}", kind, resource, totalMs, details);
-			}
-		}
-	}
 	public static MediaInfo getMediaInfo(final Connection connection, String filename, long modified) throws IOException, SQLException {
-		DatabaseReadTimer timer = new DatabaseReadTimer("file query", "base fields", "image info", "audio tracks", "video tracks", "subtitle tracks", "chapters", "audio metadata", "video metadata", "close");
 		MediaInfo media = null;
 		try (
 			PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
@@ -818,7 +780,6 @@ public class MediaTableFiles extends MediaTable {
 				ResultSet rs = stmt.executeQuery();
 			) {
 				if (rs.next()) {
-					timer.phase(1);
 					media = new MediaInfo();
 					long fileId = rs.getLong(COL_ID);
 					media.setFileId(fileId);
@@ -835,7 +796,6 @@ public class MediaTableFiles extends MediaTable {
 					media.setThumbnailSource(rs.getString(COL_THUMB_SRC));
 					//not media related
 					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
-					timer.phase(2);
 					byte[] imageBytes = rs.getBytes(COL_IMAGEINFO);
 					Object deserializedImageInfo = deserialize(imageBytes);
 					ImageInfo info = deserializedImageInfo instanceof ImageInfo imageInfo ? imageInfo : null;
@@ -845,23 +805,14 @@ public class MediaTableFiles extends MediaTable {
 					media.setImageInfo(info);
 					media.setImageCount(rs.getInt(COL_IMAGECOUNT));
 
-					timer.phase(3);
 					media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, fileId));
-					timer.phase(4);
 					media.setVideoTracks(MediaTableVideotracks.getVideoTracks(connection, fileId));
-					timer.phase(5);
 					media.setSubtitlesTracks(MediaTableSubtracks.getSubtitleTracks(connection, fileId));
-					timer.phase(6);
 					media.setChapters(MediaTableChapters.getChapters(connection, fileId));
-					timer.phase(7);
 					media.setAudioMetadata(MediaTableAudioMetadata.getAudioMetadataByFileId(connection, fileId));
-					timer.phase(8);
 					media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, fileId));
-					timer.phase(9);
 				}
 			}
-		} finally {
-			timer.finish("file metadata", filename);
 		}
 		return media;
 	}

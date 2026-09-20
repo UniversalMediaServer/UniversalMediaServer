@@ -50,7 +50,6 @@ import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.BackgroundLookupTimer;
 import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.media.MediaInfo;
@@ -272,29 +271,21 @@ public class APIUtils {
 	}
 
 	private static boolean shouldLookupAndAddMetadata() {
-		return shouldLookupAndAddMetadata(null);
-	}
-
-	private static boolean shouldLookupAndAddMetadata(BackgroundLookupTimer timer) {
-		BackgroundLookupTimer.phase(timer, "executor check");
 		if (BACKGROUND_EXECUTOR.isShutdown()) {
 			LOGGER.trace("Not doing background API lookup because background executor is shutdown");
 			return false;
 		}
 
-		BackgroundLookupTimer.phase(timer, "network config");
 		if (!CONFIGURATION.getExternalNetwork()) {
 			LOGGER.trace("Not doing background API lookup because external network is disabled");
 			return false;
 		}
 
-		BackgroundLookupTimer.phase(timer, "provider config");
 		if (!CONFIGURATION.isUseInfoFromUmsAPI()) {
 			LOGGER.trace("Not doing background API lookup because isUseInfoFromUmsAPI is disabled");
 			return false;
 		}
 
-		BackgroundLookupTimer.phase(timer, "database availability");
 		if (!MediaDatabase.isAvailable()) {
 			LOGGER.trace("Not doing background API lookup because database is closed");
 			return false;
@@ -309,19 +300,9 @@ public class APIUtils {
 	 * @param media
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final MediaInfo media) {
-		BackgroundLookupTimer timer = new BackgroundLookupTimer();
-		try {
-			backgroundLookupAndAddMetadata(file, media, timer);
-		} finally {
-			timer.log(LOGGER, "UMS API", file);
-		}
-	}
-
-	private static void backgroundLookupAndAddMetadata(final File file, final MediaInfo media, BackgroundLookupTimer timer) {
-		if (!shouldLookupAndAddMetadata(timer)) {
+		if (!shouldLookupAndAddMetadata()) {
 			return;
 		}
-		timer.phase("task creation");
 		Runnable r = () -> {
 			try {
 				// wait until MediaStore Workers release before starting
@@ -574,9 +555,7 @@ public class APIUtils {
 				LOGGER.trace("Error in API parsing:", ex);
 			}
 		};
-		timer.phase("deduplication/queue submission");
 		if (executeMetadataLookup(media, r, BACKGROUND_EXECUTOR)) {
-			timer.phase("trace logging");
 			LOGGER.trace("Queued background API lookup for {}", file.getName());
 		}
 	}

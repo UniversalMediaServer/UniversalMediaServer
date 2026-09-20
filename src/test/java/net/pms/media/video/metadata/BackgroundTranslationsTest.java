@@ -45,6 +45,23 @@ public class BackgroundTranslationsTest {
 	}
 
 	@Test
+	public void wholeBurstOfPublishedTranslationsSchedulesOneStoreRefresh() {
+		Queue<Runnable> jobs = new ArrayDeque<>();
+		var target = new TranslationStoreRefresh.Target(1L, null);
+		BackgroundTranslations<String> first = new BackgroundTranslations<>(() -> target, jobs::add, () -> 0);
+		BackgroundTranslations<String> second = new BackgroundTranslations<>(() -> target, jobs::add, () -> 0);
+		first.request("cs", () -> "Cesky");
+		first.request("de", () -> "Deutsch");
+		second.request("cs", () -> "Cesky");
+		assertEquals(3, jobs.size());
+		while (jobs.size() > 1) {
+			jobs.remove().run();
+		}
+		// One flush for the whole burst: a folder must not be bumped once per child.
+		assertEquals(1, jobs.size());
+	}
+
+	@Test
 	public void rejectedQueueCanRetryWithoutRunningOnCaller() {
 		BackgroundTranslations<String> cache = new BackgroundTranslations<>(job -> {
 			throw new RejectedExecutionException();

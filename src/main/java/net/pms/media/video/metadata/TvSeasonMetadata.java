@@ -21,6 +21,7 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaTableTvSeasonMetadataLocalized;
 import net.pms.external.tmdb.TMDB;
+import net.pms.store.container.MediaLibraryTvSeries;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -34,12 +35,16 @@ public class TvSeasonMetadata {
 	private final Long tmdbTvId;
 	private final ApiSeason apiSeason;
 
-	private final BackgroundTranslations<TvSeasonMetadataLocalized> translations = new BackgroundTranslations<>();
+	private final BackgroundTranslations<TvSeasonMetadataLocalized> translations;
 
 	public TvSeasonMetadata(Long tvSeriesId, Long tmdbTvId, ApiSeason apiSeason) {
 		this.tvSeriesId = tvSeriesId;
 		this.tmdbTvId = tmdbTvId;
 		this.apiSeason = apiSeason;
+		//season folders are children of the series container
+		this.translations = new BackgroundTranslations<>(
+			() -> tvSeriesId != null && tvSeriesId > -1 ?
+				new TranslationStoreRefresh.Target(null, MediaLibraryTvSeries.getSystemName(tvSeriesId)) : null);
 	}
 
 	public Long getTvSeriesId() {

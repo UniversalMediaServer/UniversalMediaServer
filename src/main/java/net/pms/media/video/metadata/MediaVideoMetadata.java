@@ -84,7 +84,8 @@ public class MediaVideoMetadata {
 	private Long tmdbTvId;
 	private String version;
 	private String votes;
-	private final BackgroundTranslations<VideoMetadataLocalized> translations = new BackgroundTranslations<>();
+	private final BackgroundTranslations<VideoMetadataLocalized> translations = new BackgroundTranslations<>(
+		() -> fileId != null && fileId > -1 ? new TranslationStoreRefresh.Target(fileId, null) : null);
 
 	public Long getFileId() {
 		return fileId;

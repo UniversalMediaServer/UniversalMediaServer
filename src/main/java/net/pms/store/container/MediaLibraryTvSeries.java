@@ -46,7 +46,14 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 
 	@Override
 	public String getSystemName() {
-		return "tv_series_" + getName();
+		return getSystemName(tvSeriesId);
+	}
+
+	/**
+	 * The store name of the container holding the given TV series.
+	 */
+	public static String getSystemName(Long tvSeriesId) {
+		return "tv_series_" + tvSeriesId;
 	}
 
 	/**

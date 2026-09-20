@@ -451,40 +451,6 @@ public abstract class StoreItem extends StoreResource {
 	 * @return An TranscodingSettings if transcoding or null if streaming
 	 */
 	public TranscodingSettings resolveTranscodingSettings() {
-		TranscodingTimer timer = new TranscodingTimer();
-		try {
-			return resolveTranscodingSettings(timer);
-		} finally {
-			timer.finish(this);
-		}
-	}
-
-	private static final class TranscodingTimer {
-		private final long started = System.nanoTime();
-		private final long[] nanos = new long[5];
-		private long phaseStarted = started;
-		private int current;
-
-		private void phase(int next) {
-			long now = System.nanoTime();
-			nanos[current] += now - phaseStarted;
-			phaseStarted = now;
-			current = next;
-		}
-
-		private void finish(StoreItem item) {
-			phase(0);
-			long totalMs = (phaseStarted - started) / 1_000_000;
-			if (totalMs >= 20) {
-				LOGGER.info("Slow transcoding selection for \"{}\": {} ms total; setup {} ms, subtitles/audio {} ms, extension rules {} ms, engine selection {} ms, compatibility/verdict {} ms",
-					item instanceof SystemFileResource resource ? resource.getSystemFile() : item.getName(),
-					totalMs, nanos[0] / 1_000_000, nanos[1] / 1_000_000, nanos[2] / 1_000_000,
-					nanos[3] / 1_000_000, nanos[4] / 1_000_000);
-			}
-		}
-	}
-
-	private TranscodingSettings resolveTranscodingSettings(TranscodingTimer timer) {
 		if (renderer instanceof MediaScannerDevice) {
 			return null;
 		}
@@ -530,7 +496,6 @@ public abstract class StoreItem extends StoreResource {
 			return resolvedTranscodingSettings;
 		}
 
-		timer.phase(1);
 		// Resolve subtitles stream
 		if (mediaInfo.isVideo() && !renderer.getUmsConfiguration().isDisableSubtitles() && hasSubtitles(false)) {
 			MediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
@@ -539,7 +504,6 @@ public abstract class StoreItem extends StoreResource {
 			}
 		}
 
-		timer.phase(2);
 		String rendererForceExtensions = renderer.getTranscodedExtensions();
 		String rendererSkipExtensions = renderer.getStreamedExtensions();
 		String configurationForceExtensions = renderer.getUmsConfiguration().getForceTranscodeForExtensions();
@@ -557,9 +521,7 @@ public abstract class StoreItem extends StoreResource {
 		boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
 
 		// Try to match an engine based on mediaInfo information and format.
-		timer.phase(3);
 		resolvedTranscodingSettings = TranscodingSettings.getBestTranscodingSettings(this);
-		timer.phase(4);
 
 		boolean isIncompatible = false;
 		if (resolvedTranscodingSettings != null) {
@@ -1528,26 +1490,9 @@ public abstract class StoreItem extends StoreResource {
 
 	@Override
 	public synchronized void syncResolve() {
-		long started = System.nanoTime();
-		long resolvedAt = started;
-		boolean resolved = false;
-		try {
-			resolve();
-			resolvedAt = System.nanoTime();
-			resolved = true;
-			if (mediaInfo != null && mediaInfo.isVideo()) {
-				registerExternalSubtitles(false);
-			}
-		} finally {
-			long finished = System.nanoTime();
-			if (!resolved) {
-				resolvedAt = finished;
-			}
-			if (finished - started >= 20_000_000L) {
-				LOGGER.info("Slow item resolve hooks for \"{}\": {} ms total; resolve {} ms, external subtitles {} ms",
-					this instanceof SystemFileResource resource ? resource.getSystemFile() : getName(),
-					(finished - started) / 1_000_000, (resolvedAt - started) / 1_000_000, (finished - resolvedAt) / 1_000_000);
-			}
+		resolve();
+		if (mediaInfo != null && mediaInfo.isVideo()) {
+			registerExternalSubtitles(false);
 		}
 	}
 

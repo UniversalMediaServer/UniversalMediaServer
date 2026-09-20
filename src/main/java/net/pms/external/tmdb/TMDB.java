@@ -73,7 +73,6 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.database.MediaTableVideoMetadataLocalized;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.BackgroundLookupTimer;
 import net.pms.external.JavaHttpClient;
 import net.pms.external.umsapi.APIUtils;
 import net.pms.gui.GuiManager;
@@ -148,42 +147,31 @@ public class TMDB {
 	}
 
 	private static boolean shouldLookupAndAddMetadata(final File file, final MediaInfo mediaInfo) {
-		return shouldLookupAndAddMetadata(file, mediaInfo, null);
-	}
-
-	private static boolean shouldLookupAndAddMetadata(final File file, final MediaInfo mediaInfo, BackgroundLookupTimer timer) {
-		BackgroundLookupTimer.phase(timer, "executor check");
 		if (BACKGROUND_EXECUTOR.isShutdown()) {
 			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because background executor is shut down");
 			return false;
 		}
 
-		BackgroundLookupTimer.phase(timer, "network config");
 		if (!CONFIGURATION.getExternalNetwork()) {
 			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because external network is disabled");
 			return false;
 		}
 
-		BackgroundLookupTimer.phase(timer, "database availability");
 		if (!MediaDatabase.isAvailable()) {
 			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because database is closed");
 			return false;
 		}
 
-		BackgroundLookupTimer.phase(timer, "provider config");
 		if (!CONFIGURATION.isUseInfoFromTMDB()) {
 			DEBOUNCED_TRACE_LOGGER.log("Not doing background TMDB lookup because isUseInfoFromTMDB is disabled, passing to UMS API");
 			//fallback to UMS API.
-			BackgroundLookupTimer.phase(timer, "UMS API fallback");
 			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
 			return false;
 		}
 
-		BackgroundLookupTimer.phase(timer, "client readiness");
 		if (!isReady()) {
 			DEBOUNCED_TRACE_LOGGER.log("Not doing background TMDB lookup because no/bad api key found, passing to UMS API");
 			//fallback to UMS API.
-			BackgroundLookupTimer.phase(timer, "UMS API fallback");
 			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
 			return false;
 		}
@@ -197,26 +185,15 @@ public class TMDB {
 	 * @param mediaInfo MediaInfo
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final MediaInfo mediaInfo) {
-		BackgroundLookupTimer timer = new BackgroundLookupTimer();
-		try {
-			backgroundLookupAndAddMetadata(file, mediaInfo, timer);
-		} finally {
-			timer.log(LOGGER, "TMDB", file);
-		}
-	}
-
-	private static void backgroundLookupAndAddMetadata(final File file, final MediaInfo mediaInfo, BackgroundLookupTimer timer) {
-		if (!shouldLookupAndAddMetadata(file, mediaInfo, timer)) {
+		if (!shouldLookupAndAddMetadata(file, mediaInfo)) {
 			return;
 		}
-		timer.phase("cooldown");
 		//do not try a lookup if already queued on last 5 minutes
 		long elapsed = System.currentTimeMillis() - mediaInfo.getLastExternalLookup();
 		if (elapsed < 300000) {
 			return;
 		}
 		mediaInfo.setLastExternalLookup(System.currentTimeMillis());
-		timer.phase("task creation");
 		Runnable r = () -> {
 			try {
 				// wait until MediaStore Workers release before starting
@@ -256,9 +233,7 @@ public class TMDB {
 				LOGGER.trace("Error in TMDB parsing:", ex);
 			}
 		};
-		timer.phase("trace logging");
 		LOGGER.trace("Queuing background TMDB lookup for {}", file.getName());
-		timer.phase("queue submission");
 		BACKGROUND_EXECUTOR.execute(r);
 	}
 

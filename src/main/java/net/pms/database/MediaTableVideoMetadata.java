@@ -549,7 +549,6 @@ public class MediaTableVideoMetadata extends MediaTable {
 		if (connection == null || fileId < 0) {
 			return null;
 		}
-		MediaTableFiles.DatabaseReadTimer timer = new MediaTableFiles.DatabaseReadTimer("query", "fields", "actors", "awards", "countries", "directors", "genres", "ratings", "series", "translations", "queue translation", "close", "credits read", "credits deferred", "external IDs read", "external IDs JSON", "images read", "images deferred", "production companies read", "production companies JSON", "production countries read", "production countries JSON");
 		boolean trace = LOGGER.isTraceEnabled();
 		try {
 			try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_VIDEO_METADATA_BY_FILEID_WITH_IMDBID_OR_TMDBID_EXIST)) {
@@ -559,7 +558,6 @@ public class MediaTableVideoMetadata extends MediaTable {
 				}
 				try (ResultSet rs = selectStatement.executeQuery()) {
 					if (rs.next()) {
-						timer.phase(1);
 						MediaVideoMetadata metadata = new MediaVideoMetadata();
 						metadata.setFileId(rs.getLong(COL_FILEID));
 						metadata.setApiVersion(rs.getString(COL_API_VERSION));
@@ -570,63 +568,29 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setIsTvEpisode(rs.getBoolean(COL_ISTVEPISODE));
 						metadata.setTvSeriesId(toLong(rs, COL_TVSERIESID));
 						metadata.setIsSample(rs.getBoolean(COL_ISSAMPLE));
-						timer.phase(2);
 						metadata.setActors(MediaTableVideoMetadataActors.getActorsForFile(connection, fileId));
-						timer.phase(1);
-						timer.phase(3);
 						metadata.setAwards(MediaTableVideoMetadataAwards.getValueForFile(connection, fileId));
-						timer.phase(1);
 						metadata.setBudget(toLong(rs, COL_BUDGET));
-						timer.phase(12);
-						String creditsJson = rs.getString(COL_CREDITS);
-						timer.phase(13);
-						metadata.setCredits(creditsJson);
-						timer.phase(1);
-						timer.phase(4);
+						metadata.setCredits(rs.getString(COL_CREDITS));
 						metadata.setCountries(MediaTableVideoMetadataCountries.getCountriesForFile(connection, fileId));
-						timer.phase(1);
-						timer.phase(5);
 						metadata.setDirectors(MediaTableVideoMetadataDirectors.getDirectorsForFile(connection, fileId));
-						timer.phase(1);
-						timer.phase(14);
-						String externalIDsJson = rs.getString(COL_EXTERNALIDS);
-						timer.phase(15);
-						metadata.setExternalIDs(externalIDsJson);
-						timer.phase(1);
-						timer.phase(6);
+						metadata.setExternalIDs(rs.getString(COL_EXTERNALIDS));
 						metadata.setGenres(MediaTableVideoMetadataGenres.getGenresForFile(connection, fileId));
-						timer.phase(1);
 						metadata.setHomepage(rs.getString(COL_HOMEPAGE));
-						timer.phase(16);
-						String imagesJson = rs.getString(COL_IMAGES);
-						timer.phase(17);
-						metadata.setImages(imagesJson);
-						timer.phase(1);
+						metadata.setImages(rs.getString(COL_IMAGES));
 						metadata.setOriginalLanguage(rs.getString(COL_ORIGINALLANGUAGE));
 						metadata.setOriginalTitle(rs.getString(COL_ORIGINALTITLE));
 						metadata.setOverview(rs.getString(COL_OVERVIEW));
 						metadata.setPoster(rs.getString(COL_POSTER));
-						timer.phase(18);
-						String productionCompaniesJson = rs.getString(COL_PRODUCTIONCOMPANIES);
-						timer.phase(19);
-						metadata.setProductionCompanies(productionCompaniesJson);
-						timer.phase(1);
-						timer.phase(20);
-						String productionCountriesJson = rs.getString(COL_PRODUCTIONCOUNTRIES);
-						timer.phase(21);
-						metadata.setProductionCountries(productionCountriesJson);
-						timer.phase(1);
+						metadata.setProductionCompanies(rs.getString(COL_PRODUCTIONCOMPANIES));
+						metadata.setProductionCountries(rs.getString(COL_PRODUCTIONCOUNTRIES));
 						metadata.setRated(rs.getString(COL_RATED));
 						metadata.setRating(toDouble(rs, COL_RATING));
-						timer.phase(7);
 						metadata.setRatings(MediaTableVideoMetadataRatings.getRatingsForFile(connection, fileId));
-						timer.phase(1);
 						metadata.setReleased(getLocalDate(rs, COL_RELEASEDATE));
 						metadata.setRevenue(toLong(rs, COL_REVENUE));
 						if (metadata.isTvEpisode() && metadata.getTvSeriesId() != null) {
-							timer.phase(8);
 							metadata.setSeriesMetadata(MediaInfoStore.getTvSeriesMetadata(metadata.getTvSeriesId()));
-							timer.phase(1);
 						}
 						metadata.setTvSeason(toInteger(rs, COL_TVSEASON));
 						metadata.setTvEpisodeNumber(rs.getString(COL_TVEPISODENUMBER));
@@ -634,14 +598,9 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setTmdbId(toLong(rs, COL_TMDBID));
 						metadata.setTmdbTvId(toLong(rs, COL_TMDBTVID));
 						metadata.setVotes(rs.getString(COL_VOTES));
-						timer.phase(9);
 						metadata.setTranslations(MediaTableVideoMetadataLocalized.getAllVideoMetadataLocalized(connection, fileId, false));
-						timer.phase(1);
 						//ensure we have the default translation
-						timer.phase(10);
 						metadata.ensureHavingTranslation(null);
-						timer.phase(1);
-						timer.phase(11);
 						return metadata;
 					}
 				}
@@ -649,8 +608,6 @@ public class MediaTableVideoMetadata extends MediaTable {
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
 			LOGGER.trace("", e);
-		} finally {
-			timer.finish("video metadata", fileId);
 		}
 		return null;
 	}

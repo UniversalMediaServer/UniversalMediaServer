@@ -273,16 +273,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		}
 		//here we now we do not have the language in db, let search it.
 		LOGGER.trace("Looking for localized metadata for \"{}\": {}", mediaType, id);
-		long lookupStart = System.nanoTime();
-		VideoMetadataLocalized result;
-		try {
-			result = TMDB.getVideoMetadataLocalized(language, mediaType, imdbId, tmdbId, season, episode);
-		} finally {
-			long lookupMs = (System.nanoTime() - lookupStart) / 1_000_000;
-			if (lookupMs >= 50) {
-				LOGGER.info("Slow localized metadata lookup: {} ms, type {}, id {}, TV series {}, language {}; TMDB lookup only", lookupMs, mediaType, id, fromTvSeries, language);
-			}
-		}
+		VideoMetadataLocalized result = TMDB.getVideoMetadataLocalized(language, mediaType, imdbId, tmdbId, season, episode);
 		//remove not translated fields from base data
 		if (result != null) {
 			VideoMetadataLocalized baseData;
