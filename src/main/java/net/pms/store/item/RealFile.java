@@ -313,8 +313,8 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		// Fetch remote posters only when the thumbnail itself is requested.
 		// Local cover files retain priority; browsing does not need this download.
 		if (cachedThumbnail == null && getMediaInfo() != null) {
-			File thumbnailFile = renderer.getUmsConfiguration().isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)
-				? FileUtil.getRealFile(file) : file;
+			File thumbnailFile = renderer.getUmsConfiguration().isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file) ?
+				FileUtil.getRealFile(file) : file;
 			ThumbnailStore.resolveLocalizedPoster(getMediaInfo(), thumbnailFile.getAbsolutePath());
 		}
 
