@@ -420,6 +420,60 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		};
 	}
 
+	/**
+	 * Display folders as thumbnails instead of down the left side if:
+	 * - The parent is TV Shows, or
+	 * - This is a filtered metadata folder within TV shows, or
+	 * - This is Recommendations, or
+	 * - This is Continue Watching
+	 *
+	 * Keep it in sync with the similar method below.
+	 *
+	 * @return whether to display folders as thumbnails on the web interface
+	 *         vs. displaying them in the left nav
+	 */
+	private static Boolean isDisplayFoldersAsThumbnails(StoreResource resource) {
+		return resource.getParent().getSystemName().equals("TvShows") ||
+			resource.getParent().getSystemName().equals("Recommendations") ||
+			resource.getParent().getSystemName().equals("ContinueWatching") ||
+			(
+				resource.getParent().getParent() != null &&
+				resource.getParent().getParent().getSystemName().equals("FilterByProgress")
+			) ||
+			(
+				resource.getParent().getParent() != null &&
+				resource.getParent().getParent().getParent() != null &&
+				resource.getParent().getParent().getParent().getSystemName().equals("FilterByInformation")
+			);
+	}
+
+	/**
+	 * Display folders as thumbnails instead of down the left side if:
+	 * - The parent is TV Shows, or
+	 * - This is a filtered metadata folder within TV shows, or
+	 * - This is Recommendations, or
+	 * - This is Continue Watching
+	 *
+	 * Keep it in sync with the similar method above.
+	 *
+	 * @return whether to display folders as thumbnails on the web interface
+	 *         vs. displaying them in the left nav
+	 */
+	private static Boolean isDisplayFoldersAsThumbnails(MediaLibraryFolder folder) {
+		return folder.getSystemName().equals("TvShows") ||
+			folder.getSystemName().equals("Recommendations") ||
+			folder.getSystemName().equals("ContinueWatching") ||
+			(
+				folder.getParent() != null &&
+				folder.getParent().getSystemName().equals("FilterByProgress")
+			) ||
+			(
+				folder.getParent() != null &&
+				folder.getParent().getParent() != null &&
+				folder.getParent().getParent().getSystemName().equals("FilterByInformation")
+			);
+	}
+
 	private static JsonObject getBrowsePage(WebGuiRenderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
 		JsonObject result = new JsonObject();
@@ -504,29 +558,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 
 			if (resource.isFolder()) {
-				Boolean isDisplayFoldersAsThumbnails = false;
-				/*
-				* Display folders as thumbnails instead of down the left side if:
-				* - The parent is TV Shows, or
-				* - This is a filtered metadata folder within TV shows, or
-				* - This is Recommendations
-				 */
-				if (
-					resource.getParent().getSystemName().equals("TvShows") ||
-					resource.getParent().getSystemName().equals("Recommendations") ||
-					(
-						resource.getParent().getParent() != null &&
-						resource.getParent().getParent().getSystemName().equals("FilterByProgress")
-					) ||
-					(
-						resource.getParent().getParent() != null &&
-						resource.getParent().getParent().getParent() != null &&
-						resource.getParent().getParent().getParent().getSystemName().equals("FilterByInformation")
-					)
-				) {
-					isDisplayFoldersAsThumbnails = true;
-				}
-
+				Boolean isDisplayFoldersAsThumbnails = isDisplayFoldersAsThumbnails(resource);
 				if (!isDisplayFoldersAsThumbnails || !(isDisplayFoldersAsThumbnails && resource instanceof MediaLibraryFolder)) {
 					boolean addFolderToFoldersListOnLeft = true;
 
@@ -606,20 +638,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 			}
 
-			// Check whether this resource is expected to contain folders that display as big thumbnails
-			if (
-				folder.getSystemName().equals("TvShows") ||
-				folder.getSystemName().equals("Recommendations") ||
-				(
-					folder.getParent() != null &&
-					folder.getParent().getSystemName().equals("FilterByProgress")
-				) ||
-				(
-					folder.getParent() != null &&
-					folder.getParent().getParent() != null &&
-					folder.getParent().getParent().getSystemName().equals("FilterByInformation")
-				)
-			) {
+			if (isDisplayFoldersAsThumbnails(folder)) {
 				for (StoreResource resource : resources) {
 					if (resource instanceof MediaLibraryFolder) {
 						hasFile = true;

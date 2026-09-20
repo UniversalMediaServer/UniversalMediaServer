@@ -74,13 +74,12 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		// Videos folder
 		LocalizedStoreContainer vfVideo = new LocalizedStoreContainer(renderer, "Video");
 
-		// All videos that are unwatched
 		MediaLibraryFolder unwatchedTvShowsFolder = new MediaLibraryFolder(
 			renderer,
 			"TvShows",
 			new String[]{
-				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_STATUS_VIDEO_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
-				SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
+				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_STATUS_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
+				SELECT_FILES_STATUS_VIDEOMETA_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
 			},
 			new int[]{TVSERIES_WITH_FILTERS, EPISODES}
 		);
@@ -95,16 +94,22 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			"ByDate",
 			new String[]{
 				SELECT + FORMATDATETIME_MODIFIED + FROM_FILES_STATUS_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_MODIFIED + DESC,
-				SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + FORMATDATETIME_MODIFIED + EQUAL + "'${0}'" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC
+				SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + FORMATDATETIME_MODIFIED + EQUAL + "'${0}'" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC
 			},
 			new int[]{TEXTS_NOSORT, FILES}
 		);
-		MediaLibraryFolder unwatched4kVideos = new MediaLibraryFolder(renderer, "4kVideos", SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEO4K + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
-		MediaLibraryFolder unwatchedMlfVideo03 = new MediaLibraryFolder(renderer, "HdVideos", SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOHD + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
-		MediaLibraryFolder unwatchedMlfVideo04 = new MediaLibraryFolder(renderer, "SdVideos", SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOSD + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
-		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(renderer, "DvdImages", SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_ISO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, ISOS);
+		MediaLibraryFolder unwatched4kVideos = new MediaLibraryFolder(renderer, "4kVideos", SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEO4K + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
+		MediaLibraryFolder unwatchedMlfVideo03 = new MediaLibraryFolder(renderer, "HdVideos", SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOHD + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
+		MediaLibraryFolder unwatchedMlfVideo04 = new MediaLibraryFolder(renderer, "SdVideos", SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOSD + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
+		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(renderer, "DvdImages", SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_ISO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, ISOS);
 
 		// The following block contains all videos regardless of fully played status
+		MediaLibraryFolder continueWatchingVideos = new MediaLibraryFolder(
+			renderer,
+			"ContinueWatching",
+			SELECT_FILES_STATUS_VIDEOMETA_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + getWasPlayedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + DESC + LIMIT_100,
+			CONTINUE_WATCHING
+		);
 		MediaLibraryFolder tvShowsFolder = new MediaLibraryFolder(
 			renderer,
 			"TvShows",
@@ -117,25 +122,25 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(
 			renderer,
 			"Movies",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_3D_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_3D_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(
 			renderer,
 			"3dMovies",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_3D_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_3D_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder unsortedFolder = new MediaLibraryFolder(
 			renderer,
 			"Unsorted",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + UNSORTED_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + UNSORTED_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder allVideosFolder = new MediaLibraryFolder(
 			renderer,
 			"AllVideos",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
@@ -147,13 +152,13 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(
 			renderer,
 			"InProgress",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + getInProgressCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + DESC + LIMIT_100,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + getInProgressCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + DESC + LIMIT_100,
 			FILES_NOSORT
 		);
 		MediaLibraryFolder mostPlayedVideos = new MediaLibraryFolder(
 			renderer,
 			"MostPlayed",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + getWasPlayedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_PLAYCOUNT + DESC + LIMIT_100,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + getWasPlayedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_PLAYCOUNT + DESC + LIMIT_100,
 			FILES_NOSORT
 		);
 		MediaLibraryFolder videosByDate = new MediaLibraryFolder(
@@ -168,25 +173,25 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder fourKVideos = new MediaLibraryFolder(
 			renderer,
 			"4kVideos",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + IS_VIDEO4K_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + IS_VIDEO4K_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder mlfVideo03 = new MediaLibraryFolder(
 			renderer,
 			"HdVideos",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + IS_VIDEOHD_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + IS_VIDEOHD_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder mlfVideo04 = new MediaLibraryFolder(
 			renderer,
 			"SdVideos",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + IS_VIDEOSD_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + IS_VIDEOSD_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder mlfVideo05 = new MediaLibraryFolder(
 			renderer,
 			"DvdImages",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_ISO + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_ISO + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			ISOS_WITH_FILTERS
 		);
 
@@ -206,6 +211,9 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			vfVideo.addChild(unwatchedMlfVideo05);
 		// If fully played videos are NOT to be hidden
 		} else {
+			if (renderer.getUmsConfiguration().isShowRecentlyPlayedFolder()) {
+				vfVideo.addChild(continueWatchingVideos);
+			}
 			vfVideo.addChild(tvShowsFolder);
 			vfVideo.addChild(moviesFolder);
 			vfVideo.addChild(movies3DFolder);
@@ -215,7 +223,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 				MediaLibraryFolder recentlyPlayedVideos = new MediaLibraryFolder(
 					renderer,
 					"RecentlyPlayed",
-					SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + getWasPlayedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + DESC + LIMIT_100,
+					SELECT_FILES_STATUS_VIDEOMETA_WHERE + FORMAT_TYPE_VIDEO + AND + getWasPlayedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + DESC + LIMIT_100,
 					FILES_NOSORT
 				);
 				vfVideo.addChild(recentlyPlayedVideos);
