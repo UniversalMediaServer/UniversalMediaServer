@@ -1260,13 +1260,7 @@ public class FFMpegVideo extends Engine {
 			mkfifoProcess.runInSameThread();
 			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
-			// Give the mkfifo process a little time
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-				Thread.currentThread().interrupt();
-			}
+			// Pipe creation is synchronous; the Windows reader also accepts early clients.
 		} else {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
@@ -1569,14 +1563,8 @@ public class FFMpegVideo extends Engine {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
-		// Give the mkfifo process a little time
-		try {
-			Thread.sleep(300);
-		} catch (InterruptedException e) {
-			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-			Thread.currentThread().interrupt();
-		}
-
+		// The pipe already exists: mkfifo completed above, or Windows created
+		// the handle synchronously. The reader accepts an early client connection.
 		// Launch the transcode command...
 		pw.runInNewThread();
 		// ...and wait briefly to allow it to start

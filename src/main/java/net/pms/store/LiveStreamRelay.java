@@ -106,6 +106,8 @@ public final class LiveStreamRelay {
 	 */
 	public static final class Listener extends InputStream {
 
+		private static final byte[] END_OF_STREAM = new byte[0];
+
 		private final Relay relay;
 		private final BlockingQueue<byte[]> chunks = new ArrayBlockingQueue<>(LISTENER_CHUNKS);
 		private byte[] current;
@@ -134,8 +136,14 @@ public final class LiveStreamRelay {
 
 		@Override
 		public int read() throws IOException {
-			byte[] one = new byte[1];
-			return read(one, 0, 1) == -1 ? -1 : one[0] & 0xFF;
+			if (!advance()) {
+				return -1;
+			}
+			int value = current[position++] & 0xFF;
+			if (position == current.length) {
+				current = null;
+			}
+			return value;
 		}
 
 		@Override
@@ -157,7 +165,7 @@ public final class LiveStreamRelay {
 
 		@Override
 		public int available() {
-			return current == null ? 0 : current.length - position;
+			return closed || current == null ? 0 : current.length - position;
 		}
 
 		@Override
@@ -165,6 +173,7 @@ public final class LiveStreamRelay {
 			closed = true;
 			relay.removeListener(this);
 			chunks.clear();
+			chunks.offer(END_OF_STREAM);
 		}
 
 		/**
@@ -173,6 +182,9 @@ public final class LiveStreamRelay {
 		 * @return false at the end of the stream
 		 */
 		private boolean advance() throws IOException {
+			if (closed) {
+				return false;
+			}
 			if (current != null) {
 				return true;
 			}
@@ -180,9 +192,15 @@ public final class LiveStreamRelay {
 			while (!closed) {
 				byte[] next;
 				try {
+					if (ended && chunks.isEmpty()) {
+						return false;
+					}
 					next = chunks.poll(1, TimeUnit.SECONDS);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
+					return false;
+				}
+				if (closed || next == END_OF_STREAM) {
 					return false;
 				}
 				if (next != null) {
@@ -215,6 +233,9 @@ public final class LiveStreamRelay {
 
 		private void endOfStream() {
 			ended = true;
+			// Wake a blocked reader without discarding queued audio. If full, the
+			// reader will observe ended once it has drained the queue.
+			chunks.offer(END_OF_STREAM);
 		}
 
 	}
@@ -248,17 +269,19 @@ public final class LiveStreamRelay {
 		}
 
 		private Listener addListener() {
-			if (stopped) {
-				return null;
+			synchronized (backlog) {
+				if (stopped) {
+					return null;
+				}
+				Listener listener = new Listener(this);
+				// Handed over as one block
+				byte[] headStart = takeBacklog();
+				if (headStart.length > 0) {
+					listener.offer(headStart);
+				}
+				listeners.add(listener);
+				return listener;
 			}
-			Listener listener = new Listener(this);
-			// Handed over as one block
-			byte[] headStart = takeBacklog();
-			if (headStart.length > 0) {
-				listener.offer(headStart);
-			}
-			listeners.add(listener);
-			return listener;
 		}
 
 		/**
@@ -318,9 +341,16 @@ public final class LiveStreamRelay {
 						continue;
 					}
 					byte[] chunk = Arrays.copyOf(buffer, read);
-					remember(chunk);
-					for (Listener listener : listeners) {
-						listener.offer(chunk);
+					// Joiners must see each chunk either in their backlog or in live
+					// delivery, never in both and never in neither.
+					synchronized (backlog) {
+						if (stopped) {
+							break;
+						}
+						remember(chunk);
+						for (Listener listener : listeners) {
+							listener.offer(chunk);
+						}
 					}
 				}
 			} catch (IOException e) {
@@ -332,16 +362,18 @@ public final class LiveStreamRelay {
 		}
 
 		private void stop() {
-			stopped = true;
-			RELAYS.remove(key, this);
-			for (Listener listener : listeners) {
-				listener.endOfStream();
-			}
-			listeners.clear();
 			synchronized (backlog) {
+				stopped = true;
+				for (Listener listener : listeners) {
+					listener.endOfStream();
+				}
+				listeners.clear();
 				backlog.clear();
 				backlogBytes = 0;
 			}
+			// listen() holds the map entry while joining; never acquire that
+			// entry's lock while holding backlog (the opposite lock order).
+			RELAYS.remove(key, this);
 			try {
 				source.stream().close();
 			} catch (IOException e) {
