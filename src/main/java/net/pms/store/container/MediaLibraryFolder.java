@@ -56,7 +56,6 @@ import org.slf4j.LoggerFactory;
  */
 public class MediaLibraryFolder extends MediaLibraryAbstract {
 
-	private static final long REFRESH_LOG_THRESHOLD_MS = 200;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
@@ -219,10 +218,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	 */
 	@Override
 	public synchronized void doRefreshChildren() {
-		long startedAt = System.nanoTime();
-		long dbNanos = 0;
-		long connectionNanosAtStart = MediaDatabase.getConnectionNanos();
-		long connectionCountAtStart = MediaDatabase.getConnectionCount();
 		List<File> filesListFromDb = null;
 		List<String> virtualFoldersListFromDb = null;
 
@@ -243,7 +238,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		String firstSql = null;
 		if (sqls.length > 0) {
 			Connection connection = null;
-			long dbStartedAt = System.nanoTime();
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
@@ -381,7 +375,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				}
 			} finally {
 				MediaDatabase.close(connection);
-				dbNanos = System.nanoTime() - dbStartedAt;
 			}
 		}
 		Set<File> newFiles = new LinkedHashSet<>();
@@ -720,8 +713,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				addChild(recommendations);
 			}
 		}
-
-		long createStartedAt = System.nanoTime();
 		List<StoreResource> newFilesResources = new ArrayList<>();
 		for (File file : newFiles) {
 			if (renderer.hasShareAccess(file)) {
@@ -737,33 +728,17 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				}
 			}
 		}
-		long createNanos = System.nanoTime() - createStartedAt;
-		long sortStartedAt = System.nanoTime();
 		if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED && expectedOutput != EPISODES) {
 			StoreResourceSorter.sortResourcesByTitle(newFilesResources);
 		}
-		long sortNanos = System.nanoTime() - sortStartedAt;
-		long addStartedAt = System.nanoTime();
 		for (StoreResource newResource : newFilesResources) {
 			addChild(newResource);
 		}
-		long addNanos = System.nanoTime() - addStartedAt;
-		long finishStartedAt = System.nanoTime();
 		sortChildrenIfNeeded();
 		if (isDiscovered()) {
 			notifyRefreshIfChanged();
 		}
-		long finishNanos = System.nanoTime() - finishStartedAt;
-		long totalMs = (System.nanoTime() - startedAt) / 1_000_000;
-		if (totalMs >= REFRESH_LOG_THRESHOLD_MS) {
-			long dbMs = dbNanos / 1_000_000;
-			int childCount = getChildren().size();
-			long connectionMs = (MediaDatabase.getConnectionNanos() - connectionNanosAtStart) / 1_000_000;
-			long connections = MediaDatabase.getConnectionCount() - connectionCountAtStart;
-			LOGGER.info("Slow refresh of \"{}\": {} ms total, {} ms folder query, {} ms per child, {} children, {} global connection acquisitions taking {} ms; files: create {} ms, sort {} ms, add/resolve {} ms, finish {} ms",
-					getName(), totalMs, dbMs, childCount > 0 ? (totalMs * 1000 / childCount) / 1000.0 : 0, childCount,
-					connections, connectionMs, createNanos / 1_000_000, sortNanos / 1_000_000, addNanos / 1_000_000, finishNanos / 1_000_000);
-		}
+
 	}
 
 	/**
