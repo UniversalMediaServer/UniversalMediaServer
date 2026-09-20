@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.URI;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -13,6 +14,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.external.audioaddict.AudioAddictPlayWindow;
@@ -48,6 +54,44 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	private boolean finished;
 	private int trackNumber;
 
+	/*
+	 * What is audible follows the clock, not the byte stream: the tracks are handed out as fast as the
+	 * consumer takes them, but they are listened to one after the other, starting with the first byte.
+	 * Every track is therefore filed with the playing time at which it begins, and the announcement
+	 * picks the one that time has reached.
+	 */
+	private final Deque<ScheduledTrack> schedule = new ArrayDeque<>();
+	private long streamStartedAt;
+	private long scheduledMs;
+	private AudioAddictTrackDto announcedTrack;
+
+	/*
+	 * The service is told every minute that this stream is still being listened to, the same way the
+	 * official player does it. The token out of the content url identifies the stream; without the
+	 * ping our playback is invisible to the side that counts who is listening.
+	 */
+	private static final long STREAMING_PING_SECONDS = 60;
+	private static final ScheduledExecutorService PING_SERVICE = Executors.newSingleThreadScheduledExecutor(r -> {
+		Thread thread = new Thread(r, "audioaddict-streaming-ping");
+		thread.setDaemon(true);
+		return thread;
+	});
+
+	private volatile String audioToken;
+	private ScheduledFuture<?> ping;
+
+	/*
+	 * The bytes go out at the speed they are listened to.
+	 */
+	private static final long BURST_MS = 4000;
+	private static final long MAX_SLEEP_MS = 250;
+	// 320 kbit/s, the premium quality, for a track that does not say how long it is.
+	private static final int FALLBACK_BYTES_PER_SECOND = 40000;
+
+	private long pacingStartedAt;
+	private double deliveredMs;
+	private double msPerByte;
+
 	public AudioAddictPlaylistInputStream(Platform network, int playlistId, boolean loop) {
 		this.network = network;
 		this.playlistId = playlistId;
@@ -67,10 +111,10 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			if (current != null) {
 				int n = current.read(b, off, len);
 				if (n != -1) {
+					pace(n);
 					return n;
 				}
-				// Current track finished: close it and advance the server session.
-				closeCurrent(true);
+				closeCurrent(false);
 			}
 			if (finished || !openNextTrack()) {
 				return -1;
@@ -88,11 +132,55 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 	}
 
 	/**
-	 * @return the track this very stream instance is playing.
+	 * @return the track this very stream instance is playing, by the clock.
 	 */
 	public NowPlayingInfo getNowPlaying() {
-		AudioAddictTrackDto track = currentTrack;
+		AudioAddictTrackDto track = audibleTrack();
 		return track == null ? null : NowPlayingInfo.of(track.artist, track.title, track.albumArt);
+	}
+
+	/**
+	 * Files a track with the playing time it starts at. An unknown length makes it start where the
+	 * previous one did, so the next track takes over at once instead of the schedule standing still.
+	 */
+	private synchronized void scheduleTrack(AudioAddictTrackDto track) {
+		if (streamStartedAt == 0) {
+			streamStartedAt = System.currentTimeMillis();
+		}
+		schedule.addLast(new ScheduledTrack(track, scheduledMs));
+		scheduledMs += Math.max(0, track.length) * 1000L;
+	}
+
+	/**
+	 * @return the filed track the playing time has reached, NULL before the first byte went out
+	 */
+	private synchronized AudioAddictTrackDto audibleTrack() {
+		if (streamStartedAt == 0 || schedule.isEmpty()) {
+			return announcedTrack;
+		}
+		long elapsed = System.currentTimeMillis() - streamStartedAt;
+		// What the clock has left behind has been listened to, so that is when the service hears of it.
+		while (schedule.size() > 1) {
+			ScheduledTrack next = schedule.stream().skip(1).findFirst().orElse(null);
+			if (next == null || next.fromMs() > elapsed) {
+				break;
+			}
+			markPlayed(schedule.removeFirst().track());
+		}
+		AudioAddictTrackDto audible = schedule.getFirst().track();
+		if (audible != announcedTrack) {
+			announcedTrack = audible;
+			CURRENT_TRACKS.put(playlistId, audible);
+			LOGGER.debug("{} : playlist {} - now audible: {} - {}", network.displayName, playlistId, audible.artist,
+				audible.title);
+		}
+		return announcedTrack;
+	}
+
+	/**
+	 * A track and the playing time of the stream at which it begins.
+	 */
+	private record ScheduledTrack(AudioAddictTrackDto track, long fromMs) {
 	}
 
 	/**
@@ -109,15 +197,18 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 			return false;
 		}
 		try {
-			BufferedInputStream in = new BufferedInputStream(URI.create(next.contentUrl).toURL().openStream(), 64 * 1024);
+			URLConnection connection = URI.create(next.contentUrl).toURL().openConnection();
+			BufferedInputStream in = new BufferedInputStream(connection.getInputStream(), 64 * 1024);
 			currentTrack = next;
-			CURRENT_TRACKS.put(playlistId, next);
+			scheduleTrack(next);
+			startStreamingPing(next.contentUrl);
 			trackNumber++;
 			// Strip the original ID3v2 tag (it carries large cover art that desyncs strict decoders at
 			// concatenated track boundaries) and prepend a tiny synthetic one.
-			stripId3v2(in);
+			int stripped = stripId3v2(in);
 			byte[] id3 = buildId3v2(next.artist, next.title);
 			current = new SequenceInputStream(new ByteArrayInputStream(id3), in);
+			setPace(next, connection.getContentLengthLong() - stripped + id3.length);
 			LOGGER.debug("{} : playlist {} - playing track #{} (id={}): {} - {} (prepended {} byte ID3v2)", network.displayName,
 				playlistId, trackNumber, next.id, next.artist, next.title, id3.length);
 			return true;
@@ -170,16 +261,47 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 
 	/**
 	 * Skips a leading ID3v2 tag so the rest of the stream begins at the first MP3 audio frame.
+	 *
+	 * @return how many bytes of tag were skipped, so they do not count as playing time
 	 */
-	private void stripId3v2(BufferedInputStream in) throws IOException {
+	private int stripId3v2(BufferedInputStream in) throws IOException {
 		in.mark(16);
 		byte[] header = in.readNBytes(10);
 		if (header.length == 10 && header[0] == 'I' && header[1] == 'D' && header[2] == '3') {
 			int size = ((header[6] & 0x7F) << 21) | ((header[7] & 0x7F) << 14) | ((header[8] & 0x7F) << 7) | (header[9] & 0x7F);
 			in.skipNBytes(size);
 			LOGGER.debug("{} : playlist {} - track #{} stripped ID3v2 ({} bytes)", network.displayName, playlistId, trackNumber, size);
-		} else {
-			in.reset();
+			return size + 10;
+		}
+		in.reset();
+		return 0;
+	}
+
+	private void setPace(AudioAddictTrackDto track, long audioBytes) {
+		msPerByte = track.length > 0 && audioBytes > 0 ?
+			track.length * 1000.0 / audioBytes :
+			1000.0 / FALLBACK_BYTES_PER_SECOND;
+		LOGGER.debug("{} : playlist {} - track #{} paced at {} kbit/s ({} s, {} bytes)", network.displayName, playlistId,
+			trackNumber, Math.round(8 / msPerByte), track.length, audioBytes);
+	}
+
+	/**
+	 * Holds the stream back to the speed of listening.
+	 */
+	private void pace(int bytes) {
+		if (pacingStartedAt == 0) {
+			pacingStartedAt = System.currentTimeMillis();
+		}
+		deliveredMs += bytes * msPerByte;
+		long due = pacingStartedAt + (long) deliveredMs - BURST_MS;
+		long wait;
+		while ((wait = due - System.currentTimeMillis()) > 0) {
+			try {
+				Thread.sleep(Math.min(wait, MAX_SLEEP_MS));
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
 		}
 	}
 
@@ -234,6 +356,18 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		buf[offset + 3] = (byte) (value & 0x7F);
 	}
 
+	/**
+	 * Reports a track as played, the way the official player does it.
+	 */
+	private void markPlayed(AudioAddictTrackDto track) {
+		if (track == null) {
+			return;
+		}
+		LOGGER.debug("{} : playlist {} - listened through {} - {} (id={}), marking played", network.displayName, playlistId,
+			track.artist, track.title, track.id);
+		AudioAddictService.get().markPlaylistTrackPlayed(network, playlistId, track.id);
+	}
+
 	private void closeCurrent(boolean markPlayed) {
 		if (current != null) {
 			try {
@@ -251,9 +385,48 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 		currentTrack = null;
 	}
 
+	/**
+	 * Reports this stream to the service once a minute, for as long as it is open. The token changes
+	 * with every track, the schedule does not.
+	 */
+	private synchronized void startStreamingPing(String contentUrl) {
+		audioToken = audioTokenOf(contentUrl);
+		if (ping != null || audioToken == null) {
+			return;
+		}
+		ping = PING_SERVICE.scheduleAtFixedRate(() -> {
+			String token = audioToken;
+			if (token != null) {
+				AudioAddictService.get().pingStreaming(network, token);
+			}
+			audibleTrack();
+		}, STREAMING_PING_SECONDS, STREAMING_PING_SECONDS, TimeUnit.SECONDS);
+	}
+
+	private synchronized void stopStreamingPing() {
+		if (ping != null) {
+			ping.cancel(false);
+			ping = null;
+		}
+		audioToken = null;
+	}
+
+	/**
+	 * @return the "audio_token" of a content url, NULL when it carries none
+	 */
+	private static String audioTokenOf(String contentUrl) {
+		if (contentUrl == null) {
+			return null;
+		}
+		String token = StringUtils.substringAfter(contentUrl, "audio_token=");
+		token = StringUtils.substringBefore(token, "&");
+		return StringUtils.trimToNull(token);
+	}
+
 	@Override
 	public void close() throws IOException {
 		LOGGER.debug("{} : playlist {} - stream closed by consumer after {} tracks", network.displayName, playlistId, trackNumber);
+		stopStreamingPing();
 		closeCurrent(false);
 		buffer.clear();
 		finished = true;

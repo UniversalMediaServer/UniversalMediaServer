@@ -73,6 +73,7 @@ import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.IOList;
 import net.pms.util.FileUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -81,6 +82,10 @@ import org.slf4j.LoggerFactory;
 public class MediaStore extends StoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStore.class);
+
+	// How long a media request waits for a store that is still being filled before it gives up.
+	private static final long RECREATE_ANCESTOR_WAIT_MS = 10000;
+	private static final int RECREATE_ANCESTOR_RETRY_MS = 250;
 	/**
 	 * An AtomicInteger to prevent heavy IO tasks from causing browsing to be less
 	 * responsive.
@@ -608,6 +613,31 @@ public class MediaStore extends StoreContainer {
 	}
 
 	/**
+	 * Walks the ancestors of a resource so it can be found in the store again.
+	 *
+	 * @param rebuild if true, forces a container that is already discovered to read its children again.
+	 * @return false when an ancestor is not in this renderer's store
+	 */
+	private boolean discoverTree(List<MediaStoreId> libraryIds, boolean rebuild) {
+		boolean ancestorsKnown = true;
+		// The last entry is the resource itself, only what is above it has to be there already.
+		int last = libraryIds.size() - 1;
+		for (int i = 0; i < libraryIds.size(); i++) {
+			StoreResource parent = getWeakResource(libraryIds.get(i).getId());
+			if (parent instanceof StoreContainer container) {
+				if (rebuild) {
+					container.discoverChildren();
+				} else {
+					container.discover(false);
+				}
+			} else if (i < last && parent == null) {
+				ancestorsKnown = false;
+			}
+		}
+		return ancestorsKnown;
+	}
+
+	/**
 	 * Try to recreate the item tree if possible.
 	 *
 	 * @param id
@@ -616,25 +646,30 @@ public class MediaStore extends StoreContainer {
 	private StoreResource recreateResource(long id) {
 		LOGGER.trace("try recreating resource with id '{}'", id);
 		List<MediaStoreId> libraryIds = MediaStoreIds.getMediaStoreResourceTree(id);
-		if (!libraryIds.isEmpty()) {
-			for (MediaStoreId libraryId : libraryIds) {
-				StoreResource parent = getWeakResource(libraryId.getId());
-				if (parent instanceof StoreContainer container) {
-					container.discoverChildren();
-				}
-			}
-			//now that parent folders are discovered, try to get the resource
-			StoreResource resource = getWeakResource(id);
-			if (resource != null) {
-				LOGGER.trace("resource with id '{}' recreacted succefully", id);
-				return resource;
-			} else {
-				LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
-			}
-		} else {
+		if (libraryIds.isEmpty()) {
 			LOGGER.trace("resource with id '{}' was not found in database", id);
+			return null;
 		}
-		return null;
+		long giveUpAt = System.currentTimeMillis() + RECREATE_ANCESTOR_WAIT_MS;
+		while (true) {
+			boolean ancestorsKnown = discoverTree(libraryIds, false);
+			StoreResource resource = getWeakResource(id);
+			if (resource == null) {
+				LOGGER.trace("resource with id '{}' not found in the discovered tree, rebuilding it", id);
+				ancestorsKnown = discoverTree(libraryIds, true);
+				resource = getWeakResource(id);
+			}
+			if (resource != null) {
+				LOGGER.trace("resource with id '{}' recreated successfully", id);
+				return resource;
+			}
+			if (ancestorsKnown || System.currentTimeMillis() >= giveUpAt) {
+				LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
+				return null;
+			}
+			LOGGER.trace("resource with id '{}' has an ancestor this store does not know yet, waiting", id);
+			UMSUtils.sleep(RECREATE_ANCESTOR_RETRY_MS);
+		}
 	}
 
 	public boolean weakResourceExists(String objectId) {
@@ -693,6 +728,10 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
+		return findSystemFileResources(file, true);
+	}
+
+	public List<StoreResource> findSystemFileResources(File file, boolean createIfMissing) {
 		if (file == null) {
 			return new ArrayList<>();
 		}
@@ -707,7 +746,7 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 
-		if (systemFileResources.isEmpty()) {
+		if (systemFileResources.isEmpty() && createIfMissing) {
 			StoreResource sr = null;
 			if (file.isDirectory()) {
 				sr = DbIdResourceLocator.getLibraryResourceRealFolder(renderer, file.getAbsolutePath());
@@ -887,7 +926,7 @@ public class MediaStore extends StoreContainer {
 	 */
 	public List<Long> fileUpdated(File file) {
 		List<Long> refreshedIds = new ArrayList<>();
-		for (StoreResource storeResource : findSystemFileResources(file)) {
+		for (StoreResource storeResource : findSystemFileResources(file, false)) {
 			if (storeResource instanceof PlaylistFolder playlistFolder) {
 				playlistFolder.setDiscovered(false);
 				// Only invalidated here. The store id is the same for every renderer, so the caller bumps
@@ -900,7 +939,7 @@ public class MediaStore extends StoreContainer {
 			if (storeResource instanceof RealFile rf) {
 				rf.setMediaInfo(null);
 				rf.resolve();
-				LOGGER.debug("File {} updated, media info refreshed and parent folder refreshed.", file.toString());
+				LOGGER.debug("File {} updated, media info refreshed, parent will be read again on the next browse.", file.toString());
 			} else if (storeResource instanceof RealFolder rf) {
 				rf.setMediaInfo(null);
 				rf.resolve();
@@ -909,7 +948,8 @@ public class MediaStore extends StoreContainer {
 			}
 			StoreContainer parent = storeResource.getParent();
 			refreshedIds.add(parent.getLongId());
-			parent.discoverChildren();
+			parent.setDiscovered(false);
+			parent.markRefreshed();
 		}
 		return refreshedIds;
 	}

@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.client.AuthenticationStore;
 import org.eclipse.jetty.client.BasicAuthentication;
 import org.eclipse.jetty.client.CompletableResponseListener;
@@ -41,6 +42,7 @@ import org.eclipse.jetty.util.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -65,6 +67,7 @@ public class RadioNetwork {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RadioNetwork.class.getName());
 
 	private final static String EUROPE_SERVER = "http://prem2";
+	private final static String CHANNEL_KEY_PLACEHOLDER = "{channelKey}";
 	private final static String FAV = "Favorites";
 
 	private final static ExecutorService EXEC_SERVICE = Executors.newSingleThreadExecutor();
@@ -76,6 +79,8 @@ public class RadioNetwork {
 		return thread;
 	});
 	private final static long RETRY_DELAY_SECONDS = 5;
+	private int memberId;
+
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
 	private static final DateTimeFormatter EVENT_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
@@ -87,6 +92,9 @@ public class RadioNetwork {
 	// The episodes endpoint caps per_page at 100; we page through it until exhausted (bounded).
 	private static final int EPISODES_PER_PAGE = 100;
 	private static final int EPISODES_MAX_PAGES = 20;
+
+	private static final int PLAYLISTS_PER_PAGE = 100;
+	private static final int PLAYLISTS_MAX_PAGES = 20;
 
 	// Basic auth for "ephemeron:dayeiph0ne@pp" - required by the play
 	private static final String BASIC_AUTH_HEADER = "Basic ZXBoZW1lcm9uOmRheWVpcGgwbmVAcHA=";
@@ -112,7 +120,7 @@ public class RadioNetwork {
 	private volatile Channel[] channelUrls = null;
 	private volatile List<INetworkInitialized> networkInitCallbacks = new ArrayList<>();
 
-	private ObjectMapper om = null;
+	private final ObjectMapper om = JsonMapper.builder().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build();
 	private StreamListQuality quality = StreamListQuality.MP3_320;
 	private LinkedHashMap<String, List<Integer>> channelsFilterMap = new LinkedHashMap<>();
 	private AudioAddictServiceConfig config = null;
@@ -196,7 +204,6 @@ public class RadioNetwork {
 		LOGGER.debug("{} : start() called ...", network.displayName);
 		startHttpClients();
 
-		om = JsonMapper.builder().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build();
 		if (apiKey == null) {
 			authenticate();
 		}
@@ -254,6 +261,11 @@ public class RadioNetwork {
 
 	protected void extractAuthInfo(String resp) {
 		authenticated = true;
+		try {
+			memberId = om.readTree(resp).path("id").asInt(0);
+		} catch (JsonProcessingException e) {
+			LOGGER.warn("{} : member id not readable from the login answer", network.displayName);
+		}
 		Matcher m = API_KEY_PATTERN.matcher(resp);
 		if (m.find()) {
 			apiKey = m.group(1);
@@ -440,29 +452,62 @@ public class RadioNetwork {
 	 */
 	private Channel[] convertPlsToUrl(ChannelJson[] allChannels) {
 		LOGGER.debug("converting PLS to stream url");
-		Channel[] preferredChannels = new Channel[allChannels.length];
-		int i = 0;
+		String template = readUrlTemplate(allChannels);
+		List<Channel> preferredChannels = new ArrayList<>(allChannels.length);
 		for (ChannelJson channelJson : allChannels) {
-			int errorConter = 0;
-			try {
-				String plsRequest = String.format("%s?listen_key=%s", channelJson.getPlaylist(), listenKey);
-				ContentResponse response = httpBlocking.GET(plsRequest);
-				String pls = response.getContentAsString();
-				String url = getBestUrlFromPlaylist(pls);
-				preferredChannels[i] = new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url);
-			} catch (InterruptedException | ExecutionException | TimeoutException e) {
-				LOGGER.error("{} : convert playlist to url failed for item {} : {}", this.network.displayName, i, channelJson.getPlaylist(),
-					e);
-				if (errorConter < 2) {
-					i--;
-					LOGGER.warn("couldn't read playlist. Will try again ... ");
-				}
-				errorConter++;
+			String url = template != null ? template.replace(CHANNEL_KEY_PLACEHOLDER, channelJson.getKey()) : readPlaylistUrl(channelJson);
+			if (url == null) {
+				continue;
 			}
-			i++;
+			preferredChannels.add(new Channel(channelJson.getId(), channelJson.getKey(), channelJson.getName(), url));
 		}
-		LOGGER.debug("{} : received {} streaming url's.", this.network.displayName, preferredChannels.length);
-		return preferredChannels;
+		LOGGER.debug("{} : received {} streaming url's.", this.network.displayName, preferredChannels.size());
+		return preferredChannels.toArray(new Channel[0]);
+	}
+
+	/**
+	 * Reads one playlist and turns its url into the pattern of all of them.
+	 *
+	 * @return NULL when no pattern could be read
+	 */
+	private String readUrlTemplate(ChannelJson[] allChannels) {
+		for (ChannelJson channelJson : allChannels) {
+			String key = channelJson.getKey();
+			String url = readPlaylistUrl(channelJson);
+			if (StringUtils.isBlank(url) || StringUtils.isBlank(key)) {
+				continue;
+			}
+			int pathEnd = url.indexOf('?') > -1 ? url.indexOf('?') : url.length();
+			int at = url.lastIndexOf(key, pathEnd);
+			if (at < 0) {
+				LOGGER.debug("{} : the url {} does not carry the channel key {}, reading the playlist of every channel",
+					network.displayName, url, key);
+				return null;
+			}
+			String template = url.substring(0, at) + CHANNEL_KEY_PLACEHOLDER + url.substring(at + key.length());
+			LOGGER.debug("{} : stream url pattern is {}", network.displayName, template);
+			return template;
+		}
+		return null;
+	}
+
+	/**
+	 * @return the stream url the channel's playlist points at, NULL when it could not be read
+	 */
+	private String readPlaylistUrl(ChannelJson channelJson) {
+		try {
+			String plsRequest = String.format("%s?listen_key=%s", channelJson.getPlaylist(), listenKey);
+			ContentResponse response = httpBlocking.GET(plsRequest);
+			return getBestUrlFromPlaylist(response.getContentAsString());
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			LOGGER.error("{} : reading the playlist {} was interrupted", network.displayName, channelJson.getPlaylist());
+			return null;
+		} catch (ExecutionException | TimeoutException e) {
+			LOGGER.error("{} : convert playlist to url failed for {} : {}", network.displayName, channelJson.getPlaylist(), e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
 	}
 
 	/**
@@ -618,27 +663,22 @@ public class RadioNetwork {
 			LOGGER.warn("{} : cannot read playlists, not authenticated.", network.displayName);
 			return result;
 		}
-		String url = String.format("https://api.audioaddict.com/v1/%s/playlists?api_key=%s", network.shortName, apiKey);
 		try {
-			ContentResponse response = httpBlocking.GET(url);
-			PlaylistsResponse resp = om.readValue(response.getContentAsString(), PlaylistsResponse.class);
-			if (resp.results != null) {
-				Map<Integer, String> genreFilters = buildGenreFilterMap();
+			Map<Integer, String> genreFilters = buildGenreFilterMap();
+			for (int page = 1; page <= PLAYLISTS_MAX_PAGES; page++) {
+				String url = String.format("https://api.audioaddict.com/v1/%s/playlists?per_page=%d&page=%d&api_key=%s",
+					network.shortName, PLAYLISTS_PER_PAGE, page, apiKey);
+				ContentResponse response = httpBlocking.GET(url);
+				PlaylistsResponse resp = om.readValue(response.getContentAsString(), PlaylistsResponse.class);
+				if (resp.results == null || resp.results.isEmpty()) {
+					break;
+				}
 				for (PlaylistJson p : resp.results) {
-					AudioAddictPlaylistDto dto = new AudioAddictPlaylistDto();
-					dto.id = p.id;
-					dto.name = p.name;
-					dto.description = p.description;
-					dto.duration = p.duration;
-					dto.trackCount = p.trackCount;
-					dto.albumArt = imageUrlFromMap(p.images);
-					// Only some playlists sit in a genre filter; the others still carry tags.
-					dto.genres = joinGenres(p.channelFilterIds, genreFilters);
-					if (dto.genres == null) {
-						dto.genres = joinTags(p.tags);
-					}
-					dto.curator = p.curator != null ? p.curator.name : null;
-					result.add(dto);
+					result.add(toPlaylistDto(p, genreFilters));
+				}
+				if (resp.results.size() < PLAYLISTS_PER_PAGE) {
+					// A short page is the last one.
+					break;
 				}
 			}
 			LOGGER.info("{} : received {} playlists.", network.displayName, result.size());
@@ -646,6 +686,51 @@ public class RadioNetwork {
 			LOGGER.error("{} : failed reading playlists", network.displayName, e);
 		}
 		return result;
+	}
+
+	/**
+	 * Reads the playlists this member follows.
+	 */
+	public List<AudioAddictPlaylistDto> getFollowedPlaylists() {
+		List<AudioAddictPlaylistDto> result = new ArrayList<>();
+		if (apiKey == null || memberId <= 0) {
+			LOGGER.debug("{} : cannot read followed playlists, no member id yet.", network.displayName);
+			return result;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/members/%d/followed_items/playlist?api_key=%s",
+			network.shortName, memberId, apiKey);
+		try {
+			ContentResponse response = httpBlocking.GET(url);
+			JsonNode root = om.readTree(response.getContentAsString());
+			// The service answers with a bare array here, but a wrapped one costs nothing to allow.
+			JsonNode items = root.isArray() ? root : root.path("results");
+			Map<Integer, String> genreFilters = buildGenreFilterMap();
+			for (JsonNode item : items) {
+				JsonNode playlist = item.has("playlist") ? item.get("playlist") : item;
+				result.add(toPlaylistDto(om.treeToValue(playlist, PlaylistJson.class), genreFilters));
+			}
+			LOGGER.info("{} : received {} followed playlists.", network.displayName, result.size());
+		} catch (InterruptedException | ExecutionException | TimeoutException | JsonProcessingException e) {
+			LOGGER.error("{} : failed reading followed playlists", network.displayName, e);
+		}
+		return result;
+	}
+
+	private AudioAddictPlaylistDto toPlaylistDto(PlaylistJson p, Map<Integer, String> genreFilters) {
+		AudioAddictPlaylistDto dto = new AudioAddictPlaylistDto();
+		dto.id = p.id;
+		dto.name = p.name;
+		dto.description = p.description;
+		dto.duration = p.duration;
+		dto.trackCount = p.trackCount;
+		dto.albumArt = imageUrlFromMap(p.images);
+		// Only some playlists sit in a genre filter; the others still carry tags.
+		dto.genres = joinGenres(p.channelFilterIds, genreFilters);
+		if (dto.genres == null) {
+			dto.genres = joinTags(p.tags);
+		}
+		dto.curator = p.curator != null ? p.curator.name : null;
+		return dto;
 	}
 
 	/**
@@ -956,6 +1041,25 @@ public class RadioNetwork {
 	}
 
 	/**
+	 * Tells the service that the stream behind that token is still being listened to. The official
+	 * player does this every minute for as long as a track plays; the token out of the content url is
+	 * the whole credential, it needs neither api key nor session.
+	 */
+	public void pingStreaming(String audioToken) {
+		if (StringUtils.isBlank(audioToken)) {
+			return;
+		}
+		String url = String.format("https://api.audioaddict.com/v1/%s/streaming/%s", network.shortName, audioToken);
+		try {
+			httpBlocking.newRequest(url).method(HttpMethod.POST).send();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} catch (ExecutionException | TimeoutException e) {
+			LOGGER.debug("{} : streaming ping failed : {}", network.displayName, e.getMessage());
+		}
+	}
+
+	/**
 	 * @param channelId the channel id.
 	 * @return the currently playing track on that channel as "Artist - Title", or NULL when unknown.
 	 */
@@ -990,9 +1094,12 @@ public class RadioNetwork {
 		EXEC_SERVICE.submit(() -> {
 			try {
 				AudioAddictTrackDto detail = fetchCurrentTrackDetail(channelId);
-				if (detail != null) {
+				if (detail != null && isSameTrack(detail, line)) {
 					currentTrackDetails.put(channelId, detail);
 					currentTrackDetailLines.put(channelId, line);
+				} else if (detail != null) {
+					LOGGER.debug("{} : track history for channel {} still reports \"{} - {}\" while \"{}\" is playing",
+						network.displayName, channelId, detail.artist, detail.title, line);
 				}
 			} catch (Exception e) {
 				LOGGER.warn("{} : failed to refresh track detail for channel {}", network.displayName, channelId, e);
@@ -1075,6 +1182,14 @@ public class RadioNetwork {
 		}
 		currentlyPlaying = map;
 		LOGGER.debug("{} : refreshed currently_playing for {} channels", network.displayName, map.size());
+	}
+
+	private static boolean isSameTrack(AudioAddictTrackDto detail, String line) {
+		if (line == null) {
+			return false;
+		}
+		String detailLine = detail.artist != null && detail.title != null ? detail.artist + " - " + detail.title : detail.title;
+		return detailLine != null && detailLine.trim().equalsIgnoreCase(line.trim());
 	}
 
 	private static String formatCurrentTitle(CurrentlyPlayingJson.Track t) {

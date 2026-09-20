@@ -46,8 +46,11 @@ import net.pms.gui.GuiManager;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.renderers.devices.MediaScannerDevice;
 import net.pms.store.container.DVDISOFile;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RealFolder;
 import net.pms.store.item.RealFile;
@@ -303,6 +306,7 @@ public class MediaScanner implements SharedContentListener {
 						LOGGER.info("Database analyze completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
 						MediaStoreIds.incrementSystemUpdateId();
 						StoreResourceRatings.clearCache();
+						warmUpLibraryFolders();
 					}
 				} catch (Exception e) {
 					LOGGER.error("Unhandled exception during media scan: {}", e.getMessage());
@@ -313,6 +317,34 @@ public class MediaScanner implements SharedContentListener {
 			scannerThread.setPriority(Thread.MIN_PRIORITY);
 			scannerThread.start();
 			GuiManager.setMediaScanStatus(true);
+		}
+	}
+
+	/**
+	 * Runs on the scanner thread, which is already a background thread at minimum priority.
+	 */
+	private static void warmUpLibraryFolders() {
+		Renderer renderer = ControlPoint.getRenderer();
+		if (renderer == null) {
+			return;
+		}
+		MediaLibrary mediaLibrary = renderer.getMediaStore().getMediaLibrary();
+		if (mediaLibrary == null) {
+			return;
+		}
+		for (MediaLibraryFolder folder : new MediaLibraryFolder[] {mediaLibrary.getAlbumFolder(), mediaLibrary.getArtistFolder()}) {
+			if (folder == null) {
+				continue;
+			}
+			try {
+				long started = System.currentTimeMillis();
+				folder.discoverChildren();
+				LOGGER.info("Prepared library folder \"{}\" with {} entries in {} ms",
+						folder.getName(), folder.getChildren().size(), System.currentTimeMillis() - started);
+			} catch (Exception e) {
+				LOGGER.debug("Could not prepare library folder \"{}\": {}", folder.getName(), e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
 	}
 

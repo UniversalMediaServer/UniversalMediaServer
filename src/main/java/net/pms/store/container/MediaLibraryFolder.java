@@ -55,6 +55,8 @@ import org.slf4j.LoggerFactory;
  */
 public class MediaLibraryFolder extends MediaLibraryAbstract {
 
+	private static final long REFRESH_LOG_THRESHOLD_MS = 200;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
 	private String[] sqls;
@@ -216,6 +218,10 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	 */
 	@Override
 	public synchronized void doRefreshChildren() {
+		long startedAt = System.nanoTime();
+		long dbNanos = 0;
+		long connectionNanosAtStart = MediaDatabase.getConnectionNanos();
+		long connectionCountAtStart = MediaDatabase.getConnectionCount();
 		List<File> filesListFromDb = null;
 		List<String> virtualFoldersListFromDb = null;
 
@@ -236,6 +242,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		String firstSql = null;
 		if (sqls.length > 0) {
 			Connection connection = null;
+			long dbStartedAt = System.nanoTime();
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
@@ -369,6 +376,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				}
 			} finally {
 				MediaDatabase.close(connection);
+				dbNanos = System.nanoTime() - dbStartedAt;
 			}
 		}
 		Set<File> newFiles = new LinkedHashSet<>();
@@ -732,6 +740,16 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		sortChildrenIfNeeded();
 		if (isDiscovered()) {
 			notifyRefreshIfChanged();
+		}
+		long totalMs = (System.nanoTime() - startedAt) / 1_000_000;
+		if (totalMs >= REFRESH_LOG_THRESHOLD_MS) {
+			long dbMs = dbNanos / 1_000_000;
+			int childCount = getChildren().size();
+			long connectionMs = (MediaDatabase.getConnectionNanos() - connectionNanosAtStart) / 1_000_000;
+			long connections = MediaDatabase.getConnectionCount() - connectionCountAtStart;
+			LOGGER.info("Slow refresh of \"{}\": {} ms total, {} ms folder query, {} ms per child, {} children, {} connections taking {} ms",
+					getName(), totalMs, dbMs, childCount > 0 ? (totalMs * 1000 / childCount) / 1000.0 : 0, childCount,
+					connections, connectionMs);
 		}
 	}
 

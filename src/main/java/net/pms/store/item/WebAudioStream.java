@@ -30,6 +30,8 @@ import net.pms.store.IcyMetadataReaderInputStream;
 import net.pms.store.IcyMetadataSource;
 import net.pms.store.IcyStreamTitleParser;
 import net.pms.store.IcyStreamTitleParser.Order;
+import net.pms.store.LiveStreamRelay;
+import net.pms.store.LiveStreamRelay.Source;
 import net.pms.store.NowPlayingInfo;
 import net.pms.store.NowPlayingWatchInputStream;
 import net.pms.store.container.PlaylistFolder;
@@ -44,6 +46,12 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 	private static final Map<String, Order> ICY_ORDER_OVERRIDES = new ConcurrentHashMap<>();
 
 	private volatile Order playlistOrder;
+
+	/**
+	 * An opened stream
+	 */
+	private record Connection(InputStream stream, Supplier<String> streamTitle, Supplier<NowPlayingInfo> nowPlaying) {
+	}
 
 	public WebAudioStream(Renderer renderer, String fluxName, String url, String thumbURL) {
 		this(renderer, fluxName, url, thumbURL, null);
@@ -109,33 +117,72 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 
 	@Override
 	public InputStream getInputStream() {
-		IcyMetadataReaderInputStream reader = isIcyPassThrough() ? openIcyReader() : null;
-		if (reader != null) {
-			IcyStreamTitleParser parser = newTitleParser();
-			return watched(reader, () -> parser.parse(reader.getStreamTitle()));
-		}
-		InputStream plain = super.getInputStream();
-		return plain == null ? null : watched(plain, this::getNowPlaying);
+		Connection connection = connect();
+		return connection == null ? null : watched(connection.stream(), connection.nowPlaying());
 	}
 
 	@Override
 	public InputStream getIcyInputStream(int metaInt) {
-		IcyMetadataReaderInputStream reader = isIcyPassThrough() ? openIcyReader() : null;
-		if (reader != null) {
-			LOGGER.info("forwarding ICY metadata for {} (renderer interval {})", getUrl(), metaInt);
-			IcyStreamTitleParser parser = newTitleParser();
-			return watched(new IcyMetadataInputStream(reader, metaInt, reader::getStreamTitle),
-					() -> parser.parse(reader.getStreamTitle()));
-		}
-		InputStream plain = super.getInputStream();
-		if (plain == null) {
+		Connection connection = connect();
+		if (connection == null) {
 			return null;
 		}
-		return watched(new IcyMetadataInputStream(plain, metaInt, this::currentStreamTitle), this::getNowPlaying);
+		LOGGER.info("forwarding ICY metadata for {} (renderer interval {})", getUrl(), metaInt);
+		return watched(new IcyMetadataInputStream(connection.stream(), metaInt, connection.streamTitle()), connection.nowPlaying());
 	}
 
-	private String currentStreamTitle() {
-		NowPlayingInfo info = getNowPlaying();
+	/**
+	 * Opens the station through the relay when it is an endless live stream
+	 */
+	private Connection connect() {
+		if (isUnboundedLiveStream()) {
+			// Only an endless stream is shared; a hosted file is served per request, with its ranges.
+			LiveStreamRelay.Listener listener = LiveStreamRelay.listen(getUrl(), this::openSource);
+			if (listener == null) {
+				return null;
+			}
+			return connection(listener, listener.hasNowPlaying() ? listener::getNowPlaying : null);
+		}
+		try {
+			Source source = openSource();
+			if (source != null) {
+				return connection(source.stream(), source.nowPlaying());
+			}
+		} catch (IOException e) {
+			LOGGER.warn("cannot open the stream {} : {}", getUrl(), e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+
+	/**
+	 * Opens the bytes of the station and says where it announces what it is playing. A stream that
+	 * knows its own playback - a playlist this server puts together itself - overrides this.
+	 */
+	protected Source openSource() throws IOException {
+		IcyMetadataReaderInputStream reader = isIcyPassThrough() ? openIcyReader() : null;
+		if (reader != null) {
+			// The station announces a single line, which still has to be split into artist and title.
+			IcyStreamTitleParser parser = newTitleParser();
+			return new Source(reader, () -> parser.parse(reader.getStreamTitle()));
+		}
+		InputStream plain = super.getInputStream();
+		return plain == null ? null : new Source(plain, this::getNowPlaying);
+	}
+
+	/**
+	 * Binds the two consumers of what is playing: the ICY output towards the renderer and the push
+	 * towards a control point. Both read the same source, so they can never disagree.
+	 *
+	 * @param nowPlaying what the opened stream announces, NULL when it announces nothing
+	 */
+	private Connection connection(InputStream stream, Supplier<NowPlayingInfo> nowPlaying) {
+		Supplier<NowPlayingInfo> source = nowPlaying != null ? nowPlaying : this::getNowPlaying;
+		return new Connection(stream, () -> streamTitleOf(source.get()), source);
+	}
+
+	private static String streamTitleOf(NowPlayingInfo info) {
 		return info == null ? null : info.streamTitle;
 	}
 

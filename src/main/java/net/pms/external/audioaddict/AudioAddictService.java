@@ -71,6 +71,10 @@ public class AudioAddictService implements EventListener<ConfigurationEvent> {
 		return network.getFilters();
 	}
 
+	public List<AudioAddictPlaylistDto> getFollowedPlaylists(Platform platform) {
+		return getNetwork(platform).getFollowedPlaylists();
+	}
+
 	public List<AudioAddictPlaylistDto> getPlaylists(Platform platform) {
 		RadioNetwork network = getNetwork(platform);
 		return network.getPlaylists();
@@ -107,6 +111,13 @@ public class AudioAddictService implements EventListener<ConfigurationEvent> {
 	public void markPlaylistTrackPlayed(Platform platform, int playlistId, long trackId) {
 		RadioNetwork network = getNetwork(platform);
 		network.markPlayed(playlistId, trackId);
+	}
+
+	/**
+	 * Keeps the service informed that we are still listening to the stream behind that token.
+	 */
+	public void pingStreaming(Platform platform, String audioToken) {
+		getNetwork(platform).pingStreaming(audioToken);
 	}
 
 	/**

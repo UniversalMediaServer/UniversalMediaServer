@@ -22,7 +22,9 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexFormatTooNewException;
 import org.apache.lucene.index.IndexFormatTooOldException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -327,6 +329,7 @@ public class UmsFullTextLucene extends FullText {
 		String path = getIndexPath(conn);
 		synchronized (INDEX_ACCESS) {
 			IndexAccess access = INDEX_ACCESS.get(path);
+			boolean indexDeleted = false;
 			while (access == null) {
 				try {
 					Directory indexDir = path.startsWith(IN_MEMORY_PREFIX) ? new ByteBuffersDirectory() : FSDirectory.open(Paths.get(path));
@@ -337,8 +340,14 @@ public class UmsFullTextLucene extends FullText {
 					// see
 					// https://cwiki.apache.org/confluence/display/lucene/NearRealtimeSearch
 					access = new IndexAccess(writer);
-				} catch (IndexFormatTooOldException e) {
-					reindex(conn);
+				} catch (IndexFormatTooOldException | IndexFormatTooNewException | CorruptIndexException e) {
+					// An index of another Lucene version, or a damaged one, is only deleted here.
+					if (indexDeleted) {
+						throw convertException(e);
+					}
+					indexDeleted = true;
+					LOGGER.info("The full text index cannot be opened, deleting it so it is rebuilt: {}", e.getMessage());
+					removeIndexFiles(conn);
 					continue;
 				} catch (IOException e) {
 					throw convertException(e);
@@ -458,11 +467,7 @@ public class UmsFullTextLucene extends FullText {
 				Analyzer analyzer = access.writer.getAnalyzer();
 				StandardQueryParser parser = new StandardQueryParser(analyzer);
 				Query query = parser.parse(text, LUCENE_FIELD_DATA);
-				// Lucene insists on a hard limit and will not provide
-				// a total hits value. Take at least 100 which is
-				// an optimal limit for Lucene as any more
-				// will trigger writing results to disk.
-				int maxResults = (limit == 0 ? 100 : limit) + offset;
+				int maxResults = (limit == 0 ? Math.max(searcher.count(query), 1) : limit) + offset;
 				TopDocs docs = searcher.search(query, maxResults);
 				long totalHits;
 				try {
