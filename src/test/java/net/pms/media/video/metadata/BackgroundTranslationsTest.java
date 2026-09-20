@@ -50,15 +50,25 @@ public class BackgroundTranslationsTest {
 		var target = new TranslationStoreRefresh.Target(1L, null);
 		BackgroundTranslations<String> first = new BackgroundTranslations<>(() -> target, jobs::add, () -> 0);
 		BackgroundTranslations<String> second = new BackgroundTranslations<>(() -> target, jobs::add, () -> 0);
-		first.request("cs", () -> "Cesky");
-		first.request("de", () -> "Deutsch");
-		second.request("cs", () -> "Cesky");
-		assertEquals(3, jobs.size());
-		while (jobs.size() > 1) {
+		try {
+			first.request("cs", () -> "Cesky");
+			first.request("de", () -> "Deutsch");
+			second.request("cs", () -> "Cesky");
+			assertEquals(3, jobs.size());
+			// Execute all three lookups, leaving only their shared flush.
+			for (int i = 0; i < 3; i++) {
+				jobs.remove().run();
+			}
+			assertEquals("Cesky", second.get("cs"));
+			assertEquals(1, jobs.size());
 			jobs.remove().run();
+			TranslationStoreRefresh.request(target, jobs::add);
+			assertEquals(1, jobs.size(), "A completed flush must allow another batch");
+		} finally {
+			while (!jobs.isEmpty()) {
+				jobs.remove().run();
+			}
 		}
-		// One flush for the whole burst: a folder must not be bumped once per child.
-		assertEquals(1, jobs.size());
 	}
 
 	@Test

@@ -66,9 +66,7 @@ final class TranslationStoreRefresh {
 					names.add(name);
 				}
 			}
-			for (String name : names) {
-				MediaStoreIds.incrementUpdateIdForFilenameWithAncestors(connection, name);
-			}
+			MediaStoreIds.incrementUpdateIdsForFilenamesWithAncestors(connection, names);
 		} finally {
 			MediaDatabase.close(connection);
 		}
