@@ -20,13 +20,13 @@ import { useForm } from '@mantine/form'
 import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import _ from 'lodash'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { sendAction } from '../../services/actions-service'
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils'
-import { showError } from '../../utils/notifications'
+import { showError, showInfo } from '../../utils/notifications'
 
 const Logs = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterface }) => {
   const canModify = session.havePermission(UmsPermission.settings_modify)
@@ -87,6 +87,24 @@ const Logs = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterfac
     return 0
   }
 
+  const logLevelToString = (level: number) => {
+    switch (level) {
+      case 6:
+        return 'ALL'
+      case 5:
+        return 'TRACE'
+      case 4:
+        return 'DEBUG'
+      case 3:
+        return 'INFO'
+      case 2:
+        return 'WARN'
+      case 1:
+        return 'ERROR'
+    }
+    return 'OFF'
+  }
+
   useEffect(() => {
     session.subscribeTo('Logs')
     session.stopPlayerSse()
@@ -94,7 +112,7 @@ const Logs = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterfac
     session.setNavbarManage(Logs.name)
   }, [])
 
-  useEffect(() => {
+  const loadLogs = useCallback(() => {
     if (!canModify || fileMode) {
       setLogs([])
       return
@@ -122,6 +140,46 @@ const Logs = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterfac
         }
       })
   }, [i18n, canModify, fileMode])
+
+  useEffect(() => {
+    loadLogs()
+  }, [loadLogs])
+
+  const setNewRootLogLevel = (level: number) => {
+    if (level === rootLogLevel) {
+      return
+    }
+    axios.post(logsApiUrl + 'rootLogLevel', { level: logLevelToString(level) })
+      .then(function () {
+        setRootLogLevel(level)
+        loadLogs()
+        showInfo({
+          title: i18n.get('LogLevel'),
+          message: i18n.get('LogLevelChanged'),
+        })
+      })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+      })
+  }
+
+  const setNewGuiLogLevel = (level: number) => {
+    if (level === guiLogLevel) {
+      return
+    }
+    axios.post(logsApiUrl + 'guiLogLevel', { level: logLevelToString(level) })
+      .then(function () {
+        setGuiLogLevel(level)
+        setLogLevel(level)
+      })
+      .catch(function (error: AxiosError) {
+        if (!error.response && error.request) {
+          i18n.showServerUnreachable()
+        }
+      })
+  }
 
   useEffect(() => {
     const filterLogLevelFilter = (level: string) => {
@@ -365,11 +423,28 @@ const Logs = ({ i18n, session }: { i18n: I18nInterface, session: SessionInterfac
             title={i18n.get('Settings')}
           >
             <Stack>
+              <Tooltip label={allowHtml(i18n.get('SetRootLoggingLevelDecides'))} {...defaultTooltipSettings}>
+                <Select
+                  label={i18n.get('LogLevel')}
+                  value={rootLogLevel.toString()}
+                  disabled={traceMode === 2}
+                  onChange={(value) => {
+                    if (value !== null) {
+                      setNewRootLogLevel(parseInt(value))
+                    }
+                  }}
+                  data={allLogLevels}
+                />
+              </Tooltip>
               <Tooltip label={allowHtml(i18n.get('FilterLogMessagesLogWindow'))} {...defaultTooltipSettings}>
                 <Select
                   label={i18n.get('Filter')}
                   value={guiLogLevel.toString()}
-                  onChange={value => value === null ? 0 : setGuiLogLevel(parseInt(value))}
+                  onChange={(value) => {
+                    if (value !== null) {
+                      setNewGuiLogLevel(parseInt(value))
+                    }
+                  }}
                   data={[
                     { value: '1', label: i18n.get('Error'), disabled: rootLogLevel < 1 },
                     { value: '2', label: i18n.get('Warning'), disabled: rootLogLevel < 2 },
