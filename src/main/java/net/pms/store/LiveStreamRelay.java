@@ -235,15 +235,35 @@ public final class LiveStreamRelay {
 			if (closed || ended) {
 				return;
 			}
-			if (queuedBytes.addAndGet(chunk.length) > relay.listenerBudget()) {
-				queuedBytes.addAndGet(-chunk.length);
-				LOGGER.debug("dropping a listener of {} that does not keep up", relay.key);
-				relay.removeListener(this);
-				// It still serves what it has queued, then ends.
-				endOfStream();
-				return;
-			}
+			// Counted before it is published, so the budget is never seen too low.
+			queuedBytes.addAndGet(chunk.length);
 			chunks.add(chunk);
+			int budget = relay.listenerBudget();
+			if (queuedBytes.get() > budget) {
+				skipTowardsLive(budget);
+			}
+		}
+
+		/**
+		 * Throws away the oldest audio of a listener that does not keep up, instead of ending its stream.
+		 */
+		private void skipTowardsLive(int budget) {
+			int skipped = 0;
+			while (queuedBytes.get() > budget) {
+				byte[] oldest = chunks.poll();
+				if (oldest == null) {
+					break;
+				}
+				if (oldest == END_OF_STREAM) {
+					chunks.offer(oldest);
+					break;
+				}
+				queuedBytes.addAndGet(-oldest.length);
+				skipped += oldest.length;
+			}
+			if (skipped > 0) {
+				LOGGER.debug("a listener of {} does not keep up, skipped {} bytes towards live", relay.key, skipped);
+			}
 		}
 
 		private void endOfStream() {

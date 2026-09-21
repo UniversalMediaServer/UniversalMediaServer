@@ -70,7 +70,7 @@ public class LiveStreamRelayTest {
 	}
 
 	@Test
-	public void aListenerOverItsBudgetKeepsWhatItHasAndThenEnds() throws Exception {
+	public void aListenerThatFallsBehindSkipsTowardsLiveInsteadOfEnding() throws Exception {
 		Source source = new Source();
 		String key = UUID.randomUUID().toString();
 		int chunkSize = 32 * 1024;
@@ -84,12 +84,14 @@ public class LiveStreamRelayTest {
 			source.close();
 			assertTrue(source.eofRead.await(3, TimeUnit.SECONDS));
 			byte[] served = listener.readAllBytes();
-			assertTrue(served.length > 0, "A dropped listener still serves what it had");
-			assertTrue(served.length < chunks * chunkSize, "A listener that never reads is dropped");
 			assertEquals(0, served.length % chunkSize, "Chunks are served whole");
+			assertTrue(served.length < chunks * chunkSize, "The oldest audio of a listener that never reads is skipped");
+			int first = served[0];
+			assertTrue(first > 0, "It does not start at the beginning any more");
 			for (int i = 0; i < served.length; i++) {
-				assertEquals((byte) (i / chunkSize), served[i], "Served bytes are the start of the stream, in order");
+				assertEquals((byte) (first + i / chunkSize), served[i], "What is served is contiguous and in order");
 			}
+			assertEquals((byte) (chunks - 1), served[served.length - 1], "It plays on to the live edge");
 			assertTimeoutPreemptively(java.time.Duration.ofMillis(500), () -> assertEquals(-1, listener.read()));
 		} finally { source.close(); }
 	}
