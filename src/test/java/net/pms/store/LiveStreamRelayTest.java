@@ -53,7 +53,7 @@ public class LiveStreamRelayTest {
 	}
 
 	@Test
-	public void fullQueueDrainsBeforeEof() throws Exception {
+	public void everyQueuedChunkIsServedBeforeEof() throws Exception {
 		Source source = new Source();
 		String key = UUID.randomUUID().toString();
 		try (var listener = LiveStreamRelay.listen(key, () -> new LiveStreamRelay.Source(source, null))) {
@@ -65,6 +65,31 @@ public class LiveStreamRelayTest {
 			source.close();
 			assertTrue(source.eofRead.await(3, TimeUnit.SECONDS));
 			assertArrayEquals(expected, listener.readNBytes(expected.length));
+			assertTimeoutPreemptively(java.time.Duration.ofMillis(500), () -> assertEquals(-1, listener.read()));
+		} finally { source.close(); }
+	}
+
+	@Test
+	public void aListenerOverItsBudgetKeepsWhatItHasAndThenEnds() throws Exception {
+		Source source = new Source();
+		String key = UUID.randomUUID().toString();
+		int chunkSize = 32 * 1024;
+		int chunks = 80;
+		try (var listener = LiveStreamRelay.listen(key, () -> new LiveStreamRelay.Source(source, null))) {
+			for (int i = 0; i < chunks; i++) {
+				byte[] chunk = new byte[chunkSize];
+				java.util.Arrays.fill(chunk, (byte) i);
+				source.data.add(chunk);
+			}
+			source.close();
+			assertTrue(source.eofRead.await(3, TimeUnit.SECONDS));
+			byte[] served = listener.readAllBytes();
+			assertTrue(served.length > 0, "A dropped listener still serves what it had");
+			assertTrue(served.length < chunks * chunkSize, "A listener that never reads is dropped");
+			assertEquals(0, served.length % chunkSize, "Chunks are served whole");
+			for (int i = 0; i < served.length; i++) {
+				assertEquals((byte) (i / chunkSize), served[i], "Served bytes are the start of the stream, in order");
+			}
 			assertTimeoutPreemptively(java.time.Duration.ofMillis(500), () -> assertEquals(-1, listener.read()));
 		} finally { source.close(); }
 	}

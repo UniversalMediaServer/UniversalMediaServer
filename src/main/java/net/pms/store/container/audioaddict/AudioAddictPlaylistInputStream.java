@@ -100,9 +100,19 @@ public class AudioAddictPlaylistInputStream extends InputStream {
 
 	@Override
 	public int read() throws IOException {
-		byte[] one = new byte[1];
-		int n = read(one, 0, 1);
-		return n == -1 ? -1 : (one[0] & 0xFF);
+		while (true) {
+			if (current != null) {
+				int value = current.read();
+				if (value != -1) {
+					pace(1);
+					return value;
+				}
+				closeCurrent(false);
+			}
+			if (finished || !openNextTrack()) {
+				return -1;
+			}
+		}
 	}
 
 	@Override

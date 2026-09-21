@@ -7,11 +7,12 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +40,15 @@ public final class LiveStreamRelay {
 
 	private static final int BACKLOG_BYTES = 256 * 1024;
 
-	// Slack per listener before it is dropped, about 50 seconds of a 320 kbit/s stream.
-	private static final int LISTENER_CHUNKS = 64;
+	// How far a listener may fall behind before it is dropped.
+	private static final int LISTENER_SECONDS = 50;
+
+	// max memory allocation.
+	private static final int LISTENER_BYTES_MIN = 256 * 1024;
+	private static final int LISTENER_BYTES_MAX = 2 * 1024 * 1024;
+
+	// measure bytes/sec for a period of this long
+	private static final long RATE_MEASURE_MS = 5000;
 
 	// How long the upstream is kept running after the last listener left.
 	private static final long LINGER_MS = 30000;
@@ -109,7 +117,8 @@ public final class LiveStreamRelay {
 		private static final byte[] END_OF_STREAM = new byte[0];
 
 		private final Relay relay;
-		private final BlockingQueue<byte[]> chunks = new ArrayBlockingQueue<>(LISTENER_CHUNKS);
+		private final BlockingQueue<byte[]> chunks = new LinkedBlockingQueue<>();
+		private final AtomicInteger queuedBytes = new AtomicInteger();
 		private byte[] current;
 		private int position;
 		private volatile boolean ended;
@@ -173,6 +182,7 @@ public final class LiveStreamRelay {
 			closed = true;
 			relay.removeListener(this);
 			chunks.clear();
+			queuedBytes.set(0);
 			chunks.offer(END_OF_STREAM);
 		}
 
@@ -204,6 +214,7 @@ public final class LiveStreamRelay {
 					return false;
 				}
 				if (next != null) {
+					queuedBytes.addAndGet(-next.length);
 					current = next;
 					position = 0;
 					return true;
@@ -224,11 +235,15 @@ public final class LiveStreamRelay {
 			if (closed || ended) {
 				return;
 			}
-			if (!chunks.offer(chunk)) {
+			if (queuedBytes.addAndGet(chunk.length) > relay.listenerBudget()) {
+				queuedBytes.addAndGet(-chunk.length);
 				LOGGER.debug("dropping a listener of {} that does not keep up", relay.key);
-				ended = true;
 				relay.removeListener(this);
+				// It still serves what it has queued, then ends.
+				endOfStream();
+				return;
 			}
+			chunks.add(chunk);
 		}
 
 		private void endOfStream() {
@@ -247,6 +262,8 @@ public final class LiveStreamRelay {
 
 		private final String key;
 		private final Source source;
+		private final long startedAt = System.currentTimeMillis();
+		private volatile long pumpedBytes;
 		private final List<Listener> listeners = new CopyOnWriteArrayList<>();
 		private final Deque<byte[]> backlog = new ArrayDeque<>();
 		private int backlogBytes;
@@ -259,13 +276,24 @@ public final class LiveStreamRelay {
 		}
 
 		private void start() {
-			Thread pump = new Thread(this::pump, "live-stream-relay");
-			pump.setDaemon(true);
-			pump.start();
+			Thread.ofVirtual().name("live-stream-relay-" + key).start(this::pump);
 		}
 
 		private int listenerCount() {
 			return listeners.size();
+		}
+
+		/**
+		 * @return how many bytes a listener may be behind, from what this stream really delivers
+		 */
+		private int listenerBudget() {
+			long elapsed = System.currentTimeMillis() - startedAt;
+			if (elapsed < RATE_MEASURE_MS || pumpedBytes == 0) {
+				// The rate is not known yet, so allow what the cap allows.
+				return LISTENER_BYTES_MAX;
+			}
+			long budget = LISTENER_SECONDS * 1000L * pumpedBytes / elapsed;
+			return (int) Math.clamp(budget, LISTENER_BYTES_MIN, LISTENER_BYTES_MAX);
 		}
 
 		private Listener addListener() {
@@ -340,6 +368,7 @@ public final class LiveStreamRelay {
 						}
 						continue;
 					}
+					pumpedBytes += read;
 					byte[] chunk = Arrays.copyOf(buffer, read);
 					// Joiners must see each chunk either in their backlog or in live
 					// delivery, never in both and never in neither.
