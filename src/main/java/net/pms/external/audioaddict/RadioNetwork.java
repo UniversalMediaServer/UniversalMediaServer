@@ -79,7 +79,6 @@ public class RadioNetwork {
 		return thread;
 	});
 	private final static long RETRY_DELAY_SECONDS = 5;
-	private int memberId;
 
 	private static final Pattern API_KEY_PATTERN = Pattern.compile(".*api_key\":\\s*\"([\\w\\d]*)\",");
 	private static final Pattern LISTEN_KEY_PATTERN = Pattern.compile(".*listen_key\":\\s*\"([\\w\\d]*)\",");
@@ -100,6 +99,7 @@ public class RadioNetwork {
 	private static final String BASIC_AUTH_HEADER = "Basic ZXBoZW1lcm9uOmRheWVpcGgwbmVAcHA=";
 
 	private static String apiKey = null;
+	private static int memberId;
 
 	private static String listenKey = null;
 
@@ -237,6 +237,10 @@ public class RadioNetwork {
 
 	public boolean isAuthenticated() {
 		return authenticated;
+	}
+
+	public int getMemberId() {
+		return memberId;
 	}
 
 	private void authenticate() {
