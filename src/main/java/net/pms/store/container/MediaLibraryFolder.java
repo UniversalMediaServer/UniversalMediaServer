@@ -18,6 +18,7 @@ package net.pms.store.container;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,10 +27,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
@@ -723,6 +725,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		 */
 		if (expectedOutput == CONTINUE_WATCHING) {
 			Connection connection = null;
+			List<Long> tvSeriesList = new ArrayList<>();
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
@@ -750,18 +753,36 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 											addChild(new RealFile(renderer, file));
 										}
 									} else {
-										Long tvSeriesId = rs.getLong("TVSERIESID");
 										/*
 										 * This is an episode of a TV series, so we will add a new virtual folder
 										 * for that series that only contains unwatched episodes.
 										 */
-										MediaLibraryFolder unwatchedEpisodesOfSeriesFolder = new MediaLibraryTvSeries(
-											renderer,
-											tvSeriesId,
-											SELECT_FILES_STATUS_VIDEOMETA_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + IS_NOT_SAMPLE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'" + tvSeriesId + "'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE,
-											CONTINUE_WATCHING_EPISODES
-										);
-										addChild(unwatchedEpisodesOfSeriesFolder);
+										Long tvSeriesId = rs.getLong("TVSERIESID");
+										String tvEpisodeNumber = rs.getString("TVEPISODENUMBER");
+										Integer tvSeason = rs.getInt("TVSEASON");
+
+										// ensure that each TV series is only added once
+										if (!tvSeriesList.contains(tvSeriesId)) {
+											MediaLibraryFolder unwatchedEpisodesOfSeriesFolder = new MediaLibraryTvSeries(
+												renderer,
+												tvSeriesId,
+												SELECT_FILES_STATUS_VIDEOMETA_TV_SERIES_WHERE +
+													FORMAT_TYPE_VIDEO + AND +
+													TVEPISODE_CONDITION + AND +
+													IS_NOT_SAMPLE_CONDITION + AND +
+													getUnWatchedCondition(renderer.getAccountUserId()) + AND +
+													MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'" + tvSeriesId + "'" + AND +
+													BRACKET_OPEN +
+														MediaTableVideoMetadata.COL_TVEPISODENUMBER + GREATER_THAN_OR_EQUAL + "'" + tvEpisodeNumber + "'" + OR +
+														MediaTableVideoMetadata.COL_TVSEASON + GREATER_THAN + "'" + tvSeason + "'" +
+													BRACKET_CLOSE +
+													ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE,
+												CONTINUE_WATCHING_EPISODES
+											);
+											// todo: only add this if there is at least one episode remaining
+											addChild(unwatchedEpisodesOfSeriesFolder);
+											tvSeriesList.add(tvSeriesId);
+										}
 									}
 								}
 							}

@@ -42,10 +42,13 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String AND = " AND ";
 	protected static final String AS = " AS ";
 	protected static final String ASC = " ASC";
+	protected static final String BRACKET_CLOSE = " ) ";
+	protected static final String BRACKET_OPEN = " ( ";
 	protected static final String DESC = " DESC";
 	protected static final String NOT_EQUAL = " != ";
 	protected static final String EQUAL = " = ";
 	protected static final String GREATER_THAN = " > ";
+	protected static final String GREATER_THAN_OR_EQUAL = " >= ";
 	protected static final String FROM = " FROM ";
 	protected static final String NOT = "NOT ";
 	protected static final String IS = " IS ";
