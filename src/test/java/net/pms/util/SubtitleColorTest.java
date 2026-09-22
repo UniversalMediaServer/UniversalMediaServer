@@ -1,8 +1,9 @@
 package net.pms.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import net.pms.configuration.UmsConfiguration;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SubtitleColorTest {
 	@Test
