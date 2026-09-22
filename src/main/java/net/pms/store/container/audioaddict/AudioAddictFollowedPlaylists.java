@@ -20,7 +20,7 @@ public class AudioAddictFollowedPlaylists extends StoreContainer {
 	private volatile boolean populated;
 
 	public AudioAddictFollowedPlaylists(Renderer renderer, Platform network) {
-		super(renderer, "Followed", network.albumArt);
+		super(renderer, "Followed playlists", network.albumArt);
 		this.network = network;
 	}
 

@@ -35,6 +35,7 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.Renderer;
@@ -505,6 +506,17 @@ public class DidlHelper extends DlnaHelper {
 				}
 
 				sb.append(encodeXML(item.getMediaURL() + transcodedExtension));
+				closeTag(sb, "res");
+			}
+
+			if (renderer.offerHlsResource() && mediaInfo != null && mediaInfo.isVideo()) {
+				openTag(sb, "res");
+				addAttribute(sb, "protocolInfo", "http-get:*:" + HTTPResource.HLS_TYPEMIME + ":*");
+				if (mediaInfo.getDuration() != null && mediaInfo.getDuration() != 0.0) {
+					addAttribute(sb, "duration", StringUtil.formatDLNADuration(mediaInfo.getDuration()));
+				}
+				endTag(sb);
+				sb.append(encodeXML(item.getMediaURL() + "_transcoded_to.m3u8"));
 				closeTag(sb, "res");
 			}
 

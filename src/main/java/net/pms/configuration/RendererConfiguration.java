@@ -100,6 +100,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String KEY_MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String KEY_MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
+	private static final String KEY_OFFER_HLS_RESOURCE = "OfferHlsResource";
 	private static final String KEY_OFFER_SUBTITLES_BY_PROTOCOL_INFO = "OfferSubtitlesByProtocolInfo";
 	private static final String KEY_OFFER_SUBTITLES_AS_SOURCE = "OfferSubtitlesAsSource";
 	private static final String KEY_OUTPUT_3D_FORMAT = "Output3DFormat";
@@ -1340,6 +1341,13 @@ public class RendererConfiguration extends BaseConfiguration {
 
 	public boolean offerSubtitlesByProtocolInfo() {
 		return getBoolean(KEY_OFFER_SUBTITLES_BY_PROTOCOL_INFO, true);
+	}
+
+	/**
+	 * Whether a video item also gets a res element pointing at its HLS rendition.
+	 */
+	public boolean offerHlsResource() {
+		return getBoolean(KEY_OFFER_HLS_RESOURCE, false);
 	}
 
 	/**

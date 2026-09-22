@@ -31,11 +31,11 @@ public class AudioAddictNetwork extends StoreContainer implements INetworkInitia
 	private void addChildren() {
 		clearChildren();
 		if (network == Platform.DI_FM) {
-			// Only DI.fm exposes curated playlists and events, so group the content into
-			// separate "Radio", "Playlists" and "Events" folders.
-			LOGGER.debug("AudioAddictNetwork store container {} : adding Radio, Playlists and Events folders.", network.displayName);
+			// Only DI.fm exposes curated playlists and events
+			LOGGER.debug("AudioAddictNetwork store container {} : adding Radio, Playlists, Followed playlists and Events folders.", network.displayName);
 			addChild(new AudioAddictRadio(renderer, network));
 			addChild(new AudioAddictPlaylists(renderer, network));
+			addChild(new AudioAddictFollowedPlaylists(renderer, network));
 			addChild(new AudioAddictEvents(renderer, network));
 		} else {
 			LOGGER.debug("AudioAddictNetwork store container {} : adding radio filters directly.", network.displayName);
