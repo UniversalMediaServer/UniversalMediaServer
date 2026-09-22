@@ -39,6 +39,7 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
@@ -604,6 +605,8 @@ public class StoreResourceHelper {
 				result.addResource(res);
 			}
 
+			addHlsResource(item, result, renderer, mediaInfo);
+
 			// DESC Metadata support: add ability for control point to identify
 			// songs by MusicBrainz TrackID or audiotrack-id, and to identify AudioAddict channels
 			// so a control point can look up live "now playing" info from the AudioAddict API.
@@ -665,6 +668,25 @@ public class StoreResourceHelper {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Announces the HLS rendition of a video as a res of its own, next to the one for this renderer.
+	 */
+	private static void addHlsResource(StoreItem item, Item result, Renderer renderer, MediaInfo mediaInfo) {
+		if (!renderer.offerHlsResource() || mediaInfo == null || !mediaInfo.isVideo()) {
+			return;
+		}
+		Res hlsRes = new Res();
+		DlnaProtocolInfo hlsProtocolInfo = new DlnaProtocolInfo();
+		hlsProtocolInfo.setProtocol(Protocol.HTTP_GET);
+		hlsProtocolInfo.setContentFormat(HTTPResource.HLS_TYPEMIME);
+		hlsRes.setProtocolInfo(hlsProtocolInfo);
+		if (mediaInfo.getDuration() != null && mediaInfo.getDuration() != 0.0) {
+			hlsRes.setDuration(StringUtil.formatDLNADuration(mediaInfo.getDuration()));
+		}
+		hlsRes.setValue(URI.create(item.getMediaURL() + "_transcoded_to.m3u8"));
+		result.addResource(hlsRes);
 	}
 
 	private static List<DLNAImageResElement> getImageResElements(StoreResource resource) {
