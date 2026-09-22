@@ -518,7 +518,9 @@ public class SubtitleUtils {
 							if (line.trim().startsWith("PlayResY:")) {
 								try {
 									double value = Double.parseDouble(line.substring(line.indexOf(':') + 1).trim());
-									if (Double.isFinite(value) && value > 0) { playResY = value; }
+									if (Double.isFinite(value) && value > 0) {
+										playResY = value;
+									}
 								} catch (NumberFormatException e) {
 									LOGGER.debug("Invalid ASS PlayResY: {}", line);
 								}
@@ -604,8 +606,8 @@ public class SubtitleUtils {
 	 * @throws IOException
 	 */
 	public static File convertASSToASS3D(File tempSubs, MediaInfo media, OutputParams params) throws IOException, NullPointerException {
-		UmsConfiguration configuration = params != null && params.getMediaRenderer() != null
-			? params.getMediaRenderer().getUmsConfiguration() : PMS.getConfiguration();
+		UmsConfiguration configuration = params != null && params.getMediaRenderer() != null ?
+			params.getMediaRenderer().getUmsConfiguration() : PMS.getConfiguration();
 		return convertASSToASS3D(tempSubs, media, params, configuration);
 	}
 
