@@ -309,7 +309,9 @@ public class SettingsApiServlet extends GuiHttpServlet {
 			datas.addProperty("action", "set_configuration_changed");
 			Configuration configuration = CONFIGURATION.getConfiguration();
 			JsonObject jsonObject = new JsonObject();
-			if (!configuration.containsKey(key) || !addPropertyToJsonObject(jsonObject, key, configuration.getProperty(key))) {
+			if ("subtitles_font_height_percent".equals(key)) {
+				jsonObject.addProperty(key, CONFIGURATION.getSubtitleFontHeightPercent());
+			} else if (!configuration.containsKey(key) || !addPropertyToJsonObject(jsonObject, key, configuration.getProperty(key))) {
 				//back to default value
 				jsonObject.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
 			}
@@ -331,7 +333,9 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	 */
 	private static JsonObject getConfigurationAsJsonObject() {
 		Properties userConfiguration = ConfigurationConverter.getProperties(CONFIGURATION.getConfiguration());
-		return getPropertiesAsJsonObject(userConfiguration);
+		JsonObject result = getPropertiesAsJsonObject(userConfiguration);
+		result.addProperty("subtitles_font_height_percent", CONFIGURATION.getSubtitleFontHeightPercent());
+		return result;
 	}
 
 	private static JsonObject getPropertiesAsJsonObject(Properties properties) {
