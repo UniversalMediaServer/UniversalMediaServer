@@ -32,7 +32,7 @@ export default function NavigationSettings({
 }: {
   i18n: I18nInterface
   canModify: boolean
-  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
+  form: UseFormReturnType<Record<string, any>, Record<string, any>, undefined>
   defaultConfiguration: Record<string, unknown>
   selectionSettings: SelectionSettingsData | undefined
 }) {
