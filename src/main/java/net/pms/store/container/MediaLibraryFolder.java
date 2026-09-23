@@ -18,6 +18,7 @@ package net.pms.store.container;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -761,6 +762,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 
 										// ensure that each TV series is only added once
 										if (!tvSeriesList.contains(tvSeriesId)) {
+											String episodeComparator = isFullyPlayed ? GREATER_THAN : GREATER_THAN_OR_EQUAL;
 											MediaLibraryFolder unwatchedEpisodesOfSeriesFolder = new MediaLibraryTvSeries(
 												renderer,
 												tvSeriesId,
@@ -771,14 +773,19 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 													getUnWatchedCondition(renderer.getAccountUserId()) + AND +
 													MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'" + tvSeriesId + "'" + AND +
 													BRACKET_OPEN +
-														MediaTableVideoMetadata.COL_TVEPISODENUMBER + GREATER_THAN_OR_EQUAL + "'" + tvEpisodeNumber + "'" + OR +
+														BRACKET_OPEN +
+															MediaTableVideoMetadata.COL_TVEPISODENUMBER + episodeComparator + "'" + tvEpisodeNumber + "'" + AND +
+															MediaTableVideoMetadata.COL_TVSEASON + EQUAL + "'" + tvSeason + "'" +
+														BRACKET_CLOSE + OR +
 														MediaTableVideoMetadata.COL_TVSEASON + GREATER_THAN + "'" + tvSeason + "'" +
 													BRACKET_CLOSE +
 													ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE,
 												CONTINUE_WATCHING_EPISODES
 											);
-											// todo: only add this if there is at least one episode remaining
-											addChild(unwatchedEpisodesOfSeriesFolder);
+											unwatchedEpisodesOfSeriesFolder.discoverChildren();
+											if (unwatchedEpisodesOfSeriesFolder.childrenCount() > 0) {
+												addChild(unwatchedEpisodesOfSeriesFolder);
+											}
 											tvSeriesList.add(tvSeriesId);
 										}
 									}
