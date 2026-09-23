@@ -138,7 +138,8 @@ public class SubtitleColor extends FormattableColor {
 	 *         styles parameter.
 	 */
 	public String getASSv4PlusStylesHexValueForFFmpeg() {
-		return getHexValue("H", "AABBGGRR", null, true, true);
+		// libass requires the ASS hexadecimal prefix, including the ampersand.
+		return getASSv4StylesHexValue();
 	}
 
 	/**

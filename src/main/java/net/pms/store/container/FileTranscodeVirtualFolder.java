@@ -87,13 +87,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder implement
 			// create copies of the audio/subtitle track lists as we're making (local)
 			// modifications to them
 			List<MediaAudio> audioTracks = new ArrayList<>(originalResource.getMediaInfo().getAudioTracks());
-			List<MediaSubtitle> subtitlesTracks;
-			if (originalResource.getMediaSubtitle() != null) {
-				// Transcode folder of live subtitles folder
-				subtitlesTracks = Collections.singletonList(originalResource.getMediaSubtitle());
-			} else {
-				subtitlesTracks = new ArrayList<>(originalResource.getMediaInfo().getSubtitlesTracks());
-			}
+			List<MediaSubtitle> subtitlesTracks = getSubtitleChoices(originalResource);
 
 			// If there is a single audio track, set that as audio track
 			// for non-transcoded entries to show the correct language
@@ -147,17 +141,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder implement
 				audioTracks.add(null);
 			}
 
-			if (originalResource.getMediaSubtitle() == null) {
-				if (subtitlesTracks.isEmpty()) {
-					subtitlesTracks.add(null);
-				} else {
-					// if there are subtitles, make sure a no-subtitle option is added
-					// for each engine
-					MediaSubtitle noSubtitle = new MediaSubtitle();
-					noSubtitle.setId(MediaLang.DUMMY_ID);
-					subtitlesTracks.add(noSubtitle);
-				}
-			}
+
 
 			for (MediaAudio audio : audioTracks) {
 				// Create combinations of all audio tracks, subtitles and engines.
@@ -203,6 +187,27 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder implement
 				addChapterFolder(resource);
 			}
 		}
+	}
+
+	/**
+	 * A preferred subtitle must not restrict the choices in the transcode folder.
+	 * Keep separately selected/downloaded subtitles even if they are not in the media list.
+	 */
+	static List<MediaSubtitle> getSubtitleChoices(StoreItem resource) {
+		List<MediaSubtitle> choices = new ArrayList<>(resource.getMediaInfo().getSubtitlesTracks());
+		MediaSubtitle selected = resource.getMediaSubtitle();
+		if (selected != null && selected.getId() != MediaLang.DUMMY_ID && !choices.contains(selected)) {
+			choices.add(selected);
+		}
+		choices.removeIf(subtitle -> subtitle == null || subtitle.getId() == MediaLang.DUMMY_ID);
+		if (choices.isEmpty()) {
+			choices.add(null);
+		} else {
+			MediaSubtitle noSubtitle = new MediaSubtitle();
+			noSubtitle.setId(MediaLang.DUMMY_ID);
+			choices.add(noSubtitle);
+		}
+		return choices;
 	}
 
 	/**
