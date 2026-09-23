@@ -220,8 +220,14 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			if (getMediaAudio() != null && getMediaAudio().getId() != 0) {
 				filename = filename.concat(">a").concat(String.valueOf(getMediaAudio().getId()));
 			}
-			if (getMediaSubtitle() != null && getMediaSubtitle().getId() != 0) {
-				filename = filename.concat(">s").concat(String.valueOf(getMediaSubtitle().getId()));
+			if (getMediaSubtitle() != null) {
+				if (getMediaSubtitle().isExternal()) {
+					// External tracks can share an id (including zero) after scanning or loading the database.
+					// Use the file identity so each TRANSCODE choice has its own persistent resource id.
+					filename = filename.concat(">sx").concat(getMediaSubtitle().getExternalFile().getAbsolutePath());
+				} else if (getMediaSubtitle().getId() != 0) {
+					filename = filename.concat(">s").concat(String.valueOf(getMediaSubtitle().getId()));
+				}
 			}
 			if (getSplitRange() != null) {
 				filename = filename.concat(">c").concat(String.valueOf(getSplitRange().getStartOrZero()));
