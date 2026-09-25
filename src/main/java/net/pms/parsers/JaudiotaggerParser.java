@@ -201,7 +201,7 @@ public class JaudiotaggerParser {
 
 					audio.setSampleRate(rate);
 					media.setDuration((double) length);
-					media.setBitRate((int) ah.getBitRateAsNumber());
+					media.setBitRate((int) ah.getBitRateAsNumber() * 1000);
 
 					audio.setNumberOfChannels(2); // set default value of channels to 2
 					String channels = ah.getChannels().toLowerCase(Locale.ROOT);
