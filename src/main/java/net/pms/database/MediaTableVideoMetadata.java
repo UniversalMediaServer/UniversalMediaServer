@@ -78,8 +78,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 	private static final String COL_MODIFIED = "MODIFIED";
 	private static final String COL_TITLE = "TITLE";
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
-	private static final String COL_TVSEASON = "TVSEASON";
-	private static final String COL_TVEPISODENUMBER = "TVEPISODENUMBER";
+	public static final String COL_TVSEASON = "TVSEASON";
+	public static final String COL_TVEPISODENUMBER = "TVEPISODENUMBER";
 	private static final String COL_ISSAMPLE = "ISSAMPLE";
 	private static final String BASIC_COLUMNS = COL_IMDBID + ", " + COL_MEDIA_YEAR + ", " + COL_TITLE + ", " + COL_TVSERIESID + ", " + COL_EXTRAINFORMATION + ", " + COL_ISTVEPISODE + ", " + COL_TVSEASON + ", " + COL_TVEPISODENUMBER + ", " + COL_ISSAMPLE;
 	/**

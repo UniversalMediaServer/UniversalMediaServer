@@ -37,6 +37,13 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 	private final Long tvSeriesId;
 	private TvSeriesMetadata tvSeriesMetadata;
 
+	public MediaLibraryTvSeries(Renderer renderer, Long tvSeriesId, String sql, int expectedOutput) {
+		super(renderer, null, sql, expectedOutput);
+		setName(tvSeriesId.toString());
+		this.tvSeriesId = tvSeriesId;
+		setSortable(false);
+	}
+
 	public MediaLibraryTvSeries(Renderer renderer, Long tvSeriesId, String[] sql, int[] expectedOutput) {
 		super(renderer, null, sql, expectedOutput);
 		setName(tvSeriesId.toString());

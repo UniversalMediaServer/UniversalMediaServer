@@ -19,11 +19,17 @@ package net.pms.store.container;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
@@ -41,9 +47,6 @@ import net.pms.store.item.MediaLibraryTvEpisode;
 import net.pms.store.item.RealFile;
 import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.UMSUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A MediaLibraryFolder can be populated by either virtual folders (e.g. TEXTS
@@ -122,19 +125,9 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				if (sql != null) {
 					sql = transformSQL(sql);
 
-					if (
-						expectedOutput == EPISODES ||
-						expectedOutput == EPISODES_WITHIN_SEASON ||
-						expectedOutput == FILES ||
-						expectedOutput == FILES_NOSORT ||
-						expectedOutput == FILES_NOSORT_DEDUPED ||
-						expectedOutput == FILES_WITH_FILTERS ||
-						expectedOutput == ISOS ||
-						expectedOutput == ISOS_WITH_FILTERS ||
-						expectedOutput == PLAYLISTS
-					) {
+					if (isFileOutputExpected(expectedOutput)) {
 						return !UMSUtils.isListsEqual(populatedFilesListFromDb, MediaTableFiles.getStrings(connection, sql));
-					} else if (isTextOutputExpected(expectedOutput)) {
+					} else if (isVirtualFoldersOutputExpected(expectedOutput)) {
 						return !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, MediaTableFiles.getStrings(connection, sql));
 					} else if (expectedOutput == EMPTY_FILES_WITH_FILTERS) {
 						return false;
@@ -266,25 +259,40 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									}
 								}
 							}
-							case EPISODES -> {
+							case EPISODES, CONTINUE_WATCHING_EPISODES -> {
 								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
 								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 
-								// Build the season filter folders
-								int indexAfterFromInFirstQuery = firstSql.indexOf(FROM_FILES) + FROM_FILES.length();
-								int indexAtJointure = firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA);
-								if (indexAtJointure > 0) {
-									indexAfterFromInFirstQuery = indexAtJointure + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA.length();
+								if (expectedOutput == EPISODES) {
+									// Build the season filter folders
+									int indexAfterFromInFirstQuery = firstSql.indexOf(FROM_FILES) + FROM_FILES.length();
+									int indexAtJointure = firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA);
+									if (indexAtJointure > 0) {
+										indexAfterFromInFirstQuery = indexAtJointure + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA.length();
+									}
+									String orderBySection = ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON;
+
+									seasonsQuery.append(firstSql);
+									seasonsQuery.replace(0, indexAfterFromInFirstQuery, SELECT_DISTINCT_TVSEASON);
+
+									int indexBeforeOrderByInFirstQuery = seasonsQuery.indexOf(ORDER_BY);
+									seasonsQuery.replace(indexBeforeOrderByInFirstQuery, seasonsQuery.length(), orderBySection);
+									virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, seasonsQuery.toString());
+									populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 								}
-								String orderBySection = ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON;
+							}
+							case CONTINUE_WATCHING -> {
+								/**
+								 * The query initially gets all of the recently played files.
+								 * That works fine for standalone videos like movies, shorts or personal videos, but
+								 * for TV series we need to figure out whether there are any other episodes of the same
+								 * series to watch.
+								 * We also can't just get the two lists separately because we need to know the order.
+								 */
 
-								seasonsQuery.append(firstSql);
-								seasonsQuery.replace(0, indexAfterFromInFirstQuery, SELECT_DISTINCT_TVSEASON);
 
-								int indexBeforeOrderByInFirstQuery = seasonsQuery.indexOf(ORDER_BY);
-								seasonsQuery.replace(indexBeforeOrderByInFirstQuery, seasonsQuery.length(), orderBySection);
-								virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, seasonsQuery.toString());
-								populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
+								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
+								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 							}
 							case TEXTS, TEXTS_NOSORT, SEASONS, TVSERIES, TVSERIES_NOSORT, MOVIE_FOLDERS -> {
 								virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
@@ -369,9 +377,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								// nothing to do
 							}
 						}
-						// Output is files
-						// Output is folders
-						// Output is both
 					}
 				}
 			} finally {
@@ -503,7 +508,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		if (!(expectedOutput == EPISODES && newVirtualFolders.size() == 1)) {
 			List<StoreResource> newVirtualFoldersResources = new ArrayList<>();
 			for (String virtualFolderName : newVirtualFolders) {
-				if (virtualFolderName != null && isTextOutputExpected(expectedOutput)) {
+				if (virtualFolderName != null && isVirtualFoldersOutputExpected(expectedOutput)) {
 					String[] sqls2 = new String[sqls.length - 1];
 					int[] expectedOutputs2 = new int[expectedOutputs.length - 1];
 					System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
@@ -632,7 +637,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					}
 				}
 			}
-			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS && expectedOutput != TVSERIES_NOSORT && expectedOutput != EPISODES) {
+			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS && expectedOutput != TVSERIES_NOSORT && expectedOutput != EPISODES && expectedOutput != CONTINUE_WATCHING_EPISODES) {
 				StoreResourceSorter.sortResourcesByTitle(newVirtualFoldersResources);
 			}
 			for (StoreResource newResource : newVirtualFoldersResources) {
@@ -717,21 +722,108 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		}
 
 		List<StoreResource> newFilesResources = new ArrayList<>();
-		for (File file : newFiles) {
-			if (renderer.hasShareAccess(file)) {
-				switch (expectedOutput) {
-					case FILES, FILES_NOSORT, FILES_NOSORT_DEDUPED, FILES_WITH_FILTERS -> newFilesResources.add(new RealFile(renderer, file));
-					case EPISODES -> newFilesResources.add(new MediaLibraryTvEpisode(renderer, file, false));
-					case EPISODES_WITHIN_SEASON -> newFilesResources.add(new MediaLibraryTvEpisode(renderer, file, true));
-					case PLAYLISTS -> newFilesResources.add(new PlaylistFolder(renderer, file));
-					case ISOS, ISOS_WITH_FILTERS -> newFilesResources.add(new DVDISOFile(renderer, file));
-					default -> {
-						// nothing to do
+
+		/*
+		 * The "Continue Watching" virtual folder contains ordered, interspersed folders and videos,
+		 * which doesn't fit the paradigm of existing entries. It could be refactored in the future
+		 * to be more tidy, but for now we are achieving the outcome by treating it differently.
+		 */
+		if (expectedOutput == CONTINUE_WATCHING) {
+			Connection connection = null;
+			List<Long> tvSeriesList = new ArrayList<>();
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					try {
+						try (
+							PreparedStatement ps = connection.prepareStatement(firstSql);
+							ResultSet rs = ps.executeQuery();
+						) {
+							while (rs.next()) {
+								String filename = rs.getString("FILENAME");
+								long modified = rs.getTimestamp("MODIFIED").getTime();
+								File file = new File(filename);
+								if (file.exists() && file.lastModified() == modified) {
+									/*
+									 * Now we know it is a valid file that still exists
+									 * so we need to figure out if it is a standalone video or part
+									 * of a series
+									 */
+									boolean isTvEpisode = rs.getBoolean("ISTVEPISODE");
+									boolean isFullyPlayed = rs.getBoolean("ISFULLYPLAYED");
+									LOGGER.info("filename {} isTvEpisode: {}", filename, isTvEpisode);
+									if (!isTvEpisode) {
+										if (!isFullyPlayed) {
+											// this is an in-progress standalone video
+											addChild(new RealFile(renderer, file));
+										}
+									} else {
+										/*
+										 * This is an episode of a TV series, so we will add a new virtual folder
+										 * for that series that only contains unwatched episodes.
+										 */
+										Long tvSeriesId = rs.getLong("TVSERIESID");
+										String tvEpisodeNumber = rs.getString("TVEPISODENUMBER");
+										Integer tvSeason = rs.getInt("TVSEASON");
+
+										// ensure that each TV series is only added once
+										if (!tvSeriesList.contains(tvSeriesId)) {
+											String episodeComparator = isFullyPlayed ? GREATER_THAN : GREATER_THAN_OR_EQUAL;
+											MediaLibraryFolder unwatchedEpisodesOfSeriesFolder = new MediaLibraryTvSeries(
+												renderer,
+												tvSeriesId,
+												SELECT_FILES_STATUS_VIDEOMETA_TV_SERIES_WHERE +
+													FORMAT_TYPE_VIDEO + AND +
+													TVEPISODE_CONDITION + AND +
+													IS_NOT_SAMPLE_CONDITION + AND +
+													getUnWatchedCondition(renderer.getAccountUserId()) + AND +
+													MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'" + tvSeriesId + "'" + AND +
+													BRACKET_OPEN +
+														BRACKET_OPEN +
+															MediaTableVideoMetadata.COL_TVEPISODENUMBER + episodeComparator + "'" + tvEpisodeNumber + "'" + AND +
+															MediaTableVideoMetadata.COL_TVSEASON + EQUAL + "'" + tvSeason + "'" +
+														BRACKET_CLOSE + OR +
+														MediaTableVideoMetadata.COL_TVSEASON + GREATER_THAN + "'" + tvSeason + "'" +
+													BRACKET_CLOSE +
+													ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE,
+												CONTINUE_WATCHING_EPISODES
+											);
+											unwatchedEpisodesOfSeriesFolder.discoverChildren();
+											if (unwatchedEpisodesOfSeriesFolder.childrenCount() > 0) {
+												addChild(unwatchedEpisodesOfSeriesFolder);
+											}
+											tvSeriesList.add(tvSeriesId);
+										}
+									}
+								}
+							}
+						}
+					} catch (SQLException se) {
+						LOGGER.trace("Error get files with sql: {}", firstSql);
+						LOGGER.error(null, se);
+					}
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		} else {
+			for (File file : newFiles) {
+				if (renderer.hasShareAccess(file)) {
+					switch (expectedOutput) {
+						case FILES, FILES_NOSORT, FILES_NOSORT_DEDUPED, FILES_WITH_FILTERS -> newFilesResources.add(new RealFile(renderer, file));
+						case EPISODES, CONTINUE_WATCHING_EPISODES -> newFilesResources.add(new MediaLibraryTvEpisode(renderer, file, false));
+						case EPISODES_WITHIN_SEASON -> newFilesResources.add(new MediaLibraryTvEpisode(renderer, file, true));
+						case PLAYLISTS -> newFilesResources.add(new PlaylistFolder(renderer, file));
+						case ISOS, ISOS_WITH_FILTERS -> newFilesResources.add(new DVDISOFile(renderer, file));
+						default -> {
+							// nothing to do
+						}
 					}
 				}
 			}
 		}
-		if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED && expectedOutput != EPISODES) {
+
+		if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED && expectedOutput != EPISODES && expectedOutput != CONTINUE_WATCHING && expectedOutput != CONTINUE_WATCHING_EPISODES) {
 			StoreResourceSorter.sortResourcesByTitle(newFilesResources);
 		}
 		for (StoreResource newResource : newFilesResources) {
@@ -755,9 +847,9 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 
 	/**
 	 * @param expectedOutput
-	 * @return whether any text output is expected (can be in addition to file output)
+	 * @return whether any virtual folder output is expected (can be in addition to file output)
 	 */
-	private static boolean isTextOutputExpected(int expectedOutput) {
+	private static boolean isVirtualFoldersOutputExpected(int expectedOutput) {
 		return expectedOutput == TEXTS ||
 			expectedOutput == TEXTS_NOSORT ||
 			expectedOutput == TEXTS_NOSORT_WITH_FILTERS ||
@@ -767,12 +859,30 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			expectedOutput == TVSERIES_NOSORT ||
 			expectedOutput == TVSERIES ||
 			expectedOutput == EPISODES ||
+			expectedOutput == CONTINUE_WATCHING_EPISODES ||
 			expectedOutput == MOVIE_FOLDERS;
 	}
 
 	/**
 	 * @param expectedOutput
-	 * @return whether any text output is expected (can be in addition to file output)
+	 * @return whether any file output is expected (can be in addition to virtual folder output)
+	 */
+	private static boolean isFileOutputExpected(int expectedOutput) {
+		return expectedOutput == EPISODES ||
+			expectedOutput == EPISODES_WITHIN_SEASON ||
+			expectedOutput == CONTINUE_WATCHING_EPISODES ||
+			expectedOutput == FILES ||
+			expectedOutput == FILES_NOSORT ||
+			expectedOutput == FILES_NOSORT_DEDUPED ||
+			expectedOutput == FILES_WITH_FILTERS ||
+			expectedOutput == ISOS ||
+			expectedOutput == ISOS_WITH_FILTERS ||
+			expectedOutput == PLAYLISTS;
+	}
+
+	/**
+	 * @param expectedOutput
+	 * @return whether the output should be sorted
 	 */
 	private static boolean isSortableOutputExpected(int expectedOutput) {
 		return expectedOutput != FILES_NOSORT &&
@@ -781,7 +891,9 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			expectedOutput != TVSERIES_NOSORT &&
 			expectedOutput != FILES_NOSORT_DEDUPED &&
 			expectedOutput != SEASONS &&
-			expectedOutput != EPISODES;
+			expectedOutput != EPISODES &&
+			expectedOutput != CONTINUE_WATCHING &&
+			expectedOutput != CONTINUE_WATCHING_EPISODES;
 	}
 
 	public Long getMediaLibraryTvSeriesId(String virtualFolderName) {
