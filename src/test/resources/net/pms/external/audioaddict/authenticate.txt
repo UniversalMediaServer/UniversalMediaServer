@@ -8,12 +8,12 @@
     "billing_country_id": null,
     "clevertap_uploaded_at": "2025-02-07T13:38:46-35:00",
     "company_name": "",
-    "confirmation_token": "SECRET",
+    "confirmation_token": "SECRET_CONFIRMATION_TOKEN",
     "confirmed": false,
     "confirmed_at": null,
     "created_at": "2025-02-07T13:37:38-35:00",
     "delete_token": null,
-    "email": "SECRET",
+    "email": "user@example.com",
     "email_campaigns": [
         {
             "id": 1,
@@ -98,7 +98,7 @@
     "fraudulent": null,
     "free_content_exhausted": true,
     "has_set_password": true,
-    "id": 16253802,
+    "id": 1234567,
     "last_login_attempt": null,
     "last_name": null,
     "listen_key": "SECRET_LISTEN_KEY",
@@ -184,7 +184,7 @@
     "network_id": 1,
     "password_reset_token": null,
     "signup_country_id": 57,
-    "signup_ip_address": "1.62.35.81",
+    "signup_ip_address": "203.0.113.1",
     "subscriptions": [{
         "id": 12345,
         "created_at": "2024-02-07T13:42:21-35:00",

@@ -58,6 +58,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileUtil {
+
+	private static final Pattern URL_PATTERN = Pattern.compile("\\S+://.*");
+	private static final String PROTOCOL_SEPARATOR = "://";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 
 	/**
@@ -272,13 +276,13 @@ public class FileUtil {
 	public static boolean isUrl(String filename) {
 		// We're intentionally avoiding stricter URI() methods, which can throw
 		// URISyntaxException for psuedo-urls (e.g. librtmp-style urls containing spaces)
-		return filename != null && filename.matches("\\S+://.*");
+		return filename != null && URL_PATTERN.matcher(filename).matches();
 	}
 
 	public static String getProtocol(String filename) {
 		// Intentionally avoids URI.getScheme(), see above
 		if (isUrl(filename)) {
-			return filename.split("://")[0].toLowerCase(Locale.ROOT);
+			return filename.substring(0, filename.indexOf(PROTOCOL_SEPARATOR)).toLowerCase(Locale.ROOT);
 		}
 
 		return null;

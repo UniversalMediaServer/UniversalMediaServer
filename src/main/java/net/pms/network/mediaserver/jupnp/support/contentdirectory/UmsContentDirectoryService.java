@@ -16,13 +16,15 @@
  */
 package net.pms.network.mediaserver.jupnp.support.contentdirectory;
 
-import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,6 +38,7 @@ import org.jupnp.binding.annotations.UpnpServiceId;
 import org.jupnp.binding.annotations.UpnpServiceType;
 import org.jupnp.binding.annotations.UpnpStateVariable;
 import org.jupnp.binding.annotations.UpnpStateVariables;
+import org.jupnp.internal.compat.java.beans.PropertyChangeSupport;
 import org.jupnp.model.profile.RemoteClientInfo;
 import org.jupnp.model.types.ErrorCode;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
@@ -50,6 +53,7 @@ import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+import net.pms.PMS;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.BaseSearchRequestHandler;
 import net.pms.network.mediaserver.handlers.DbSearchRequestHandler;
@@ -64,6 +68,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.ControlPoint;
 import net.pms.store.MediaScanner;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
@@ -169,7 +174,7 @@ public class UmsContentDirectoryService {
 	public final static String EMPTY_FILE_CONTENT = "<UPLOAD RESOURCE>";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsContentDirectoryService.class);
-	private static final List<String> CAPS_SEARCH = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
+	private static final List<String> CAPS_SEARCH = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre", "upnp:rating");
 	private static final List<String> CAPS_SORT = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final String CRLF = "\r\n";
 
@@ -190,6 +195,17 @@ public class UmsContentDirectoryService {
 	)
 	private UnsignedIntegerFourBytes systemUpdateID;
 
+	/**
+	 * CSV of containerID, containerUpdateID pairs, so a control point can refresh the one container
+	 * that changed instead.
+	 */
+	@UpnpStateVariable(
+			sendEvents = true,
+			datatype = "string",
+			eventMaximumRateMilliseconds = 200
+	)
+	private CSV<String> containerUpdateIDs = new CSVString();
+
 	protected final PropertyChangeSupport propertyChangeSupport;
 
 	public UmsContentDirectoryService() {
@@ -197,6 +213,7 @@ public class UmsContentDirectoryService {
 			@Override
 			public void run() {
 				systemUpdateIdChanged();
+				containerUpdateIdsChanged();
 			}
 		};
 		this.searchCapabilities.addAll(CAPS_SEARCH);
@@ -234,6 +251,9 @@ public class UmsContentDirectoryService {
 		return MediaStoreIds.getSystemUpdateId();
 	}
 
+	/**
+	 * Use jupnp's own PropertyChangeSupport, not the one from java.beans. Otherwise GEMA subscriptions don't work!
+	 */
 	public PropertyChangeSupport getPropertyChangeSupport() {
 		return propertyChangeSupport;
 	}
@@ -250,6 +270,25 @@ public class UmsContentDirectoryService {
 			systemUpdateID = new UnsignedIntegerFourBytes(newValue);
 			LOGGER.trace("Send event \"SystemUpdateID\" update from {} to {}", oldValue, newValue);
 		}
+	}
+
+	/**
+	 * Reports the containers that changed since the last event.
+	 */
+	private void containerUpdateIdsChanged() {
+		Map<Long, UnsignedIntegerFourBytes> changed = MediaStoreIds.drainChangedIds();
+		if (changed.isEmpty()) {
+			return;
+		}
+		CSV<String> newValue = new CSVString();
+		for (Entry<Long, UnsignedIntegerFourBytes> change : changed.entrySet()) {
+			newValue.add(change.getKey().toString());
+			newValue.add(change.getValue().getValue().toString());
+		}
+		CSV<String> oldValue = containerUpdateIDs;
+		containerUpdateIDs = newValue;
+		getPropertyChangeSupport().firePropertyChange("ContainerUpdateIDs", oldValue, newValue);
+		LOGGER.trace("Send event \"ContainerUpdateIDs\" for {} container(s)", changed.size());
 	}
 
 	/**
@@ -301,7 +340,7 @@ public class UmsContentDirectoryService {
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
-			LOGGER.error("Exception in browse action \"{}\"", ex.getMessage(), ex);
+			LOGGER.debug("Browse action answered with \"{}\"", ex.getMessage());
 			throw ex;
 		} catch (Exception ex) {
 			LOGGER.error("Exception in result creation \"{}\"", ex.getMessage(), ex);
@@ -348,12 +387,49 @@ public class UmsContentDirectoryService {
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
-			LOGGER.error("Exception in search action \"{}\"", ex.getMessage(), ex);
+			// See browse() : an expected answer, and one a client may repeat at will.
+			LOGGER.debug("Search action answered with \"{}\"", ex.getMessage());
 			throw ex;
 		} catch (Exception ex) {
 			LOGGER.error("Exception in search action \"{}\"", ex.getMessage(), ex);
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, ex.toString());
 		}
+	}
+
+	/**
+	 * Resolves the renderer used to access the CDS object tree.
+	 * <p>
+	 * When authentication is enabled, the renderer is identified from the (browsing) control
+	 * point request and its account/allow-list is enforced: returns NULL if the
+	 * renderer is unknown or not allowed.
+	 * <p>
+	 * When authentication is disabled we support the flexible 3-box UPnP setup: renderers do not
+	 * browse the CDS, control points do. The object tree is (currently) held by a single neutral
+	 * "control point" renderer, so we return that. The real playback renderer is identified
+	 * just-in-time when the resource itself is requested (see MediaServerServlet).
+	 *
+	 * @param remoteClientInfo the client info of the browsing request
+	 * @return the renderer to use, or "null}" when authentication is enabled and the renderer is unrecognized or not allowed
+	 */
+	public static Renderer getBrowseRenderer(RemoteClientInfo remoteClientInfo) {
+		if (!PMS.getConfiguration().isAuthenticationEnabled()) {
+			return ControlPoint.getRenderer();
+		}
+		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+		Renderer renderer = info.renderer;
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
+		return renderer;
 	}
 
 	@UpnpAction(out = {
@@ -370,18 +446,8 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-			Renderer renderer = info.renderer;
+			Renderer renderer = getBrowseRenderer(remoteClientInfo);
 			if (renderer == null) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Unrecognized media renderer");
-				}
-				return null;
-			}
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
 				return null;
 			}
 
@@ -402,6 +468,7 @@ public class UmsContentDirectoryService {
 
 				StoreResource resource = null;
 				if (!modelObjectToAdd.getItems().isEmpty()) {
+					LOGGER.debug("Creating item resource {} in container {}", modelObjectToAdd.getItems().get(0).getTitle(), parentContainer.getName());
 					resource = createItemResource(storeContainer, modelObjectToAdd.getItems().get(0), resource);
 				}
 				if (!modelObjectToAdd.getContainers().isEmpty()) {
@@ -450,8 +517,10 @@ public class UmsContentDirectoryService {
 	private StoreResource createItemResource(StoreContainer storeContainer, Item itemToCreate, StoreResource resource) throws Exception {
 		if (itemToCreate != null) {
 			if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				LOGGER.debug("Creating empty playlist {}", itemToCreate.getTitle());
 				resource = PlaylistManager.createPlaylist(storeContainer, itemToCreate.getTitle());
 			} else if ("object.item".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				LOGGER.debug("Creating empty item {}", itemToCreate.getTitle());
 				resource = createEmptyItem(storeContainer, itemToCreate.getTitle());
 			} else {
 				LOGGER.error("CreateObject of unknown upnp:class : " + itemToCreate.getUpnpClassName());
@@ -475,7 +544,7 @@ public class UmsContentDirectoryService {
 	}
 
 	//FIXME : this should sit in net.​pms.​store side.
-	private StoreResource createEmptyItem(StoreContainer storeContainer, String title) {
+	private StoreResource createEmptyItem(StoreContainer storeContainer, String title) throws ContentDirectoryException {
 		File newItem = new File(storeContainer.getFileName(), title);
 		if (!newItem.exists()) {
 			try {
@@ -484,9 +553,12 @@ public class UmsContentDirectoryService {
 					fileWriter.write(EMPTY_FILE_CONTENT);
 				}
 
-				StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newItem);
+				StoreResource newResource = ControlPoint.getRenderer().getMediaStore().createResourceFromFile(newItem);
+				if (newResource == null) {
+					throw new RuntimeException(String.format("cannot create a store resource for path : %s", newItem.getAbsolutePath()));
+				}
 				storeContainer.addChild(newResource);
-				if (newResource.getId() != null) {
+				if (newResource.getId() == null) {
 					LOGGER.error("created resource at {} got a NULL id!", newResource.getFileName());
 				}
 				return newResource;
@@ -495,7 +567,27 @@ public class UmsContentDirectoryService {
 				return null;
 			}
 		} else {
-			LOGGER.warn("Folder or file already exists for path {}", newItem.getAbsolutePath());
+			try {
+				if (newItem.isFile() && Files.size(newItem.toPath()) == EMPTY_FILE_CONTENT.length()) {
+					// A stub of the same name is already on disk from an earlier create, so hand the
+					// caller the store id it belongs to instead of failing the upload.
+					LOGGER.info("File stub {} already exists, identifying its store id", newItem.getAbsolutePath());
+					StoreResource existing = storeContainer.getChildren().stream()
+						.filter(child -> child.getFileName().equals(newItem.getAbsolutePath()))
+						.findFirst()
+						.orElse(null);
+					if (existing != null) {
+						return existing;
+					}
+					LOGGER.warn("File stub {} exists on the file system, but its object id is unknown to the media store", newItem.getAbsolutePath());
+					return null;
+				}
+				LOGGER.info("Cannot create file {} because it already exists with a size of {}", newItem.getAbsolutePath(), Files.size(newItem.toPath()));
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED,
+						"an object named \"" + title + "\" already exists in this container and is not an empty stub");
+			} catch (IOException e) {
+				LOGGER.warn("cannot access file item size", e);
+			}
 			return null;
 		}
 	}
@@ -505,8 +597,15 @@ public class UmsContentDirectoryService {
 		File newContainer = new File(storeContainer.getFileName(), title);
 		if (!newContainer.exists()) {
 			newContainer.mkdir();
-			StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newContainer);
+			//the folder was requested explicitly, so keep it even though it is still empty
+			StoreResource newResource = ControlPoint.getRenderer().getMediaStore().createResourceFromFile(newContainer, false, true);
+			if (newResource == null) {
+				throw new RuntimeException(String.format("cannot create a store resource for path : %s", newContainer.getAbsolutePath()));
+			}
 			storeContainer.addChild(newResource);
+			if (newResource.getId() == null) {
+				LOGGER.error("created folder at {} got a NULL id!", newResource.getFileName());
+			}
 			return newResource;
 		} else {
 			LOGGER.warn("file system resource already exists for path {}", newContainer.getAbsolutePath());
@@ -522,18 +621,8 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-			Renderer renderer = info.renderer;
+			Renderer renderer = getBrowseRenderer(remoteClientInfo);
 			if (renderer == null) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Unrecognized media renderer");
-				}
-				return null;
-			}
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
 				return null;
 			}
 			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
@@ -583,18 +672,8 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-			Renderer renderer = info.renderer;
+			Renderer renderer = getBrowseRenderer(remoteClientInfo);
 			if (renderer == null) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Unrecognized media renderer");
-				}
-				return;
-			}
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
 				return;
 			}
 			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
@@ -640,19 +719,24 @@ public class UmsContentDirectoryService {
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
-			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-			Renderer renderer = info.renderer;
-			if (renderer == null) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Unrecognized media renderer");
+			Renderer renderer;
+			if (!PMS.getConfiguration().isAuthenticationEnabled()) {
+				renderer = ControlPoint.getRenderer();
+			} else {
+				UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+				renderer = info.renderer;
+				if (renderer == null) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Unrecognized media renderer");
+					}
+					throw new ContentDirectoryException(714, "No such resource");
 				}
-				throw new ContentDirectoryException(714, "No such resource");
-			}
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				if (!renderer.isAllowed()) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+					}
+					throw new ContentDirectoryException(715, "Source resource access denied");
 				}
-				throw new ContentDirectoryException(715, "Source resource access denied");
 			}
 			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
 			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
@@ -741,18 +825,8 @@ public class UmsContentDirectoryService {
 			SortCriterion[] sortCriteria,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
+		Renderer renderer = getBrowseRenderer(remoteClientInfo);
 		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
-			}
-			return null;
-		}
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
 			return null;
 		}
 
@@ -860,18 +934,8 @@ public class UmsContentDirectoryService {
 			SearchRequest searchRequest,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
+		Renderer renderer = getBrowseRenderer(remoteClientInfo);
 		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
-			}
-			return null;
-		}
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
 			return null;
 		}
 
@@ -1004,7 +1068,9 @@ public class UmsContentDirectoryService {
 		}
 
 		long totalMatches;
-		if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
+		if (searchCriteria != null) {
+			totalMatches = resultResources.size();
+		} else if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 			// with the new parser, resources are parsed and analyzed *before*
 			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 			// so we do not know exactly the total number of items in the DLNA folder to send
@@ -1107,18 +1173,8 @@ public class UmsContentDirectoryService {
 			String rId,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
+		Renderer renderer = getBrowseRenderer(remoteClientInfo);
 		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
-			}
-			return null;
-		}
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
 			return null;
 		}
 
@@ -1143,18 +1199,8 @@ public class UmsContentDirectoryService {
 	private static String samsungGetFeaturesList(
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
+		Renderer renderer = getBrowseRenderer(remoteClientInfo);
 		if (renderer == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Unrecognized media renderer");
-			}
-			return null;
-		}
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
 			return null;
 		}
 

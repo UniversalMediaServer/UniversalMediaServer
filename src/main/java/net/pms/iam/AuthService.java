@@ -196,7 +196,15 @@ public class AuthService {
 	}
 
 	public static void setEnabled(boolean value) {
+		boolean changed = CONFIGURATION.isAuthenticationEnabled() != value;
 		CONFIGURATION.setAuthenticationEnabled(value);
+		if (changed && PMS.isReady()) {
+			// Renderer identification and the CDS object tree depend on whether authentication is
+			// enabled (UUID-bound per-account renderer vs. the neutral control-point renderer with
+			// just-in-time identification). Rebuild the renderers' media stores so the change takes
+			// effect without requiring a restart.
+			PMS.get().resetRenderersMediaStore();
+		}
 	}
 
 	public static boolean isLocalhostAsAdmin() {

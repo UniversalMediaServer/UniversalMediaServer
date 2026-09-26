@@ -37,7 +37,7 @@ export default function SharedContentModal({
   canModify: boolean
   opened: boolean
   setOpened: (value: boolean) => void
-  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
+  form: UseFormReturnType<Record<string, any>, Record<string, any>, undefined>
   save: () => void
   configuration: SharedContentConfiguration
 }) {
