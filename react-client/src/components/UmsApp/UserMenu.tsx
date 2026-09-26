@@ -16,7 +16,7 @@
  */
 import { Menu, Group, Avatar, Text } from '@mantine/core'
 import { IconDeviceDesktopStar, IconLogout, IconReplaceUser, IconShieldOff, IconUser } from '@tabler/icons-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface } from '../../services/session-service'
