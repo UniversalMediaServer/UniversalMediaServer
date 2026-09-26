@@ -734,7 +734,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:^8.3.18":
+"@mantine/core@npm:8.3.18":
   version: 8.3.18
   resolution: "@mantine/core@npm:8.3.18"
   dependencies:
@@ -752,7 +752,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/dropzone@npm:^8.3.18":
+"@mantine/dropzone@npm:8.3.18":
   version: 8.3.18
   resolution: "@mantine/dropzone@npm:8.3.18"
   dependencies:
@@ -766,7 +766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:^8.3.18":
+"@mantine/form@npm:8.3.18":
   version: 8.3.18
   resolution: "@mantine/form@npm:8.3.18"
   dependencies:
@@ -778,7 +778,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:^8.3.18":
+"@mantine/hooks@npm:8.3.18":
   version: 8.3.18
   resolution: "@mantine/hooks@npm:8.3.18"
   peerDependencies:
@@ -787,7 +787,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:^8.3.18":
+"@mantine/modals@npm:8.3.18":
   version: 8.3.18
   resolution: "@mantine/modals@npm:8.3.18"
   peerDependencies:
@@ -799,7 +799,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/notifications@npm:^8.3.18":
+"@mantine/notifications@npm:8.3.18":
   version: 8.3.18
   resolution: "@mantine/notifications@npm:8.3.18"
   dependencies:
@@ -1068,7 +1068,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tabler/icons-react@npm:^3.41.1":
+"@tabler/icons-react@npm:3.41.1":
   version: 3.41.1
   resolution: "@tabler/icons-react@npm:3.41.1"
   dependencies:
@@ -1155,7 +1155,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.2.4":
+"@types/react-dom@npm:19.2.4":
   version: 19.2.4
   resolution: "@types/react-dom@npm:19.2.4"
   peerDependencies:
@@ -4068,7 +4068,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.2.8":
+"react-dom@npm:19.2.8":
   version: 19.2.8
   resolution: "react-dom@npm:19.2.8"
   dependencies:
@@ -4953,19 +4953,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ums-gui@workspace:."
   dependencies:
-    "@mantine/core": "npm:^8.3.18"
-    "@mantine/dropzone": "npm:^8.3.18"
-    "@mantine/form": "npm:^8.3.18"
-    "@mantine/hooks": "npm:^8.3.18"
-    "@mantine/modals": "npm:^8.3.18"
-    "@mantine/notifications": "npm:^8.3.18"
+    "@mantine/core": "npm:8.3.18"
+    "@mantine/dropzone": "npm:8.3.18"
+    "@mantine/form": "npm:8.3.18"
+    "@mantine/hooks": "npm:8.3.18"
+    "@mantine/modals": "npm:8.3.18"
+    "@mantine/notifications": "npm:8.3.18"
     "@microsoft/fetch-event-source": "npm:2.0.1"
     "@playwright/test": "npm:1.58.2"
     "@stylistic/eslint-plugin": "npm:5.10.0"
-    "@tabler/icons-react": "npm:^3.41.1"
+    "@tabler/icons-react": "npm:3.41.1"
     "@types/lodash": "npm:4.17.25"
     "@types/react": "npm:19.2.18"
-    "@types/react-dom": "npm:^19.2.4"
+    "@types/react-dom": "npm:19.2.4"
     "@vitejs/plugin-react": "npm:5.1.4"
     axios: "npm:1.18.1"
     eslint: "npm:9.39.2"
@@ -4977,7 +4977,7 @@ __metadata:
     lodash: "npm:4.18.1"
     react: "npm:19.2.8"
     react-country-flag: "npm:3.1.0"
-    react-dom: "npm:^19.2.8"
+    react-dom: "npm:19.2.8"
     react-movable: "npm:3.4.1"
     react-router: "npm:7.18.0"
     react-use-websocket: "npm:4.13.0"
