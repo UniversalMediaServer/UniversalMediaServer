@@ -120,6 +120,10 @@ public class FFMpegVideo extends Engine {
 	 * @throws java.io.IOException
 	 */
 	public List<String> getVideoFilterOptions(StoreItem resource, MediaInfo mediaInfo, OutputParams params, boolean isConvertedTo3d) throws IOException {
+		return getVideoFilterOptions(resource, mediaInfo, params, isConvertedTo3d, false, false);
+	}
+
+	protected List<String> getVideoFilterOptions(StoreItem resource, MediaInfo mediaInfo, OutputParams params, boolean isConvertedTo3d, boolean forceSubtitles, boolean preserveTimestamps) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		final Renderer renderer = params.getMediaRenderer();
@@ -213,7 +217,7 @@ public class FFMpegVideo extends Engine {
 				} else if (params.getSid().isExternal()) {
 					if (params.getSid().getExternalFile() != null) {
 						if (
-							!renderer.streamSubsForTranscodedVideo() ||
+							forceSubtitles || !renderer.streamSubsForTranscodedVideo() ||
 							!renderer.isExternalSubtitlesFormatSupported(params.getSid(), resource)
 						) {
 							// Only transcode subtitles if they aren't streamable
@@ -254,7 +258,7 @@ public class FFMpegVideo extends Engine {
 						}
 
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-						subsFilter.append(",Fontsize=").append(15 * Double.parseDouble(configuration.getAssScale()));
+						subsFilter.append(",Fontsize=").append(configuration.getSubtitleFontSize(288.0));
 						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4PlusStylesHexValueForFFmpeg());
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
@@ -278,12 +282,12 @@ public class FFMpegVideo extends Engine {
 			}
 
 			if (StringUtils.isNotBlank(subsFilter)) {
-				if (params.getTimeSeek() > 0 && isSubsManualTiming) {
+				if (params.getTimeSeek() > 0 && isSubsManualTiming && !preserveTimestamps) {
 					filterChain.add("setpts=PTS+" + params.getTimeSeek() + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 
 				filterChain.add(subsFilter.toString());
-				if (params.getTimeSeek() > 0 && isSubsManualTiming) {
+				if (params.getTimeSeek() > 0 && isSubsManualTiming && !preserveTimestamps) {
 					filterChain.add("setpts=PTS-STARTPTS"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 			}
@@ -1260,13 +1264,7 @@ public class FFMpegVideo extends Engine {
 			mkfifoProcess.runInSameThread();
 			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
-			// Give the mkfifo process a little time
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-				Thread.currentThread().interrupt();
-			}
+			// Pipe creation is synchronous; the Windows reader also accepts early clients.
 		} else {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
@@ -1569,14 +1567,8 @@ public class FFMpegVideo extends Engine {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
-		// Give the mkfifo process a little time
-		try {
-			Thread.sleep(300);
-		} catch (InterruptedException e) {
-			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-			Thread.currentThread().interrupt();
-		}
-
+		// The pipe already exists: mkfifo completed above, or Windows created
+		// the handle synchronously. The reader accepts an early client connection.
 		// Launch the transcode command...
 		pw.runInNewThread();
 		// ...and wait briefly to allow it to start

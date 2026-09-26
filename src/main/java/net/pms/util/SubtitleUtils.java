@@ -41,7 +41,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -291,10 +290,10 @@ public class SubtitleUtils {
 			nameBuilder.append("_ID").append(params.getSid().getId());
 		}
 		if (applyFontConfig) {
-			nameBuilder.append("_FB");
+			nameBuilder.append("_FB_percent_").append(configuration.getSubtitleFontHeightPercent());
 		}
 		if (is3D) {
-			nameBuilder.append("_3D");
+			nameBuilder.append("_3D_percent_").append(configuration.getSubtitleFontHeightPercent());
 		}
 		nameBuilder.append("_").append(modId);
 		String extension;
@@ -374,7 +373,7 @@ public class SubtitleUtils {
 
 		if (is3D) {
 			try {
-				tempSubs = convertASSToASS3D(tempSubs, media, params);
+				tempSubs = convertASSToASS3D(tempSubs, media, params, configuration);
 			} catch (IOException | NullPointerException e) {
 				LOGGER.debug("Converting to ASS3D format ends with error: " + e);
 				return null;
@@ -503,8 +502,9 @@ public class SubtitleUtils {
 			String line;
 			String[] format = null;
 			int i;
-			// do not apply font size change when video resolution is set
+			// Font size is expressed in the script coordinate system, not video pixels.
 			boolean playResIsSet = false;
+			double playResY = 288.0;
 			BufferedReader reader = input.getBufferedReader();
 			while ((line = reader.readLine()) != null) {
 				outputString.setLength(0);
@@ -514,6 +514,16 @@ public class SubtitleUtils {
 					while ((line = reader.readLine()) != null) {
 						outputString.setLength(0);
 						if (StringUtils.isNotBlank(line)) {
+							if (line.trim().startsWith("PlayResY:")) {
+								try {
+									double value = Double.parseDouble(line.substring(line.indexOf(':') + 1).trim());
+									if (Double.isFinite(value) && value > 0) {
+										playResY = value;
+									}
+								} catch (NumberFormatException e) {
+									LOGGER.debug("Invalid ASS PlayResY: {}", line);
+								}
+							}
 							if (line.contains("PlayResY:") || line.contains("PlayResX:")) {
 								playResIsSet = true;
 							}
@@ -521,8 +531,8 @@ public class SubtitleUtils {
 							output.write(outputString.toString());
 						} else {
 							if (!playResIsSet) {
-								outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
-								outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
+								outputString.append("PlayResY: ").append("288\n");
+								outputString.append("PlayResX: ").append("384\n");
 							}
 							break;
 						}
@@ -548,13 +558,7 @@ public class SubtitleUtils {
 								}
 							}
 							case "Fontsize" -> {
-								if (!playResIsSet) {
-									params[i] = Integer.toString((int) (Integer.parseInt(params[i]) * media.getHeight() / (double) 288 *
-											Double.parseDouble(configuration.getAssScale())));
-								} else {
-									params[i] = Integer
-											.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));
-								}
+								params[i] = Double.toString(configuration.getSubtitleFontSize(playResY));
 							}
 							case "PrimaryColour" -> {
 								params[i] = configuration.getSubsColor().getASSv4StylesHexValue();
@@ -601,9 +605,15 @@ public class SubtitleUtils {
 	 * @throws IOException
 	 */
 	public static File convertASSToASS3D(File tempSubs, MediaInfo media, OutputParams params) throws IOException, NullPointerException {
+		UmsConfiguration configuration = params != null && params.getMediaRenderer() != null ?
+			params.getMediaRenderer().getUmsConfiguration() : PMS.getConfiguration();
+		return convertASSToASS3D(tempSubs, media, params, configuration);
+	}
+
+	private static File convertASSToASS3D(File tempSubs, MediaInfo media, OutputParams params, UmsConfiguration configuration) throws IOException {
 		File outputSubs = new File(FileUtil.getFileNameWithoutExtension(tempSubs.getAbsolutePath()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
-		Charset subsFileCharset = FileUtil.getFileCharset(tempSubs);
+		Charset subsFileCharset = FileUtil.detectCharset(tempSubs.toPath(), 0);
 		if (subsFileCharset == null) {
 			subsFileCharset = StandardCharsets.UTF_8;
 		}
@@ -615,7 +625,7 @@ public class SubtitleUtils {
 			throw new NullPointerException("The 3D layout not recognized for the 3D video");
 		}
 
-		int depth3D = CONFIGURATION.getDepth3D();
+		int depth3D = configuration.getDepth3D();
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
 		try (
 			BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), subsFileCharset));
@@ -637,17 +647,17 @@ public class SubtitleUtils {
 			String fontScaleX = "1";
 			String fontScaleY = "1";
 			if (isOU) {
-				fontScaleX = Double.toString(100 * Double.parseDouble(CONFIGURATION.getAssScale()));
-				fontScaleY = Double.toString((100 * Double.parseDouble(CONFIGURATION.getAssScale())) / 2);
+				fontScaleX = "100";
+				fontScaleY = "50";
 			} else if (isSBS) {
-				fontScaleX = Double.toString((100 * Double.parseDouble(CONFIGURATION.getAssScale())) / 2);
-				fontScaleY = Double.toString(100 * Double.parseDouble(CONFIGURATION.getAssScale()));
+				fontScaleX = "50";
+				fontScaleY = "100";
 			}
 
-			String primaryColour = CONFIGURATION.getSubsColor().getASSv4StylesHexValue();
-			String outline = CONFIGURATION.getAssOutline();
-			String shadow = CONFIGURATION.getAssShadow();
-			outputString.append("Style: Default,Arial,").append("15").append(',').append(primaryColour)
+			String primaryColour = configuration.getSubsColor().getASSv4StylesHexValue();
+			String outline = configuration.getAssOutline();
+			String shadow = configuration.getAssShadow();
+			outputString.append("Style: Default,Arial,").append(configuration.getSubtitleFontSize(288.0)).append(',').append(primaryColour)
 				.append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(',').append(fontScaleY).append(",0,0,1,")
 				.append(outline).append(',').append(shadow);
 			if (isOU) {
@@ -767,15 +777,34 @@ public class SubtitleUtils {
 	}
 
 	private static final HashMap<File, CacheFolder> FOLDER_CACHE = new HashMap<>();
+	private static long lastFolderCacheCleanup;
 
-	private static class CacheFolder {
+	static CacheFolder getCachedSubtitleFolder(File folder, boolean forceRefresh, long now) {
+		synchronized (FOLDER_CACHE) {
+			long earliestBirth = now - FOLDER_CACHE_EXPIRATION_TIME;
+			// Limit full-map cleanup while validating the requested entry on every access.
+			if (now < lastFolderCacheCleanup || now - lastFolderCacheCleanup >= 1000) {
+				FOLDER_CACHE.entrySet().removeIf(entry -> entry.getValue().getBirth() < earliestBirth);
+				lastFolderCacheCleanup = now;
+			}
+			CacheFolder cached = FOLDER_CACHE.get(folder);
+			if (forceRefresh || cached == null || cached.getBirth() < earliestBirth) {
+				cached = new CacheFolder(now);
+				FOLDER_CACHE.put(folder, cached);
+			}
+			return cached;
+		}
+	}
+
+
+	static class CacheFolder {
 
 		private File[] items;
 		private final long birth;
 		private boolean populated;
 
-		public CacheFolder() {
-			birth = System.currentTimeMillis();
+		private CacheFolder(long now) {
+			birth = now;
 		}
 
 		public boolean isPopulated() {
@@ -955,39 +984,9 @@ public class SubtitleUtils {
 
 		final Set<String> supportedFileExtensions = SubtitleType.getSupportedFileExtensions();
 
-		boolean cleaned = false;
 		List<File> folderSubtitles = new ArrayList<>();
 		for (File folder : folders) {
-			CacheFolder cacheFolder = null;
-			synchronized (FOLDER_CACHE) {
-				// Clean cache for expired entries and fetch or insert the entry
-				// for the folder under examination
-				if (cleaned) {
-					if (forceRefresh) {
-						FOLDER_CACHE.remove(folder);
-					}
-					cacheFolder = FOLDER_CACHE.get(folder);
-				} else {
-					long earliestBirth = System.currentTimeMillis() - FOLDER_CACHE_EXPIRATION_TIME;
-					for (Iterator<Entry<File, CacheFolder>> iterator = FOLDER_CACHE.entrySet().iterator(); iterator.hasNext();) {
-						Entry<File, CacheFolder> entry = iterator.next();
-						if (entry.getValue().getBirth() < earliestBirth) {
-							iterator.remove();
-						} else if (folder.equals(entry.getKey())) {
-							if (forceRefresh) {
-								iterator.remove();
-							} else {
-								cacheFolder = entry.getValue();
-							}
-						}
-					}
-					cleaned = true;
-				}
-				if (cacheFolder == null) {
-					cacheFolder = new CacheFolder();
-					FOLDER_CACHE.put(folder, cacheFolder);
-				}
-			}
+			CacheFolder cacheFolder = getCachedSubtitleFolder(folder, forceRefresh, System.currentTimeMillis());
 
 			// Populate the CacheFolder if it isn't already and get the files
 			synchronized (cacheFolder) {

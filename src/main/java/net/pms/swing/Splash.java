@@ -30,6 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.GuiConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.swing.components.SvgMultiResolutionImage;
@@ -150,7 +151,7 @@ public class Splash extends JFrame {
 	}
 
 	public static void create(UmsConfiguration configuration, GuiConfiguration conf) {
-		if (instance == null) {
+		if (!PMS.isRunningTests() && instance == null) {
 			instance = new Splash(configuration, conf.getGraphicsConfiguration());
 		}
 	}

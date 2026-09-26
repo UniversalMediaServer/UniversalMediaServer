@@ -256,6 +256,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ASS_MARGIN = "subtitles_ass_margin";
 	private static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
 	private static final String KEY_ASS_SCALE = "subtitles_ass_scale";
+	private static final String KEY_SUBTITLE_FONT_PERCENT = "subtitles_font_height_percent";
 	private static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
 	private static final String KEY_BLOCK_NETWORK_DEVICES_BY_DEFAULT = "block_network_devices_by_default";
 	private static final String KEY_BLOCK_RENDERERS_BY_DEFAULT = "block_renderers_by_default";
@@ -1978,7 +1979,34 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @return The ASS font scale.
 	 */
 	public String getAssScale() {
-		return getString(KEY_ASS_SCALE, "1.4");
+		// Legacy engines still expect a multiplier relative to 15 ASS units at 288 lines.
+		return Double.toString(getSubtitleFontHeightPercent() * 288.0 / 1500.0);
+	}
+
+	public double getSubtitleFontHeightPercent() {
+		String percent = getString(KEY_SUBTITLE_FONT_PERCENT, "");
+		if (!percent.isBlank()) {
+			return positiveSubtitleNumber(percent, 21.0 / 288.0 * 100.0);
+		}
+		// Preserve the effective size of existing installations without rewriting their config.
+		return positiveSubtitleNumber(getString(KEY_ASS_SCALE, "1.4"), 1.4) * 1500.0 / 288.0;
+	}
+
+	private static double positiveSubtitleNumber(String text, double fallback) {
+		try {
+			double value = Double.parseDouble(text.trim().replace(',', '.'));
+			return Double.isFinite(value) && value > 0 ? value : fallback;
+		} catch (NumberFormatException e) {
+			return fallback;
+		}
+	}
+
+	public void setSubtitleFontHeightPercent(String value) {
+		configuration.setProperty(KEY_SUBTITLE_FONT_PERCENT, value);
+	}
+
+	public double getSubtitleFontSize(double playResY) {
+		return playResY * getSubtitleFontHeightPercent() / 100.0;
 	}
 
 	/**
@@ -6085,6 +6113,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SUBS_FONT, "");
 		jObj.addProperty(KEY_ASS_MARGIN, 10);
 		jObj.addProperty(KEY_ASS_SCALE, 1.4);
+		jObj.addProperty(KEY_SUBTITLE_FONT_PERCENT, 21.0 / 288.0 * 100.0);
 		jObj.addProperty(KEY_ASS_SHADOW, 1);
 		jObj.addProperty(KEY_THUMBNAIL_SEEK_POS, 4);
 		jObj.addProperty(KEY_TMDB_API_KEY, "");

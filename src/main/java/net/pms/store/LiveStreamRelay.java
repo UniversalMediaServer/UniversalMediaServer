@@ -7,11 +7,12 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +40,15 @@ public final class LiveStreamRelay {
 
 	private static final int BACKLOG_BYTES = 256 * 1024;
 
-	// Slack per listener before it is dropped, about 50 seconds of a 320 kbit/s stream.
-	private static final int LISTENER_CHUNKS = 64;
+	// How far a listener may fall behind before it is dropped.
+	private static final int LISTENER_SECONDS = 50;
+
+	// max memory allocation.
+	private static final int LISTENER_BYTES_MIN = 256 * 1024;
+	private static final int LISTENER_BYTES_MAX = 2 * 1024 * 1024;
+
+	// measure bytes/sec for a period of this long
+	private static final long RATE_MEASURE_MS = 5000;
 
 	// How long the upstream is kept running after the last listener left.
 	private static final long LINGER_MS = 30000;
@@ -106,8 +114,11 @@ public final class LiveStreamRelay {
 	 */
 	public static final class Listener extends InputStream {
 
+		private static final byte[] END_OF_STREAM = new byte[0];
+
 		private final Relay relay;
-		private final BlockingQueue<byte[]> chunks = new ArrayBlockingQueue<>(LISTENER_CHUNKS);
+		private final BlockingQueue<byte[]> chunks = new LinkedBlockingQueue<>();
+		private final AtomicInteger queuedBytes = new AtomicInteger();
 		private byte[] current;
 		private int position;
 		private volatile boolean ended;
@@ -134,8 +145,14 @@ public final class LiveStreamRelay {
 
 		@Override
 		public int read() throws IOException {
-			byte[] one = new byte[1];
-			return read(one, 0, 1) == -1 ? -1 : one[0] & 0xFF;
+			if (!advance()) {
+				return -1;
+			}
+			int value = current[position++] & 0xFF;
+			if (position == current.length) {
+				current = null;
+			}
+			return value;
 		}
 
 		@Override
@@ -157,7 +174,7 @@ public final class LiveStreamRelay {
 
 		@Override
 		public int available() {
-			return current == null ? 0 : current.length - position;
+			return closed || current == null ? 0 : current.length - position;
 		}
 
 		@Override
@@ -165,6 +182,8 @@ public final class LiveStreamRelay {
 			closed = true;
 			relay.removeListener(this);
 			chunks.clear();
+			queuedBytes.set(0);
+			chunks.offer(END_OF_STREAM);
 		}
 
 		/**
@@ -173,6 +192,9 @@ public final class LiveStreamRelay {
 		 * @return false at the end of the stream
 		 */
 		private boolean advance() throws IOException {
+			if (closed) {
+				return false;
+			}
 			if (current != null) {
 				return true;
 			}
@@ -180,12 +202,19 @@ public final class LiveStreamRelay {
 			while (!closed) {
 				byte[] next;
 				try {
+					if (ended && chunks.isEmpty()) {
+						return false;
+					}
 					next = chunks.poll(1, TimeUnit.SECONDS);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return false;
 				}
+				if (closed || next == END_OF_STREAM) {
+					return false;
+				}
 				if (next != null) {
+					queuedBytes.addAndGet(-next.length);
 					current = next;
 					position = 0;
 					return true;
@@ -206,15 +235,42 @@ public final class LiveStreamRelay {
 			if (closed || ended) {
 				return;
 			}
-			if (!chunks.offer(chunk)) {
-				LOGGER.debug("dropping a listener of {} that does not keep up", relay.key);
-				ended = true;
-				relay.removeListener(this);
+			// Counted before it is published, so the budget is never seen too low.
+			queuedBytes.addAndGet(chunk.length);
+			chunks.add(chunk);
+			int budget = relay.listenerBudget();
+			if (queuedBytes.get() > budget) {
+				skipTowardsLive(budget);
+			}
+		}
+
+		/**
+		 * Throws away the oldest audio of a listener that does not keep up, instead of ending its stream.
+		 */
+		private void skipTowardsLive(int budget) {
+			int skipped = 0;
+			while (queuedBytes.get() > budget) {
+				byte[] oldest = chunks.poll();
+				if (oldest == null) {
+					break;
+				}
+				if (oldest == END_OF_STREAM) {
+					chunks.offer(oldest);
+					break;
+				}
+				queuedBytes.addAndGet(-oldest.length);
+				skipped += oldest.length;
+			}
+			if (skipped > 0) {
+				LOGGER.debug("a listener of {} does not keep up, skipped {} bytes towards live", relay.key, skipped);
 			}
 		}
 
 		private void endOfStream() {
 			ended = true;
+			// Wake a blocked reader without discarding queued audio. If full, the
+			// reader will observe ended once it has drained the queue.
+			chunks.offer(END_OF_STREAM);
 		}
 
 	}
@@ -226,6 +282,8 @@ public final class LiveStreamRelay {
 
 		private final String key;
 		private final Source source;
+		private final long startedAt = System.currentTimeMillis();
+		private volatile long pumpedBytes;
 		private final List<Listener> listeners = new CopyOnWriteArrayList<>();
 		private final Deque<byte[]> backlog = new ArrayDeque<>();
 		private int backlogBytes;
@@ -238,27 +296,40 @@ public final class LiveStreamRelay {
 		}
 
 		private void start() {
-			Thread pump = new Thread(this::pump, "live-stream-relay");
-			pump.setDaemon(true);
-			pump.start();
+			Thread.ofVirtual().name("live-stream-relay-" + key).start(this::pump);
 		}
 
 		private int listenerCount() {
 			return listeners.size();
 		}
 
+		/**
+		 * @return how many bytes a listener may be behind, from what this stream really delivers
+		 */
+		private int listenerBudget() {
+			long elapsed = System.currentTimeMillis() - startedAt;
+			if (elapsed < RATE_MEASURE_MS || pumpedBytes == 0) {
+				// The rate is not known yet, so allow what the cap allows.
+				return LISTENER_BYTES_MAX;
+			}
+			long budget = LISTENER_SECONDS * 1000L * pumpedBytes / elapsed;
+			return (int) Math.clamp(budget, LISTENER_BYTES_MIN, LISTENER_BYTES_MAX);
+		}
+
 		private Listener addListener() {
-			if (stopped) {
-				return null;
+			synchronized (backlog) {
+				if (stopped) {
+					return null;
+				}
+				Listener listener = new Listener(this);
+				// Handed over as one block
+				byte[] headStart = takeBacklog();
+				if (headStart.length > 0) {
+					listener.offer(headStart);
+				}
+				listeners.add(listener);
+				return listener;
 			}
-			Listener listener = new Listener(this);
-			// Handed over as one block
-			byte[] headStart = takeBacklog();
-			if (headStart.length > 0) {
-				listener.offer(headStart);
-			}
-			listeners.add(listener);
-			return listener;
 		}
 
 		/**
@@ -317,10 +388,18 @@ public final class LiveStreamRelay {
 						}
 						continue;
 					}
+					pumpedBytes += read;
 					byte[] chunk = Arrays.copyOf(buffer, read);
-					remember(chunk);
-					for (Listener listener : listeners) {
-						listener.offer(chunk);
+					// Joiners must see each chunk either in their backlog or in live
+					// delivery, never in both and never in neither.
+					synchronized (backlog) {
+						if (stopped) {
+							break;
+						}
+						remember(chunk);
+						for (Listener listener : listeners) {
+							listener.offer(chunk);
+						}
 					}
 				}
 			} catch (IOException e) {
@@ -332,16 +411,18 @@ public final class LiveStreamRelay {
 		}
 
 		private void stop() {
-			stopped = true;
-			RELAYS.remove(key, this);
-			for (Listener listener : listeners) {
-				listener.endOfStream();
-			}
-			listeners.clear();
 			synchronized (backlog) {
+				stopped = true;
+				for (Listener listener : listeners) {
+					listener.endOfStream();
+				}
+				listeners.clear();
 				backlog.clear();
 				backlogBytes = 0;
 			}
+			// listen() holds the map entry while joining; never acquire that
+			// entry's lock while holding backlog (the opposite lock order).
+			RELAYS.remove(key, this);
 			try {
 				source.stream().close();
 			} catch (IOException e) {

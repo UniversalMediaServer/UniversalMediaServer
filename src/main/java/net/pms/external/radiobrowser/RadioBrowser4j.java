@@ -167,8 +167,9 @@ public class RadioBrowser4j {
 					mediaInfo.setMimeType(f.mimeType());
 				}
 				if (station.getBitrate() != null) {
-					mediaInfo.setBitRate(station.getBitrate());
-					mediaInfo.getDefaultAudioTrack().setBitRate(station.getBitrate());
+					int bitrateInBitsPerSecond = station.getBitrate() * 1000;
+					mediaInfo.setBitRate(bitrateInBitsPerSecond);
+					mediaInfo.getDefaultAudioTrack().setBitRate(bitrateInBitsPerSecond);
 				}
 				// If station announces its genre itself via icy-genre it's better and not overwritten.
 				if (genre != null) {

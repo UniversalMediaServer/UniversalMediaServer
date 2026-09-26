@@ -318,21 +318,7 @@ public class VirtualFolder extends StoreContainer {
 			}
 		}
 
-		// Remove cover/thumbnails from file list
-		if (!images.isEmpty() && !audioVideo.isEmpty()) {
-			Set<File> potentialMatches;
-			for (File audioVideoFile : audioVideo) {
-				potentialMatches = SystemFilesHelper.getPotentialFileThumbnails(audioVideoFile, false);
-				iterator = images.iterator();
-				while (iterator.hasNext()) {
-					File imageFile = iterator.next();
-					if (potentialMatches.contains(imageFile)) {
-						iterator.remove();
-						childrenFiles.remove(imageFile);
-					}
-				}
-			}
-		}
+		removeFileThumbnails(childrenFiles, images, audioVideo);
 
 		// ATZ handling
 		if (childrenFiles.size() > renderer.getUmsConfiguration().getATZLimit() && StringUtils.isEmpty(forcedName)) {
@@ -404,6 +390,29 @@ public class VirtualFolder extends StoreContainer {
 		setDiscovered(analyzeChildren());
 		sortChildrenIfNeeded();
 		setLastRefreshTime(System.currentTimeMillis());
+	}
+
+	/**
+	 * Removes matching thumbnails in one pass, preserving the remaining file order.
+	 */
+	static void removeFileThumbnails(List<File> childrenFiles, Set<File> images, Set<File> audioVideo) {
+		if (images.isEmpty() || audioVideo.isEmpty()) {
+			return;
+		}
+		Set<File> thumbnails = new HashSet<>();
+		for (File mediaFile : audioVideo) {
+			for (File candidate : SystemFilesHelper.getPotentialFileThumbnails(mediaFile, false)) {
+				if (images.remove(candidate)) {
+					thumbnails.add(candidate);
+				}
+			}
+			if (images.isEmpty()) {
+				break;
+			}
+		}
+		// Overlapping shared folders can list a file more than once. As before,
+		// remove only the first occurrence of each matching thumbnail.
+		childrenFiles.removeIf(thumbnails::remove);
 	}
 
 	/**

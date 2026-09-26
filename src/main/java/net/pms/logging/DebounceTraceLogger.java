@@ -16,33 +16,58 @@
  */
 package net.pms.logging;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Logger that debounces every 300ms.
- * Useful for things that get spammed many times but never change, like
- * configuration state logging.
- */
+/** Emits the latest TRACE message after 300 ms without another call. */
 public class DebounceTraceLogger {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DebounceTraceLogger.class);
+	private static final ScheduledThreadPoolExecutor EXECUTOR = createExecutor();
+	private final Logger logger;
+	private final ScheduledThreadPoolExecutor executor;
+	private final long delayMillis;
+	private ScheduledFuture<?> pending;
+	private long generation;
 
-	private Timer timer = new Timer();
-	private long debounceDelay = 300; // 300ms
+	public DebounceTraceLogger() {
+		this(LoggerFactory.getLogger(DebounceTraceLogger.class), EXECUTOR, 300);
+	}
+
+	DebounceTraceLogger(Logger logger, ScheduledThreadPoolExecutor executor, long delayMillis) {
+		this.logger = logger;
+		this.executor = executor;
+		this.delayMillis = delayMillis;
+	}
+
+	private static ScheduledThreadPoolExecutor createExecutor() {
+		ScheduledThreadPoolExecutor result = new ScheduledThreadPoolExecutor(1, task -> {
+			Thread thread = new Thread(task, "Debounced TRACE logger");
+			thread.setDaemon(true);
+			return thread;
+		});
+		result.setRemoveOnCancelPolicy(true);
+		return result;
+	}
 
 	public void log(String logMessage) {
-		try {
-			timer.cancel(); // Cancel any existing timer
-			timer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					LOGGER.trace(logMessage);
+		if (!logger.isTraceEnabled()) {
+			return;
+		}
+		synchronized (this) {
+			long requestedGeneration = ++generation;
+			if (pending != null) {
+				pending.cancel(false);
+			}
+			pending = executor.schedule(() -> {
+				synchronized (this) {
+					if (generation == requestedGeneration) {
+						pending = null;
+						logger.trace(logMessage);
+					}
 				}
-			}, debounceDelay);
-		} catch (Exception e) {
-			// don't log that the timer is already cancelled
+			}, delayMillis, TimeUnit.MILLISECONDS);
 		}
 	}
 }

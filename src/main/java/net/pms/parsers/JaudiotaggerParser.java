@@ -75,6 +75,9 @@ public class JaudiotaggerParser {
 	private static final LongHashFunction COVER_HASH = LongHashFunction.xx3();
 	private static final Map<Long, Long> COVER_THUMBNAIL_IDS = Collections.synchronizedMap(new CoverThumbnailCache());
 
+	private static final int COVER_HASH_SEGMENT_BYTES = 1024 * 128; // 128 kB
+	private static final int COVER_HASH_WHOLE_THRESHOLD = 2 * COVER_HASH_SEGMENT_BYTES;
+
 	// Access ordered map that drops the least recently used cover once it is full.
 	private static class CoverThumbnailCache extends LinkedHashMap<Long, Long> {
 
@@ -201,7 +204,7 @@ public class JaudiotaggerParser {
 
 					audio.setSampleRate(rate);
 					media.setDuration((double) length);
-					media.setBitRate((int) ah.getBitRateAsNumber());
+					media.setBitRate((int) ah.getBitRateAsNumber() * 1000);
 
 					audio.setNumberOfChannels(2); // set default value of channels to 2
 					String channels = ah.getChannels().toLowerCase(Locale.ROOT);
@@ -344,6 +347,18 @@ public class JaudiotaggerParser {
 	}
 
 	/**
+	 * Hashes cover art bytes for deduplication.
+	 */
+	private static long hashCoverBytes(byte[] bytes) {
+		if (bytes.length <= COVER_HASH_WHOLE_THRESHOLD) {
+			return COVER_HASH.hashBytes(bytes);
+		}
+		long head = COVER_HASH.hashBytes(bytes, 0, COVER_HASH_SEGMENT_BYTES);
+		long tail = COVER_HASH.hashBytes(bytes, bytes.length - COVER_HASH_SEGMENT_BYTES, COVER_HASH_SEGMENT_BYTES);
+		return COVER_HASH.hashLongs(new long[]{bytes.length, head, tail});
+	}
+
+	/**
 	 * Resolves the stored thumbnail for the cover of this track.
 	 *
 	 * The hashing inside the thumbnail table happen once per cover instead of once per track. Hashing the raw bytes rather than the album
@@ -354,7 +369,7 @@ public class JaudiotaggerParser {
 		if (cover == null) {
 			return null;
 		}
-		Long hash = COVER_HASH.hashBytes(cover.bytes());
+		Long hash = hashCoverBytes(cover.bytes());
 		Long cachedId = COVER_THUMBNAIL_IDS.get(hash);
 		if (cachedId != null) {
 			media.setThumbnailSource(cover.source());

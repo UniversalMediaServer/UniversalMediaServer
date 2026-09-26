@@ -38,6 +38,7 @@ import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
+import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.util.Range;
 import net.pms.util.TimeRange;
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +63,10 @@ public class HlsHelper {
 	 * This class is not meant to be instantiated.
 	 */
 	private HlsHelper() {
+	}
+
+	static boolean hasExplicitTrackSelection(StoreItem item) {
+		return item.isInsideTranscodeFolder() || item.getParent() instanceof ChapterFileTranscodeVirtualFolder;
 	}
 
 	public static HlsConfiguration getByKey(String label) {
@@ -195,7 +200,7 @@ public class HlsHelper {
 			}
 			boolean subtitleAdded = false;
 			for (MediaSubtitle mediaSubtitle : mediaInfo.getSubtitlesTracks()) {
-				if (mediaSubtitle.isEmbedded() && mediaSubtitle.getType().isText()) {
+				if (!hasExplicitTrackSelection(item) && mediaSubtitle.isEmbedded() && mediaSubtitle.getType().isText()) {
 					subtitleAdded = true;
 					sb.append("#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"sub1\",CHARACTERISTICS=\"public.accessibility.transcribes-spoken-dialog\",AUTOSELECT=YES");
 					sb.append(",DEFAULT=").append(mediaSubtitle.isDefault() ? "YES" : "NO");

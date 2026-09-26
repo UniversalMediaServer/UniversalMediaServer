@@ -17,12 +17,18 @@
 package net.pms.external.musicbrainz.api;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -56,6 +62,49 @@ public class MusicBrainzUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MusicBrainzUtil.class);
 	private static final long WAIT_TIMEOUT_MS = 30000;
+	private static final ServiceBackoff SERVICE_BACKOFF = new ServiceBackoff(System::nanoTime, System::currentTimeMillis);
+
+	/** Keeps temporary service failures separate from cached "no match" results. */
+	static final class ServiceBackoff {
+		private final LongSupplier nanoTime;
+		private final LongSupplier currentTimeMillis;
+		private long retryAt;
+		private boolean paused;
+
+		ServiceBackoff(LongSupplier nanoTime, LongSupplier currentTimeMillis) {
+			this.nanoTime = nanoTime;
+			this.currentTimeMillis = currentTimeMillis;
+		}
+
+		synchronized boolean isPaused() {
+			return paused && retryAt - nanoTime.getAsLong() > 0;
+		}
+
+		synchronized long pause(String retryAfter) {
+			long seconds = 60;
+			if (retryAfter != null) {
+				try {
+					seconds = Long.parseLong(retryAfter.trim());
+				} catch (NumberFormatException e) {
+					try {
+						long date = ZonedDateTime.parse(retryAfter.trim(), DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli();
+						seconds = Math.max(0, (date - currentTimeMillis.getAsLong()) / 1000);
+					} catch (DateTimeParseException | ArithmeticException ignored) {
+						// Use the default pause for an invalid header.
+					}
+				}
+			}
+			// Bound untrusted server input and avoid immediately retrying an overloaded service.
+			seconds = Math.max(60, Math.min(86400, seconds));
+			long now = nanoTime.getAsLong();
+			long delay = TimeUnit.SECONDS.toNanos(seconds);
+			if (!paused || retryAt - now < delay) {
+				retryAt = now + delay;
+			}
+			paused = true;
+			return TimeUnit.NANOSECONDS.toSeconds(retryAt - now);
+		}
+	}
 	private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000L; // 24 hours
 	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = XmlUtils.xxeDisabledDocumentBuilderFactory();
 	private static final String ENCODING = StandardCharsets.UTF_8.name();
@@ -143,7 +192,7 @@ public class MusicBrainzUtil {
 		return sb.toString();
 	}
 
-	private static String buildMBReleaseQuery(final MusicBrainzTagInfo tagInfo, final boolean fuzzy) {
+	static String buildMBReleaseQuery(final MusicBrainzTagInfo tagInfo, final boolean fuzzy) {
 		final String and = urlEncode(" AND ");
 		StringBuilder query = new StringBuilder("release/?query=");
 		boolean added = false;
@@ -205,11 +254,12 @@ public class MusicBrainzUtil {
 				query.append(and);
 			}
 			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
+			added = true;
 		}
-		return query.toString();
+		return added ? query.toString() : null;
 	}
 
-	private static String buildMBRecordingQuery(final MusicBrainzTagInfo tagInfo, final boolean fuzzy) {
+	static String buildMBRecordingQuery(final MusicBrainzTagInfo tagInfo, final boolean fuzzy) {
 		final String and = urlEncode(" AND ");
 		StringBuilder query = new StringBuilder("recording/?query=");
 		boolean added = false;
@@ -247,6 +297,7 @@ public class MusicBrainzUtil {
 			} else {
 				query.append(urlEncode("\"" + StringUtil.luceneEscape(tagInfo.artist) + "\""));
 			}
+			added = true;
 		}
 
 		if (!fuzzy && isNotBlank(tagInfo.year) && tagInfo.year.trim().length() > 3) {
@@ -254,8 +305,9 @@ public class MusicBrainzUtil {
 				query.append(and);
 			}
 			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
+			added = true;
 		}
-		return query.toString();
+		return added ? query.toString() : null;
 	}
 
 	public static String getMBID(Tag tag, boolean externalNetwork) {
@@ -348,28 +400,37 @@ public class MusicBrainzUtil {
 						LOGGER.trace("Performing release MBID lookup at musicbrainz: \"{}\"", url);
 					}
 
+					if (SERVICE_BACKOFF.isPaused()) {
+						return null;
+					}
+					HttpURLConnection connection = null;
 					try {
-						HttpURLConnection connection = (HttpURLConnection) URI.create(url).toURL().openConnection();
+						connection = (HttpURLConnection) URI.create(url).toURL().openConnection();
+						connection.setConnectTimeout(5000);
+						connection.setReadTimeout(10000);
 						connection.setRequestProperty("Accept-Charset", StandardCharsets.UTF_8.name());
 						int status = connection.getResponseCode();
+						if (status == HttpURLConnection.HTTP_UNAVAILABLE || status == 429) {
+							long pauseSeconds = SERVICE_BACKOFF.pause(connection.getHeaderField("Retry-After"));
+							LOGGER.warn("MusicBrainz lookup for \"{}\" returned HTTP {}; pausing remote lookups for {} seconds", tagInfo, status, pauseSeconds);
+							return null;
+						}
 						if (status != 200) {
 							LOGGER.error(
 								"Could not lookup audio data for \"{}\": musicbrainz.org replied with status code {}",
-								tagInfo.title,
+								tagInfo,
 								status
 							);
 							return null;
 						}
 
 						Document document;
-						try {
-							document = builder.parse(connection.getInputStream());
+						try (InputStream input = connection.getInputStream()) {
+							document = builder.parse(input);
 						} catch (SAXException e) {
 							LOGGER.error("Failed to parse XML for \"{}\": {}", url, e.getMessage());
 							LOGGER.trace("", e);
 							return null;
-						} finally {
-							connection.getInputStream().close();
 						}
 
 						ArrayList<ReleaseRecord> releaseList;
@@ -443,6 +504,10 @@ public class MusicBrainzUtil {
 						LOGGER.debug("Failed to find MBID for \"{}\": {}", query, e.getMessage());
 						LOGGER.trace("", e);
 						return null;
+					} finally {
+						if (connection != null) {
+							connection.disconnect();
+						}
 					}
 				}
 				round++;

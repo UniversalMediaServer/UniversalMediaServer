@@ -72,7 +72,7 @@ public class DidlHelper extends DlnaHelper {
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
 		for (StoreResource resource : resultResources) {
-			filesData.append(getDidlString(resource));
+			appendDidl(resource, filesData);
 		}
 		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
 		return StringEscapeUtils.unescapeXml(filesData.toString());
@@ -88,9 +88,15 @@ public class DidlHelper extends DlnaHelper {
 	 *         ="1">}
 	 */
 	public static final String getDidlString(StoreResource resource) {
+		StringBuilder sb = new StringBuilder();
+		appendDidl(resource, sb);
+		return sb.toString();
+	}
+
+	private static void appendDidl(StoreResource resource, StringBuilder sb) {
 		if (resource == null) {
 			LOGGER.warn("cannot generate DIDL-Lite for null resource");
-			return "";
+			return;
 		}
 		final Renderer renderer = resource.getDefaultRenderer();
 		final MediaInfo mediaInfo = resource.getMediaInfo();
@@ -101,7 +107,6 @@ public class DidlHelper extends DlnaHelper {
 		final Format format = item != null ? item.getFormat() : null;
 		final MediaSubtitle mediaSubtitle = item != null ? item.getMediaSubtitle() : null;
 
-		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = renderer.isXbox360();
 		if (item != null) {
@@ -400,7 +405,8 @@ public class DidlHelper extends DlnaHelper {
 				} else if (format != null && format.isAudio()) {
 					if (mediaInfo != null && mediaInfo.isMediaParsed()) {
 						if (mediaInfo.getBitRate() > 0) {
-							addAttribute(sb, "bitrate", mediaInfo.getBitRate());
+							// DIDL bitrate is expressed in bytes per second.
+							addAttribute(sb, "bitrate", mediaInfo.getBitRate() / 8);
 						}
 						if (mediaInfo.getDuration() != null && mediaInfo.getDuration() != 0.0) {
 							addAttribute(sb, "duration", StringUtil.formatDLNADuration(mediaInfo.getDuration()));
@@ -639,7 +645,6 @@ public class DidlHelper extends DlnaHelper {
 			closeTag(sb, "container");
 		}
 
-		return sb.toString();
 	}
 
 	/**
@@ -1071,20 +1076,35 @@ public class DidlHelper extends DlnaHelper {
 	 * @return Encoded String
 	 */
 	private static String encodeXML(String s) {
-		s = s.replace("&", "&amp;");
-		s = s.replace("<", "&lt;");
-		s = s.replace(">", "&gt;");
-		/*
-		 * Skip encoding/escaping ' and " for compatibility with some renderers
-		 * This might need to be made into a renderer option if some renderers
-		 * require them to be encoded s = s.replace("\"", "&quot;"); s =
-		 * s.replace("'", "&apos;");
-		 */
-
-		// The second encoding/escaping of & is not a bug, it's what effectively
-		// adds the second layer of encoding/escaping
-		s = s.replace("&", "&amp;");
-		return s;
+		StringBuilder escaped = null;
+		for (int offset = 0; offset < s.length();) {
+			int codePoint = s.codePointAt(offset);
+			int length = Character.charCount(codePoint);
+			String replacement = switch (codePoint) {
+				case '&' -> "&amp;amp;";
+				case '<' -> "&amp;lt;";
+				case '>' -> "&amp;gt;";
+				default -> null;
+			};
+			// XML 1.0 permits paired surrogates, but not isolated ones or control characters.
+			boolean valid = codePoint == 9 || codePoint == 10 || codePoint == 13 ||
+				(codePoint >= 0x20 && codePoint <= 0xD7FF) ||
+				(codePoint >= 0xE000 && codePoint <= 0xFFFD) || codePoint >= 0x10000;
+			if (replacement != null || !valid) {
+				if (escaped == null) {
+					escaped = new StringBuilder(s.length());
+					escaped.append(s, 0, offset);
+				}
+				if (replacement != null) {
+					escaped.append(replacement);
+				}
+			} else if (escaped != null) {
+				escaped.appendCodePoint(codePoint);
+			}
+			offset += length;
+		}
+		// Quotes remain literal in text nodes for renderer compatibility.
+		return escaped == null ? s : escaped.toString();
 	}
 
 }

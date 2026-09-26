@@ -176,7 +176,7 @@ public class MediaTableStoreIds extends MediaTable {
 			stmt.setString(2, name);
 			try (ResultSet elements = stmt.executeQuery()) {
 				if (elements.next()) {
-					return getMediaStoreId(connection, elements.getLong(COL_ID));
+					return readMediaStoreId(elements);
 				}
 			}
 		} catch (SQLException e) {
@@ -222,13 +222,7 @@ public class MediaTableStoreIds extends MediaTable {
 			stmt.setLong(1, id);
 			try (ResultSet elements = stmt.executeQuery()) {
 				if (elements.next()) {
-					MediaStoreId result = new MediaStoreId();
-					result.setId(elements.getLong(COL_ID));
-					result.setParentId(elements.getLong(COL_PARENT_ID));
-					result.setName(elements.getString(COL_NAME));
-					result.setObjectType(elements.getString(COL_OBJECT_TYPE));
-					result.setUpdateId(elements.getLong(COL_UPDATE_ID));
-					return result;
+					return readMediaStoreId(elements);
 				}
 			}
 		} catch (SQLException e) {
@@ -237,6 +231,16 @@ public class MediaTableStoreIds extends MediaTable {
 		}
 
 		return null;
+	}
+
+	private static MediaStoreId readMediaStoreId(ResultSet elements) throws SQLException {
+		MediaStoreId result = new MediaStoreId();
+		result.setId(elements.getLong(COL_ID));
+		result.setParentId(elements.getLong(COL_PARENT_ID));
+		result.setName(elements.getString(COL_NAME));
+		result.setObjectType(elements.getString(COL_OBJECT_TYPE));
+		result.setUpdateId(elements.getLong(COL_UPDATE_ID));
+		return result;
 	}
 
 	public static void setMediaStoreUpdateId(Connection connection, long id, long updateId) {

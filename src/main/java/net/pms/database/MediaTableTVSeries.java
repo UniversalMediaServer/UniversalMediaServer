@@ -24,13 +24,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.JavaHttpClient;
 import net.pms.external.umsapi.APIUtils;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
 import net.pms.store.ThumbnailSource;
-import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -806,17 +803,6 @@ public final class MediaTableTVSeries extends MediaTable {
 		metadata.setTranslations(MediaTableVideoMetadataLocalized.getAllVideoMetadataLocalized(connection, tvSeriesId, true));
 		//ensure we have the default translation
 		metadata.ensureHavingTranslation(null);
-		//get localized thumb if thumb was not localized
-		if (metadata.getPoster(null) != null &&
-			!metadata.getThumbnailSource().equals(ThumbnailSource.TMDB_LOC)
-			) {
-			DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(metadata.getPoster(null));
-			if (thumbnail != null) {
-				Long thumbnailId = ThumbnailStore.getIdForTvSeries(thumbnail, tvSeriesId, ThumbnailSource.TMDB_LOC);
-				metadata.setThumbnailSource(ThumbnailSource.TMDB_LOC);
-				metadata.setThumbnailId(thumbnailId);
-			}
-		}
 		return metadata;
 	}
 
