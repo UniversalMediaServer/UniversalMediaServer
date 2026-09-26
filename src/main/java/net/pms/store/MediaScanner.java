@@ -24,7 +24,9 @@ import java.nio.file.StandardWatchEventKinds;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
@@ -36,6 +38,7 @@ import net.pms.configuration.sharedcontent.FolderContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentListener;
+import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.formats.Format;
@@ -101,6 +104,7 @@ public class MediaScanner implements SharedContentListener {
 	private static List<String> defaultFolders = null;
 	private static Thread scannerThread;
 	private static boolean running;
+	private Set<Path> scanFolders;
 
 	private MediaScanner() {
 	}
@@ -109,6 +113,75 @@ public class MediaScanner implements SharedContentListener {
 	public synchronized void updateSharedContent() {
 		setMediaFileWatchers();
 		setSharedFolders();
+		Set<Path> currentFolders = getScanFolders(SharedContentConfiguration.getSharedContentArray());
+		// The first notification initializes the listener; startup scanning is handled by PMS.
+		if (scanFolders != null) {
+			Set<Path> addedFolders = new LinkedHashSet<>(currentFolders);
+			addedFolders.removeIf(folder -> scanFolders.stream().anyMatch(folder::startsWith));
+			if (!addedFolders.isEmpty()) {
+				PARTIAL_SCAN_EXECUTOR.execute(() -> scanSharedFolders(addedFolders));
+			}
+		}
+		scanFolders = currentFolders;
+	}
+
+	/**
+	 * Collects enabled local folders without doing filesystem I/O on the caller's thread.
+	 */
+	static Set<Path> getScanFolders(List<SharedContent> contents) {
+		Set<Path> folders = new LinkedHashSet<>();
+		for (SharedContent content : contents) {
+			if (!content.isActive()) {
+				continue;
+			}
+			if (content instanceof FolderContent folder && folder.getFile() != null) {
+				folders.add(folder.getFile().toPath().toAbsolutePath().normalize());
+			} else if (content instanceof VirtualFolderContent virtualFolder &&
+					virtualFolder.isAddToMediaLibrary() && virtualFolder.getChilds() != null) {
+				folders.addAll(getScanFolders(virtualFolder.getChilds()));
+			}
+		}
+		return folders;
+	}
+
+	/**
+	 * Uses the recursive scanner for new shares, waiting for any existing scan instead
+	 * of dropping the request. Never cleans up or rescans the rest of the library.
+	 */
+	private static void scanSharedFolders(Set<Path> folders) {
+		SCANNER_LOCK.lock();
+		try {
+			if (RENDERER == null) {
+				return;
+			}
+			Set<Path> currentFolders = getScanFolders(SharedContentConfiguration.getSharedContentArray());
+			// Recheck queued shares before collapsing overlapping roots: a parent
+			// may have been removed while one of its children is still shared.
+			folders.retainAll(currentFolders);
+			List<Path> roots = new ArrayList<>(folders);
+			folders.removeIf(folder -> roots.stream().anyMatch(parent -> !folder.equals(parent) && folder.startsWith(parent)));
+			reset();
+			for (Path folder : folders) {
+				if (folder.toFile().isDirectory()) {
+					StoreResource resource = RENDERER.getMediaStore().createResourceFromFile(folder.toFile(), true);
+					if (resource != null) {
+						RENDERER.getMediaStore().addChild(resource);
+					}
+				}
+			}
+			setRunning(true);
+			scan(RENDERER.getMediaStore());
+		} catch (Exception e) {
+			LOGGER.error("Unable to scan newly shared folders: {}", e.getMessage());
+			LOGGER.trace("", e);
+		} finally {
+			setRunning(false);
+			if (RENDERER != null) {
+				reset();
+			}
+			GuiManager.setStatusLine(null);
+			SCANNER_LOCK.unlock();
+		}
 	}
 
 	public static void init() {
