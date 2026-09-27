@@ -1048,6 +1048,7 @@ public class APIUtils {
 				}
 			} catch (IOException e) {
 				LOGGER.debug("Error with HttpURLConnection: {}", e);
+				retries++;
 			} finally {
 				if (connection != null) {
 					try {

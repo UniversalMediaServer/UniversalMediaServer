@@ -24,6 +24,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
+import net.pms.media.MediaLang;
 import net.pms.network.HTTPResource;
 import net.pms.store.StoreItem;
 import org.slf4j.Logger;
@@ -51,6 +52,11 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			MediaInfo media,
 			OutputParams params
 	) throws IOException {
+		List<String> command = buildCommand(resource, media, params);
+		return command == null ? null : runHlsTranscodeProcess(params, command);
+	}
+
+	List<String> buildCommand(StoreItem resource, MediaInfo media, OutputParams params) throws IOException {
 		if (!params.isHlsConfigured()) {
 			LOGGER.error("No Hls configuration to transcode.");
 			return null;
@@ -101,7 +107,7 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 		if (!needAudio) {
 			cmdList.add("-an");
 		}
-		if (!needSubtitle) {
+		if (!needSubtitle && !(needVideo && HlsHelper.hasExplicitTrackSelection(resource))) {
 			cmdList.add("-sn");
 		}
 		cmdList.add("-i");
@@ -109,6 +115,15 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			cmdList.add("pipe:");
 		} else {
 			cmdList.add(filename);
+		}
+
+		List<String> videoFilters = List.of();
+		if (needVideo && HlsHelper.hasExplicitTrackSelection(resource)) {
+			var subtitle = resource.getMediaSubtitle();
+			params.setSid(subtitle != null && subtitle.getId() != MediaLang.DUMMY_ID ? subtitle : null);
+			// HLS uses copyts, so subtitle timestamps must not be shifted on seeks.
+			videoFilters = getVideoFilterOptions(resource, media, params, false, true, true);
+			cmdList.addAll(videoFilters);
 		}
 
 		if (needSubtitle) {
@@ -123,7 +138,7 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 		}
 
 		if (media.getAudioTracks().size() > 1) {
-			if (needVideo) {
+			if (needVideo && !videoFilters.contains("-filter_complex")) {
 				cmdList.add("-map");
 				cmdList.add("0:V");
 			}
@@ -248,7 +263,7 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			cmdList.add("frag_keyframe"); //frag_keyframe
 		}
 
-		return runHlsTranscodeProcess(params, cmdList);
+		return cmdList;
 	}
 
 	@Override

@@ -835,12 +835,12 @@ String.format(Messages.getGuiString("LosslessQuality") + "%s", // Lossless
 
 		JPanel flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		flowPanel.setComponentOrientation(orientation);
-		builder.addLabel(Messages.getGuiString("FontScale")).at(FormLayoutUtil.flip(cc.xy(1, 16, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		assScale = new JTextField(configuration.getAssScale());
+		builder.addLabel(Messages.getGuiString("SubtitleFontHeightPercent")).at(FormLayoutUtil.flip(cc.xy(1, 16, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		assScale = new JTextField(Double.toString(configuration.getSubtitleFontHeightPercent()));
 		assScale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setAssScale(assScale.getText());
+				configuration.setSubtitleFontHeightPercent(assScale.getText());
 			}
 		});
 		flowPanel.add(assScale);

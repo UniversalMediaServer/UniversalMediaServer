@@ -16,7 +16,7 @@
  */
 import { Box, Button, useMatches } from '@mantine/core'
 import { IconPlayerPlay, IconSettings } from '@tabler/icons-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'

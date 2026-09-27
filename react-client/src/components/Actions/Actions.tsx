@@ -17,7 +17,7 @@
 import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Title, Tooltip } from '@mantine/core'
 import axios, { AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { IconPower, IconRefresh, IconRefreshAlert, IconReport, IconDevicesPcOff, IconUpload, IconDownload, IconPhotoOff } from '@tabler/icons-react'
 
 import { ActionsValues, sendAction } from '../../services/actions-service'

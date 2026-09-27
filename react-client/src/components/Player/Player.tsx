@@ -18,7 +18,7 @@ import { ActionIcon, Box, Breadcrumbs, Button, Group, Image, LoadingOverlay, Men
 import { IconChevronDown, IconHome, IconRecordMail, IconRecordMailOff } from '@tabler/icons-react'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerInterface } from '../../services/player-service'
