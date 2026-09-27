@@ -597,10 +597,10 @@ public abstract class StoreItem extends StoreResource {
 			 * to subtitles or some other renderer incompatibility
 			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
-				if (parserV2) {
+				if (parserV2 && LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\" with mime type \"{}\"", getName(),
 							resolvedTranscodingSettings.toString(), getMimeType());
-				} else {
+				} else if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\"", getName(), resolvedTranscodingSettings.toString());
 				}
 			} else {

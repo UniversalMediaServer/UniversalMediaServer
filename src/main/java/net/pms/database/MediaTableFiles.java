@@ -32,7 +32,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import net.pms.Messages;
 import net.pms.configuration.sharedcontent.FileTypeForgivingAdapter;
@@ -42,7 +41,6 @@ import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.formats.Format;
 import net.pms.configuration.sharedcontent.SharedContentTypeAdapter;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
@@ -813,22 +811,6 @@ public class MediaTableFiles extends MediaTable {
 					media.setChapters(MediaTableChapters.getChapters(connection, fileId));
 					media.setAudioMetadata(MediaTableAudioMetadata.getAudioMetadataByFileId(connection, fileId));
 					media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, fileId));
-					//get localized thumb if thumb was not localized
-					if (media.getVideoMetadata() != null &&
-						media.getVideoMetadata().getPoster() != null &&
-						!media.getThumbnailSource().equals(ThumbnailSource.TMDB_LOC)
-						) {
-						DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(media.getVideoMetadata().getPoster());
-						if (thumbnail != null) {
-							Long thumbnailId = ThumbnailStore.getId(thumbnail);
-							if (!Objects.equals(thumbnailId, media.getThumbnailId())) {
-								media.setThumbnailId(thumbnailId);
-								MediaStoreIds.incrementUpdateIdForFilename(connection, filename);
-							}
-							media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
-							updateThumbnailId(connection, fileId, thumbnailId, ThumbnailSource.TMDB_LOC.toString());
-						}
-					}
 				}
 			}
 		}
@@ -1565,8 +1547,21 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	//TODO : review this
+	public record FileQueryResult(List<File> files, List<String> snapshot) {
+	}
+
 	public static List<File> getFiles(final Connection connection, String sql) {
+		return queryFiles(connection, sql, false).files();
+	}
+
+	/** Shares one result set between file validation and the refresh snapshot. */
+	public static FileQueryResult getFilesAndSnapshot(final Connection connection, String sql) {
+		return queryFiles(connection, sql, true);
+	}
+
+	private static FileQueryResult queryFiles(final Connection connection, String sql, boolean collectSnapshot) {
 		List<File> list = new ArrayList<>();
+		Set<String> snapshot = collectSnapshot ? new LinkedHashSet<>() : null;
 		String psSql = sql.toUpperCase().startsWith(SELECT) || sql.toUpperCase().startsWith(WITH) ? sql : (SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_MODIFIED + FROM + TABLE_NAME + WHERE + sql);
 		try {
 			try (
@@ -1574,6 +1569,10 @@ public class MediaTableFiles extends MediaTable {
 				ResultSet rs = ps.executeQuery();
 			) {
 				while (rs.next()) {
+					if (collectSnapshot) {
+						String value = rs.getString(1);
+						snapshot.add(StringUtils.isBlank(value) ? NONAME : value);
+					}
 					String filename = rs.getString(COL_FILENAME);
 					long modified = rs.getTimestamp(COL_MODIFIED).getTime();
 					File file = new File(filename);
@@ -1585,9 +1584,9 @@ public class MediaTableFiles extends MediaTable {
 		} catch (SQLException se) {
 			LOGGER.trace("Error get files with sql: {}", psSql);
 			LOGGER.error(null, se);
-			return list;
+			return new FileQueryResult(list, null);
 		}
-		return list;
+		return new FileQueryResult(list, collectSnapshot ? new ArrayList<>(snapshot) : null);
 	}
 
 }

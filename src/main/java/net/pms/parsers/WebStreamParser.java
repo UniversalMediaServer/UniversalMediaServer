@@ -128,9 +128,10 @@ public class WebStreamParser {
 		}
 		Integer bitrate = parseIntValue(headers.firstValue("icy-br").orElse(null));
 		if (bitrate != null) {
-			mediaInfo.setBitRate(bitrate);
+			int bitrateInBitsPerSecond = bitrate * 1000;
+			mediaInfo.setBitRate(bitrateInBitsPerSecond);
 			if (mediaInfo.hasAudio()) {
-				mediaInfo.getDefaultAudioTrack().setBitRate(bitrate);
+				mediaInfo.getDefaultAudioTrack().setBitRate(bitrateInBitsPerSecond);
 			}
 		}
 		Integer sampleRate = parseIntValue(headers.firstValue("icy-sr").orElse(null));

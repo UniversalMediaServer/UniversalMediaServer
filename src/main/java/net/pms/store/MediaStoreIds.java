@@ -443,18 +443,23 @@ public class MediaStoreIds {
 	 * Bumps every store id of the given name and the containers holding them.
 	 */
 	public static void incrementUpdateIdForFilenameWithAncestors(Connection connection, String filename) {
-		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, filename);
+		incrementUpdateIdsForFilenamesWithAncestors(connection, Collections.singleton(filename));
+	}
+
+	/** Bumps each resource and shared ancestor only once for the entire batch. */
+	public static void incrementUpdateIdsForFilenamesWithAncestors(Connection connection, Collection<String> filenames) {
 		Set<Long> toBump = new LinkedHashSet<>();
-		for (Long id : ids) {
-			if (id != null && id != -1) {
-				toBump.add(id);
-				collectAncestors(connection, id, toBump);
+		for (String filename : new LinkedHashSet<>(filenames)) {
+			for (Long id : MediaTableStoreIds.getMediaStoreIdsForName(connection, filename)) {
+				if (id != null && id != -1) {
+					toBump.add(id);
+					collectAncestors(connection, id, toBump);
+				}
 			}
 		}
 		for (Long id : toBump) {
 			incrementUpdateId(connection, id);
 		}
-		LOGGER.trace("Bumped {} id(s) for \"{}\" and their containers: {}", ids.size(), filename, toBump);
 	}
 
 	/**
