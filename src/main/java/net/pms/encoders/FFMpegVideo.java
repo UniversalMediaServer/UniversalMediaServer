@@ -531,6 +531,8 @@ public class FFMpegVideo extends Engine {
 				if (defaultVideoTrack.getHDRFormatForRenderer() != null) {
 					transcodeOptions.add("-strict");
 					transcodeOptions.add("unofficial");
+					transcodeOptions.add("-tune");
+					transcodeOptions.add("hdr");
 				}
 			}
 
