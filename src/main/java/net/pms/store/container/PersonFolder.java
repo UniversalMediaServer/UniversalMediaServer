@@ -1,14 +1,14 @@
 package net.pms.store.container;
 
 import java.io.IOException;
-import net.pms.database.MediaTableCoverArtArchive;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdTypeAndIdent;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.util.artistImageProvider.ArtistImageProvider;
 
 /**
  * This class represents one person, having two folders to navigate into. One is the "all files" folder and one is the "albums" related to
@@ -16,17 +16,17 @@ import org.slf4j.LoggerFactory;
  *
  * Currently known roles are ALBUM_ARTIST, COMPOSER and CONDUCTOR.
  */
-public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
+public class PersonFolder extends VirtualFolderDbIdNamed {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MusicBrainzPersonFolder.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(PersonFolder.class);
 
 	private VirtualFolderDbId allFiles = null;
 	private VirtualFolderDbId albumFiles = null;
 
-	public MusicBrainzPersonFolder(Renderer renderer, String personName, DbIdTypeAndIdent typeIdent) {
+	public PersonFolder(Renderer renderer, String personName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, personName, typeIdent);
 		if (StringUtils.isAllBlank(typeIdent.ident)) {
-			LOGGER.debug("person name is blanc");
+			LOGGER.debug("person ident name is blanc");
 		} else {
 			initChilds();
 		}
@@ -77,10 +77,11 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		MediaTableCoverArtArchive.CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(getMediaIdent());
-		if (res.isFound()) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(res.getCoverBytes());
+		DLNAThumbnailInputStream thumb = ArtistImageProvider.getInstance().getThumbnail(renderer, getMediaIdent());
+		if (thumb != null) {
+			return thumb;
 		}
+		LOGGER.debug("No thumbnail found for person '{}', falling back to default thumbnail", getMediaIdent());
 		return super.getThumbnailInputStream();
 	}
 

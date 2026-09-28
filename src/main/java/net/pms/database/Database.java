@@ -71,6 +71,13 @@ public abstract class Database extends DatabaseHelper {
 		return ds.getConnection();
 	}
 
+	/**
+	 * Sets the size of the connection pool.
+	 */
+	protected final void setMaximumPoolSize(int size) {
+		ds.setMaximumPoolSize(size);
+	}
+
 	public int getActiveConnections() throws SQLException {
 		return ds.isRegisterMbeans() ? ds.getHikariPoolMXBean().getActiveConnections() : 0;
 	}

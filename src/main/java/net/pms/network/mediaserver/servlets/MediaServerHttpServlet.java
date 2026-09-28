@@ -32,6 +32,7 @@ public class MediaServerHttpServlet extends HttpServletHelper {
 		if (deny(req)) {
 			return;
 		}
+		resp.setHeader("Access-Control-Allow-Origin", "*");
 		super.service(req, resp);
 	}
 

@@ -29,7 +29,7 @@ public class HTTPXMLHelper {
 	public static final String SEARCHRESPONSE_FOOTER = "</u:SearchResponse>";
 	public static final String SETBOOKMARK_RESPONSE = "<u:X_SetBookmarkResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"></u:X_SetBookmarkResponse>";
 	public static final String SORTCAPS_RESPONSE = "<u:GetSortCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SortCaps></SortCaps></u:GetSortCapabilitiesResponse>";
-	public static final String SEARCHCAPS_RESPONSE = "<u:GetSearchCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SearchCaps>upnp:class,dc:title,dc:creator,upnp:artist,upnp:album,upnp:genre</SearchCaps></u:GetSearchCapabilitiesResponse>";
+	public static final String SEARCHCAPS_RESPONSE = "<u:GetSearchCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SearchCaps>upnp:class,dc:title,dc:creator,upnp:artist,upnp:album,upnp:genre,upnp:rating</SearchCaps></u:GetSearchCapabilitiesResponse>";
 	public static final String SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED = "<u:GetSearchCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SearchCaps></SearchCaps></u:GetSearchCapabilitiesResponse>";
 	public static final String RESULT_HEADER = "<Result>";
 	public static final String RESULT_FOOTER = "</Result>";

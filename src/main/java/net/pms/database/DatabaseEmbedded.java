@@ -95,8 +95,46 @@ public class DatabaseEmbedded {
 
 		LOGGER.debug("Using \"{}\" database URL: {}", name, url);
 		LOGGER.info("Using \"{}\" database located at: \"{}\"", name, dbDir);
+		logDatabaseLocationDiagnostics(name, dbDir);
 
 		return url;
+	}
+
+	/**
+	 * Reports why the database ended up where it did.
+	 *
+	 * A test run that is not recognized as one silently falls back to the
+	 * production profile directory, where tests then wipe the real database and
+	 * inherit its state - which surfaces much later as an unrelated looking H2
+	 * error. This makes that visible at the moment the database is opened.
+	 *
+	 * During tests the message also goes to standard output, because
+	 * {@code TestHelper.setLoggingOff()} switches the root logger off for the
+	 * whole JVM, and test classes share one JVM: as soon as any test class has
+	 * called it, nothing reaches the log file anymore.
+	 *
+	 * @param name The database name
+	 * @param dbDir The directory the database was opened in
+	 */
+	private static void logDatabaseLocationDiagnostics(String name, String dbDir) {
+		String testRunSignal = PMS.getTestRunSignal();
+		if (testRunSignal == null) {
+			LOGGER.info(
+				"Database \"{}\" is opened in production mode, from profile directory \"{}\"",
+				name,
+				UmsConfiguration.getProfileDirectory()
+			);
+			return;
+		}
+		String message = String.format(
+			"Database \"%s\" is opened in test mode at \"%s\", detected by %s. Profile directory in use for configuration and logs: \"%s\"",
+			name,
+			dbDir,
+			testRunSignal,
+			UmsConfiguration.getProfileDirectory()
+		);
+		LOGGER.info(message);
+		System.out.println("[UMS] " + message);
 	}
 
 	private static String getDbDir() {
@@ -108,25 +146,21 @@ public class DatabaseEmbedded {
 	}
 
 	/**
-	 * Returns the database directory used while running tests.
-	 *
-	 * The location is deliberately not derived from the profile directory: the
-	 * profile directory name is frozen when {@link UmsConfiguration} is class
-	 * loaded, so it depends on whether {@link PMS#isRunningTests()} was already
-	 * true at that moment. Resolving the test location here instead keeps tests
-	 * off the production database regardless of class loading order.
-	 *
-	 * The directory is emptied once per JVM so that every test run starts with
-	 * an empty database instead of inheriting the state - and the accumulated
-	 * H2 MVStore layout - of previous runs.
-	 *
 	 * @return The absolute path of the test database directory
 	 */
 	private static String getTestDbDir() {
 		File testDbDir = new File(System.getProperty(PROPERTY_TEST_DB_DIR, DEFAULT_TEST_DB_DIR)).getAbsoluteFile();
-		if (TEST_DB_DIR_CLEANED.compareAndSet(false, true) && testDbDir.exists()) {
-			LOGGER.info("Deleting test database directory \"{}\" to start this test run with an empty database", testDbDir);
-			FileUtils.deleteQuietly(testDbDir);
+		if (TEST_DB_DIR_CLEANED.compareAndSet(false, true)) {
+			String message;
+			if (!testDbDir.exists()) {
+				message = String.format("Test database directory \"%s\" does not exist, this run starts with an empty database", testDbDir);
+			} else if (FileUtils.deleteQuietly(testDbDir) && !testDbDir.exists()) {
+				message = String.format("Deleted test database directory \"%s\", this run starts with an empty database", testDbDir);
+			} else {
+				message = String.format("Test database directory \"%s\" could NOT be deleted, this run inherits its state", testDbDir);
+			}
+			LOGGER.info(message);
+			System.out.println("[UMS] " + message);
 		}
 		return testDbDir.getPath();
 	}
@@ -142,7 +176,10 @@ public class DatabaseEmbedded {
 	public static void shutdown(Connection connection) {
 		logProfilerIfNeeded();
 		try (Statement stmt = connection.createStatement()) {
+			LOGGER.info("Compacting the database on shutdown, this may take several minutes");
+			long start = System.currentTimeMillis();
 			stmt.execute("SHUTDOWN COMPACT");
+			LOGGER.info("Database compacted and shut down in {} ms", System.currentTimeMillis() - start);
 		} catch (SQLException e1) {
 			LOGGER.error("compacting DB ", e1);
 		}
@@ -171,16 +208,23 @@ public class DatabaseEmbedded {
 			migrateDatabase(197, true, dbName);
 			return true;
 		} else if (se.getErrorCode() == 90041) {
-			LOGGER.error("Database in inconsistent state. A trigger already exists. Stop the program and delete the folder \"" + dbDir + "\" manually", se);
-			return false;
-		} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
-			FileUtils.deleteQuietly(dbDirectory);
-			if (!dbDirectory.exists()) {
-				LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
+			// If DB was left behind in an inconsistent state remove the files/folders of this database
+			LOGGER.warn("Database \"{}\" in inconsistent state. A trigger already exists, deleting this database's cache and recreating it.", dbName, se);
+			if (deleteDatabaseFiles(dbDirectory, dbName)) {
+				LOGGER.info("The \"{}\" database has been deleted because it was in an inconsistent state", dbName);
 				return true;
 			} else {
 				Database.showMessageDialog("DamagedCacheCantBeDeleted", dbDir);
-				LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
+				LOGGER.error("Inconsistent cache can't be deleted. Stop the program and delete the files starting with \"" + dbName + "\" in the folder \"" + dbDir + "\" manually");
+				return false;
+			}
+		} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
+			if (deleteDatabaseFiles(dbDirectory, dbName)) {
+				LOGGER.info("The \"{}\" database has been deleted because it was corrupt or had the wrong version", dbName);
+				return true;
+			} else {
+				Database.showMessageDialog("DamagedCacheCantBeDeleted", dbDir);
+				LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the files starting with \"" + dbName + "\" in the folder \"" + dbDir + "\" manually");
 				return false;
 			}
 		} else {
@@ -188,6 +232,29 @@ public class DatabaseEmbedded {
 			UMSUtils.sleep(10000);
 			return true;
 		}
+	}
+
+	/**
+	 * Deletes all files and folders of a single database within the database directory. Other databases
+	 * sharing the same folder (e.g. USERS) are left untouched.
+	 *
+	 * @param dbDirectory the database directory
+	 * @param dbName the database name whose files should be removed
+	 * @return true if all matching entries were removed
+	 */
+	private static boolean deleteDatabaseFiles(File dbDirectory, String dbName) {
+		File[] entries = dbDirectory.listFiles((dir, name) -> name.startsWith(dbName));
+		if (entries == null) {
+			return false;
+		}
+		boolean allDeleted = true;
+		for (File entry : entries) {
+			FileUtils.deleteQuietly(entry);
+			if (entry.exists()) {
+				allDeleted = false;
+			}
+		}
+		return allDeleted;
 	}
 
 	/**

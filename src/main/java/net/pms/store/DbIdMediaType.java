@@ -61,6 +61,22 @@ public enum DbIdMediaType {
 		return GENERAL_PREFIX + dbidPrefix;
 	}
 
+	/**
+	 * Builds the identity of a database backed resource, for example
+	 * $DBID$MUSICBRAINZALBUM$ followed by the MusicBrainz release id.
+	 *
+	 * This is the same string VirtualFolderDbId reports as its system name, and
+	 * therefore the RESOURCE_KEY under which its rating is stored. It does not
+	 * depend on the position of the resource in the store tree nor on any
+	 * generated database id, so it survives a database rebuild.
+	 *
+	 * @param ident the resource identifier, for example a MusicBrainz release id
+	 * @return the resource key
+	 */
+	public String getResourceKey(String ident) {
+		return toString() + (ident == null ? "" : ident);
+	}
+
 	public static DbIdTypeAndIdent getTypeIdentByDbid(String id) {
 		String strType = id.substring(GENERAL_PREFIX.length());
 		for (DbIdMediaType type : values()) {
