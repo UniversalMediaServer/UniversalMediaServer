@@ -197,7 +197,9 @@ public class StoreContainer extends StoreResource {
 
 						if (renderer.getUmsConfiguration().isShowRecentlyPlayedFolder()) {
 							transcodingSettings = item.getTranscodingSettings();
-						} else {
+						} else if (StringUtils.endsWith(currentName, "]") ||
+							(getParent() != null && StringUtils.endsWith(getParent().getName(), "]"))) {
+							// Only a name ending in ']' can contain a preferred-engine suffix.
 							for (TranscodingSettings tSettings : TranscodingSettings.getTranscodingsSettings(item)) {
 								String end = "[" + tSettings.getEngine().getEngineId().toString() + "]";
 

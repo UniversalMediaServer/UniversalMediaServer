@@ -18,12 +18,14 @@ package net.pms.store.container;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,9 +59,6 @@ import net.pms.util.UMSUtils;
  * variants will be added at the top.
  */
 public class MediaLibraryFolder extends MediaLibraryAbstract {
-
-	private static final long REFRESH_LOG_THRESHOLD_MS = 200;
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
 	private String[] sqls;
@@ -211,10 +210,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	 */
 	@Override
 	public synchronized void doRefreshChildren() {
-		long startedAt = System.nanoTime();
-		long dbNanos = 0;
-		long connectionNanosAtStart = MediaDatabase.getConnectionNanos();
-		long connectionCountAtStart = MediaDatabase.getConnectionCount();
 		List<File> filesListFromDb = null;
 		List<String> virtualFoldersListFromDb = null;
 
@@ -235,7 +230,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		String firstSql = null;
 		if (sqls.length > 0) {
 			Connection connection = null;
-			long dbStartedAt = System.nanoTime();
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
@@ -246,22 +240,25 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						switch (expectedOutput) {
 							case FILES, FILES_NOSORT, PLAYLISTS, ISOS, EPISODES_WITHIN_SEASON -> {
 								firstSql = firstSql.replaceAll(SELECT_DISTINCT_TVSEASON, SELECT_ALL + FROM_FILES_VIDEOMETA);
-								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+								var fileQuery = MediaTableFiles.getFilesAndSnapshot(connection, firstSql);
+								filesListFromDb = fileQuery.files();
+								populatedFilesListFromDb = fileQuery.snapshot();
 							}
 							case FILES_NOSORT_DEDUPED -> {
 								populatedFilesListFromDb = new ArrayList<>();
 								filesListFromDb = new ArrayList<>();
+								Set<String> seenPaths = new HashSet<>();
 								for (File item : MediaTableFiles.getFiles(connection, firstSql)) {
-									if (!populatedFilesListFromDb.contains(item.getAbsolutePath())) {
+									if (seenPaths.add(item.getAbsolutePath())) {
 										filesListFromDb.add(item);
 										populatedFilesListFromDb.add(item.getAbsolutePath());
 									}
 								}
 							}
 							case EPISODES, CONTINUE_WATCHING_EPISODES -> {
-								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+								var fileQuery = MediaTableFiles.getFilesAndSnapshot(connection, firstSql);
+								filesListFromDb = fileQuery.files();
+								populatedFilesListFromDb = fileQuery.snapshot();
 
 								if (expectedOutput == EPISODES) {
 									// Build the season filter folders
@@ -303,8 +300,9 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 									populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 								} else if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-									filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-									populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+									var fileQuery = MediaTableFiles.getFilesAndSnapshot(connection, firstSql);
+									filesListFromDb = fileQuery.files();
+									populatedFilesListFromDb = fileQuery.snapshot();
 								}
 
 								if (!firstSql.toUpperCase().startsWith(SELECT)) {
@@ -381,7 +379,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				}
 			} finally {
 				MediaDatabase.close(connection);
-				dbNanos = System.nanoTime() - dbStartedAt;
 			}
 		}
 		Set<File> newFiles = new LinkedHashSet<>();
@@ -498,8 +495,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					releasedSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTextsNoSort
 				));
-				LOGGER.trace("filteredExpectedOutputsWithPrependedTexts: " + Arrays.toString(filteredExpectedOutputsWithPrependedTexts));
-				LOGGER.trace("genresSqls: " + genresSqls.toString());
 				addChild(filterByInformation);
 			}
 		}
@@ -720,7 +715,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				addChild(recommendations);
 			}
 		}
-
 		List<StoreResource> newFilesResources = new ArrayList<>();
 
 		/*
@@ -751,7 +745,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									 */
 									boolean isTvEpisode = rs.getBoolean("ISTVEPISODE");
 									boolean isFullyPlayed = rs.getBoolean("ISFULLYPLAYED");
-									LOGGER.info("filename {} isTvEpisode: {}", filename, isTvEpisode);
 									if (!isTvEpisode) {
 										if (!isFullyPlayed) {
 											// this is an in-progress standalone video
@@ -833,16 +826,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		if (isDiscovered()) {
 			notifyRefreshIfChanged();
 		}
-		long totalMs = (System.nanoTime() - startedAt) / 1_000_000;
-		if (totalMs >= REFRESH_LOG_THRESHOLD_MS) {
-			long dbMs = dbNanos / 1_000_000;
-			int childCount = getChildren().size();
-			long connectionMs = (MediaDatabase.getConnectionNanos() - connectionNanosAtStart) / 1_000_000;
-			long connections = MediaDatabase.getConnectionCount() - connectionCountAtStart;
-			LOGGER.info("Slow refresh of \"{}\": {} ms total, {} ms folder query, {} ms per child, {} children, {} connections taking {} ms",
-					getName(), totalMs, dbMs, childCount > 0 ? (totalMs * 1000 / childCount) / 1000.0 : 0, childCount,
-					connections, connectionMs);
-		}
+
 	}
 
 	/**

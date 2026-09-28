@@ -19,7 +19,7 @@ import { Notifications } from '@mantine/notifications'
 import '@mantine/core/styles.css'
 import '@mantine/dropzone/styles.css'
 import '@mantine/notifications/styles.css'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router'
 
 import UmsApp from './UmsApp'
 import { useLocalStorage } from '@mantine/hooks'

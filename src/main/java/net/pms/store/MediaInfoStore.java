@@ -226,6 +226,11 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo getMediaInfo(String filename, File file, Format format, int type) {
+		// Published cache entries can be read without joining the per-file load queue.
+		MediaInfo cached = getMediaInfoStored(filename, file.lastModified());
+		if (cached != null) {
+			return cached;
+		}
 		CountedLock lock = acquireLock(filename);
 		try {
 			synchronized (lock) {

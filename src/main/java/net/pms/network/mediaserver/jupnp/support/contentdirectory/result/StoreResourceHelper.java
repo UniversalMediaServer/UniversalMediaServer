@@ -497,7 +497,8 @@ public class StoreResourceHelper {
 					if (mediaInfo != null && mediaInfo.isMediaParsed()) {
 						MediaAudio defaultAudioTrack = mediaInfo.getDefaultAudioTrack();
 						if (mediaInfo.getBitRate() > 0) {
-							res.setBitrate(mediaInfo.getBitRate());
+							// DIDL bitrate is expressed in bytes per second.
+							res.setBitrate(mediaInfo.getBitRate() / 8);
 						}
 						if (mediaInfo.getDuration() != null && mediaInfo.getDuration() != 0.0) {
 							res.setDuration(StringUtil.formatDLNADuration(mediaInfo.getDuration()));

@@ -17,7 +17,7 @@
 import { AppShell, Box, Burger, Center, Group, Loader, useDirection } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
 import { IconServer, IconServerOff } from '@tabler/icons-react'
-import { Route, Routes, Navigate } from 'react-router-dom'
+import { Route, Routes, Navigate } from 'react-router'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { PlayerInterface } from '../../services/player-service'

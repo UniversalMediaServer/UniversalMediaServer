@@ -456,10 +456,10 @@ export default function TranscodingSettings({
                   <Grid.Col span={3}>
                     <TextInput
                       disabled={!canModify}
-                      label={i18n.get('FontScale')}
+                      label={i18n.get('SubtitleFontHeightPercent')}
                       style={{ flex: 1 }}
                       size="xs"
-                      {...form.getInputProps('subtitles_ass_scale')}
+                      {...form.getInputProps('subtitles_font_height_percent')}
                     />
                   </Grid.Col>
                   <Grid.Col span={3}>

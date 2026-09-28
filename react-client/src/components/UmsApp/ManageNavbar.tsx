@@ -16,7 +16,7 @@
  */
 import { Button } from '@mantine/core'
 import { IconDeviceDesktopCog, IconHome, IconInfoCircle, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'

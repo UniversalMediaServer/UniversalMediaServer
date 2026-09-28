@@ -120,6 +120,10 @@ public class FFMpegVideo extends Engine {
 	 * @throws java.io.IOException
 	 */
 	public List<String> getVideoFilterOptions(StoreItem resource, MediaInfo mediaInfo, OutputParams params, boolean isConvertedTo3d) throws IOException {
+		return getVideoFilterOptions(resource, mediaInfo, params, isConvertedTo3d, false, false);
+	}
+
+	protected List<String> getVideoFilterOptions(StoreItem resource, MediaInfo mediaInfo, OutputParams params, boolean isConvertedTo3d, boolean forceSubtitles, boolean preserveTimestamps) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		final Renderer renderer = params.getMediaRenderer();
@@ -213,7 +217,7 @@ public class FFMpegVideo extends Engine {
 				} else if (params.getSid().isExternal()) {
 					if (params.getSid().getExternalFile() != null) {
 						if (
-							!renderer.streamSubsForTranscodedVideo() ||
+							forceSubtitles || !renderer.streamSubsForTranscodedVideo() ||
 							!renderer.isExternalSubtitlesFormatSupported(params.getSid(), resource)
 						) {
 							// Only transcode subtitles if they aren't streamable
@@ -254,7 +258,7 @@ public class FFMpegVideo extends Engine {
 						}
 
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-						subsFilter.append(",Fontsize=").append(15 * Double.parseDouble(configuration.getAssScale()));
+						subsFilter.append(",Fontsize=").append(configuration.getSubtitleFontSize(288.0));
 						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4PlusStylesHexValueForFFmpeg());
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
@@ -278,12 +282,12 @@ public class FFMpegVideo extends Engine {
 			}
 
 			if (StringUtils.isNotBlank(subsFilter)) {
-				if (params.getTimeSeek() > 0 && isSubsManualTiming) {
+				if (params.getTimeSeek() > 0 && isSubsManualTiming && !preserveTimestamps) {
 					filterChain.add("setpts=PTS+" + params.getTimeSeek() + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 
 				filterChain.add(subsFilter.toString());
-				if (params.getTimeSeek() > 0 && isSubsManualTiming) {
+				if (params.getTimeSeek() > 0 && isSubsManualTiming && !preserveTimestamps) {
 					filterChain.add("setpts=PTS-STARTPTS"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 			}
@@ -499,6 +503,16 @@ public class FFMpegVideo extends Engine {
 							transcodeOptions.add("31");
 						}
 
+						// Tell x264 to signal frame-packed 3D in the elementary stream,
+						// otherwise renderers that auto-detect 3D show the video flat
+						if (!customFFmpegOptions.contains("-x264-params")) {
+							String framePackingArrangement = getFramePackingArrangement(defaultVideoTrack, renderer);
+							if (framePackingArrangement != null) {
+								transcodeOptions.add("-x264-params");
+								transcodeOptions.add("frame-packing=" + framePackingArrangement);
+							}
+						}
+
 						// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
 					} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
 						if (!customFFmpegOptions.contains("-preset")) {
@@ -539,6 +553,50 @@ public class FFMpegVideo extends Engine {
 		}
 
 		return transcodeOptions;
+	}
+
+	/**
+	 * Returns the x264 {@code frame-packing} value for the 3D layout this
+	 * transcode outputs, or {@code null} when the output is not frame-packed 3D.
+	 *
+	 * Renderers that auto-detect 3D read the {@code frame_packing_arrangement}
+	 * SEI message in the H.264 elementary stream (ITU-T H.264 Annex D, payload
+	 * type 45), which x264 only writes when it is asked to. Container-level
+	 * stereoscopic tags are a separate signal: they do not survive a remux to
+	 * MPEG-TS, and the frame-compatible 3DTV spec (ETSI TS 101 547-2) gives the
+	 * in-stream SEI precedence over them. Without this the transcode is correct
+	 * frame-packed video that the renderer has no way to recognise, so it plays
+	 * flat.
+	 *
+	 * @param defaultVideoTrack the video track being transcoded
+	 * @param renderer the renderer being transcoded for
+	 * @return the x264 {@code frame-packing} value, or {@code null}
+	 */
+	private static String getFramePackingArrangement(MediaVideo defaultVideoTrack, Renderer renderer) {
+		if (defaultVideoTrack == null || !defaultVideoTrack.is3d() || defaultVideoTrack.multiViewIsAnaglyph()) {
+			return null;
+		}
+
+		// The renderer may have asked for a layout other than the one the source carries
+		String outputLayout = renderer.getOutput3DFormat();
+		if (StringUtils.isBlank(outputLayout)) {
+			MediaVideo.Mode3D sourceLayout = defaultVideoTrack.get3DLayout();
+			if (sourceLayout == null) {
+				return null;
+			}
+			outputLayout = sourceLayout.toString().toLowerCase(Locale.ROOT);
+		}
+
+		// Anything else is either 2D output (ml, mr) or anaglyph, which is not frame-packed
+		if (outputLayout.startsWith("sbs")) {
+			return "3";
+		} else if (outputLayout.startsWith("ab")) {
+			return "4";
+		} else if (outputLayout.startsWith("ir")) {
+			return "2";
+		}
+
+		return null;
 	}
 
 	/**
@@ -1260,13 +1318,7 @@ public class FFMpegVideo extends Engine {
 			mkfifoProcess.runInSameThread();
 			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
-			// Give the mkfifo process a little time
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-				Thread.currentThread().interrupt();
-			}
+			// Pipe creation is synchronous; the Windows reader also accepts early clients.
 		} else {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
@@ -1569,14 +1621,8 @@ public class FFMpegVideo extends Engine {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
-		// Give the mkfifo process a little time
-		try {
-			Thread.sleep(300);
-		} catch (InterruptedException e) {
-			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-			Thread.currentThread().interrupt();
-		}
-
+		// The pipe already exists: mkfifo completed above, or Windows created
+		// the handle synchronously. The reader accepts an early client connection.
 		// Launch the transcode command...
 		pw.runInNewThread();
 		// ...and wait briefly to allow it to start
