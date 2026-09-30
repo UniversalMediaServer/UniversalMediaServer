@@ -43,7 +43,7 @@
     "video.js": "8.23.7"
   },
   "devDependencies": {
-    "@playwright/test": "1.58.2",
+    "@playwright/test": "1.63.0",
     "@stylistic/eslint-plugin": "5.10.0",
     "@types/lodash": "4.17.25",
     "@types/react": "19.2.18",
