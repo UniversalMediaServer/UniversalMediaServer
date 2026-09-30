@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `com.github.junrar:junrar` from 7.6.0 to 7.6.1 ([#6328](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6328))
+- Bump `com.github.oshi:oshi-core` from 7.4.2 to 7.6.1 ([#6360](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6360))
 - Bump `com.google.guava:guava` from 33.6.0-jre to 33.7.1-jre ([#6340](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6340))
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
 - Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
