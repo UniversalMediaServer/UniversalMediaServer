@@ -192,7 +192,7 @@ public class WebStream extends StoreItem {
 			RadioBrowser4j.backgroundLookupAndAddMetadata(url, directives.get(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID), mediaInfo);
 		}
 		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_ALBUMART_URI)) {
-			ThumbnailStore.updateThumbnailByURI(directives.get(PlaylistFolder.DIRECTIVE_ALBUMART_URI), getFileName(), ThumbnailSource.PLAYLIST);
+			ThumbnailStore.enqueueThumbnailUpdate(directives.get(PlaylistFolder.DIRECTIVE_ALBUMART_URI), getFileName(), ThumbnailSource.PLAYLIST);
 		}
 	}
 
