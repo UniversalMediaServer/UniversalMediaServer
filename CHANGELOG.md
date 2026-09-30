@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `@playwright/test` from 1.58.2 to 1.63.0 ([#6367](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6367))
+- Bump `com.github.eirslett:frontend-maven-plugin` from 2.0.1 to 2.0.2 ([#6359](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6359))
 - Bump `com.github.junrar:junrar` from 7.6.0 to 7.6.1 ([#6328](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6328))
 - Bump `com.github.oshi:oshi-core` from 7.4.2 to 7.6.1 ([#6360](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6360))
 - Bump `com.google.guava:guava` from 33.6.0-jre to 33.7.1-jre ([#6340](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6340))
