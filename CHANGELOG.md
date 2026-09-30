@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `@playwright/test` from 1.58.2 to 1.63.0 ([#6367](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6367))
+- Bump `@types/react` from 19.2.18 to 19.3.0 ([#6364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6364))
 - Bump `com.github.junrar:junrar` from 7.6.0 to 7.6.1 ([#6328](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6328))
 - Bump `com.github.oshi:oshi-core` from 7.4.2 to 7.6.1 ([#6360](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6360))
 - Bump `com.google.guava:guava` from 33.6.0-jre to 33.7.1-jre ([#6340](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6340))
@@ -33,6 +34,8 @@
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `react-dom` from 19.2.8 to 19.3.0 ([#6364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6364))
+- Bump `react` from 19.2.8 to 19.3.0 ([#6364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6364))
 
 ## [15.8.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.1...15.8.2) (2026-09-08)
 
