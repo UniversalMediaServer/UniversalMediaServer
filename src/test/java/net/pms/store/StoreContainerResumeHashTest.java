@@ -68,7 +68,8 @@ public class StoreContainerResumeHashTest {
 	}
 
 	private static RealFile addToNewContainer(File file) {
-		StoreContainer container = new StoreContainer(renderer, "folder", null);
+		// No renderer on the container, so isValid() doesn't try to parse the empty test file with MediaInfo
+		StoreContainer container = new StoreContainer(null, "folder", null);
 		RealFile item = new RealFile(renderer, file);
 		container.addChild(item, true, false);
 		return item;
