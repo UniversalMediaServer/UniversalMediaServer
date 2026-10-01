@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### General
+- Enable media players to automatically detect when videos are 3D (thanks, Daniel Ramos!)
+- Improved size and position of subtitles hardcoded with FFmpeg
+- Added log level setting to web UI (#6212) (thanks, Eyaaa.blg!)
+- Fixed debugging in VS Code
+- Fixed endless retries when server is not connected to the internet
+- Fixed all compatible options not always visible in #--TRANSCODE--# folders
+- Fixed external subtitle track selection when hardcoding subtitles with FFmpeg
+- Fixed over 13 theoretical security vulnerabilities in dependencies
+- Only warm up fontconfig caches for engines that are active (thanks, Alex!)
+- Fixed long wait times and broken playback after seeking or playing Resume files (thanks, Alex!)
+- Fixed resume entries only working until program restarts
+
+### Media players
+- Improved support for Sony TVs from 2011 to current (thanks, Daniel Ramos!)
+
 ### Dependencies
 - Bump `@playwright/test` from 1.58.2 to 1.63.0 ([#6367](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6367))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 2.0.1 to 2.0.2 ([#6359](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6359))
@@ -25,6 +41,7 @@
 - Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
 - Bump `com.twelvemonkeys.imageio:imageio-webp` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
 - Bump `commons-codec:commons-codec` from 1.22.0 to 1.22.1 ([#6315](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6315))
+- Bump `Java Runtime Environment` from 17.0.19 to 17.0.20.1
 - Bump `jna-version` from 5.18.1 to 5.19.1 ([#6316](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6316))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
@@ -34,6 +51,9 @@
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `Vite` from 7.3.5 to 7.3.6
+- Bump `Yarn` from 4.13.0 to 4.18.0
+- Bump all subdependencies
 
 ## [15.8.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.1...15.8.2) (2026-09-08)
 
