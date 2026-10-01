@@ -152,7 +152,8 @@ public class StoreContainer extends StoreResource {
 					allChildrenAreContainers = false;
 				}
 
-				item.setResumeHash(Math.abs(item.getSystemName().hashCode() + hashCode()));
+				// Must stay the same across restarts, so the resume file is found again
+				item.setResumeHash(Math.abs(item.getSystemName().hashCode()));
 
 				StoreItem resumeRes = null;
 
