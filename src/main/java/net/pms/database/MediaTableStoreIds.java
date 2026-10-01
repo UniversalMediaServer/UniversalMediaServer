@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.store.MediaStoreId;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,6 +158,10 @@ public class MediaTableStoreIds extends MediaTable {
 		}
 		long parentId = resource.getParent().getLongId();
 		String name = resource.getSystemName();
+		if (resource instanceof StoreItem item && item.isResume()) {
+			// The resume copy of an item needs its own id, otherwise renderers see one entry twice
+			name = name.concat(">r");
+		}
 
 		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_PARENTID_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
 			stmt.setLong(1, parentId);
