@@ -75,7 +75,6 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private final double timeend;
 	private final boolean hidebuffer;
 	private final boolean cleanup;
-	private final boolean shiftScr;
 	private final int secondReadMinSize;
 	private final FileOutputStream debugOutput = null;
 
@@ -202,7 +201,6 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		this.secondReadMinSize = params.getSecondReadMinSize();
 		this.timeseek = params.getTimeSeek();
 		this.timeend = params.getTimeEnd();
-		this.shiftScr = params.isShiftSscr();
 		this.hidebuffer = params.isHideBuffer();
 		this.cleanup = params.isCleanup();
 
@@ -335,14 +333,6 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				}
 			}
 
-			// Ditlew - WDTV Live
-			if (timeseek > 0 && writeCount > 10) {
-				for (int i = 0; i < len; i++) {
-					if (buffer != null && shiftScr) {
-						shiftSCRByTimeSeek(mb + i, (int) timeseek); // Ditlew - update any SCR headers
-					}					//shiftGOPByTimeSeek(mb+i, (int)timeseek); // Ditlew - update any GOP headers - Not needed for WDTV Live
-				}
-			}
 
 			writeCount += len - off;
 			if (timeseek > 0 && timeend == 0) {
@@ -365,6 +355,12 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 					} else if (buffer[modulo(packetposMB + 3, buffer.length)] == -70) { // BA
 						packetLength = 14;
+						if (packetpos + packetLength > writeCount) {
+							// pack header not fully written yet
+							break;
+						}
+						// Keep the system clock in step with the shifted PTS/DTS
+						shiftSCRByTimeSeek(packetposMB + 9, timeseek);
 						streamPos = -1;
 					} else {
 						packetLength = 6 + ((buffer[modulo(packetposMB + 4, buffer.length)] + 256) % 256) * 256 + ((buffer[modulo(packetposMB + 5, buffer.length)] + 256) % 256);
@@ -421,13 +417,13 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 			// Ditlew - WDTV Live - update any SCR headers
 			if (timeseek > 0 && writeCount > 10) {
-				shiftSCRByTimeSeek(mb, (int) timeseek);
+				shiftSCRByTimeSeek(mb, timeseek);
 			}
 		}
 	}
 
 	// Ditlew - Modify SCR
-	private void shiftSCRByTimeSeek(int bufferIndex, int offsetSec) {
+	private void shiftSCRByTimeSeek(int bufferIndex, double offsetSec) {
 		int m9 = modulo(bufferIndex - 9, buffer.length);
 		int m8 = modulo(bufferIndex - 8, buffer.length);
 		int m7 = modulo(bufferIndex - 7, buffer.length);
@@ -452,11 +448,12 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			((buffer[m1] & 4) == 4) &&
 			((buffer[m0] & 1) == 1)) {
 			long scr3230 = ((buffer[m5] & 56) >> 3);
-			long scr2915 = ((buffer[m5] & 3) << 13) + (buffer[m4] << 5) + ((buffer[m3] & 248) >> 3);
-			long scr1400 = ((buffer[m3] & 3) << 13) + (buffer[m2] << 5) + ((buffer[m1] & 248) >> 3);
+			long scr2915 = ((buffer[m5] & 3) << 13) + ((buffer[m4] & 0xFF) << 5) + ((buffer[m3] & 248) >> 3);
+			long scr1400 = ((buffer[m3] & 3) << 13) + ((buffer[m2] & 0xFF) << 5) + ((buffer[m1] & 248) >> 3);
 
 			long scr = (scr3230 << 30) + (scr2915 << 15) + scr1400;
-			long scrNew = scr + (90000L * offsetSec);
+			// Same offset as the PTS/DTS shift, wrapped to 33 bits
+			long scrNew = (scr + (long) (offsetSec * 90000)) & 0x1FFFFFFFFL;
 
 			long scr3230New = (scrNew & 7516192768L) >> 30;  // 111000000000000000000000000000000
 			long scr2915New = (scrNew & 1073709056L) >> 15;  // 000111111111111111000000000000000
