@@ -18,9 +18,11 @@ import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableResourceRatings;
+import net.pms.store.MediaStoreIds;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -84,8 +86,10 @@ public class RatingBackupManagerTest {
 			File newRoot = createTree("export/music");
 			share(newRoot);
 
+			long updateIdBeforeRestore = MediaStoreIds.getSystemUpdateId().getValue();
 			RatingBackupManager.restoreRating();
 
+			assertNotEquals(updateIdBeforeRestore, MediaStoreIds.getSystemUpdateId().getValue());
 			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, key(new File(newRoot, "ABBA/Gold/01.flac"))));
 			assertEquals(Integer.valueOf(4), MediaTableResourceRatings.getRating(connection, key(new File(newRoot, "ABBA/Gold"))));
 			//the path of the old mount point is gone and must not be restored
