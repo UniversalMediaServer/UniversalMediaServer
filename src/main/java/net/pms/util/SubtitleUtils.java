@@ -456,9 +456,8 @@ public class SubtitleUtils {
 		}
 
 		try {
-			tempSubsFile = new File(
-				CONFIGURATION.getTempFolder(),
-				FilenameUtils.getBaseName(fileName) + "." + outputSubtitleType.getExtension()
+			tempSubsFile = File.createTempFile(
+				"ums-subtitles-", "." + outputSubtitleType.getExtension(), CONFIGURATION.getTempFolder()
 			);
 		} catch (IOException e1) {
 			LOGGER.debug("Subtitles conversion finished with error: " + e1);

@@ -62,7 +62,22 @@ export interface PlayMedia extends BaseMedia {
   hasMediaInfo?: boolean
 }
 
+export interface ExternalSubtitleTrack {
+  id: string
+  label: string
+  language: string
+  default: boolean
+}
+
+export interface SubtitleStyle {
+  color: string
+  fontFamily?: string
+  fontHeightPercent: number
+}
+
 export interface VideoMedia extends PlayMedia {
+  subtitleStyle?: SubtitleStyle
+  externalSubtitles?: ExternalSubtitleTrack[]
   height: number
   isVideoWithChapters: boolean
   metadata?: VideoMetadata
