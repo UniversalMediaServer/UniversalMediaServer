@@ -296,6 +296,9 @@ public class MediaInfoParser {
 						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getFormat(mediaInfoHelper, i), file);
 						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getFormatVersion(mediaInfoHelper, i), file);
 						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getCodecID(mediaInfoHelper, i), file);
+						currentVideoTrack.setCodec(Parser.normalizeMpeg4VideoCodec(currentVideoTrack.getCodec(),
+							StreamVideo.getCodecID(mediaInfoHelper, i), StreamVideo.getCodecIDHint(mediaInfoHelper, i),
+							StreamVideo.getEncodedLibrary(mediaInfoHelper, i)));
 						longValue = StreamVideo.getStreamOrder(mediaInfoHelper, i);
 						if (longValue != null) {
 							currentVideoTrack.setStreamOrder(longValue.intValue());
@@ -649,6 +652,8 @@ public class MediaInfoParser {
 
 		if (StringUtils.isBlank(value)) {
 			return;
+		} else if (streamType == StreamKind.VIDEO && Parser.isDivxIdentifier(value)) {
+			format = FormatConfiguration.DIVX;
 		} else if (value.startsWith("3g2")) {
 			format = FormatConfiguration.THREEGPP2;
 		} else if (value.startsWith("3gp")) {

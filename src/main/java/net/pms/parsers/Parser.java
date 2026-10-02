@@ -20,6 +20,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
@@ -40,6 +41,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Parser {
+
+	private static final Pattern DIVX_IDENTIFIER = Pattern.compile(
+		"(?i)(?<![a-z0-9])(?:(?:xvid|divx)(?:[0-9][a-z0-9]*)?|dx50|dvx1|div[1-6])(?![a-z0-9])");
+
+	static boolean isDivxIdentifier(String value) {
+		return value != null && DIVX_IDENTIFIER.matcher(value).find();
+	}
+
+	/** Keep DivX/Xvid identity independent of container, profile and parser. */
+	static String normalizeMpeg4VideoCodec(String codec, String... identifiers) {
+		if (isDivxIdentifier(codec)) {
+			return FormatConfiguration.DIVX;
+		}
+		if ("mpeg4".equalsIgnoreCase(codec) || "msmpeg4v2".equalsIgnoreCase(codec) ||
+			"msmpeg4v3".equalsIgnoreCase(codec) || FormatConfiguration.MP4.equalsIgnoreCase(codec)) {
+			for (String identifier : identifiers) {
+				if (isDivxIdentifier(identifier)) {
+					return FormatConfiguration.DIVX;
+				}
+			}
+		}
+		return codec;
+	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Parser.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
@@ -79,6 +103,12 @@ public class Parser {
 				ext.getIdentifier() != Format.Identifier.PNM
 			) {
 				MediaInfoParser.parse(media, file.getFile(), type);
+				// Some containers (for example WTV) are recognized without any streams.
+				if (type == Format.VIDEO && media.getVideoTrackCount() == 0 && media.getAudioTrackCount() == 0) {
+					LOGGER.debug("MediaInfo found no audio or video streams in {}, trying FFmpeg", file.getFile());
+					media.resetParser();
+					FFmpegParser.parse(media, file, ext, type);
+				}
 			} else if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
 				JaudiotaggerParser.parse(media, file.getFile(), ext);
 			} else {
