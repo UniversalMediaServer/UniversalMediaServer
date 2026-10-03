@@ -53,6 +53,7 @@ public class MediaInfoStore {
 	private static final Map<String, WeakReference<MediaInfo>> STORE = new HashMap<>();
 	private static final Map<Long, WeakReference<TvSeriesMetadata>> TV_SERIES_STORE = new HashMap<>();
 	private static final Map<String, Object> LOCKS = new HashMap<>();
+	private static final MediaParseRetry PARSE_RETRY = new MediaParseRetry();
 
 	private MediaInfoStore() {
 		//should not be instantiated
@@ -78,7 +79,7 @@ public class MediaInfoStore {
 		return null;
 	}
 
-	private static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
+	static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
 		synchronized (STORE) {
 			STORE.put(filename, new WeakReference<>(mediaInfo));
 		}
@@ -116,7 +117,7 @@ public class MediaInfoStore {
 		Object lock = getLock(filename);
 		synchronized (lock) {
 			MediaInfo mediaInfo = getMediaInfoStored(filename);
-			if (mediaInfo != null) {
+			if (mediaInfo != null && ((mediaInfo.isMediaParsed() && Parser.hasMediaContent(mediaInfo, type)) || Parser.MANUAL_PARSER.equals(mediaInfo.getMediaParser()))) {
 				return mediaInfo;
 			}
 			LOGGER.trace("Store does not yet contain MediaInfo for {}", filename);
@@ -130,7 +131,9 @@ public class MediaInfoStore {
 					try {
 						mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
 						if (mediaInfo != null) {
-							if (!mediaInfo.isMediaParsed()) {
+							if ((!mediaInfo.isMediaParsed() || !Parser.hasMediaContent(mediaInfo, type)) &&
+								!Parser.MANUAL_PARSER.equals(mediaInfo.getMediaParser()) && PARSE_RETRY.acquire(file)) {
+								mediaInfo.setMediaParser(null);
 								Parser.parse(mediaInfo, input, format, type);
 								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
 							}
@@ -153,7 +156,11 @@ public class MediaInfoStore {
 				}
 
 				if (mediaInfo == null) {
+					PARSE_RETRY.acquire(file);
 					mediaInfo = updateMediaInfoFromFile(filename, file, format, type, connection, input);
+				} else if (connection == null && (!mediaInfo.isMediaParsed() || !Parser.hasMediaContent(mediaInfo, type)) && PARSE_RETRY.acquire(file)) {
+					mediaInfo.setMediaParser(null);
+					Parser.parse(mediaInfo, input, format, type);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
