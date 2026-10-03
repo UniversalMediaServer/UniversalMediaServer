@@ -80,8 +80,7 @@ public class Parser {
 	 */
 	public static void parse(MediaInfo media, InputFile file, Format ext, int type) {
 		//ensure media is not already parsing or is parsed
-		media.waitMediaParsing(5);
-		if (media.isMediaParsed()) {
+		if (!media.waitMediaParsing(5) || media.isMediaParsed()) {
 			return;
 		}
 		media.resetParser();
@@ -103,11 +102,11 @@ public class Parser {
 				ext.getIdentifier() != Format.Identifier.PNM
 			) {
 				MediaInfoParser.parse(media, file.getFile(), type);
-				// Some containers (for example WTV) are recognized without any streams.
-				if (type == Format.VIDEO && media.getVideoTrackCount() == 0 && media.getAudioTrackCount() == 0) {
-					LOGGER.debug("MediaInfo found no audio or video streams in {}, trying FFmpeg", file.getFile());
-					media.resetParser();
-					FFmpegParser.parse(media, file, ext, type);
+				if ((type == Format.VIDEO || type == Format.AUDIO) && !hasMediaContent(media, type)) {
+					LOGGER.debug("MediaInfo found no usable content in {}, trying FFmpeg", file.getFile());
+					MediaInfo fallback = new MediaInfo();
+					FFmpegParser.parse(fallback, file);
+					applyFallback(media, fallback, type);
 				}
 			} else if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
 				JaudiotaggerParser.parse(media, file.getFile(), ext);
@@ -119,129 +118,164 @@ public class Parser {
 		}
 	}
 
+	/** Structural validation, independent of a parser having completed its attempt. */
+	public static boolean hasMediaContent(MediaInfo media, int type) {
+		if (media == null) {
+			return false;
+		}
+		return switch (type) {
+			// Audio-only MP4/MKV files are valid even when the extension implies video.
+			case Format.VIDEO -> media.getVideoTrackCount() > 0 || media.getAudioTrackCount() > 0;
+			case Format.AUDIO -> media.getAudioTrackCount() > 0;
+			case Format.IMAGE -> media.getImageInfo() != null;
+			default -> media.isMediaParsed();
+		};
+	}
+
+	/** Accept stream discovery only when the primary result contains no audio/video tracks. */
+	static void applyFallback(MediaInfo primary, MediaInfo fallback, int type) {
+		if (primary.getVideoTrackCount() > 0 || primary.getAudioTrackCount() > 0 || !hasMediaContent(fallback, type)) {
+			return;
+		}
+		primary.setVideoTracks(fallback.getVideoTracks());
+		primary.setAudioTracks(fallback.getAudioTracks());
+		if (primary.getSubtitleTrackCount() == 0) {
+			primary.setSubtitlesTracks(fallback.getSubtitlesTracks());
+		}
+		if (!primary.hasChapters()) {
+			primary.setChapters(fallback.getChapters());
+		}
+		if (primary.getContainer() == null || MediaLang.UND.equals(primary.getContainer())) {
+			primary.setContainer(fallback.getContainer());
+		}
+		if (primary.getDurationInSeconds() <= 0) {
+			primary.setDuration(fallback.getDuration());
+		}
+		if (primary.getBitRate() <= 0) {
+			primary.setBitRate(fallback.getBitRate());
+		}
+		if (primary.getFrameRate() == null) {
+			primary.setFrameRate(fallback.getFrameRate());
+		}
+		primary.setMediaParser(fallback.getMediaParser());
+		postParse(primary, type);
+	}
+
+	/** Determine MIME from the container and actual content before using codec fallbacks. */
 	public static void postParse(MediaInfo mediaInfo, int type) {
-		String container = mediaInfo.getContainer();
-		String codecA = mediaInfo.getDefaultAudioTrack() != null ? mediaInfo.getDefaultAudioTrack().getCodec() : null;
-		String codecV = mediaInfo.getDefaultVideoTrack() != null ? mediaInfo.getDefaultVideoTrack().getCodec() : null;
-		String mimeType = null;
-
-		if (container != null) {
-			mimeType = switch (container) {
-				case FormatConfiguration.AVI -> HTTPResource.AVI_TYPEMIME;
-				case FormatConfiguration.ASF -> HTTPResource.ASF_TYPEMIME;
-				case FormatConfiguration.FLV -> HTTPResource.FLV_TYPEMIME;
-				case FormatConfiguration.M4V -> HTTPResource.M4V_TYPEMIME;
-				case FormatConfiguration.MP4 -> HTTPResource.MP4_TYPEMIME;
-				case FormatConfiguration.MPEGPS -> HTTPResource.MPEG_TYPEMIME;
-				case FormatConfiguration.MPEGTS -> HTTPResource.MPEGTS_TYPEMIME;
-				case FormatConfiguration.MPEGTS_HLS -> HTTPResource.HLS_TYPEMIME;
-				case FormatConfiguration.WMV -> HTTPResource.WMV_TYPEMIME;
-				case FormatConfiguration.MOV -> HTTPResource.MOV_TYPEMIME;
-				case FormatConfiguration.ADPCM -> HTTPResource.AUDIO_ADPCM_TYPEMIME;
-				case FormatConfiguration.ADTS -> HTTPResource.AUDIO_ADTS_TYPEMIME;
-				case FormatConfiguration.M4A -> HTTPResource.AUDIO_M4A_TYPEMIME;
-				case FormatConfiguration.AC3 -> HTTPResource.AUDIO_AC3_TYPEMIME;
-				case FormatConfiguration.AU -> HTTPResource.AUDIO_AU_TYPEMIME;
-				case FormatConfiguration.DFF -> HTTPResource.AUDIO_DFF_TYPEMIME;
-				case FormatConfiguration.DSF -> HTTPResource.AUDIO_DSF_TYPEMIME;
-				case FormatConfiguration.EAC3 -> HTTPResource.AUDIO_EAC3_TYPEMIME;
-				case FormatConfiguration.MPA -> HTTPResource.AUDIO_MPA_TYPEMIME;
-				case FormatConfiguration.MP2 -> HTTPResource.AUDIO_MP2_TYPEMIME;
-				case FormatConfiguration.AIFF -> HTTPResource.AUDIO_AIFF_TYPEMIME;
-				case FormatConfiguration.ATRAC -> HTTPResource.AUDIO_ATRAC_TYPEMIME;
-				case FormatConfiguration.MKA -> HTTPResource.AUDIO_MKA_TYPEMIME;
-				case FormatConfiguration.MLP -> HTTPResource.AUDIO_MLP_TYPEMIME;
-				case FormatConfiguration.MONKEYS_AUDIO -> HTTPResource.AUDIO_APE_TYPEMIME;
-				case FormatConfiguration.MPC -> HTTPResource.AUDIO_MPC_TYPEMIME;
-				case FormatConfiguration.OGG -> HTTPResource.OGG_TYPEMIME;
-				case FormatConfiguration.OGA -> HTTPResource.AUDIO_OGA_TYPEMIME;
-				case FormatConfiguration.RA -> HTTPResource.AUDIO_RA_TYPEMIME;
-				case FormatConfiguration.RM -> HTTPResource.RM_TYPEMIME;
-				case FormatConfiguration.SHORTEN -> HTTPResource.AUDIO_SHN_TYPEMIME;
-				case FormatConfiguration.THREEGA -> HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
-				case FormatConfiguration.TRUEHD -> HTTPResource.AUDIO_TRUEHD_TYPEMIME;
-				case FormatConfiguration.TTA -> HTTPResource.AUDIO_TTA_TYPEMIME;
-				case FormatConfiguration.WAVPACK -> HTTPResource.AUDIO_WV_TYPEMIME;
-				case FormatConfiguration.WEBA -> HTTPResource.AUDIO_WEBM_TYPEMIME;
-				case FormatConfiguration.WEBP -> HTTPResource.WEBP_TYPEMIME;
-				case FormatConfiguration.WMA, FormatConfiguration.WMA10 -> HTTPResource.AUDIO_WMA_TYPEMIME;
-				case FormatConfiguration.BMP -> HTTPResource.BMP_TYPEMIME;
-				case FormatConfiguration.GIF -> HTTPResource.GIF_TYPEMIME;
-				case FormatConfiguration.JPEG -> HTTPResource.JPEG_TYPEMIME;
-				case FormatConfiguration.PNG -> HTTPResource.PNG_TYPEMIME;
-				case FormatConfiguration.TIFF -> HTTPResource.TIFF_TYPEMIME;
-				default -> mimeType;
-			};
-		}
-
+		boolean audioOnly = !mediaInfo.hasVideoTrack() && mediaInfo.hasAudio();
+		String mimeType = resolveContainerMimeType(mediaInfo.getContainer(), audioOnly);
 		if (mimeType == null) {
-			if (codecV != null && !codecV.equals(MediaLang.UND)) {
-				if ("matroska".equals(container) || "mkv".equals(container)) {
-					mimeType = HTTPResource.MATROSKA_TYPEMIME;
-				} else if ("ogg".equals(container)) {
-					mimeType = HTTPResource.OGG_TYPEMIME;
-				} else if ("3gp".equals(container)) {
-					mimeType = HTTPResource.THREEGPP_TYPEMIME;
-				} else if ("3g2".equals(container)) {
-					mimeType = HTTPResource.THREEGPP2_TYPEMIME;
-				} else if ("webm".equals(container)) {
-					mimeType = HTTPResource.WEBM_TYPEMIME;
-				} else if (container != null && container.startsWith("flash")) {
-					mimeType = HTTPResource.FLV_TYPEMIME;
-				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.equals("mpeg4") || codecV.equals("mp4")) {
-					mimeType = HTTPResource.MP4_TYPEMIME;
-				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
-					mimeType = HTTPResource.MPEG_TYPEMIME;
-				}
-			} else if ((codecV == null || codecV.equals(MediaLang.UND)) && codecA != null) {
-				if ("ogg".equals(container) || "oga".equals(container)) {
-					mimeType = HTTPResource.AUDIO_OGA_TYPEMIME;
-				} else if ("3gp".equals(container)) {
-					mimeType = HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
-				} else if ("3g2".equals(container)) {
-					mimeType = HTTPResource.AUDIO_THREEGPP2A_TYPEMIME;
-				} else if ("adts".equals(container)) {
-					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
-				} else if ("matroska".equals(container) || "mkv".equals(container)) {
-					mimeType = HTTPResource.AUDIO_MKA_TYPEMIME;
-				} else if ("webm".equals(container)) {
-					mimeType = HTTPResource.AUDIO_WEBM_TYPEMIME;
-				} else if (codecA.contains("mp3")) {
-					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.MPA)) {
-					mimeType = HTTPResource.AUDIO_MPA_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.MP2)) {
-					mimeType = HTTPResource.AUDIO_MP2_TYPEMIME;
-				} else if (codecA.contains("flac")) {
-					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
-				} else if (codecA.contains("vorbis")) {
-					mimeType = HTTPResource.AUDIO_VORBIS_TYPEMIME;
-				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
-					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-				} else if (codecA.contains("pcm") || codecA.contains("wav") || codecA.contains("dts")) {
-					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.TRUEHD)) {
-					mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DTS)) {
-					mimeType = HTTPResource.AUDIO_DTS_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DTSHD)) {
-					mimeType = HTTPResource.AUDIO_DTSHD_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.EAC3)) {
-					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.ADPCM)) {
-					mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DFF)) {
-					mimeType = HTTPResource.AUDIO_DFF_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DSF)) {
-					mimeType = HTTPResource.AUDIO_DSF_TYPEMIME;
-				}
-			}
+			String codecA = mediaInfo.getDefaultAudioTrack() != null ? mediaInfo.getDefaultAudioTrack().getCodec() : null;
+			String codecV = mediaInfo.getDefaultVideoTrack() != null ? mediaInfo.getDefaultVideoTrack().getCodec() : null;
+			mimeType = resolveCodecMimeType(mediaInfo.hasVideoTrack(), codecV, codecA);
+		}
+		int contentType = mediaInfo.isVideo() ? Format.VIDEO : mediaInfo.isAudio() ? Format.AUDIO : mediaInfo.isImage() ? Format.IMAGE : type;
+		mediaInfo.setMimeType(mimeType != null ? mimeType : HTTPResource.getDefaultMimeType(contentType));
+	}
 
-			if (mimeType == null) {
-				mimeType = HTTPResource.getDefaultMimeType(type);
+	private static String resolveContainerMimeType(String container, boolean audioOnly) {
+		if (container == null) {
+			return null;
+		}
+		return switch (container) {
+			case FormatConfiguration.AVI -> HTTPResource.AVI_TYPEMIME;
+			case FormatConfiguration.ASF -> HTTPResource.ASF_TYPEMIME;
+			case FormatConfiguration.FLV -> HTTPResource.FLV_TYPEMIME;
+			case FormatConfiguration.M4V -> HTTPResource.M4V_TYPEMIME;
+			case FormatConfiguration.MP4 -> audioOnly ? HTTPResource.AUDIO_M4A_TYPEMIME : HTTPResource.MP4_TYPEMIME;
+			case FormatConfiguration.MPEGPS -> HTTPResource.MPEG_TYPEMIME;
+			case FormatConfiguration.MPEGTS -> HTTPResource.MPEGTS_TYPEMIME;
+			case FormatConfiguration.MPEGTS_HLS -> HTTPResource.HLS_TYPEMIME;
+			case FormatConfiguration.WMV -> HTTPResource.WMV_TYPEMIME;
+			case FormatConfiguration.MOV -> HTTPResource.MOV_TYPEMIME;
+			case FormatConfiguration.ADPCM -> HTTPResource.AUDIO_ADPCM_TYPEMIME;
+			case FormatConfiguration.ADTS -> HTTPResource.AUDIO_ADTS_TYPEMIME;
+			case FormatConfiguration.M4A -> HTTPResource.AUDIO_M4A_TYPEMIME;
+			case FormatConfiguration.AC3 -> HTTPResource.AUDIO_AC3_TYPEMIME;
+			case FormatConfiguration.AU -> HTTPResource.AUDIO_AU_TYPEMIME;
+			case FormatConfiguration.DFF -> HTTPResource.AUDIO_DFF_TYPEMIME;
+			case FormatConfiguration.DSF -> HTTPResource.AUDIO_DSF_TYPEMIME;
+			case FormatConfiguration.EAC3 -> HTTPResource.AUDIO_EAC3_TYPEMIME;
+			case FormatConfiguration.MPA -> HTTPResource.AUDIO_MPA_TYPEMIME;
+			case FormatConfiguration.MP2 -> HTTPResource.AUDIO_MP2_TYPEMIME;
+			case FormatConfiguration.AIFF -> HTTPResource.AUDIO_AIFF_TYPEMIME;
+			case FormatConfiguration.ATRAC -> HTTPResource.AUDIO_ATRAC_TYPEMIME;
+			case FormatConfiguration.MKA -> HTTPResource.AUDIO_MKA_TYPEMIME;
+			case FormatConfiguration.MLP -> HTTPResource.AUDIO_MLP_TYPEMIME;
+			case FormatConfiguration.MONKEYS_AUDIO -> HTTPResource.AUDIO_APE_TYPEMIME;
+			case FormatConfiguration.MPC -> HTTPResource.AUDIO_MPC_TYPEMIME;
+			case FormatConfiguration.OGG -> audioOnly ? HTTPResource.AUDIO_OGA_TYPEMIME : HTTPResource.OGG_TYPEMIME;
+			case FormatConfiguration.OGA -> HTTPResource.AUDIO_OGA_TYPEMIME;
+			case FormatConfiguration.RA -> HTTPResource.AUDIO_RA_TYPEMIME;
+			case FormatConfiguration.RM -> HTTPResource.RM_TYPEMIME;
+			case FormatConfiguration.SHORTEN -> HTTPResource.AUDIO_SHN_TYPEMIME;
+			case FormatConfiguration.THREEGA -> HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
+			case FormatConfiguration.TRUEHD -> HTTPResource.AUDIO_TRUEHD_TYPEMIME;
+			case FormatConfiguration.TTA -> HTTPResource.AUDIO_TTA_TYPEMIME;
+			case FormatConfiguration.WAVPACK -> HTTPResource.AUDIO_WV_TYPEMIME;
+			case FormatConfiguration.WEBA -> HTTPResource.AUDIO_WEBM_TYPEMIME;
+			case FormatConfiguration.WEBP -> HTTPResource.WEBP_TYPEMIME;
+			case FormatConfiguration.WMA, FormatConfiguration.WMA10 -> HTTPResource.AUDIO_WMA_TYPEMIME;
+			case FormatConfiguration.BMP -> HTTPResource.BMP_TYPEMIME;
+			case FormatConfiguration.GIF -> HTTPResource.GIF_TYPEMIME;
+			case FormatConfiguration.JPG, FormatConfiguration.JPEG -> HTTPResource.JPEG_TYPEMIME;
+			case FormatConfiguration.PNG -> HTTPResource.PNG_TYPEMIME;
+			case FormatConfiguration.TIFF -> HTTPResource.TIFF_TYPEMIME;
+			case FormatConfiguration.MKV, "matroska" -> audioOnly ? HTTPResource.AUDIO_MKA_TYPEMIME : HTTPResource.MATROSKA_TYPEMIME;
+			case FormatConfiguration.WEBM -> audioOnly ? HTTPResource.AUDIO_WEBM_TYPEMIME : HTTPResource.WEBM_TYPEMIME;
+			case FormatConfiguration.THREEGPP -> audioOnly ? HTTPResource.AUDIO_THREEGPPA_TYPEMIME : HTTPResource.THREEGPP_TYPEMIME;
+			case FormatConfiguration.THREEGPP2 -> audioOnly ? HTTPResource.AUDIO_THREEGPP2A_TYPEMIME : HTTPResource.THREEGPP2_TYPEMIME;
+			case FormatConfiguration.WAV -> HTTPResource.AUDIO_WAV_TYPEMIME;
+			case FormatConfiguration.MP3 -> HTTPResource.AUDIO_MP3_TYPEMIME;
+			case FormatConfiguration.FLAC -> HTTPResource.AUDIO_FLAC_TYPEMIME;
+			case FormatConfiguration.DTS -> HTTPResource.AUDIO_DTS_TYPEMIME;
+			case FormatConfiguration.DTSHD -> HTTPResource.AUDIO_DTSHD_TYPEMIME;
+			default -> container.startsWith("flash") ? HTTPResource.FLV_TYPEMIME : null;
+		};
+	}
+
+	/** Legacy codec inference for sources whose container is not recognized. */
+	private static String resolveCodecMimeType(boolean hasVideo, String codecV, String codecA) {
+		String mimeType = null;
+		if (hasVideo && codecV != null && !codecV.equals(MediaLang.UND)) {
+			if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.equals("mpeg4") || codecV.equals("mp4")) {
+				mimeType = HTTPResource.MP4_TYPEMIME;
+			} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
+				mimeType = HTTPResource.MPEG_TYPEMIME;
+			}
+		} else if (!hasVideo && codecA != null) {
+			if (codecA.contains("mp3")) {
+				mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.MPA)) {
+				mimeType = HTTPResource.AUDIO_MPA_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.MP2)) {
+				mimeType = HTTPResource.AUDIO_MP2_TYPEMIME;
+			} else if (codecA.contains("flac")) {
+				mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
+			} else if (codecA.contains("vorbis")) {
+				mimeType = HTTPResource.AUDIO_VORBIS_TYPEMIME;
+			} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
+				mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
+			} else if (codecA.contains("pcm") || codecA.contains("wav")) {
+				mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.TRUEHD)) {
+				mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.DTS)) {
+				mimeType = HTTPResource.AUDIO_DTS_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.DTSHD)) {
+				mimeType = HTTPResource.AUDIO_DTSHD_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.EAC3)) {
+				mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.ADPCM)) {
+				mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.DFF)) {
+				mimeType = HTTPResource.AUDIO_DFF_TYPEMIME;
+			} else if (codecA.equals(FormatConfiguration.DSF)) {
+				mimeType = HTTPResource.AUDIO_DSF_TYPEMIME;
 			}
 		}
-		mediaInfo.setMimeType(mimeType);
+		return mimeType;
 	}
 
 	/**

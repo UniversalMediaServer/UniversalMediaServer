@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
@@ -145,18 +146,32 @@ public class MediaInfoParser {
 	 * Parse media via MediaInfoHelper.
 	 */
 	public static void parse(MediaInfo media, File file, int type) {
-		media.waitMediaParsing(5);
-		media.setParsing(true);
-		if (file == null || media.isMediaParsed()) {
-			media.setParsing(false);
-			return;
-		}
-		MediaInfoHelper mediaInfoHelper = getMediaInfoHelper(false);
-		if (!mediaInfoHelper.isValid()) {
-			media.setParsing(false);
-			return;
-		}
+		parse(media, file, type, () -> getMediaInfoHelper(false));
+	}
 
+	static void parse(MediaInfo media, File file, int type, Supplier<MediaInfoHelper> helperFactory) {
+		if (!media.waitMediaParsing(5) || file == null || media.isMediaParsed()) {
+			return;
+		}
+		media.setParsing(true);
+		try (MediaInfoHelper mediaInfoHelper = helperFactory.get()) {
+			if (!mediaInfoHelper.isValid()) {
+				return;
+			}
+			parseOpenedMedia(media, file, type, mediaInfoHelper);
+		} catch (Exception ex) {
+			LOGGER.warn("MediaInfo could not finish parsing {}: {}", file, ex.getMessage());
+			LOGGER.debug("MediaInfo parsing failure", ex);
+		} finally {
+			media.setParsing(false);
+		}
+	}
+
+	static boolean isVideoSubtitle(String codecId) {
+		return "DXSA".equalsIgnoreCase(codecId) || "DXSB".equalsIgnoreCase(codecId);
+	}
+
+	private static void parseOpenedMedia(MediaInfo media, File file, int type, MediaInfoHelper mediaInfoHelper) {
 		MediaInfoParseLogger parseLogger = LOGGER.isTraceEnabled() ? new MediaInfoParseLogger(mediaInfoHelper) : null;
 		boolean fileOpened = mediaInfoHelper.openFile(file.getAbsolutePath()) > 0;
 		if (fileOpened) {
@@ -274,14 +289,9 @@ public class MediaInfoParser {
 			if (videoTrackCount > 0) {
 				for (int i = 0; i < videoTrackCount; i++) {
 					// check for DXSA and DXSB subtitles (subs in video format)
-					if (StreamVideo.getTitle(mediaInfoHelper, i).startsWith("Subtitle")) {
+					if (isVideoSubtitle(StreamVideo.getCodecID(mediaInfoHelper, i))) {
 						currentSubTrack = new MediaSubtitle();
-						// First attempt to detect subtitle track format
-						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamVideo.getFormat(mediaInfoHelper, i)));
-						// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamVideo.getCodecID(mediaInfoHelper, i),
-							currentSubTrack.getType()
-						));
+						currentSubTrack.setType(SubtitleType.DIVX);
 						currentSubTrack.setId(media.getSubtitlesTracks().size());
 						longValue = StreamVideo.getStreamOrder(mediaInfoHelper, i);
 						if (longValue != null) {
@@ -305,8 +315,10 @@ public class MediaInfoParser {
 						}
 						currentVideoTrack.setDefault("Yes".equals(StreamVideo.getDefault(mediaInfoHelper, i)));
 						currentVideoTrack.setForced("Yes".equals(StreamVideo.getForced(mediaInfoHelper, i)));
-						currentVideoTrack.setWidth(StreamVideo.getWidth(mediaInfoHelper, i).intValue());
-						currentVideoTrack.setHeight(StreamVideo.getHeight(mediaInfoHelper, i).intValue());
+						longValue = StreamVideo.getWidth(mediaInfoHelper, i);
+						currentVideoTrack.setWidth(longValue == null ? 0 : longValue.intValue());
+						longValue = StreamVideo.getHeight(mediaInfoHelper, i);
+						currentVideoTrack.setHeight(longValue == null ? 0 : longValue.intValue());
 						doubleValue = StreamVideo.getDuration(mediaInfoHelper, i);
 						if (doubleValue == null) {
 							doubleValue = media.getDuration();
@@ -580,12 +592,6 @@ public class MediaInfoParser {
 				media.setMediaParser(PARSER_NAME);
 			}
 		}
-		try {
-			mediaInfoHelper.close();
-		} catch (Exception ex) {
-			LOGGER.warn("MediaInfoHelper on close: ", ex);
-		}
-		media.setParsing(false);
 	}
 
 	public static void addVideoTrack(MediaVideo currentVideoTrack, MediaInfo media) {
@@ -625,34 +631,76 @@ public class MediaInfoParser {
 	}
 
 	/**
-	 * Sends the correct information to media.setContainer(),
-	 * media.setCodecV() or media.setCodecA, depending on streamType.
-	 *
-	 * Note: A lot of these are types of MPEG-4 Audio and this can be a
-	 * good resource to make sense of that:
-	 * https://en.wikipedia.org/wiki/MPEG-4_Part_3#MPEG-4_Audio_Object_Types
-	 * There are also free samples of most of them at:
-	 * http://fileformats.archiveteam.org/wiki/MPEG-4_SLS
-	 *
-	 * @param streamType
-	 * @param media
-	 * @param audio
-	 * @param value
-	 * @param file
-	 * @todo Split the values by streamType to make the logic more clear
-	 *       with less negative statements.
+	 * Resolve one MediaInfo Format, Format_Version, Format_Profile or CodecID
+	 * field and apply it to the container or the corresponding track. Later
+	 * fields can refine earlier results; unknown fields preserve those results.
 	 */
 	protected static void setFormat(StreamKind streamType, MediaInfo media, MediaVideo video, MediaAudio audio, String value, File file) {
 		if (StringUtils.isBlank(value) || streamType == null) {
 			return;
 		}
+		String format = resolveFormat(streamType, media, video, audio, value.toLowerCase(Locale.ROOT));
+		if (format != null) {
+			switch (streamType) {
+				case GENERAL -> media.setContainer(format);
+				case VIDEO -> video.setCodec(format);
+				case AUDIO -> audio.setCodec(format);
+				default -> { }
+			}
+		} else if (streamType == StreamKind.GENERAL && media.getContainer() == null && file != null) {
+			String extension = FileUtil.getExtension(file.getAbsolutePath());
+			if (extension != null) {
+				media.setContainer(extension.toLowerCase(Locale.ROOT));
+			}
+		}
+	}
 
-		value = value.toLowerCase(Locale.ROOT);
-		String format = null;
+	/** Aliases that do not depend on stream kind, container or an earlier codec field. */
+	private static String resolveExactFormat(String value) {
+		return switch (value) {
+			case "avi", "opendml" -> FormatConfiguration.AVI;
+			case "webm" -> FormatConfiguration.WEBM;
+			case "qt", "quicktime" -> FormatConfiguration.MOV;
+			case "caf" -> FormatConfiguration.CAF;
+			case "h261" -> FormatConfiguration.H261;
+			case "h263", "s263", "u263" -> FormatConfiguration.H263;
+			case "mac3" -> FormatConfiguration.MACE3;
+			case "mac6" -> FormatConfiguration.MACE6;
+			case "ffv1" -> FormatConfiguration.FFV1;
+			case "celp" -> FormatConfiguration.CELP;
+			case "qcelp" -> FormatConfiguration.QCELP;
+			case "adts" -> FormatConfiguration.ADTS;
+			case "dolby e" -> FormatConfiguration.DOLBYE;
+			case "ac-3", "a_ac3", "2000" -> FormatConfiguration.AC3;
+			case "ac-4" -> FormatConfiguration.AC4;
+			case "realaudio lossless" -> FormatConfiguration.RALF;
+			case "tta" -> FormatConfiguration.TTA;
+			case "55", "a_mpeg/l3" -> FormatConfiguration.MP3;
+			case "aac lc sbr" -> FormatConfiguration.HE_AAC;
+			case "ltp" -> FormatConfiguration.AAC_LTP;
+			case "main" -> FormatConfiguration.AAC_MAIN;
+			case "ssr" -> FormatConfiguration.AAC_SSR;
+			case "alac" -> FormatConfiguration.ALAC;
+			case "als" -> FormatConfiguration.ALS;
+			case "wave" -> FormatConfiguration.WAV;
+			case "shorten" -> FormatConfiguration.SHORTEN;
+			case "acelp" -> FormatConfiguration.ACELP;
+			case "g.729", "g.729a" -> FormatConfiguration.G729;
+			case "vselp" -> FormatConfiguration.REALAUDIO_14_4;
+			case "g.728" -> FormatConfiguration.REALAUDIO_28_8;
+			case "a_real/sipr", "kevin" -> FormatConfiguration.SIPRO;
+			case "mpeg audio" -> FormatConfiguration.MPA;
+			default -> null;
+		};
+	}
 
-		if (StringUtils.isBlank(value)) {
-			return;
-		} else if (streamType == StreamKind.VIDEO && Parser.isDivxIdentifier(value)) {
+	/** Ordered prefix/profile rules; some profiles also refine the container. */
+	private static String resolveFormat(StreamKind streamType, MediaInfo media, MediaVideo video, MediaAudio audio, String value) {
+		String format = resolveExactFormat(value);
+		if (format != null) {
+			return format;
+		}
+		if (streamType == StreamKind.VIDEO && Parser.isDivxIdentifier(value)) {
 			format = FormatConfiguration.DIVX;
 		} else if (value.startsWith("3g2")) {
 			format = FormatConfiguration.THREEGPP2;
@@ -660,16 +708,10 @@ public class MediaInfoParser {
 			format = FormatConfiguration.THREEGPP;
 		} else if (value.startsWith("matroska")) {
 			format = FormatConfiguration.MKV;
-		} else if (value.equals("avi") || value.equals("opendml")) {
-			format = FormatConfiguration.AVI;
 		} else if (value.startsWith("cinepa")) {
 			format = FormatConfiguration.CINEPAK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
-		} else if (value.equals("webm")) {
-			format = FormatConfiguration.WEBM;
-		} else if (value.equals("qt") || value.equals("quicktime")) {
-			format = FormatConfiguration.MOV;
 		} else if (
 			value.contains("isom") ||
 			(streamType != StreamKind.AUDIO && value.startsWith("mp4") && !value.startsWith("mp4a")) ||
@@ -684,8 +726,6 @@ public class MediaInfoParser {
 			format = FormatConfiguration.MPEGPS;
 		} else if (value.contains("mpeg-ts") || value.equals("bdav")) {
 			format = FormatConfiguration.MPEGTS;
-		} else if (value.equals("caf")) {
-			format = FormatConfiguration.CAF;
 		} else if (value.contains("aiff")) {
 			format = FormatConfiguration.AIFF;
 		} else if (value.startsWith("atmos") || value.equals("131")) {
@@ -716,14 +756,6 @@ public class MediaInfoParser {
 			)
 		) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.equals("h261")) {
-			format = FormatConfiguration.H261;
-		} else if (
-			value.equals("h263") ||
-			value.equals("s263") ||
-			value.equals("u263")
-		) {
-			format = FormatConfiguration.H263;
 		} else if (streamType == StreamKind.VIDEO && (value.startsWith("avc") || value.startsWith("h264"))) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
@@ -753,18 +785,8 @@ public class MediaInfoParser {
 			format = FormatConfiguration.RGB;
 		} else if (streamType == StreamKind.VIDEO && value.equals("rle")) {
 			format = FormatConfiguration.RLE;
-		} else if (value.equals("mac3")) {
-			format = FormatConfiguration.MACE3;
-		} else if (value.equals("mac6")) {
-			format = FormatConfiguration.MACE6;
 		} else if (streamType == StreamKind.VIDEO && value.startsWith("tga")) {
 			format = FormatConfiguration.TGA;
-		} else if (value.equals("ffv1")) {
-			format = FormatConfiguration.FFV1;
-		} else if (value.equals("celp")) {
-			format = FormatConfiguration.CELP;
-		} else if (value.equals("qcelp")) {
-			format = FormatConfiguration.QCELP;
 		} else if (
 			value.matches("(?i)(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(sdcc)|(sl25)|(sl50)|(sldv)") &&
 			!value.contains("dvhe") &&
@@ -819,34 +841,16 @@ public class MediaInfoParser {
 			}
 		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
 			format = FormatConfiguration.VORBIS;
-		} else if (value.equals("adts")) {
-			format = FormatConfiguration.ADTS;
 		} else if (value.startsWith("amr")) {
 			format = FormatConfiguration.AMR;
-		} else if (value.equals("dolby e")) {
-			format = FormatConfiguration.DOLBYE;
-		} else if (
-			value.equals("ac-3") ||
-			value.equals("a_ac3") ||
-			value.equals("2000")
-		) {
-			format = FormatConfiguration.AC3;
-		} else if (value.equals("ac-4")) {
-			format = FormatConfiguration.AC4;
 		} else if (value.startsWith("cook")) {
 			format = FormatConfiguration.COOK;
 		} else if (value.startsWith("qdesign")) {
 			format = FormatConfiguration.QDESIGN;
-		} else if (value.equals("realaudio lossless")) {
-			format = FormatConfiguration.RALF;
 		} else if (value.contains("e-ac-3")) {
 			format = FormatConfiguration.EAC3;
 		} else if (value.contains("truehd")) {
 			format = FormatConfiguration.TRUEHD;
-		} else if (value.equals("tta")) {
-			format = FormatConfiguration.TTA;
-		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
-			format = FormatConfiguration.MP3;
 		} else if (
 			value.equals("lc") ||
 			value.equals("aac lc") ||
@@ -858,16 +862,8 @@ public class MediaInfoParser {
 			)
 		) {
 			format = FormatConfiguration.AAC_LC;
-		} else if (value.equals("aac lc sbr")) {
-			format = FormatConfiguration.HE_AAC;
-		} else if (value.equals("ltp")) {
-			format = FormatConfiguration.AAC_LTP;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.HE_AAC;
-		} else if (value.equals("main")) {
-			format = FormatConfiguration.AAC_MAIN;
-		} else if (value.equals("ssr")) {
-			format = FormatConfiguration.AAC_SSR;
 		} else if (value.startsWith("a_aac")) {
 			format = switch (value) {
 				case "a_aac/mpeg2/main" -> FormatConfiguration.AAC_MAIN;
@@ -892,26 +888,8 @@ public class MediaInfoParser {
 			format = FormatConfiguration.ADPCM;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodec() == null || !audio.getCodec().equals(FormatConfiguration.DTS)))) {
 			format = FormatConfiguration.LPCM;
-		} else if (value.equals("alac")) {
-			format = FormatConfiguration.ALAC;
-		} else if (value.equals("als")) {
-			format = FormatConfiguration.ALS;
-		} else if (value.equals("wave")) {
-			format = FormatConfiguration.WAV;
-		} else if (value.equals("shorten")) {
-			format = FormatConfiguration.SHORTEN;
 		} else if (value.equals("sls") || value.equals("SLS non-core")) {
 			format = FormatConfiguration.SLS;
-		} else if (value.equals("acelp")) {
-			format = FormatConfiguration.ACELP;
-		} else if (value.equals("g.729") || value.equals("g.729a")) {
-			format = FormatConfiguration.G729;
-		} else if (value.equals("vselp")) {
-			format = FormatConfiguration.REALAUDIO_14_4;
-		} else if (value.equals("g.728")) {
-			format = FormatConfiguration.REALAUDIO_28_8;
-		} else if (value.equals("a_real/sipr") || value.equals("kevin")) {
-			format = FormatConfiguration.SIPRO;
 		} else if (
 			(
 				value.equals("dts") ||
@@ -924,8 +902,6 @@ public class MediaInfoParser {
 			)
 		) {
 			format = FormatConfiguration.DTS;
-		} else if (value.equals("mpeg audio")) {
-			format = FormatConfiguration.MPA;
 		} else if (value.equals("wma")) {
 			format = FormatConfiguration.WMA;
 			if (video.getCodec() == null) {
@@ -981,22 +957,7 @@ public class MediaInfoParser {
 			format = FormatConfiguration.TIFF;
 		}
 
-		if (format != null) {
-			switch (streamType) {
-				case GENERAL -> media.setContainer(format);
-				case VIDEO -> video.setCodec(format);
-				case AUDIO -> audio.setCodec(format);
-				default -> {
-					//should not
-				}
-			}
-			// format not found so set container type based on the file extension. It will be overwritten when the correct type will be found
-		} else if (streamType == StreamKind.GENERAL && media.getContainer() == null && file.getAbsolutePath() != null) {
-			String ext = FileUtil.getExtension(file.getAbsolutePath());
-			if (ext != null) {
-				media.setContainer(ext.toLowerCase(Locale.ROOT));
-			}
-		}
+		return format;
 	}
 
 	public static int getPixelValue(String value) {
