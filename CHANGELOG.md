@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [15.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.2...15.9.0) (2026-10-05)
+
 ### General
 - Enable media players to automatically detect when videos are 3D (thanks, Daniel Ramos!)
 - Improved size and position of subtitles hardcoded with FFmpeg
@@ -28,26 +30,10 @@
 - Bump `com.github.junrar:junrar` from 7.6.0 to 7.6.1 ([#6328](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6328))
 - Bump `com.github.oshi:oshi-core` from 7.4.2 to 7.6.1 ([#6360](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6360))
 - Bump `com.google.guava:guava` from 33.6.0-jre to 33.7.1-jre ([#6340](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6340))
-- Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-core` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-hdr` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-icns` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-iff` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-jpeg` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-metadata` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-pcx` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-pict` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-pnm` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-psd` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-sgi` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-tga` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
-- Bump `com.twelvemonkeys.imageio:imageio-webp` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
+- Bump `com.twelvemonkeys.imageio:imageio-*` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
 - Bump `commons-codec:commons-codec` from 1.22.0 to 1.22.1 ([#6315](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6315))
 - Bump `Java Runtime Environment` from 17.0.19 to 17.0.20.1
 - Bump `jna-version` from 5.18.1 to 5.19.1 ([#6316](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6316))
-- Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.15.0 to 3.16.0 ([#6314](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6314))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.6.3 to 3.6.4 ([#6361](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6361))
