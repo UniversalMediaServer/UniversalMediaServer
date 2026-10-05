@@ -16,7 +16,11 @@
 - Fixed resume entries only working until program restarts
 
 ### Media players
+- Improved support for Philips TVs (thanks, Alex!)
 - Improved support for Sony TVs from 2011 to current (thanks, Daniel Ramos!)
+
+### Translation updates via Crowdin
+- Ukrainian (99%) (thanks, Yaroslav Maikovych!)
 
 ### Dependencies
 - Bump `@playwright/test` from 1.58.2 to 1.63.0 ([#6367](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6367))
