@@ -3,7 +3,8 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `eslint-plugin-react-refresh` from 0.5.2 to 0.5.7 ([#6384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6384))
+- Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
 - Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
 
 ## [15.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.2...15.9.0) (2026-10-05)
