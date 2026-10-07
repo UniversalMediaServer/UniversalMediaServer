@@ -3,7 +3,9 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `ch.qos.logback:logback-classic` from 1.6.3 to 1.6.4 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378))
+- Bump `ch.qos.logback:logback-core` from 1.6.3 to 1.6.4 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378))
+- Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
 - Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
 
 ## [15.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.2...15.9.0) (2026-10-05)
