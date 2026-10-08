@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@tabler/icons-react` from 3.41.1 to 3.48.0 ([#6386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6386))
 - Bump `ch.qos.logback:logback-classic` from 1.6.3 to 1.6.4 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378))
 - Bump `ch.qos.logback:logback-core` from 1.6.3 to 1.6.4 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378))
 - Bump `eslint-plugin-react-refresh` from 0.5.2 to 0.5.7 ([#6384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6384))
