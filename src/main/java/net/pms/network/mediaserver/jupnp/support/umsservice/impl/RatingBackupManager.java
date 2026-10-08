@@ -25,6 +25,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableResourceRatings;
 import net.pms.database.MediaTableResourceRatings.ResourceRating;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResourceRatings;
 import net.pms.util.RelativeMediaPath;
 import net.pms.util.RelativeMediaPath.Relative;
@@ -146,6 +147,7 @@ public class RatingBackupManager {
 				MediaDatabase.close(c);
 			}
 			StoreResourceRatings.clearCache();
+			MediaStoreIds.incrementSystemUpdateId();
 			LOGGER.info("Updated {} items. Skipped {} items. Deleted {} items.", counters.updated, counters.skipped, counters.deleted);
 			LOGGER.info("Restored {} ratings on their stored path, {} on the content of a moved file, {} below another mount point. " +
 				"{} stored paths do not exist any more.",
