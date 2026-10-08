@@ -32,6 +32,7 @@ import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class WebStreamParser {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebStreamParser.class.getName());
@@ -43,11 +44,6 @@ public class WebStreamParser {
 	}
 
 	public static void parse(MediaInfo mediaInfo, String url, int type) {
-		if (Strings.CI.contains(url, "youtube")) {
-			LOGGER.debug("Not attempting to parse YouTube URL with FFmpeg which does not support that");
-			return;
-		}
-
 		//ensure mediaInfo is not already parsing or is parsed
 		mediaInfo.waitMediaParsing(5);
 		if (mediaInfo.isMediaParsed()) {
@@ -66,9 +62,14 @@ public class WebStreamParser {
 			addAudioIcyInfos(mediaInfo, url, getHeaders);
 		}
 		mediaInfo.setParsing(false);
-		FFmpegParser.parseUrl(mediaInfo, url);
+		if (Strings.CI.contains(url, "youtube")) {
+			YoutubeParser.parseUrl(mediaInfo, url);
+		} else {
+			FFmpegParser.parseUrl(mediaInfo, url);
+		}
 		mediaInfo.setMediaParser("WEBSTREAM");
 	}
+
 
 	public static int getWebStreamType(String url, int defaultType) {
 		int type = getTypeFromUrl(url, defaultType);
