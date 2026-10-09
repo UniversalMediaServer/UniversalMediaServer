@@ -821,7 +821,6 @@ public abstract class StoreItem extends StoreResource {
 	public synchronized InputStream getInputStream(Range range, HlsHelper.HlsConfiguration hlsConfiguration) throws IOException {
 		LOGGER.trace("Asked stream chunk: " + range + " of " + getName() + " and engine " + getTranscodingSettings());
 
-		boolean timeseekAuto = false;
 		// Ditlew - We convert byteoffset to timeoffset here. This needs the stream to be CBR!
 		int cbrVideoBitrate = renderer.getCBRVideoBitrate();
 		long low = (range instanceof ByteRange byteRange) ? byteRange.getStartOrZero() : 0;
@@ -843,8 +842,6 @@ public abstract class StoreItem extends StoreResource {
 				// accurate enough)
 				int rewindSecs = renderer.getByteToTimeseekRewindSeconds();
 				timeRange.rewindStart(rewindSecs);
-
-				timeseekAuto = true;
 			}
 		}
 
@@ -898,7 +895,6 @@ public abstract class StoreItem extends StoreResource {
 		timeRange.limit(getSplitRange());
 		params.setTimeSeek(timeRange.getStartOrZero());
 		params.setTimeEnd(timeRange.getEndOrZero());
-		params.setShiftScr(timeseekAuto);
 		params.setHlsConfiguration(hlsConfiguration);
 		if (this instanceof IPushOutput iPushOutput) {
 			params.setStdIn(iPushOutput);

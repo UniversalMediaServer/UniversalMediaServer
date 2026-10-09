@@ -55,7 +55,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>15.8.2</project.version.short>
+		<project.version.short>15.9.0</project.version.short>
 		<project.jre-version>25</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -63,7 +63,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
-		<logback-version>1.6.3</logback-version>
+		<logback-version>1.6.4</logback-version>
 
 		<project.encoding>UTF-8</project.encoding>
 		<project.build.sourceEncoding>${project.encoding}</project.build.sourceEncoding>
@@ -75,9 +75,9 @@
 		<project.binaries-base>https://www.universalmediaserver.com/binaries</project.binaries-base>
 
 		<!-- This MUST be bumped every time binaries (files in /bin) are changed, or the Windows installer will not replace them -->
-		<binary-revision>224</binary-revision>
+		<binary-revision>225</binary-revision>
 
-		<exec-maven-plugin-version>3.6.3</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.6.4</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
 		<git-commit-id-plugin-version>10.0.1</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.8.0</maven-assembly-plugin-version>
@@ -98,7 +98,7 @@
 		-->
 		<slf4j-api-version>2.0.18</slf4j-api-version>
 		<lucene-version>10.5.0</lucene-version>
-		<surefire-version>3.5.6</surefire-version>
+		<surefire-version>3.6.0</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -142,7 +142,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
-			<version>4.5.0</version>
+			<version>4.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -235,7 +235,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>33.7.1-jre</version>
+			<version>33.7.2-jre</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.errorprone</groupId>
@@ -292,87 +292,87 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-icns</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-iff</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-hdr</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-metadata</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pcx</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pict</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-pnm</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-psd</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-sgi</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tga</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-webp</artifactId>
-			<version>3.15.1</version>
+			<version>3.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
-			<version>2.20.0</version>
+			<version>2.21.0</version>
 		</dependency>
 		<dependency>
 			<groupId>net.jthink</groupId>
@@ -491,7 +491,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>7.4.2</version>
+			<version>7.6.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -970,7 +970,7 @@
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
-				<version>2.0.1</version>
+				<version>2.0.2</version>
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
@@ -4108,4 +4108,3 @@
 		</profile>
 	</profiles>
 </project>
-
