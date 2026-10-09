@@ -119,7 +119,7 @@ public class FFmpegParser {
 		}
 	}
 
-	static void parse(MediaInfo media, InputFile inputFile) {
+	public static void parse(MediaInfo media, InputFile inputFile) {
 		/*
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
