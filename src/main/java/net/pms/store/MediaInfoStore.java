@@ -79,7 +79,7 @@ public class MediaInfoStore {
 		return null;
 	}
 
-	static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
+	public static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
 		synchronized (STORE) {
 			STORE.put(filename, new WeakReference<>(mediaInfo));
 		}
