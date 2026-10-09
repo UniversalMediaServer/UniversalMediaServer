@@ -18,6 +18,7 @@ export interface VideoJsPlayer extends Player {
 }
 
 export interface VideoJsPlayerOptions {
+  html5?: { nativeTextTracks: boolean }
   liveui?: boolean
   controls?: boolean
   qualityLevels?: boolean
