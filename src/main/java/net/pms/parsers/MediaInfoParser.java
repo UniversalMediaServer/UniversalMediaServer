@@ -149,7 +149,7 @@ public class MediaInfoParser {
 		parse(media, file, type, () -> getMediaInfoHelper(false));
 	}
 
-	static void parse(MediaInfo media, File file, int type, Supplier<MediaInfoHelper> helperFactory) {
+	public static void parse(MediaInfo media, File file, int type, Supplier<MediaInfoHelper> helperFactory) {
 		if (!media.waitMediaParsing(5) || file == null || media.isMediaParsed()) {
 			return;
 		}
