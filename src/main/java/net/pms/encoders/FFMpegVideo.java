@@ -460,8 +460,8 @@ public class FFMpegVideo extends Engine {
 //				transcodeOptions.add("copy");
 
 			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
-			if (defaultVideoTrack != null) {
-				if (canMuxVideoWithFFmpeg) {
+			if (defaultVideoTrack != null || type() == Format.VIDEO) {
+				if (canMuxVideoWithFFmpeg && defaultVideoTrack != null) {
 					if (!customFFmpegOptions.contains("-c:v")) {
 						transcodeOptions.add("-c:v");
 						transcodeOptions.add("copy");
@@ -521,14 +521,14 @@ public class FFMpegVideo extends Engine {
 						}
 					}
 
-					if (defaultVideoTrack.getBitDepth() == 8 || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
+					if ((defaultVideoTrack != null && defaultVideoTrack.getBitDepth() == 8) || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
 						transcodeOptions.add("-pix_fmt");
 						transcodeOptions.add("yuv420p");
 					}
 				}
 
 				// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
-				if (defaultVideoTrack.getHDRFormatForRenderer() != null) {
+				if (defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null) {
 					transcodeOptions.add("-strict");
 					transcodeOptions.add("unofficial");
 				}
@@ -1028,7 +1028,9 @@ public class FFMpegVideo extends Engine {
 		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			if (!renderer.doesDefaultVideoStreamMatchTranscodingGoal(media, encodingFormat)) {
+			if (defaultVideoTrack == null) {
+				LOGGER.debug(prependFfmpegTraceReason + "video stream metadata is missing.");
+			} else if (!renderer.doesDefaultVideoStreamMatchTranscodingGoal(media, encodingFormat)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (item.isInsideTranscodeFolder()) {
@@ -1085,7 +1087,10 @@ public class FFMpegVideo extends Engine {
 		if (!(renderer instanceof OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (item.isInsideTranscodeFolder()) {
+			if (defaultVideoTrack == null) {
+				deferToTsmuxer = false;
+				LOGGER.debug(prependTraceReason + "video stream metadata is missing.");
+			} else if (item.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, FormatConfiguration.MPEGTS)) {

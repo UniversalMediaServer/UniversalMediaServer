@@ -119,7 +119,7 @@ public class FFmpegParser {
 		}
 	}
 
-	private static void parse(MediaInfo media, InputFile inputFile) {
+	public static void parse(MediaInfo media, InputFile inputFile) {
 		/*
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
@@ -524,16 +524,11 @@ public class FFmpegParser {
 								} else if (codec.equalsIgnoreCase("hevc")) {
 									codec = FormatConfiguration.H265;
 								} else if (codec.equalsIgnoreCase("mpeg4") || codec.equalsIgnoreCase("msmpeg4v2")) {
-									// DivX video codec is printed as "mpeg4 (Advanced Simple Profile) (XVID / 0x44495658)"
-									if (token.contains("mpeg4 (Advanced Simple Profile) (XVID")) {
-										codec = FormatConfiguration.DIVX;
-									} else {
-										codec = FormatConfiguration.MP4;
-									}
+									codec = FormatConfiguration.MP4;
 								} else if (codec.equalsIgnoreCase("wmv2")) {
 									codec = FormatConfiguration.WMV;
 								}
-								video.setCodec(codec);
+								video.setCodec(Parser.normalizeMpeg4VideoCodec(codec, token.substring(positionAfterVideoString)));
 							} else if ((token.contains("tbc") || token.contains("tb(c)"))) {
 								// A/V sync issues with newest FFmpeg, due to the new tbr/tbn/tbc outputs
 								// Priority to tb(c)

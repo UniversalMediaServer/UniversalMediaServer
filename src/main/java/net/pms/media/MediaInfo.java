@@ -192,7 +192,7 @@ public class MediaInfo implements Cloneable {
 		int audioTracksSize = audioTracks.size();
 		if (audioTracksSize == 0 && imageCount > 0) {
 			return MediaType.IMAGE;
-		} else if (audioTracksSize == 1 || isSLS()) {
+		} else if (audioTracksSize > 0) {
 			return MediaType.AUDIO;
 		} else {
 			return MediaType.UNKNOWN;
