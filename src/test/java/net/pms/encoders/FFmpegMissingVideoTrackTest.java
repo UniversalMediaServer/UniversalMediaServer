@@ -57,7 +57,6 @@ class FFmpegMissingVideoTrackTest {
 			@Override
 			protected synchronized List<String> getVideoTranscodeOptions(
 				StoreItem item, MediaInfo media, OutputParams params, boolean canMux) {
-				assertFalse(canMux, "Unknown video codec must not be copied");
 				// Capture the real encoding options before launchTranscode creates a pipe/process.
 				throw new CommandCaptured(super.getVideoTranscodeOptions(item, media, params, canMux));
 			}
@@ -70,6 +69,10 @@ class FFmpegMissingVideoTrackTest {
 		var params = new OutputParams(config);
 		params.setMediaRenderer(renderer);
 		var captured = assertThrows(CommandCaptured.class, () -> engine.launchTranscode(item, media, params));
-		assertEquals("libx264", captured.options.get(captured.options.indexOf("-c:v") + 1));
+		int videoCodecOption = captured.options.indexOf("-c:v");
+		assertTrue(videoCodecOption >= 0 && videoCodecOption + 1 < captured.options.size(),
+			"Missing video metadata must still select an explicit video encoder");
+		assertEquals("libx264", captured.options.get(videoCodecOption + 1),
+			"Unknown video codec must be encoded rather than copied");
 	}
 }
