@@ -26,6 +26,20 @@
 			<useProjectArtifact>true</useProjectArtifact>
 			<unpack>true</unpack>
 			<scope>runtime</scope>
+			<excludes>
+				<exclude>com.ibm.icu:icu4j</exclude>
+			</excludes>
+		</dependencySet>
+		<!-- Use the charset-only ICU artifact produced before this assembly. -->
+		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
+			<useProjectAttachments>true</useProjectAttachments>
+			<useTransitiveDependencies>false</useTransitiveDependencies>
+			<unpack>true</unpack>
+			<includes>
+				<include>${project.groupId}:${project.artifactId}:jar:icu4j-charset-detection</include>
+			</includes>
 		</dependencySet>
 	</dependencySets>
 
