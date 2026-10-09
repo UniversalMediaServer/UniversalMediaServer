@@ -521,7 +521,7 @@ public class FFMpegVideo extends Engine {
 						}
 					}
 
-					if (defaultVideoTrack == null || defaultVideoTrack.getBitDepth() == 8 || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
+					if ((defaultVideoTrack != null && defaultVideoTrack.getBitDepth() == 8) || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
 						transcodeOptions.add("-pix_fmt");
 						transcodeOptions.add("yuv420p");
 					}
