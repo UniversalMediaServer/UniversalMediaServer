@@ -131,8 +131,14 @@ public class MediaInfoStore {
 					try {
 						mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
 						if (mediaInfo != null) {
-							if ((!mediaInfo.isMediaParsed() || !Parser.hasMediaContent(mediaInfo, type)) &&
-								!Parser.MANUAL_PARSER.equals(mediaInfo.getMediaParser()) && PARSE_RETRY.acquire(file)) {
+							if (
+								(
+									!mediaInfo.isMediaParsed() ||
+									!Parser.hasMediaContent(mediaInfo, type)
+								) &&
+								!Parser.MANUAL_PARSER.equals(mediaInfo.getMediaParser()) &&
+								PARSE_RETRY.acquire(file)
+							) {
 								mediaInfo.setMediaParser(null);
 								Parser.parse(mediaInfo, input, format, type);
 								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
