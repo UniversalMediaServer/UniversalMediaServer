@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +37,6 @@ import net.pms.database.MediaTableVideoMetadataDirectors;
 import net.pms.database.MediaTableVideoMetadataGenres;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
-import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.item.MediaLibraryTvEpisode;
 import net.pms.store.item.RealFile;
@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
  * variants will be added at the top.
  */
 public class MediaLibraryFolder extends MediaLibraryAbstract {
+
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
@@ -247,22 +248,25 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						switch (expectedOutput) {
 							case FILES, FILES_NOSORT, PLAYLISTS, ISOS, EPISODES_WITHIN_SEASON -> {
 								firstSql = firstSql.replaceAll(SELECT_DISTINCT_TVSEASON, SELECT_ALL + FROM_FILES_VIDEOMETA);
-								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+								var fileQuery = MediaTableFiles.getFilesAndSnapshot(connection, firstSql);
+								filesListFromDb = fileQuery.files();
+								populatedFilesListFromDb = fileQuery.snapshot();
 							}
 							case FILES_NOSORT_DEDUPED -> {
 								populatedFilesListFromDb = new ArrayList<>();
 								filesListFromDb = new ArrayList<>();
+								Set<String> seenPaths = new HashSet<>();
 								for (File item : MediaTableFiles.getFiles(connection, firstSql)) {
-									if (!populatedFilesListFromDb.contains(item.getAbsolutePath())) {
+									if (seenPaths.add(item.getAbsolutePath())) {
 										filesListFromDb.add(item);
 										populatedFilesListFromDb.add(item.getAbsolutePath());
 									}
 								}
 							}
 							case EPISODES -> {
-								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+								var fileQuery = MediaTableFiles.getFilesAndSnapshot(connection, firstSql);
+								filesListFromDb = fileQuery.files();
+								populatedFilesListFromDb = fileQuery.snapshot();
 
 								// Build the season filter folders
 								int indexAfterFromInFirstQuery = firstSql.indexOf(FROM_FILES) + FROM_FILES.length();
@@ -289,8 +293,9 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 									populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 								} else if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-									filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
-									populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
+									var fileQuery = MediaTableFiles.getFilesAndSnapshot(connection, firstSql);
+									filesListFromDb = fileQuery.files();
+									populatedFilesListFromDb = fileQuery.snapshot();
 								}
 
 								if (!firstSql.toUpperCase().startsWith(SELECT)) {
@@ -708,7 +713,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				addChild(recommendations);
 			}
 		}
-
 		List<StoreResource> newFilesResources = new ArrayList<>();
 		for (File file : newFiles) {
 			if (renderer.hasShareAccess(file)) {
@@ -730,10 +734,11 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		for (StoreResource newResource : newFilesResources) {
 			addChild(newResource);
 		}
-		if (isDiscovered()) {
-			MediaStoreIds.incrementUpdateId(getLongId());
-		}
 		sortChildrenIfNeeded();
+		if (isDiscovered()) {
+			notifyRefreshIfChanged();
+		}
+
 	}
 
 	/**

@@ -20,11 +20,14 @@ import java.io.File;
 import java.util.*;
 import java.util.Map.Entry;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
+import net.pms.database.MediaTableFiles;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.renderers.Renderer;
 import net.pms.store.FileSearch;
+import net.pms.renderers.devices.MediaScannerDevice;
 import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.SystemFileResource;
 import net.pms.store.SystemFilesHelper;
@@ -239,13 +242,46 @@ public class VirtualFolder extends StoreContainer {
 			StoreContainer parent = getSharedContentParent(virtualFolder.getParent());
 			parent.addChild(new VirtualFolder(renderer, virtualFolder), true, true);
 		}
+
+		// resolve this folder's files concurrently
+		renderer.getMediaStore().prepareResources(discoverable);
+
+		// A scan only has to fill the database. Its tree is thrown away right after the
+		boolean scanning = renderer instanceof MediaScannerDevice;
+
+		List<File> scannedFiles = scanning ? new ArrayList<>() : null;
 		while (!discoverable.isEmpty()) {
-			manageFile(discoverable.remove(0));
+			File file = discoverable.remove(0);
+			if (scanning && file.isFile()) {
+				scannedFiles.add(file);
+			} else {
+				manageFile(file);
+			}
+		}
+		if (scanning) {
+			assignStoreIds(scannedFiles);
 		}
 		if (fs != null) {
 			fs.update(searchList);
 		}
 		return discoverable.isEmpty();
+	}
+
+	/**
+	 * Gives the files of this folder their store id.
+	 */
+	private void assignStoreIds(List<File> files) {
+		for (File file : files) {
+			StoreResource resource = renderer.getMediaStore().createResourceFromFile(file);
+			if (resource instanceof StoreItem) {
+				resource.setParent(this);
+				renderer.getMediaStore().addWeakResource(resource);
+			} else if (resource instanceof PlaylistFolder || resource instanceof DVDISOFile) {
+				// A playlist and a dvd iso are containers, so they never enter the tree of a scan. We need the DB entry here.
+				int type = resource instanceof PlaylistFolder ? Format.PLAYLIST : Format.ISO;
+				MediaTableFiles.getOrInsertFileId(file.getAbsolutePath(), file.lastModified(), type);
+			}
+		}
 	}
 
 	@Override
@@ -282,21 +318,7 @@ public class VirtualFolder extends StoreContainer {
 			}
 		}
 
-		// Remove cover/thumbnails from file list
-		if (!images.isEmpty() && !audioVideo.isEmpty()) {
-			Set<File> potentialMatches;
-			for (File audioVideoFile : audioVideo) {
-				potentialMatches = SystemFilesHelper.getPotentialFileThumbnails(audioVideoFile, false);
-				iterator = images.iterator();
-				while (iterator.hasNext()) {
-					File imageFile = iterator.next();
-					if (potentialMatches.contains(imageFile)) {
-						iterator.remove();
-						childrenFiles.remove(imageFile);
-					}
-				}
-			}
-		}
+		removeFileThumbnails(childrenFiles, images, audioVideo);
 
 		// ATZ handling
 		if (childrenFiles.size() > renderer.getUmsConfiguration().getATZLimit() && StringUtils.isEmpty(forcedName)) {
@@ -368,6 +390,29 @@ public class VirtualFolder extends StoreContainer {
 		setDiscovered(analyzeChildren());
 		sortChildrenIfNeeded();
 		setLastRefreshTime(System.currentTimeMillis());
+	}
+
+	/**
+	 * Removes matching thumbnails in one pass, preserving the remaining file order.
+	 */
+	static void removeFileThumbnails(List<File> childrenFiles, Set<File> images, Set<File> audioVideo) {
+		if (images.isEmpty() || audioVideo.isEmpty()) {
+			return;
+		}
+		Set<File> thumbnails = new HashSet<>();
+		for (File mediaFile : audioVideo) {
+			for (File candidate : SystemFilesHelper.getPotentialFileThumbnails(mediaFile, false)) {
+				if (images.remove(candidate)) {
+					thumbnails.add(candidate);
+				}
+			}
+			if (images.isEmpty()) {
+				break;
+			}
+		}
+		// Overlapping shared folders can list a file more than once. As before,
+		// remove only the first occurrence of each matching thumbnail.
+		childrenFiles.removeIf(thumbnails::remove);
 	}
 
 	/**

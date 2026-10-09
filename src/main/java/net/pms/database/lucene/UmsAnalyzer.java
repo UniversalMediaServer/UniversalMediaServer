@@ -23,4 +23,12 @@ public class UmsAnalyzer extends Analyzer {
 		result = new WordDelimiterGraphFilter(result, GENERATE_WORD_PARTS | GENERATE_NUMBER_PARTS | CATENATE_ALL | SPLIT_ON_CASE_CHANGE, null);
 		return new TokenStreamComponents(src, result);
 	}
+
+	/**
+	 * We do case insensitive search, so we normalize the tokens to lower case.
+	 */
+	@Override
+	protected TokenStream normalize(String fieldName, TokenStream in) {
+		return new LowerCaseFilter(in);
+	}
 }

@@ -1,7 +1,5 @@
 package net.pms.network.mediaserver.jupnp.support.umsservice;
 
-import java.io.FileNotFoundException;
-import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 import jakarta.annotation.Nullable;
@@ -13,16 +11,36 @@ import org.jupnp.binding.annotations.UpnpServiceId;
 import org.jupnp.binding.annotations.UpnpServiceType;
 import org.jupnp.binding.annotations.UpnpStateVariable;
 import org.jupnp.binding.annotations.UpnpStateVariables;
+import org.jupnp.model.profile.RemoteClientInfo;
 import org.jupnp.model.types.ErrorCode;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.File;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfigurations;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.LikeMusic;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RadioBrowserSearch;
 import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
+import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import net.pms.store.MediaScanner;
 import net.pms.store.StoreResource;
+import net.pms.store.IcyStreamTitleParser;
+import net.pms.store.NowPlayingInfo;
+import net.pms.store.WebStreamNowPlaying;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.store.item.WebAudioStream;
+import net.pms.util.artistImageProvider.UmsArtistImageProvider;
+import net.pms.store.container.audioaddict.AudioAddictPlaylistInputStream;
+import net.pms.external.audioaddict.AudioAddictTrackDto;
+import de.sfuhrm.radiobrowser4j.Station;
+import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.jupnp.internal.compat.java.beans.PropertyChangeSupport;
 
 @UpnpService(
 	serviceId = @UpnpServiceId("UmsExtendedServices"),
@@ -37,7 +55,22 @@ import net.pms.store.StoreResource;
 	@UpnpStateVariable(name = "A_ARG_TYPE_AlbumLikedValue", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_PreferEuropeanServer", sendEvents = false, datatype = "boolean"),
 	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictUser", sendEvents = false, datatype = "string"),
-	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string")
+	@UpnpStateVariable(name = "A_ARG_TYPE_AudioAddictPass", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_PlaylistLoop", sendEvents = false, datatype = "boolean"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_PlaylistId", sendEvents = false, datatype = "ui4"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_NowPlaying", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Name", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_CountryCode", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Language", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Tag", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Offset", sendEvents = false, datatype = "ui4"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Limit", sendEvents = false, datatype = "ui4"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Kind", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Search", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_StationUuid", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Title", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_IcyOrder", sendEvents = false, datatype = "string"),
+	@UpnpStateVariable(name = "A_ARG_TYPE_Result", sendEvents = false, datatype = "string")
 	})
 public class UmsExtendedServices {
 
@@ -63,7 +96,23 @@ public class UmsExtendedServices {
 	@UpnpStateVariable(name = "PreferEuropeanServer", defaultValue = "false", sendEvents = true)
 	public boolean preferEuropeanServer = false;
 
+	@UpnpStateVariable(name = "PlaylistLoop", defaultValue = "false", sendEvents = true)
+	public boolean playlistLoop = false;
+
+	/**
+	 * The stream title last announced by any web radio this server is serving, as JSON.
+	 */
+	@UpnpStateVariable(name = "WebStreamNowPlaying", defaultValue = "", sendEvents = true)
+	public String webStreamNowPlaying = "";
+
+	private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+
+	public PropertyChangeSupport getPropertyChangeSupport() {
+		return propertyChangeSupport;
+	}
+
 	public UmsExtendedServices() {
+		WebStreamNowPlaying.addListener(this::onWebStreamTitleChanged);
 		readConfig();
 		this.readConfigTimer = new TimerTask() {
 			@Override
@@ -74,27 +123,81 @@ public class UmsExtendedServices {
 		timer.schedule(readConfigTimer, 0, 60000);
 	}
 
+	private void onWebStreamTitleChanged(String resourceId, NowPlayingInfo info) {
+		String json = toNowPlayingJson(resourceId, info);
+		if (json == null) {
+			return;
+		}
+		this.webStreamNowPlaying = json;
+		propertyChangeSupport.firePropertyChange("WebStreamNowPlaying", null, this.webStreamNowPlaying);
+	}
+
+	/**
+	 * The cover is only present for a source that knows it. Artist and title are present for an API
+	 * source and for an ICY line that could be split; "streamTitle" always carries the whole line.
+	 */
+	private static String toNowPlayingJson(String resourceId, NowPlayingInfo info) {
+		Map<String, String> event = new LinkedHashMap<>();
+		event.put("objectID", resourceId);
+		event.put("streamTitle", info != null ? info.streamTitle : "");
+		if (info != null) {
+			if (info.artist != null) {
+				event.put("artist", info.artist);
+			}
+			if (info.title != null) {
+				event.put("title", info.title);
+			}
+			if (info.artUrl != null) {
+				event.put("artUrl", info.artUrl);
+			}
+		}
+		try {
+			return new ObjectMapper().writeValueAsString(event);
+		} catch (JsonProcessingException e) {
+			LOG.warn("cannot serialize now-playing for {}", resourceId, e);
+			return null;
+		}
+	}
+
 	private void readConfig() {
+		String changed = "";
 		if (this.audioUpdateRatingTag != PMS.getConfiguration().isAudioUpdateTag()) {
 			LOG.debug("isAudioUpdateTag has changed to {} ", PMS.getConfiguration().isAudioUpdateTag());
 			this.audioUpdateRatingTag = PMS.getConfiguration().isAudioUpdateTag();
+			changed = appendChanged(changed, "AudioUpdateRating");
 		}
 		if (this.audioLikesVisibleRoot != PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 			LOG.debug("audioLikesVisibleRoot has changed to {} ", PMS.getConfiguration().displayAudioLikesInRootFolder());
 			this.audioLikesVisibleRoot = PMS.getConfiguration().displayAudioLikesInRootFolder();
+			changed = appendChanged(changed, "AudioLikesVisibleRoot");
 		}
 		if (this.upnpCdsWrite != PMS.getConfiguration().isUpnpCdsWrite()) {
 			LOG.debug("upnpCdsWrite has changed to {} ", PMS.getConfiguration().isUpnpCdsWrite());
 			this.upnpCdsWrite = PMS.getConfiguration().isUpnpCdsWrite();
+			changed = appendChanged(changed, "UpnpCdsWrite");
 		}
 		if (this.anonymousDevicesWrite != PMS.getConfiguration().isAnonymousDevicesWrite()) {
 			LOG.debug("anonymousDevicesWrite has changed to {} ", PMS.getConfiguration().isAnonymousDevicesWrite());
 			this.anonymousDevicesWrite = PMS.getConfiguration().isAnonymousDevicesWrite();
+			changed = appendChanged(changed, "AnonymousDevicesWrite");
 		}
 		if (this.preferEuropeanServer != PMS.getConfiguration().isAudioAddictEuropeanServer()) {
-			LOG.debug("prefer european srevers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
-			this.anonymousDevicesWrite = PMS.getConfiguration().isAudioAddictEuropeanServer();
+			LOG.debug("prefer european servers has changed to {} ", PMS.getConfiguration().isAudioAddictEuropeanServer());
+			this.preferEuropeanServer = PMS.getConfiguration().isAudioAddictEuropeanServer();
+			changed = appendChanged(changed, "PreferEuropeanServer");
 		}
+		if (this.playlistLoop != PMS.getConfiguration().isAudioAddictPlaylistLoop()) {
+			LOG.debug("playlistLoop has changed to {} ", PMS.getConfiguration().isAudioAddictPlaylistLoop());
+			this.playlistLoop = PMS.getConfiguration().isAudioAddictPlaylistLoop();
+			changed = appendChanged(changed, "PlaylistLoop");
+		}
+		if (!changed.isEmpty()) {
+			propertyChangeSupport.firePropertyChange(changed, null, null);
+		}
+	}
+
+	private static String appendChanged(String changed, String stateVariable) {
+		return changed.isEmpty() ? stateVariable : changed + "," + stateVariable;
 	}
 
 	@UpnpAction
@@ -102,11 +205,102 @@ public class UmsExtendedServices {
 		LOG.debug("updating preferEuropeanServer to {}. Value changed from : {}", preferEuropeanServer, this.preferEuropeanServer);
 		PMS.getConfiguration().setAudioAddictEuropeanServer(preferEuropeanServer);
 		this.preferEuropeanServer = preferEuropeanServer;
+		propertyChangeSupport.firePropertyChange("PreferEuropeanServer", null, this.preferEuropeanServer);
+	}
+
+	@UpnpAction
+	public void setPlaylistLoop(@UpnpInputArgument(name = "PlaylistLoop") boolean playlistLoop) {
+		LOG.debug("updating playlistLoop to {}. Value changed from : {}", playlistLoop, this.playlistLoop);
+		PMS.getConfiguration().setAudioAddictPlaylistLoop(playlistLoop);
+		this.playlistLoop = playlistLoop;
+		propertyChangeSupport.firePropertyChange("PlaylistLoop", null, this.playlistLoop);
+	}
+
+	/**
+	 * Returns the track currently playing on the given AudioAddict curated playlist as a small JSON
+	 * object, or an empty string when that playlist is not being streamed right now. Lets a control point
+	 * display the live playlist track, which is UMS-internal playback state.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "NowPlaying"))
+	public String getPlaylistNowPlaying(@UpnpInputArgument(name = "PlaylistId") UnsignedIntegerFourBytes playlistId) {
+		AudioAddictTrackDto track = AudioAddictPlaylistInputStream.getCurrentTrack(playlistId.getValue().intValue());
+		if (track == null) {
+			return "";
+		}
+		Map<String, String> nowPlaying = new LinkedHashMap<>();
+		nowPlaying.put("artist", track.artist != null ? track.artist : "");
+		nowPlaying.put("title", track.title != null ? track.title : "");
+		nowPlaying.put("artUrl", track.albumArt != null ? track.albumArt : "");
+		try {
+			return new ObjectMapper().writeValueAsString(nowPlaying);
+		} catch (JsonProcessingException e) {
+			LOG.warn("cannot serialize playlist now-playing for playlist {}", playlistId, e);
+			return "";
+		}
+	}
+
+	/**
+	 * Returns the title a web radio is currently announcing via ICY as a JSON object passed on verbatim.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "NowPlaying"))
+	public String getWebStreamNowPlaying(@UpnpInputArgument(name = "ObjectID") String objectId) {
+		String resourceId = StringUtils.substringBefore(objectId, "#");
+		NowPlayingInfo info = WebStreamNowPlaying.get(resourceId);
+		if (info == null) {
+			return "";
+		}
+		return StringUtils.defaultString(toNowPlayingJson(resourceId, info));
+	}
+
+	/**
+	 * Which half of an ICY stream title a station puts the artist in: "auto", "artist-first" or "title-first".
+	 * Most stations announce "Artist - Title", some announce "Track - Station".
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "IcyOrder"))
+	public String getWebStreamIcyOrder(@UpnpInputArgument(name = "ObjectID") String objectId,
+			RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
+		return getWebAudioStream(objectId, remoteClientInfo).getIcyTitleOrder().directiveValue();
+	}
+
+	/**
+	 * Stores that order in the playlist the station is listed in.
+	 */
+	@UpnpAction
+	public void setWebStreamIcyOrder(@UpnpInputArgument(name = "ObjectID") String objectId,
+			@UpnpInputArgument(name = "IcyOrder") String icyOrder,
+			RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
+		IcyStreamTitleParser.Order order = IcyStreamTitleParser.Order.of(icyOrder);
+		if (StringUtils.isNotBlank(icyOrder) && !order.directiveValue().equals(icyOrder.trim().toLowerCase())) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "unknown ICY order " + icyOrder);
+		}
+		WebAudioStream stream = getWebAudioStream(objectId, remoteClientInfo);
+		if (!(stream.getParent() instanceof PlaylistFolder playlist)) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID,
+					"object " + objectId + " is not part of a playlist");
+		}
+		stream.setIcyTitleOrder(order);
+		// AUTO is the default, so it is stored as the absence of the directive.
+		playlist.updateIcyOrderDirective(stream.getUrl(), order == IcyStreamTitleParser.Order.AUTO ? null : order.directiveValue());
+		ConnectedRenderers.invalidateRendererCache(new File(playlist.getFileName()));
+		LOG.debug("ICY title order of {} set to {}", stream.getUrl(), order);
+	}
+
+	private WebAudioStream getWebAudioStream(String objectId, RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
+		Renderer renderer = UmsContentDirectoryService.getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "unknown media renderer");
+		}
+		StoreResource resource = renderer.getMediaStore().getResource(StringUtils.substringBefore(objectId, "#"));
+		if (!(resource instanceof WebAudioStream stream)) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "object " + objectId + " is not a web radio");
+		}
+		return stream;
 	}
 
 	@UpnpAction
 	public void setAudioUpdateRatingTag(@UpnpInputArgument(name = "AudioUpdateRating") boolean newAudioUpdateRatingTag) {
 		this.audioUpdateRatingTag = newAudioUpdateRatingTag;
+		propertyChangeSupport.firePropertyChange("AudioUpdateRating", null, this.audioUpdateRatingTag);
 		boolean changed = PMS.getConfiguration().setAudioUpdateTag(newAudioUpdateRatingTag);
 		LOG.debug("updating audioUpdateRatingTag to {}. Value changed : {}", newAudioUpdateRatingTag, changed);
 	}
@@ -114,6 +308,7 @@ public class UmsExtendedServices {
 	@UpnpAction
 	public void setAudioLikesVisibleRoot(@UpnpInputArgument(name = "AudioLikesVisibleRoot") boolean newAudioLikesVisibleRoot) {
 		this.audioLikesVisibleRoot = newAudioLikesVisibleRoot;
+		propertyChangeSupport.firePropertyChange("AudioLikesVisibleRoot", null, this.audioLikesVisibleRoot);
 		boolean changed = PMS.getConfiguration().setDisplayAudioLikesInRootFolder(newAudioLikesVisibleRoot);
 		LOG.debug("updating audioLikesVisibleRoot to {}. Value changed : {}", newAudioLikesVisibleRoot, changed);
 	}
@@ -121,6 +316,7 @@ public class UmsExtendedServices {
 	@UpnpAction
 	public void setUpnpCdsWrite(@UpnpInputArgument(name = "UpnpCdsWrite") boolean newUpnpCdsWrite) {
 		this.upnpCdsWrite = newUpnpCdsWrite;
+		propertyChangeSupport.firePropertyChange("UpnpCdsWrite", null, this.upnpCdsWrite);
 		boolean changed = PMS.getConfiguration().setUpnpCdsWrite(newUpnpCdsWrite);
 		LOG.debug("updating upnpCdsWrite to {}. Value changed : {}", newUpnpCdsWrite, changed);
 	}
@@ -128,6 +324,7 @@ public class UmsExtendedServices {
 	@UpnpAction
 	public void setAnonymousDevicesWrite(@UpnpInputArgument(name = "AnonymousDevicesWrite") boolean newAnonymousDevicesWrite) {
 		this.anonymousDevicesWrite = newAnonymousDevicesWrite;
+		propertyChangeSupport.firePropertyChange("AnonymousDevicesWrite", null, this.anonymousDevicesWrite);
 		boolean changed = PMS.getConfiguration().setAnonymousDevicesWrite(newAnonymousDevicesWrite);
 		LOG.debug("updating anonymousDevicesWrite to {}. Value changed : {}", newAnonymousDevicesWrite, changed);
 	}
@@ -152,6 +349,84 @@ public class UmsExtendedServices {
 		LOG.debug("updated AudioAddict password");
 	}
 
+	/**
+	 * Sets the "audio artist" directory in the UMS configuration from a media-store object id. The
+	 * object id is resolved to its filesystem path and stored; used as the source of artist images.
+	 */
+	@UpnpAction
+	public void setAudioArtistDir(@UpnpInputArgument(name = "ObjectID") String objectId) {
+		LOG.debug("updating audio artist directory to object id {}", objectId);
+		new UmsArtistImageProvider().updateArtistDir(objectId);
+	}
+
+	/**
+	 * @return the currently configured audio artist directory, or an empty string when none is set.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "ObjectID"))
+	public String getAudioArtistDir() {
+		String dir = PMS.getConfiguration().getAudioArtistDir();
+		return dir != null ? dir : "";
+	}
+
+	/**
+	 * Searches radio-browser.info so a control point can offer a station picker.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "Result"))
+	public String searchRadioStations(
+			@Nullable @UpnpInputArgument(name = "Name") String name,
+			@Nullable @UpnpInputArgument(name = "CountryCode") String countryCode,
+			@Nullable @UpnpInputArgument(name = "Language") String language,
+			@Nullable @UpnpInputArgument(name = "Tag") String tag,
+			@Nullable @UpnpInputArgument(name = "Offset") UnsignedIntegerFourBytes offset,
+			@Nullable @UpnpInputArgument(name = "Limit") UnsignedIntegerFourBytes limit) throws UmsExtendedServicesException {
+		return RadioBrowserSearch.searchStations(name, countryCode, language, tag,
+				offset != null ? offset.getValue().intValue() : 0,
+				limit != null ? limit.getValue().intValue() : 0);
+	}
+
+	/**
+	 * Values for the filter fields of that picker.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "Result"))
+	public String getRadioFilterValues(
+			@UpnpInputArgument(name = "Kind") String kind,
+			@Nullable @UpnpInputArgument(name = "Search") String search) throws UmsExtendedServicesException {
+		return RadioBrowserSearch.getFilterValues(kind, search);
+	}
+
+	/**
+	 * Adds a station to a playlist.
+	 */
+	@UpnpAction(out = @UpnpOutputArgument(name = "Result"))
+	public String addRadioStationToPlaylist(
+			@UpnpInputArgument(name = "ObjectID") String objectId,
+			@UpnpInputArgument(name = "StationUuid") String stationUuid,
+			@Nullable @UpnpInputArgument(name = "Title") String title,
+			RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
+		Renderer renderer = UmsContentDirectoryService.getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "unknown media renderer");
+		}
+		StoreResource resource = renderer.getMediaStore().getResource(objectId);
+		if (!(resource instanceof PlaylistFolder playlist)) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "object " + objectId + " is not a playlist");
+		}
+		Station station = RadioBrowserSearch.getStation(stationUuid);
+		String url = RadioBrowserSearch.getStreamUrl(station);
+		if (StringUtils.isBlank(url)) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "station " + station.getName() + " has no stream url");
+		}
+		String entryTitle = StringUtils.isNotBlank(title) ? title.trim() : StringUtils.trimToEmpty(station.getName());
+		if (!playlist.addWebEntry(url, entryTitle, station.getFavicon(),
+				station.getStationUUID() != null ? station.getStationUUID().toString() : null)) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED,
+					"could not add " + entryTitle + " to " + playlist.getName());
+		}
+		ConnectedRenderers.invalidateRendererCache(new File(playlist.getFileName()));
+		LOG.debug("added radio station {} to playlist {}", entryTitle, playlist.getFileName());
+		return entryTitle;
+	}
+
 	@UpnpAction
 	public void rescanMediaStore() throws UmsExtendedServicesException {
 		if (!MediaScanner.isMediaScanRunning()) {
@@ -164,42 +439,19 @@ public class UmsExtendedServices {
 	}
 
 	@UpnpAction
-	public void rescanMediaStoreFolder(@UpnpInputArgument(name = "ObjectID") String objectId) {
+	public void rescanMediaStoreFolder(@UpnpInputArgument(name = "ObjectID") String objectId,
+			RemoteClientInfo remoteClientInfo) throws UmsExtendedServicesException {
 		LOG.debug("updating object with ID {} ", objectId);
-		StoreResource sr = RendererConfigurations.getDefaultRenderer().getMediaStore().getResource(objectId);
+		Renderer renderer = UmsContentDirectoryService.getBrowseRenderer(remoteClientInfo);
+		if (renderer == null) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "unknown media renderer");
+		}
+		StoreResource sr = renderer.getMediaStore().getResource(objectId);
+		if (sr == null) {
+			throw new UmsExtendedServicesException(ErrorCode.ARGUMENT_VALUE_INVALID, "no object with id " + objectId);
+		}
 		LOG.debug("object with ID has path of {} ", sr.getFileName());
 		MediaScanner.backgroundScanFileOrFolder(sr.getFileName());
-	}
-
-	/*
-	 * Backup audio likes to a file.
-	 */
-	@UpnpAction
-	public void backupAudioLikes() throws UmsExtendedServicesException {
-		LOG.debug("backing up audio likes table ... ");
-		try {
-			likeMusic.backupLikedAlbums();
-		} catch (SQLException e) {
-			LOG.error("failed backup audio likes table", e);
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
-		}
-	}
-
-	/**
-	 * Restore audio likes from a backup file created by the backupAudioLikes action.
-	 */
-	@UpnpAction
-	public void restoreAudioLikes() throws UmsExtendedServicesException {
-		LOG.debug("restoring audio likes table ... ");
-		try {
-			likeMusic.restoreLikedAlbums();
-		} catch (SQLException e) {
-			LOG.error("failed backup audio likes table", e);
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, e.getMessage());
-		} catch (FileNotFoundException e) {
-			LOG.error("Backup file couldn't be found", e);
-			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Backup file not found : " + e.getMessage());
-		}
 	}
 
 	/**
@@ -277,7 +529,7 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * Backup audio ratings to a file.
+	 * Backup the ratings of all resource types to a file.
 	 */
 	@UpnpAction
 	public void backupRatings() throws UmsExtendedServicesException {
@@ -291,10 +543,14 @@ public class UmsExtendedServices {
 	}
 
 	/**
-	 * Restores audio ratings from a backup file created by the backupRatings action.
+	 * Restores the ratings of all resource types from a backup file created by the backupRatings action.
 	 */
 	@UpnpAction
 	public void restoreRatings() throws UmsExtendedServicesException {
+		if (MediaScanner.isMediaScanRunning()) {
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED,
+					"A media scan is running. Please wait until scan finished before restoring ratings.");
+		}
 		LOG.debug("restoring audio ratings ... ");
 		try {
 			RatingBackupManager.restoreRating();

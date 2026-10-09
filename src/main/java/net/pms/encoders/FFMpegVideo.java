@@ -531,6 +531,8 @@ public class FFMpegVideo extends Engine {
 				if (defaultVideoTrack.getHDRFormatForRenderer() != null) {
 					transcodeOptions.add("-strict");
 					transcodeOptions.add("unofficial");
+					transcodeOptions.add("-tune");
+					transcodeOptions.add("hdr");
 				}
 			}
 
@@ -1076,7 +1078,10 @@ public class FFMpegVideo extends Engine {
 				if (videoWouldBeCompatibleInTsContainer) {
 					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
 				}
-				LOGGER.debug(prependFfmpegTraceReason + "the file is Dolby Vision and FFmpeg only outputs Dolby Vision metadata to MP4 containers as of FFmpeg 7.0.1 (worth re-checking periodically).");
+				// this can be checked by running e.g.
+				// ffmpeg -i dv.mkv -c:a copy -c:v copy -strict unofficial -dolbyvision 1 out.ts
+				// then parsing out.ts with MediaInfo to see whether Dolby Vision is detected.
+				LOGGER.debug(prependFfmpegTraceReason + "the file is Dolby Vision and FFmpeg only outputs Dolby Vision metadata to MP4 containers as of FFmpeg 9.0.2 (worth re-checking periodically).");
 			}
 		}
 
@@ -1318,13 +1323,7 @@ public class FFMpegVideo extends Engine {
 			mkfifoProcess.runInSameThread();
 			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
-			// Give the mkfifo process a little time
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-				Thread.currentThread().interrupt();
-			}
+			// Pipe creation is synchronous; the Windows reader also accepts early clients.
 		} else {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
@@ -1627,14 +1626,8 @@ public class FFMpegVideo extends Engine {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
-		// Give the mkfifo process a little time
-		try {
-			Thread.sleep(300);
-		} catch (InterruptedException e) {
-			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-			Thread.currentThread().interrupt();
-		}
-
+		// The pipe already exists: mkfifo completed above, or Windows created
+		// the handle synchronously. The reader accepts an early client connection.
 		// Launch the transcode command...
 		pw.runInNewThread();
 		// ...and wait briefly to allow it to start

@@ -27,7 +27,7 @@ export default function RenderersSettings({
   selectionSettings,
 }: {
   i18n: I18nInterface
-  form: UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>
+  form: UseFormReturnType<Record<string, any>, Record<string, any>, undefined>
   selectionSettings: SelectionSettingsData | undefined
 }) {
   return (

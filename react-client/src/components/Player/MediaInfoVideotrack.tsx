@@ -36,7 +36,7 @@ export default function MediaInfoVideotrack({ i18n, videoTrack }: { i18n: I18nIn
         <Button variant="default" size="compact-xs" onClick={toggle}><Title i18n={i18n} videoTrack={videoTrack} /></Button>
       </Group>
 
-      <Collapse in={opened}>
+      <Collapse expanded={opened}>
         <MediaInfoStringValue value={videoTrack.title} title={i18n.get('Title')} />
         <MediaInfoStringValue value={videoTrack.lang} title={i18n.get('Language')} />
         <MediaInfoBooleanValue i18n={i18n} value={videoTrack.default} title={i18n.get('Default')} />
