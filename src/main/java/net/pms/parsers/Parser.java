@@ -54,8 +54,12 @@ public class Parser {
 		if (isDivxIdentifier(codec)) {
 			return FormatConfiguration.DIVX;
 		}
-		if ("mpeg4".equalsIgnoreCase(codec) || "msmpeg4v2".equalsIgnoreCase(codec) ||
-			"msmpeg4v3".equalsIgnoreCase(codec) || FormatConfiguration.MP4.equalsIgnoreCase(codec)) {
+		if (
+			"mpeg4".equalsIgnoreCase(codec) ||
+			"msmpeg4v2".equalsIgnoreCase(codec) ||
+			"msmpeg4v3".equalsIgnoreCase(codec) ||
+			FormatConfiguration.MP4.equalsIgnoreCase(codec)
+		) {
 			for (String identifier : identifiers) {
 				if (isDivxIdentifier(identifier)) {
 					return FormatConfiguration.DIVX;
