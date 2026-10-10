@@ -3,16 +3,19 @@ package net.pms.store;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
+import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,64 +36,61 @@ public final class LiveStreamRelay {
 	public record Source(InputStream stream, Supplier<NowPlayingInfo> nowPlaying) {
 	}
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LiveStreamRelay.class.getName());
+	// Package-visible so failure and watchdog tests do not need real-time radio delays.
+	record Timing(long idleMs, long recoveryMs, long lingerMs, long retryMs, long openMs) {
+	}
 
-	// Read size towards the upstream.
-	private static final int CHUNK_SIZE = 32 * 1024;
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(LiveStreamRelay.class);
+	private static final Timing DEFAULT_TIMING = new Timing(10000, 25000, 30000, 250, 10000);
 	private static final int BACKLOG_BYTES = 256 * 1024;
-
-	// How far a listener may fall behind before it is dropped.
 	private static final int LISTENER_SECONDS = 50;
-
-	// max memory allocation.
 	private static final int LISTENER_BYTES_MIN = 256 * 1024;
 	private static final int LISTENER_BYTES_MAX = 2 * 1024 * 1024;
-
-	// measure bytes/sec for a period of this long
 	private static final long RATE_MEASURE_MS = 5000;
-
-	// How long the upstream is kept running after the last listener left.
-	private static final long LINGER_MS = 30000;
-
-	// A listener that is served nothing for this long is at the end of a dead stream.
-	private static final long STARVATION_MS = 30000;
-
+	private static final long STARVATION_MS = 60000;
+	private static final long SKIP_LOG_MS = 5000;
+	private static final AtomicLong LISTENER_IDS = new AtomicLong();
 	private static final Map<String, Relay> RELAYS = new ConcurrentHashMap<>();
 
 	private LiveStreamRelay() {
 	}
 
 	/**
-	 * Joins the shared stream, opening it when nobody is listening yet.
+	 * Joins a live stream. Temporary upstream failures are recovered without ending the listener.
 	 *
-	 * @return NULL when the stream could not be opened
+	 * @return NULL when the initial upstream could not be opened
 	 */
 	public static Listener listen(String key, SourceOpener opener) {
+		return listen(key, opener, "unspecified", DEFAULT_TIMING, true);
+	}
+
+	public static Listener listen(String key, SourceOpener opener, String client) {
+		return listen(key, opener, client, DEFAULT_TIMING, true);
+	}
+
+	static Listener listen(String key, SourceOpener opener, String client, Timing timing, boolean reconnect) {
 		Listener[] joined = new Listener[1];
 		RELAYS.compute(key, (relayKey, running) -> {
 			if (running != null) {
-				joined[0] = running.addListener();
+				joined[0] = running.addListener(client);
 				if (joined[0] != null) {
-					LOGGER.debug("joining the running stream of {}, {} listeners", relayKey, running.listenerCount());
 					return running;
 				}
 			}
 			Source source;
 			try {
-				source = opener.open();
+				source = open(opener, timing.openMs());
 			} catch (IOException e) {
-				LOGGER.warn("cannot open the live stream {} : {}", relayKey, e.getMessage());
-				LOGGER.trace("", e);
+				LOGGER.warn("Cannot open live stream {}: {}", displayKey(relayKey), e.getClass().getSimpleName());
 				return null;
 			}
 			if (source == null || source.stream() == null) {
 				return null;
 			}
-			Relay created = new Relay(relayKey, source);
-			joined[0] = created.addListener();
+			Relay created = new Relay(relayKey, source, opener, timing, reconnect);
+			joined[0] = created.addListener(client);
 			created.start();
-			LOGGER.debug("opened the shared stream of {}", relayKey);
+			LOGGER.debug("Opened shared stream {}", created.displayKey);
 			return created;
 		});
 		return joined[0];
@@ -102,42 +102,90 @@ public final class LiveStreamRelay {
 		}
 	}
 
-	/**
-	 * @return how many streams are shared at the moment
-	 */
 	public static int getStreamCount() {
 		return RELAYS.size();
 	}
 
+	private static String displayKey(String key) {
+		// Station URLs carry subscription tokens. Neither logs nor thread names should expose them.
+		int query = key.indexOf('?');
+		return query < 0 ? key : key.substring(0, query);
+	}
+
+	private static Source open(SourceOpener opener, long timeoutMs) throws IOException {
+		CompletableFuture<Source> result = new CompletableFuture<>();
+		Thread worker = Thread.ofVirtual().name("live-stream-open").start(() -> {
+			try {
+				Source opened = opener.open();
+				if (!result.complete(opened)) {
+					closeAsync(opened);
+				}
+			} catch (Exception e) {
+				result.completeExceptionally(e);
+			}
+		});
+		boolean claimed = false;
+		try {
+			Source opened = result.get(timeoutMs, TimeUnit.MILLISECONDS);
+			claimed = true;
+			return opened;
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IOException("Interrupted opening live stream", e);
+		} catch (TimeoutException e) {
+			throw new IOException("Timed out opening live stream", e);
+		} catch (ExecutionException e) {
+			throw new IOException("Cannot open live stream", e.getCause());
+		} finally {
+			// An opener that ignores interruption must close its late result rather than leaking it.
+			if (!claimed) {
+				result.whenComplete((late, error) -> closeAsync(late));
+				result.cancel(false);
+				worker.interrupt();
+			}
+		}
+	}
+
+	private static void closeAsync(Source source) {
+		if (source != null && source.stream() != null) {
+			Thread.ofVirtual().name("live-stream-close").start(() -> {
+				try {
+					source.stream().close();
+				} catch (IOException e) {
+					LOGGER.trace("Closing live upstream failed: {}", e.getClass().getSimpleName());
+				}
+			});
+		}
+	}
+
 	/**
-	 * One renderer's view of a shared stream.
+	 * One HTTP request's view of a shared stream, independent of the renderer's other requests.
 	 */
 	public static final class Listener extends InputStream {
 
-		private static final byte[] END_OF_STREAM = new byte[0];
-
 		private final Relay relay;
-		private final BlockingQueue<byte[]> chunks = new LinkedBlockingQueue<>();
-		private final AtomicInteger queuedBytes = new AtomicInteger();
+		private final long id = LISTENER_IDS.incrementAndGet();
+		private final String client;
+		private final Deque<byte[]> chunks = new ArrayDeque<>();
+		private int queuedBytes;
 		private byte[] current;
 		private int position;
-		private volatile boolean ended;
+		private boolean ended;
 		private volatile boolean closed;
+		private volatile long bytesRead;
+		private long skippedBytes;
+		private long unreportedSkipped;
+		private long lastSkipLog;
 
-		private Listener(Relay relay) {
+		private Listener(Relay relay, String client) {
 			this.relay = relay;
+			this.client = client;
 		}
 
-		/**
-		 * @return whether the shared stream knows what it is playing
-		 */
 		public boolean hasNowPlaying() {
 			return relay.source.nowPlaying() != null;
 		}
 
-		/**
-		 * @return what the shared stream is playing, NULL when unknown
-		 */
 		public NowPlayingInfo getNowPlaying() {
 			Supplier<NowPlayingInfo> nowPlaying = relay.source.nowPlaying();
 			return nowPlaying == null ? null : nowPlaying.get();
@@ -149,6 +197,7 @@ public final class LiveStreamRelay {
 				return -1;
 			}
 			int value = current[position++] & 0xFF;
+			bytesRead++;
 			if (position == current.length) {
 				current = null;
 			}
@@ -157,6 +206,7 @@ public final class LiveStreamRelay {
 
 		@Override
 		public int read(byte[] b, int off, int len) throws IOException {
+			Objects.checkFromIndexSize(off, len, b.length);
 			if (len == 0) {
 				return 0;
 			}
@@ -166,6 +216,7 @@ public final class LiveStreamRelay {
 			int count = Math.min(len, current.length - position);
 			System.arraycopy(current, position, b, off, count);
 			position += count;
+			bytesRead += count;
 			if (position == current.length) {
 				current = null;
 			}
@@ -173,246 +224,312 @@ public final class LiveStreamRelay {
 		}
 
 		@Override
-		public int available() {
-			return closed || current == null ? 0 : current.length - position;
+		public synchronized int available() {
+			byte[] active = current;
+			return closed ? 0 : queuedBytes + (active == null ? 0 : active.length - position);
 		}
 
 		@Override
 		public void close() {
-			closed = true;
+			synchronized (this) {
+				if (closed) {
+					return;
+				}
+				closed = true;
+				chunks.clear();
+				queuedBytes = 0;
+				notifyAll();
+			}
+			// Never acquire the relay lock while holding a listener lock.
 			relay.removeListener(this);
-			chunks.clear();
-			queuedBytes.set(0);
-			chunks.offer(END_OF_STREAM);
+			LOGGER.debug("Closed live listener {} ({}) of {}: read={} bytes, skipped={} bytes",
+				id, client, relay.displayKey, bytesRead, skippedBytes);
 		}
 
-		/**
-		 * Waits for the next chunk of the shared stream.
-		 *
-		 * @return false at the end of the stream
-		 */
-		private boolean advance() throws IOException {
-			if (closed) {
-				return false;
-			}
-			if (current != null) {
-				return true;
-			}
-			long waited = 0;
+		private synchronized boolean advance() throws IOException {
+			long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(STARVATION_MS);
 			while (!closed) {
-				byte[] next;
-				try {
-					if (ended && chunks.isEmpty()) {
-						return false;
-					}
-					next = chunks.poll(1, TimeUnit.SECONDS);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					return false;
+				if (current != null) {
+					return true;
 				}
-				if (closed || next == END_OF_STREAM) {
-					return false;
-				}
+				byte[] next = chunks.pollFirst();
 				if (next != null) {
-					queuedBytes.addAndGet(-next.length);
+					queuedBytes -= next.length;
 					current = next;
 					position = 0;
 					return true;
 				}
 				if (ended) {
-					// Everything that was queued is served and nothing more will come.
 					return false;
 				}
-				waited += 1000;
-				if (waited >= STARVATION_MS) {
-					throw new IOException("no data from the shared stream for " + waited + " ms");
+				long remaining = deadline - System.nanoTime();
+				if (remaining <= 0) {
+					throw new IOException("No data from live relay for " + STARVATION_MS + " ms");
+				}
+				try {
+					TimeUnit.NANOSECONDS.timedWait(this, remaining);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new IOException("Interrupted waiting for live audio", e);
 				}
 			}
 			return false;
 		}
 
-		private void offer(byte[] chunk) {
+		private synchronized void offer(byte[] chunk) {
 			if (closed || ended) {
 				return;
 			}
-			// Counted before it is published, so the budget is never seen too low.
-			queuedBytes.addAndGet(chunk.length);
-			chunks.add(chunk);
+			queuedBytes += chunk.length;
+			chunks.addLast(chunk);
 			int budget = relay.listenerBudget();
-			if (queuedBytes.get() > budget) {
-				skipTowardsLive(budget);
+			// MP3/ADTS chunks contain whole frames, so skipping cannot split an audio frame.
+			while (queuedBytes > budget && chunks.size() > 1) {
+				int skipped = chunks.removeFirst().length;
+				queuedBytes -= skipped;
+				skippedBytes += skipped;
+				unreportedSkipped += skipped;
 			}
+			long now = System.nanoTime();
+			if (unreportedSkipped > 0 && now - lastSkipLog >= TimeUnit.MILLISECONDS.toNanos(SKIP_LOG_MS)) {
+				LOGGER.debug("Live listener {} ({}) of {} fell behind: skipped={} bytes, queued={} bytes, read={} bytes",
+					id, client, relay.displayKey, unreportedSkipped, queuedBytes, bytesRead);
+				lastSkipLog = now;
+				unreportedSkipped = 0;
+			}
+			notifyAll();
 		}
 
-		/**
-		 * Throws away the oldest audio of a listener that does not keep up, instead of ending its stream.
-		 */
-		private void skipTowardsLive(int budget) {
-			int skipped = 0;
-			while (queuedBytes.get() > budget) {
-				byte[] oldest = chunks.poll();
-				if (oldest == null) {
-					break;
-				}
-				if (oldest == END_OF_STREAM) {
-					chunks.offer(oldest);
-					break;
-				}
-				queuedBytes.addAndGet(-oldest.length);
-				skipped += oldest.length;
-			}
-			if (skipped > 0) {
-				LOGGER.debug("a listener of {} does not keep up, skipped {} bytes towards live", relay.key, skipped);
-			}
-		}
-
-		private void endOfStream() {
+		private synchronized void endOfStream() {
 			ended = true;
-			// Wake a blocked reader without discarding queued audio. If full, the
-			// reader will observe ended once it has drained the queue.
-			chunks.offer(END_OF_STREAM);
+			notifyAll();
 		}
-
 	}
 
-	/**
-	 * The upstream connection and its listeners.
-	 */
+	private static final class Session {
+		private final Source source;
+		private volatile long lastData = System.nanoTime();
+		private volatile boolean delivered;
+		private FutureTask<Void> reader;
+
+		private Session(Source source) {
+			this.source = source;
+		}
+	}
+
 	private static final class Relay {
 
 		private final String key;
-		private final Source source;
-		private final long startedAt = System.currentTimeMillis();
+		private final String displayKey;
+		private final SourceOpener opener;
+		private final Timing timing;
+		private final boolean reconnect;
+		private final long startedAt = System.nanoTime();
 		private volatile long pumpedBytes;
+		private volatile Source source;
 		private final List<Listener> listeners = new CopyOnWriteArrayList<>();
 		private final Deque<byte[]> backlog = new ArrayDeque<>();
 		private int backlogBytes;
-		private volatile long emptySince = System.currentTimeMillis();
+		private volatile long emptySince = System.nanoTime();
 		private volatile boolean stopped;
+		private volatile Session session;
+		private Thread supervisor;
 
-		private Relay(String key, Source source) {
+		private Relay(String key, Source source, SourceOpener opener, Timing timing, boolean reconnect) {
 			this.key = key;
+			this.displayKey = displayKey(key);
 			this.source = source;
+			this.opener = opener;
+			this.timing = timing;
+			this.reconnect = reconnect;
 		}
 
 		private void start() {
-			Thread.ofVirtual().name("live-stream-relay-" + key).start(this::pump);
+			// Assign before starting so closeAll cannot miss a newly created supervisor.
+			supervisor = Thread.ofVirtual().name("live-stream-relay-" + displayKey).unstarted(this::pump);
+			supervisor.start();
 		}
 
-		private int listenerCount() {
-			return listeners.size();
-		}
-
-		/**
-		 * @return how many bytes a listener may be behind, from what this stream really delivers
-		 */
 		private int listenerBudget() {
-			long elapsed = System.currentTimeMillis() - startedAt;
+			long elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt);
 			if (elapsed < RATE_MEASURE_MS || pumpedBytes == 0) {
-				// The rate is not known yet, so allow what the cap allows.
 				return LISTENER_BYTES_MAX;
 			}
 			long budget = LISTENER_SECONDS * 1000L * pumpedBytes / elapsed;
 			return (int) Math.clamp(budget, LISTENER_BYTES_MIN, LISTENER_BYTES_MAX);
 		}
 
-		private Listener addListener() {
+		private Listener addListener(String client) {
 			synchronized (backlog) {
 				if (stopped) {
 					return null;
 				}
-				Listener listener = new Listener(this);
-				// Handed over as one block
-				byte[] headStart = takeBacklog();
-				if (headStart.length > 0) {
-					listener.offer(headStart);
+				Listener listener = new Listener(this, client);
+				for (byte[] chunk : backlog) {
+					listener.offer(chunk);
 				}
 				listeners.add(listener);
+				LOGGER.debug("Joined live listener {} ({}) to {}: {} listeners, backlog={} bytes",
+					listener.id, client, displayKey, listeners.size(), backlogBytes);
 				return listener;
 			}
 		}
 
-		/**
-		 * @return the kept seconds of stream as one block, empty when there are none yet
-		 */
-		private byte[] takeBacklog() {
+		private void publish(Session current, byte[] chunk) {
 			synchronized (backlog) {
-				byte[] all = new byte[backlogBytes];
-				int at = 0;
-				for (byte[] chunk : backlog) {
-					System.arraycopy(chunk, 0, all, at, chunk.length);
-					at += chunk.length;
+				if (stopped || session != current) {
+					return;
 				}
-				return all;
-			}
-		}
-
-		/**
-		 * Keeps the last seconds of the stream for the next listener to join.
-		 */
-		private void remember(byte[] chunk) {
-			synchronized (backlog) {
+				current.lastData = System.nanoTime();
+				current.delivered = true;
+				// Count and remember audio even while there are no listeners during the linger period.
+				pumpedBytes += chunk.length;
 				backlog.addLast(chunk);
 				backlogBytes += chunk.length;
 				while (backlogBytes > BACKLOG_BYTES && backlog.size() > 1) {
 					backlogBytes -= backlog.removeFirst().length;
 				}
+				for (Listener listener : listeners) {
+					listener.offer(chunk);
+				}
 			}
 		}
 
 		private void removeListener(Listener listener) {
-			listeners.remove(listener);
-			if (listeners.isEmpty()) {
-				emptySince = System.currentTimeMillis();
+			synchronized (backlog) {
+				listeners.remove(listener);
+				if (listeners.isEmpty()) {
+					emptySince = System.nanoTime();
+				}
 			}
 		}
 
-		private void pump() {
-			byte[] buffer = new byte[CHUNK_SIZE];
-			try {
-				while (!stopped) {
-					int read = source.stream().read(buffer);
-					if (read == -1) {
-						LOGGER.debug("the shared stream of {} ended upstream", key);
+		private boolean lingerExpired() {
+			return listeners.isEmpty() && System.nanoTime() - emptySince >= TimeUnit.MILLISECONDS.toNanos(timing.lingerMs());
+		}
+
+		private void startSession(Source opened) {
+			Session next = new Session(opened);
+			next.reader = new FutureTask<>(() -> {
+				LiveAudioFrameReader frames = new LiveAudioFrameReader(opened.stream());
+				byte[] chunk;
+				while ((chunk = frames.next()) != null) {
+					publish(next, chunk);
+					if (stopped || session != next) {
 						break;
 					}
-					if (read == 0) {
-						continue;
-					}
-					if (listeners.isEmpty()) {
-						// Nobody listens: the bytes are dropped, but the session stays up so a renderer
-						// that reconnects does not have to open a second one.
-						if (System.currentTimeMillis() - emptySince > LINGER_MS) {
-							LOGGER.debug("closing the shared stream of {}, no listener for {} ms", key, LINGER_MS);
+				}
+				return null;
+			});
+			synchronized (backlog) {
+				if (stopped) {
+					closeAsync(opened);
+					return;
+				}
+				source = opened;
+				session = next;
+			}
+			Thread.ofVirtual().name("live-stream-read-" + displayKey).start(next.reader);
+		}
+
+		private void retireSession(Session previous) {
+			synchronized (backlog) {
+				if (session == previous) {
+					session = null;
+					// Joiners must not get stale history from a different upstream connection.
+					backlog.clear();
+					backlogBytes = 0;
+				}
+			}
+			previous.reader.cancel(true);
+			closeAsync(previous.source);
+		}
+
+		private void pump() {
+			long recoverySince = 0;
+			long retryDelay = timing.retryMs();
+			try {
+				startSession(source);
+				while (!stopped && !lingerExpired()) {
+					Session current = session;
+					if (current == null) {
+						long remaining = timing.recoveryMs() - TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - recoverySince);
+						if (remaining <= 0) {
+							LOGGER.warn("Live upstream {} did not recover within {} ms", displayKey, timing.recoveryMs());
 							break;
 						}
+						Thread.sleep(Math.min(retryDelay, remaining));
+						if (stopped || lingerExpired()) {
+							break;
+						}
+						remaining = timing.recoveryMs() - TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - recoverySince);
+						if (remaining <= 0) {
+							continue;
+						}
+						try {
+							Source opened = open(opener, Math.min(timing.openMs(), remaining));
+							if (opened != null && opened.stream() != null) {
+								startSession(opened);
+								LOGGER.debug("Reopened live upstream {} without ending its listeners", displayKey);
+							}
+						} catch (IOException e) {
+							LOGGER.debug("Retry opening {} failed: {}", displayKey, e.getClass().getSimpleName());
+						}
+						retryDelay = Math.min(retryDelay * 2, 4000);
 						continue;
 					}
-					pumpedBytes += read;
-					byte[] chunk = Arrays.copyOf(buffer, read);
-					// Joiners must see each chunk either in their backlog or in live
-					// delivery, never in both and never in neither.
-					synchronized (backlog) {
+					if (current.delivered) {
+						recoverySince = 0;
+						retryDelay = timing.retryMs();
+					}
+					boolean failed = false;
+					try {
+						current.reader.get(100, TimeUnit.MILLISECONDS);
+						LOGGER.debug("Live upstream {} ended", displayKey);
+						failed = true;
+					} catch (TimeoutException e) {
+						if (System.nanoTime() - current.lastData >= TimeUnit.MILLISECONDS.toNanos(timing.idleMs())) {
+							LOGGER.debug("Live upstream {} stalled for {} ms", displayKey, timing.idleMs());
+							failed = true;
+						}
+					} catch (CancellationException e) {
 						if (stopped) {
 							break;
 						}
-						remember(chunk);
-						for (Listener listener : listeners) {
-							listener.offer(chunk);
+						failed = true;
+					} catch (ExecutionException e) {
+						LOGGER.debug("Live upstream {} failed: {}", displayKey, e.getCause().getClass().getSimpleName());
+						failed = true;
+					}
+					if (failed) {
+						retireSession(current);
+						if (!reconnect) {
+							break;
 						}
+						if (recoverySince == 0) {
+							recoverySince = System.nanoTime();
+						}
+					} else if (recoverySince != 0 && System.nanoTime() - recoverySince >= TimeUnit.MILLISECONDS.toNanos(timing.recoveryMs())) {
+						// Opening successfully but never delivering audio must not reset the recovery deadline.
+						break;
 					}
 				}
-			} catch (IOException e) {
-				LOGGER.debug("the shared stream of {} broke : {}", key, e.getMessage());
-				LOGGER.trace("", e);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			} finally {
 				stop();
 			}
 		}
 
 		private void stop() {
+			Session previous;
 			synchronized (backlog) {
+				if (stopped) {
+					return;
+				}
 				stopped = true;
+				previous = session;
+				session = null;
 				for (Listener listener : listeners) {
 					listener.endOfStream();
 				}
@@ -420,15 +537,15 @@ public final class LiveStreamRelay {
 				backlog.clear();
 				backlogBytes = 0;
 			}
-			// listen() holds the map entry while joining; never acquire that
-			// entry's lock while holding backlog (the opposite lock order).
+			// Never acquire the map entry's lock while holding the backlog lock.
 			RELAYS.remove(key, this);
-			try {
-				source.stream().close();
-			} catch (IOException e) {
-				LOGGER.trace("closing the upstream of {}", key, e);
+			if (previous != null) {
+				previous.reader.cancel(true);
+				closeAsync(previous.source);
+			}
+			if (supervisor != null && supervisor != Thread.currentThread()) {
+				supervisor.interrupt();
 			}
 		}
-
 	}
 }

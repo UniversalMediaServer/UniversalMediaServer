@@ -123,7 +123,7 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 
 	@Override
 	public InputStream getIcyInputStream(int metaInt) {
-		Connection connection = connect();
+		Connection connection = connect(true);
 		if (connection == null) {
 			return null;
 		}
@@ -135,9 +135,14 @@ public class WebAudioStream extends WebStream implements IcyMetadataSource {
 	 * Opens the station through the relay when it is an endless live stream
 	 */
 	private Connection connect() {
+		return connect(false);
+	}
+
+	private Connection connect(boolean icy) {
 		if (isUnboundedLiveStream()) {
 			// Only an endless stream is shared; a hosted file is served per request, with its ranges.
-			LiveStreamRelay.Listener listener = LiveStreamRelay.listen(getUrl(), this::openSource);
+			LiveStreamRelay.Listener listener = LiveStreamRelay.listen(getUrl(), this::openSource,
+				renderer.getRendererName() + " " + renderer.getAddress() + " icy=" + icy);
 			if (listener == null) {
 				return null;
 			}

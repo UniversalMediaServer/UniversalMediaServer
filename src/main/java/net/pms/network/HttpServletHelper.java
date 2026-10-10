@@ -260,6 +260,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 		boolean hasListener = umsAsyncListener != null;
 		int flushInterval = 512 * 1024;
 		long lastFlushBytes = 0;
+		long lastFlushTime = System.nanoTime();
 
 		try (ReadableByteChannel inChannel = Channels.newChannel(in);
 			WritableByteChannel outChannel = Channels.newChannel(os)) {
@@ -273,9 +274,12 @@ public abstract class HttpServletHelper extends HttpServlet {
 					}
 					sendBytes += bytesWritten;
 
-					if (sendBytes - lastFlushBytes >= flushInterval) {
+					long now = System.nanoTime();
+					// Radio needs timely output even when it never fills a large transfer buffer.
+					if (lastFlushBytes == 0 || sendBytes - lastFlushBytes >= flushInterval || now - lastFlushTime >= 250_000_000L) {
 						os.flush();
 						lastFlushBytes = sendBytes;
+						lastFlushTime = now;
 					}
 					if (hasListener) {
 						umsAsyncListener.setBytesSent(sendBytes);

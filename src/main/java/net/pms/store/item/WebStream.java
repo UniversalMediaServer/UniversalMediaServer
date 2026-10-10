@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -111,7 +112,12 @@ public class WebStream extends StoreItem {
 	@Override
 	public InputStream getInputStream() {
 		try {
-			InputStream input = new URL(url).openStream();
+			URLConnection connection = new URL(url).openConnection();
+			if (isUnboundedLiveStream()) {
+				connection.setConnectTimeout(10000);
+				connection.setReadTimeout(10000);
+			}
+			InputStream input = connection.getInputStream();
 			lastStreamError = null;
 			return input;
 		} catch (IOException e) {
