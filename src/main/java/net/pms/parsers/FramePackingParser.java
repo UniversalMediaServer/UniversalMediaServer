@@ -17,7 +17,6 @@
 package net.pms.parsers;
 
 import java.io.File;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
@@ -72,9 +71,14 @@ public final class FramePackingParser {
 			return;
 		}
 
+		String ffmpegPath = PMS.getConfiguration().getFFmpegPath();
+		if (ffmpegPath == null) {
+			return;
+		}
+
 		String output = ProcessUtil.runWithTimeout(
 			TIMEOUT_MS,
-			PMS.getConfiguration().getFFmpegPath(),
+			ffmpegPath,
 			"-hide_banner",
 			"-nostdin",
 			"-loglevel", "info",
