@@ -176,6 +176,8 @@ public final class LiveStreamRelay {
 		private long skippedBytes;
 		private long unreportedSkipped;
 		private long lastSkipLog;
+		private final long joinedAt = System.nanoTime();
+		private volatile long lastRead = joinedAt;
 
 		private Listener(Relay relay, String client) {
 			this.relay = relay;
@@ -198,6 +200,7 @@ public final class LiveStreamRelay {
 			}
 			int value = current[position++] & 0xFF;
 			bytesRead++;
+			lastRead = System.nanoTime();
 			if (position == current.length) {
 				current = null;
 			}
@@ -217,6 +220,7 @@ public final class LiveStreamRelay {
 			System.arraycopy(current, position, b, off, count);
 			position += count;
 			bytesRead += count;
+			lastRead = System.nanoTime();
 			if (position == current.length) {
 				current = null;
 			}
@@ -235,6 +239,7 @@ public final class LiveStreamRelay {
 				if (closed) {
 					return;
 				}
+				logDiagnostics();
 				closed = true;
 				chunks.clear();
 				queuedBytes = 0;
@@ -298,6 +303,15 @@ public final class LiveStreamRelay {
 				unreportedSkipped = 0;
 			}
 			notifyAll();
+		}
+
+		private synchronized void logDiagnostics() {
+			Session upstream = relay.session;
+			long now = System.nanoTime();
+			LOGGER.debug("Live listener {} ({}) of {} state: ageMs={} read={} skipped={} queued={} budget={} lastReadMs={} ended={} closed={} upstreamBytes={} upstreamIdleMs={} recovering={} stopped={}",
+				id, client, relay.displayKey, TimeUnit.NANOSECONDS.toMillis(now - joinedAt), bytesRead, skippedBytes,
+				queuedBytes, relay.listenerBudget(), TimeUnit.NANOSECONDS.toMillis(now - lastRead), ended, closed,
+				relay.pumpedBytes, upstream == null ? -1 : TimeUnit.NANOSECONDS.toMillis(now - upstream.lastData), upstream == null && !relay.stopped, relay.stopped);
 		}
 
 		private synchronized void endOfStream() {
@@ -448,10 +462,17 @@ public final class LiveStreamRelay {
 		private void pump() {
 			long recoverySince = 0;
 			long retryDelay = timing.retryMs();
+			long nextDiagnostics = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
 			try {
 				startSession(source);
 				while (!stopped && !lingerExpired()) {
 					Session current = session;
+					if (LOGGER.isDebugEnabled() && System.nanoTime() >= nextDiagnostics) {
+						for (Listener listener : listeners) {
+							listener.logDiagnostics();
+						}
+						nextDiagnostics = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+					}
 					if (current == null) {
 						long remaining = timing.recoveryMs() - TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - recoverySince);
 						if (remaining <= 0) {
@@ -527,6 +548,8 @@ public final class LiveStreamRelay {
 				if (stopped) {
 					return;
 				}
+				LOGGER.debug("Stopping live relay {}: listeners={} pumpedBytes={} ageMs={} lingerExpired={} interrupted={}",
+					displayKey, listeners.size(), pumpedBytes, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt), lingerExpired(), Thread.currentThread().isInterrupted());
 				stopped = true;
 				previous = session;
 				session = null;
