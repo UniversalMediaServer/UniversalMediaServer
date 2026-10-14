@@ -57,6 +57,11 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.encoders.EngineFactory;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.FFmpegHlsVideo;
+import net.pms.encoders.FFmpegWebVideo;
+import net.pms.encoders.MEncoderVideo;
+import net.pms.encoders.MEncoderWebVideo;
 import net.pms.external.umsapi.APIUtils;
 import net.pms.external.update.AutoUpdater;
 import net.pms.gui.EConnectionState;
@@ -365,38 +370,6 @@ public class PMS {
 
 		RendererConfigurations.loadRendererConfigurations();
 
-		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
-		if (!umsConfiguration.isDisableSubtitles()) {
-			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
-
-			//TODO: Rewrite fontconfig generation
-			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, umsConfiguration.getMPlayerPath(), "dummy");
-
-			/**
-			 * Note: Different versions of fontconfig and bitness require
-			 * different caches, which is why here we ask FFmpeg (64-bit if
-			 * possible) to create a cache. This should result in all of the
-			 * necessary caches being built.
-			 */
-			if ((!PlatformUtils.isWindows() || PlatformUtils.is64Bit()) && umsConfiguration.getFFmpegPath() != null) {
-				ThreadedProcessWrapper.runProcessNullOutput(5,
-						TimeUnit.MINUTES,
-						2000,
-						umsConfiguration.getFFmpegPath(),
-						"-y",
-						"-f",
-						"lavfi",
-						"-i",
-						"nullsrc=s=720x480:d=1:r=1",
-						"-vf",
-						"ass=DummyInput.ass",
-						"-target",
-						"ntsc-dvd",
-						"-"
-				);
-			}
-		}
-
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
 		if (!isRunningTests()) {
 			UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(umsConfiguration);
@@ -435,6 +408,53 @@ public class PMS {
 
 		// Initialize a engine factory to register all transcoding engines
 		EngineFactory.initialize();
+
+		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s, only for engines that can render subtitles
+		if (!umsConfiguration.isDisableSubtitles()) {
+			boolean isMEncoderActive = EngineFactory.isEngineActive(MEncoderVideo.ID) || EngineFactory.isEngineActive(MEncoderWebVideo.ID);
+			boolean isFFmpegActive = EngineFactory.isEngineActive(FFMpegVideo.ID) ||
+				EngineFactory.isEngineActive(FFmpegHlsVideo.ID) ||
+				EngineFactory.isEngineActive(FFmpegWebVideo.ID);
+
+			if (isMEncoderActive || isFFmpegActive) {
+				LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
+			}
+
+			//TODO: Rewrite fontconfig generation
+			if (isMEncoderActive) {
+				LOGGER.debug("Generating the MPlayer fontconfig cache since an MEncoder engine is active");
+				ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, umsConfiguration.getMPlayerPath(), "dummy");
+			} else {
+				LOGGER.debug("Skipping the MPlayer fontconfig cache since no MEncoder engine is active");
+			}
+
+			/**
+			 * Note: Different versions of fontconfig and bitness require
+			 * different caches, which is why here we ask FFmpeg (64-bit if
+			 * possible) to create a cache. This should result in all of the
+			 * necessary caches being built.
+			 */
+			if (!isFFmpegActive) {
+				LOGGER.debug("Skipping the FFmpeg fontconfig cache since no FFmpeg video engine is active");
+			} else if ((!PlatformUtils.isWindows() || PlatformUtils.is64Bit()) && umsConfiguration.getFFmpegPath() != null) {
+				LOGGER.debug("Generating the FFmpeg fontconfig cache since an FFmpeg video engine is active");
+				ThreadedProcessWrapper.runProcessNullOutput(5,
+						TimeUnit.MINUTES,
+						2000,
+						umsConfiguration.getFFmpegPath(),
+						"-y",
+						"-f",
+						"lavfi",
+						"-i",
+						"nullsrc=s=720x480:d=1:r=1",
+						"-vf",
+						"ass=DummyInput.ass",
+						"-target",
+						"ntsc-dvd",
+						"-"
+				);
+			}
+		}
 
 		// Any plugin-defined engines are now registered, create the gui view.
 		GuiManager.addEngines();

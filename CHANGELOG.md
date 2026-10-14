@@ -3,33 +3,56 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@tabler/icons-react` from 3.41.1 to 3.48.0 ([#6386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6386))
+- Bump `ch.qos.logback:logback-classic` from 1.6.3 to 1.6.4 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378))
+- Bump `ch.qos.logback:logback-core` from 1.6.3 to 1.6.4 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378))
+- Bump `eslint-plugin-react-refresh` from 0.5.2 to 0.5.7 ([#6384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6384))
+- Bump `org.apache.commons:commons-collections4` from 4.5.0 to 4.6.0 ([#6380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6380))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.6 to 3.6.0 ([#6379](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6379))
+- Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
+
+## [15.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.2...15.9.0) (2026-10-05)
+
+### General
+- Enable media players to automatically detect when videos are 3D (thanks, Daniel Ramos!)
+- Improved size and position of subtitles hardcoded with FFmpeg
+- Added log level setting to web UI (#6212) (thanks, Eyaaa.blg!)
+- Fixed debugging in VS Code
+- Fixed endless retries when server is not connected to the internet
+- Fixed all compatible options not always visible in #--TRANSCODE--# folders
+- Fixed external subtitle track selection when hardcoding subtitles with FFmpeg
+- Fixed over 13 theoretical security vulnerabilities in dependencies
+- Only warm up fontconfig caches for engines that are active (thanks, Alex!)
+- Fixed long wait times and broken playback after seeking or playing Resume files (thanks, Alex!)
+- Fixed resume entries only working until program restarts
+
+### Media players
+- Improved support for Philips TVs (thanks, Alex!)
+- Improved support for Sony TVs from 2011 to current (thanks, Daniel Ramos!)
+
+### Translation updates via Crowdin
+- Ukrainian (99%) (thanks, Yaroslav Maikovych!)
+
+### Dependencies
+- Bump `@playwright/test` from 1.58.2 to 1.63.0 ([#6367](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6367))
+- Bump `com.github.eirslett:frontend-maven-plugin` from 2.0.1 to 2.0.2 ([#6359](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6359))
 - Bump `com.github.junrar:junrar` from 7.6.0 to 7.6.1 ([#6328](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6328))
+- Bump `com.github.oshi:oshi-core` from 7.4.2 to 7.6.1 ([#6360](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6360))
 - Bump `com.google.guava:guava` from 33.6.0-jre to 33.7.1-jre ([#6340](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6340))
-- Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-core` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-hdr` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-icns` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-iff` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-jpeg` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-metadata` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-pcx` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-pict` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-pnm` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-psd` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-sgi` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-tga` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
-- Bump `com.twelvemonkeys.imageio:imageio-webp` from 3.14.0 to 3.15.1 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338))
+- Bump `com.twelvemonkeys.imageio:imageio-*` from 3.14.0 to 3.15.2 ([#6322](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6322), [#6338](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6338), [#6358](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6358))
 - Bump `commons-codec:commons-codec` from 1.22.0 to 1.22.1 ([#6315](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6315))
+- Bump `Java Runtime Environment` from 17.0.19 to 17.0.20.1
 - Bump `jna-version` from 5.18.1 to 5.19.1 ([#6316](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6316))
 - Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
-- Bump `js-yaml` from 4.3.1 to 4.3.2 ([#6318](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6318))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.15.0 to 3.16.0 ([#6314](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6314))
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.6.3 to 3.6.4 ([#6361](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6361))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.12 to 12.1.13 ([#6321](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6321))
+- Bump `Vite` from 7.3.5 to 7.3.6
+- Bump `Yarn` from 4.13.0 to 4.18.0
+- Bump all subdependencies
 
 ## [15.8.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.1...15.8.2) (2026-09-08)
 

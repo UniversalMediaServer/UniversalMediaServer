@@ -56,7 +56,6 @@ public final class OutputParams {
 	private byte[] header;
 	private IPushOutput stdin;
 	private boolean avidemux;
-	private boolean shiftScr;
 	private boolean cleanup;
 	private HlsConfiguration hlsConfiguration;
 
@@ -115,7 +114,6 @@ public final class OutputParams {
 			", noexitcheck=" + isNoExitCheck() +
 			", output_pipes=" + Arrays.toString(getOutputPipes()) +
 			", secondread_minsize="	+ getSecondReadMinSize() +
-			", shift_scr=" + isShiftSscr() +
 			", sid=" + getSid() +
 			", stdin=" + getStdIn() +
 			", timeend=" + getTimeEnd() +
@@ -348,14 +346,6 @@ public final class OutputParams {
 
 	public void setAvidemux(boolean avidemux) {
 		this.avidemux = avidemux;
-	}
-
-	public boolean isShiftSscr() {
-		return shiftScr;
-	}
-
-	public void setShiftScr(boolean shiftScr) {
-		this.shiftScr = shiftScr;
 	}
 
 	public boolean isCleanup() {

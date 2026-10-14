@@ -16,6 +16,7 @@
  */
 package net.pms.network.webguiserver.servlets;
 
+import ch.qos.logback.classic.Level;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -36,6 +37,7 @@ import net.pms.gui.GuiManager;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
+import net.pms.logging.LoggingConfig;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.util.DbgPacker;
@@ -155,6 +157,45 @@ public class LogsApiServlet extends GuiHttpServlet {
 					} else {
 						respondBadRequest(req, resp);
 					}
+				}
+				case "/rootLogLevel" -> {
+					if (PMS.getTraceMode() == 2) {
+						LOGGER.debug("Refusing to change the root log level in forced trace mode");
+						respondBadRequest(req, resp);
+						return;
+					}
+					JsonObject data = getJsonObjectFromBody(req);
+					if (!data.has("level")) {
+						respondBadRequest(req, resp);
+						return;
+					}
+					String levelStr = data.get("level").getAsString().trim().toUpperCase();
+					if (!"ALL TRACE DEBUG INFO WARN ERROR OFF".contains(levelStr)) {
+						respondBadRequest(req, resp);
+						return;
+					}
+					Level level = Level.toLevel(levelStr);
+					LoggingConfig.setRootLevel(level);
+					CONFIGURATION.setRootLogLevel(level);
+					LOGGER.info("Root log level changed to {} via web interface", levelStr);
+					respond(req, resp, "{}", 200, "application/json");
+				}
+				case "/guiLogLevel" -> {
+					JsonObject data = getJsonObjectFromBody(req);
+					if (!data.has("level")) {
+						respondBadRequest(req, resp);
+						return;
+					}
+					String levelStr = data.get("level").getAsString().trim().toUpperCase();
+					if (!"ALL TRACE DEBUG INFO WARN ERROR OFF".contains(levelStr)) {
+						respondBadRequest(req, resp);
+						return;
+					}
+					Level level = Level.toLevel(levelStr);
+					CONFIGURATION.setLoggingFilterLogsTab(level);
+					LoggingConfig.setTracesFilter();
+					LOGGER.info("GUI log level filter changed to {} via web interface", levelStr);
+					respond(req, resp, "{}", 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("LogsApiServlet request not available : {}", path);
