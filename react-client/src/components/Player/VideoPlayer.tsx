@@ -21,6 +21,7 @@ import 'video.js/dist/video-js.min.css'
 import { BaseMedia, VideoMedia, VideoPlayerOption } from '../../services/player-service'
 import { playerApiUrl } from '../../utils'
 import HlsQualitySelector from './VideoJs/HlsQualitySelector'
+import { applySubtitleStyle } from './VideoJs/subtitle-style'
 import { VideoJsPlayer, VideoJsPlayerOptions } from './VideoJs/VideoJs'
 
 const VideoPlayer = (vpOptions: VideoPlayerOption) => {
@@ -32,6 +33,7 @@ const VideoPlayer = (vpOptions: VideoPlayerOption) => {
 
     const videoMedia = (vpOptions.media.mediaType === 'video') ? (vpOptions.media as VideoMedia) : null
     const options = {} as VideoJsPlayerOptions
+    options.html5 = { nativeTextTracks: false }
     options.liveui = true
     options.controls = true
     options.qualityLevels = true
@@ -73,6 +75,15 @@ const VideoPlayer = (vpOptions: VideoPlayerOption) => {
     options.poster = playerApiUrl + 'thumbnail/' + vpOptions.uuid + '/' + vpOptions.media.id
     if (vpOptions.media.mediaType === 'audio') {
       options.audioPosterMode = true
+    }
+    if (videoMedia?.externalSubtitles?.length) {
+      options.tracks = videoMedia.externalSubtitles.map(track => ({
+        kind: 'subtitles',
+        src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id + '/subtitles/' + track.id + '.vtt',
+        srclang: track.language,
+        label: track.label,
+        default: track.default,
+      }))
     }
     if (videoMedia?.isVideoWithChapters) {
       if (!options.tracks) {
@@ -178,7 +189,12 @@ const VideoPlayer = (vpOptions: VideoPlayerOption) => {
 
     const videoPlayer = videojs(videoElem, options, onready) as VideoJsPlayer
 
+    const removeSubtitleStyle = videoMedia?.subtitleStyle
+      ? applySubtitleStyle(videoPlayer.el() as HTMLElement, videoMedia.subtitleStyle)
+      : undefined
+
     return () => {
+      removeSubtitleStyle?.()
       if (!videoPlayer.isDisposed()) {
         videoPlayer.dispose()
       }

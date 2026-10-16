@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
+import java.nio.file.Files;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -40,6 +41,7 @@ import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
 import net.pms.external.tmdb.TMDB;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -78,10 +80,14 @@ import net.pms.store.item.RealFile;
 import net.pms.store.item.VirtualVideoAction;
 import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.ByteRange;
+import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
+import net.pms.util.Iso639;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
+import net.pms.util.SubtitleUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -762,6 +768,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				metadata.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
 				media.add("metadata", metadata);
 			}
+			media.add("externalSubtitles", getExternalSubtitles(item));
+			if (hasExternalHlsSubtitles(item)) {
+				media.add("subtitleStyle", getSubtitleStyle(item));
+			}
 			media.addProperty("isVideoWithChapters", item.getMediaInfo() != null && item.getMediaInfo().hasChapters());
 			if (item.getMediaStatus() != null && item.getMediaStatus().getLastPlaybackPosition() != null && item.getMediaStatus().getLastPlaybackPosition() > 0) {
 				media.addProperty("resumePosition", item.getMediaStatus().getLastPlaybackPosition().intValue());
@@ -1262,6 +1272,101 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
+	private static boolean hasExternalHlsSubtitles(StoreItem item) {
+		return item.isTranscoded() && item.getTranscodingSettings().getEngine() instanceof FFmpegHlsVideo &&
+			!HlsHelper.hasExplicitTrackSelection(item) && !item.getDefaultRenderer().getUmsConfiguration().isDisableSubtitles();
+	}
+
+	static JsonObject getSubtitleStyle(StoreItem item) {
+		var configuration = item.getDefaultRenderer().getUmsConfiguration();
+		JsonObject style = new JsonObject();
+		style.addProperty("color", configuration.getSubsColor().getHexValue("#", "RRGGBBAA", null, true, false));
+		String font = configuration.getFont();
+		if (StringUtils.isNotBlank(font)) {
+			style.addProperty("fontFamily", StringUtils.defaultIfBlank(CodecUtil.isFontRegisteredInOS(font), "sans-serif"));
+		}
+		style.addProperty("fontHeightPercent", configuration.getSubtitleFontHeightPercent());
+		return style;
+	}
+
+	private static String externalSubtitleId(MediaSubtitle subtitle) {
+		// External tracks can all have the same numeric stream id (usually zero).
+		return DigestUtils.sha256Hex(subtitle.getExternalFile().toPath().toAbsolutePath().normalize().toString());
+	}
+
+	static MediaSubtitle findExternalSubtitle(StoreItem item, String id) {
+		if (!hasExternalHlsSubtitles(item) || item.getMediaInfo() == null) {
+			return null;
+		}
+		for (MediaSubtitle subtitle : item.getMediaInfo().getSubtitlesTracks()) {
+			if (subtitle.isExternal() && subtitle.getType().isText() && subtitle.getExternalFile() != null &&
+				id.equals(externalSubtitleId(subtitle))) {
+				return subtitle;
+			}
+		}
+		return null;
+	}
+
+	static JsonArray getExternalSubtitles(StoreItem item) {
+		JsonArray tracks = new JsonArray();
+		if (!hasExternalHlsSubtitles(item) || item.getMediaInfo() == null) {
+			return tracks;
+		}
+		for (MediaSubtitle subtitle : item.getMediaInfo().getSubtitlesTracks()) {
+			if (subtitle.isExternal() && subtitle.getType().isText() && subtitle.getExternalFile() != null) {
+				JsonObject track = new JsonObject();
+				track.addProperty("id", externalSubtitleId(subtitle));
+				track.addProperty("label", StringUtils.defaultIfBlank(subtitle.getTitle(), subtitle.getLangFullName()));
+				track.addProperty("language", StringUtils.defaultIfBlank(Iso639.getISOCode(subtitle.getLang()), "und"));
+				MediaSubtitle selected = item.getMediaSubtitle();
+				track.addProperty("default", selected != null && selected.getExternalFile() != null &&
+					externalSubtitleId(subtitle).equals(externalSubtitleId(selected)));
+				tracks.add(track);
+			}
+		}
+		return tracks;
+	}
+
+	private static void sendExternalSubtitle(HttpServletRequest req, HttpServletResponse resp,
+			StoreItem item, WebGuiRenderer renderer, String filename) throws IOException {
+		if (!hasExternalHlsSubtitles(item) || item.getMediaInfo() == null || !filename.matches("[0-9a-f]{64}\\.vtt")) {
+			respondNotFound(req, resp);
+			return;
+		}
+		String id = filename.substring(0, filename.length() - 4);
+		MediaSubtitle subtitle = findExternalSubtitle(item, id);
+		if (subtitle != null) {
+			File source = subtitle.getExternalFile();
+			if (source == null || !source.canRead()) {
+				respondNotFound(req, resp);
+				return;
+			}
+			byte[] content;
+			if (subtitle.getType() == SubtitleType.WEBVTT && subtitle.isExternalFileUtf8()) {
+				content = Files.readAllBytes(source.toPath());
+			} else {
+				OutputParams params = new OutputParams(renderer.getUmsConfiguration());
+				params.setSid(subtitle);
+				File converted = SubtitleUtils.convertSubsToSubtitleType(source.getAbsolutePath(),
+					item.getMediaInfo(), params, renderer.getUmsConfiguration(), SubtitleType.WEBVTT);
+				if (converted == null || !converted.canRead() || converted.length() == 0) {
+					respondInternalServerError(req, resp);
+					return;
+				}
+				try {
+					content = Files.readAllBytes(converted.toPath());
+				} finally {
+					Files.deleteIfExists(converted.toPath());
+				}
+			}
+			resp.setContentType(HTTPResource.WEBVTT_TYPEMIME);
+			resp.setContentLength(content.length);
+			resp.getOutputStream().write(content);
+			return;
+		}
+		respondNotFound(req, resp);
+	}
+
 	private static void sendMedia(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		String path = req.getPathInfo();
 		String[] pathData = path.split("/");
@@ -1283,7 +1388,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			respondNotFound(req, resp);
 			return;
 		}
-		MediaSubtitle sid = null;
+		if (pathData.length == 6 && "subtitles".equals(pathData[4])) {
+			sendExternalSubtitle(req, resp, item, renderer, pathData[5]);
+			return;
+		}
 		String mimeType = item.getMimeType();
 		MediaInfo media = item.getMediaInfo();
 		if (media == null) {
@@ -1292,15 +1400,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 		if (mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) && media.getMimeType() != null) {
 			mimeType = media.getMimeType();
-		}
-		if (item.getFormat().isVideo()) {
-			if (PMS.getConfiguration().getWebPlayerSubs() &&
-					item.getMediaSubtitle() != null &&
-					item.getMediaSubtitle().isExternal()) {
-				// fetched on the side
-				sid = item.getMediaSubtitle();
-				item.setMediaSubtitle(null);
-			}
 		}
 
 		try {
@@ -1377,9 +1476,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 					if (LOGGER.isTraceEnabled()) {
 						logHttpServletResponse(req, resp, null, true);
-					}
-					if (sid != null) {
-						item.setMediaSubtitle(sid);
 					}
 					StartStopListener startStopListener = new StartStopListener(req.getRemoteAddr(), item);
 					OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 8 * 1024);

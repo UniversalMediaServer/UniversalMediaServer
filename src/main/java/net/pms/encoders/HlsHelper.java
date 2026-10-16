@@ -65,7 +65,7 @@ public class HlsHelper {
 	private HlsHelper() {
 	}
 
-	static boolean hasExplicitTrackSelection(StoreItem item) {
+	public static boolean hasExplicitTrackSelection(StoreItem item) {
 		return item.isInsideTranscodeFolder() || item.getParent() instanceof ChapterFileTranscodeVirtualFolder;
 	}
 
