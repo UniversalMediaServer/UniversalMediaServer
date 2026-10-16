@@ -26,6 +26,7 @@
 - Bump `org.apache.commons:commons-collections4` from 4.5.0 to 4.6.0 ([#6380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6380))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.6 to 3.6.0 ([#6379](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6379))
 - Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
+- Bump `typescript-eslint` from 8.57.1 to 8.71.1 ([#6393](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6393))
 
 ## [15.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.2...15.9.0) (2026-10-05)
 
