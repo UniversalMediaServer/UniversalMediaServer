@@ -6,6 +6,7 @@
 - Bump `@tabler/icons-react` from 3.41.1 to 3.48.0 ([#6386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6386))
 - Bump `ch.qos.logback:logback-classic` from 1.6.3 to 1.6.4 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378))
 - Bump `ch.qos.logback:logback-core` from 1.6.3 to 1.6.4 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378))
+- Bump `com.github.oshi:oshi-core` from 7.6.1 to 7.7.0 ([#6396](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6396))
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
 - Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
 - Bump `com.twelvemonkeys.imageio:imageio-core` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
