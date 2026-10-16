@@ -1029,6 +1029,7 @@ public class FFMpegVideo extends Engine {
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
 			if (defaultVideoTrack == null) {
+				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "video stream metadata is missing.");
 			} else if (!renderer.doesDefaultVideoStreamMatchTranscodingGoal(media, encodingFormat)) {
 				canMuxVideoWithFFmpeg = false;
