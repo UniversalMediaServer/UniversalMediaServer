@@ -58,6 +58,17 @@ class FramePackingParserTest {
 	}
 
 	@Test
+	void olderFFmpegOutput() {
+		// FFmpeg 6.0 to 7.0
+		assertEquals("side by side (right eye first)", FramePackingParser.getMultiViewLayout(showinfo("Stereo 3D: type - side by side (inverted)"), 3840, 1080));
+		assertEquals("half top-bottom (left eye first)", FramePackingParser.getMultiViewLayout(showinfo("Stereo 3D: type - top and bottom"), 1920, 1080));
+		// FFmpeg 5.1 and older
+		assertEquals("half side by side (left eye first)", FramePackingParser.getMultiViewLayout(showinfo("stereoscopic information: type - side by side"), 1920, 1080));
+		assertEquals("top-bottom (right eye first)", FramePackingParser.getMultiViewLayout(showinfo("stereoscopic information: type - top and bottom (inverted)"), 1920, 2160));
+		assertNull(FramePackingParser.getMultiViewLayout(showinfo("stereoscopic information: type - checkerboard"), 1920, 1080));
+	}
+
+	@Test
 	void layoutsWithoutAModeAreIgnored() {
 		assertNull(FramePackingParser.getMultiViewLayout(showinfo("Stereo 3D: type - checkerboard, view - packed, primary_eye - none"), 1920, 1080));
 		assertNull(FramePackingParser.getMultiViewLayout(showinfo("Stereo 3D: type - frame alternate, view - left, primary_eye - none"), 1920, 1080));
