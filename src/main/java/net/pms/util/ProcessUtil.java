@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import net.pms.PMS;
 import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -157,6 +158,49 @@ public class ProcessUtil {
 	public static String run(String... cmd) {
 		int[] zeroExpected = {0};
 		return run(zeroExpected, cmd);
+	}
+
+	/**
+	 * Runs cmd and returns the combined stdout/stderr, or what there was of it
+	 * when the process had not finished after {@code timeoutMs}, which ends it.
+	 *
+	 * @param timeoutMs the time to wait for the process, in milliseconds
+	 * @param cmd the command
+	 * @return the output
+	 */
+	public static String runWithTimeout(long timeoutMs, String... cmd) {
+		StringBuilder output = new StringBuilder();
+		try {
+			ProcessBuilder pb = new ProcessBuilder(cmd);
+			pb.redirectErrorStream(true);
+			Process p = pb.start();
+			Thread reader = new Thread(() -> {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+					String line;
+					while ((line = br.readLine()) != null) {
+						synchronized (output) {
+							output.append(line).append("\n");
+						}
+					}
+				} catch (IOException e) {
+					LOGGER.trace("Output of {} ended: {}", Arrays.toString(cmd), e.getMessage());
+				}
+			}, "ProcessUtil output reader");
+			reader.setDaemon(true);
+			reader.start();
+			if (!p.waitFor(timeoutMs, TimeUnit.MILLISECONDS)) {
+				LOGGER.debug("Warning: command {} did not finish in {} ms", Arrays.toString(cmd), timeoutMs);
+				p.destroyForcibly();
+			}
+			reader.join(1000);
+		} catch (IOException e) {
+			LOGGER.error("Error running command " + Arrays.toString(cmd), e);
+		} catch (InterruptedException ie) {
+			Thread.currentThread().interrupt();
+		}
+		synchronized (output) {
+			return output.toString();
+		}
 	}
 
 	// Whitewash any arguments not suitable to display in dbg messages

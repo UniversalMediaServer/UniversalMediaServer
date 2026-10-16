@@ -560,6 +560,10 @@ public class MediaInfoParser {
 				parseFilenameForMultiViewLayout(file, media);
 			}
 
+			if (media.hasVideoTrack() && !media.getDefaultVideoTrack().is3d()) {
+				FramePackingParser.parse(file, media);
+			}
+
 			if (media.isAudio()) {
 				media.setAudioMetadata(parseFileForAudioMetadata(mediaInfoHelper, file, media));
 			}
