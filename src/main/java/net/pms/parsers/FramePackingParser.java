@@ -19,7 +19,8 @@ package net.pms.parsers;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.PMS;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.StandardEngineId;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.MediaVideo;
 import net.pms.util.ProcessUtil;
@@ -71,7 +72,7 @@ public final class FramePackingParser {
 			return;
 		}
 
-		String ffmpegPath = PMS.getConfiguration().getFFmpegPath();
+		String ffmpegPath = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
 		if (ffmpegPath == null) {
 			return;
 		}
