@@ -870,6 +870,45 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<!-- Keep only ICU charset detection and its license in runnable assemblies. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.6.0</version>
+				<executions>
+					<execution>
+						<id>icu4j-charset-detection</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>com.ibm.icu:icu4j</include>
+								</includes>
+								<excludes>
+									<!-- The main project JAR is not built yet in this phase. -->
+									<exclude>${project.groupId}:${project.artifactId}</exclude>
+								</excludes>
+							</artifactSet>
+							<filters>
+								<filter>
+									<artifact>com.ibm.icu:icu4j</artifact>
+									<includes>
+										<include>com/ibm/icu/text/Charset*.class</include>
+										<include>LICENSE</include>
+									</includes>
+								</filter>
+							</filters>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>icu4j-charset-detection</shadedClassifierName>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
