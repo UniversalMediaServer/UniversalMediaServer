@@ -19,7 +19,8 @@ package net.pms.parsers;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.PMS;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.StandardEngineId;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.MediaVideo;
 import net.pms.util.ProcessUtil;
@@ -43,8 +44,10 @@ public final class FramePackingParser {
 	// The shortest video that can hold two half-resolution views
 	private static final int MINIMUM_WIDTH = 1280;
 	private static final long TIMEOUT_MS = 5000;
+	// FFmpeg 7.1 added the view, and FFmpeg before 6.0 named it "stereoscopic information"
 	private static final Pattern STEREO_3D = Pattern.compile(
-		"Stereo 3D: type - (side by side|top and bottom)( \\(inverted\\))?, view - packed"
+		"(?:Stereo 3D|stereoscopic information): type - (side by side|top and bottom)( \\(inverted\\))?(?:, view - packed|$)",
+		Pattern.MULTILINE
 	);
 
 	/**
@@ -71,7 +74,7 @@ public final class FramePackingParser {
 			return;
 		}
 
-		String ffmpegPath = PMS.getConfiguration().getFFmpegPath();
+		String ffmpegPath = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
 		if (ffmpegPath == null) {
 			return;
 		}

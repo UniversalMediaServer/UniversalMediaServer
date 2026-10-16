@@ -632,7 +632,7 @@ public class FFMpegVideo extends Engine {
 	 * @param ffmpegPath the FFmpeg executable
 	 * @return the value for {@code -bsf:v}, or {@code null}
 	 */
-	private static String getFramePackingBitstreamFilter(MediaVideo defaultVideoTrack, String ffmpegPath) {
+	static String getFramePackingBitstreamFilter(MediaVideo defaultVideoTrack, String ffmpegPath) {
 		if (defaultVideoTrack == null || !defaultVideoTrack.is3d() || defaultVideoTrack.multiViewIsAnaglyph()) {
 			return null;
 		}
