@@ -219,10 +219,9 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 *
-	 * @return true, if this contain can have a transcode folder
+	 * @return whether this container can have a transcode folder
 	 */
-	public boolean isTranscodeFolderAvailable() {
+	public boolean supportsTranscodeFolder() {
 		return true;
 	}
 

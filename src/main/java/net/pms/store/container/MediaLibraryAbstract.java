@@ -42,10 +42,13 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String AND = " AND ";
 	protected static final String AS = " AS ";
 	protected static final String ASC = " ASC";
+	protected static final String BRACKET_CLOSE = " ) ";
+	protected static final String BRACKET_OPEN = " ( ";
 	protected static final String DESC = " DESC";
 	protected static final String NOT_EQUAL = " != ";
 	protected static final String EQUAL = " = ";
 	protected static final String GREATER_THAN = " > ";
+	protected static final String GREATER_THAN_OR_EQUAL = " >= ";
 	protected static final String FROM = " FROM ";
 	protected static final String NOT = "NOT ";
 	protected static final String IS = " IS ";
@@ -64,6 +67,7 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 
 	protected static final String LIMIT_1 = LIMIT + 1;
 	protected static final String LIMIT_100 = LIMIT + 100;
+	protected static final String LIMIT_1000 = LIMIT + 1000;
 	protected static final String IS_NULL = IS + NULL;
 	protected static final String IS_TRUE = IS + TRUE;
 	protected static final String IS_NOT_NULL = IS + NOT + NULL;
@@ -95,12 +99,12 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String FROM_FILES_VIDEOMETA_TV_SERIES = FROM_FILES_VIDEOMETA + MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_TV_SERIES;
 	protected static final String FROM_FILES_STATUS = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS;
 	protected static final String FROM_FILES_STATUS_VIDEOMETA = FROM_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;
-	protected static final String FROM_FILES_STATUS_VIDEO_TV_SERIES = FROM_FILES_STATUS_VIDEOMETA + MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_TV_SERIES;
+	protected static final String FROM_FILES_STATUS_VIDEOMETA_TV_SERIES = FROM_FILES_STATUS_VIDEOMETA + MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_TV_SERIES;
 
 	protected static final String SELECT_DISTINCT_TVSEASON = SELECT_DISTINCT + MediaTableVideoMetadata.TABLE_COL_TVSEASON + FROM_FILES_STATUS_VIDEOMETA;
 	protected static final String SELECT_FILES_STATUS_WHERE = SELECT_ALL + FROM_FILES_STATUS + WHERE;
-	protected static final String SELECT_FILES_STATUS_VIDEO_WHERE = SELECT_ALL + FROM_FILES_STATUS_VIDEOMETA + WHERE;
-	protected static final String SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE = SELECT_ALL + FROM_FILES_STATUS_VIDEO_TV_SERIES + WHERE;
+	protected static final String SELECT_FILES_STATUS_VIDEOMETA_WHERE = SELECT_ALL + FROM_FILES_STATUS_VIDEOMETA + WHERE;
+	protected static final String SELECT_FILES_STATUS_VIDEOMETA_TV_SERIES_WHERE = SELECT_ALL + FROM_FILES_STATUS_VIDEOMETA_TV_SERIES + WHERE;
 	protected static final String SELECT_FILENAME_FILES_WHERE = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM_FILES + WHERE;
 	protected static final String SELECT_FILENAME_MODIFIED = SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED;
 	protected static final String SELECT_FILENAME_MODIFIED_FILES_WHERE = SELECT_FILENAME_MODIFIED + FROM_FILES + WHERE;
@@ -124,6 +128,8 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final int MOVIE_FOLDERS = 16;
 	protected static final int FILES_NOSORT_DEDUPED = 17;
 	protected static final int EMPTY_FILES_WITH_FILTERS = 18;
+	protected static final int CONTINUE_WATCHING = 19;
+	protected static final int CONTINUE_WATCHING_EPISODES = 20;
 
 	MediaLibraryAbstract(Renderer renderer, String i18nName, String thumbnailIcon) {
 		this(renderer, i18nName, thumbnailIcon, null);
@@ -151,6 +157,14 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 
 	protected static String getInProgressCondition(int userId) {
 		return getWasPlayedCondition(userId) + AND + NOT_FULLYPLAYED_CONDITION;
+	}
+
+	protected static String getInProgressTVEpisodesCondition(int userId) {
+		return TVEPISODE_CONDITION + AND + getWasPlayedCondition(userId);
+	}
+
+	protected static String getInProgressMoviesCondition(int userId) {
+		return MOVIE_CONDITION + AND + getWasPlayedCondition(userId) + AND + NOT_FULLYPLAYED_CONDITION;
 	}
 
 	protected static String getWasPlayedCondition(int userId) {

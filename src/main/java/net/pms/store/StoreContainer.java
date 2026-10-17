@@ -232,8 +232,8 @@ public class StoreContainer extends StoreResource {
 
 						if (!allChildrenAreContainers) {
 							// Should the item be added to the #--TRANSCODE--# folder?
-							if ((item.getFormat().isVideo() || item.getFormat().isAudio()) && item.isTranscodeFolderAvailable()) {
-								TranscodeVirtualFolder transcodeFolder = getTranscodeFolder();
+							if ((item.getFormat().isVideo() || item.getFormat().isAudio()) && item.supportsTranscodeFolder()) {
+								TranscodeVirtualFolder transcodeFolder = getOrAddTranscodeFolder();
 								if (transcodeFolder != null) {
 									FileTranscodeVirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(renderer, item);
 
@@ -656,17 +656,21 @@ public class StoreContainer extends StoreResource {
 	}
 
 	/**
-	 * Returns the transcode folder for this resource. If UMS is configured to
-	 * hide transcode folders, null is returned. If no folder exists, a new
-	 * transcode folder is created. If transcode folder exists, it is returned.
+	 * Returns the transcode folder for this resource.
+	 *
+	 * If UMS is configured to hide transcode folders, null is returned.
+	 *
+	 * If no folder exists, a new transcode folder is created.
+	 *
+	 * If transcode folder exists, it is returned.
+	 *
 	 * This method is called on the parent folder each time a child is added to
 	 * that parent (via {@link addChild(LibraryResource)}.
 	 *
 	 * @return the transcode virtual folder
 	 */
-	// XXX package-private: used by VirtualFile; should be protected?
-	private TranscodeVirtualFolder getTranscodeFolder() {
-		if (!isTranscodeFolderAvailable()) {
+	private TranscodeVirtualFolder getOrAddTranscodeFolder() {
+		if (!supportsTranscodeFolder()) {
 			return null;
 		}
 
