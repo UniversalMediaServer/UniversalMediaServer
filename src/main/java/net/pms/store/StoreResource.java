@@ -37,7 +37,6 @@ import net.pms.renderers.Renderer;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.FileTranscodeVirtualFolder;
-import net.pms.store.item.RealFile;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.GenericIcons;
 import net.pms.util.StringUtil;
