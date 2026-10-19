@@ -31,6 +31,7 @@
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.13 to 12.1.14 ([#6398](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6398))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.13 to 12.1.14 ([#6398](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6398))
 - Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
+- Bump `typescript-eslint` from 8.57.1 to 8.71.1 ([#6393](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6393))
 
 ## [15.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.2...15.9.0) (2026-10-05)
 
