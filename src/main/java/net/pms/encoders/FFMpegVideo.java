@@ -460,11 +460,16 @@ public class FFMpegVideo extends Engine {
 //				transcodeOptions.add("copy");
 
 			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
-			if (defaultVideoTrack != null) {
-				if (canMuxVideoWithFFmpeg) {
+			if (defaultVideoTrack != null || type() == Format.VIDEO) {
+				if (canMuxVideoWithFFmpeg && defaultVideoTrack != null) {
 					if (!customFFmpegOptions.contains("-c:v")) {
 						transcodeOptions.add("-c:v");
 						transcodeOptions.add("copy");
+						String framePackingFilter = getFramePackingBitstreamFilter(defaultVideoTrack, getExecutable());
+						if (framePackingFilter != null && !customFFmpegOptions.contains("-bsf")) {
+							transcodeOptions.add("-bsf:v");
+							transcodeOptions.add(framePackingFilter);
+						}
 					}
 				} else if (encodingFormat.isTranscodeToMPEG2() && !dtsRemux) {
 					if (!customFFmpegOptions.contains("-c:v")) {
@@ -503,9 +508,14 @@ public class FFMpegVideo extends Engine {
 							transcodeOptions.add("31");
 						}
 
-						// Tell x264 to signal frame-packed 3D in the elementary stream,
-						// otherwise renderers that auto-detect 3D show the video flat
-						if (!customFFmpegOptions.contains("-x264-params")) {
+						// Signal frame-packed 3D in the elementary stream,
+						// otherwise renderers that auto-detect 3D show the video flat.
+						// x264 does not write the message for a right eye first layout, h264_metadata does
+						String framePackingFilter = getFramePackingBitstreamFilter(getOutputLayout(defaultVideoTrack, renderer), "h264_metadata", getExecutable());
+						if (framePackingFilter != null && !customFFmpegOptions.contains("-bsf")) {
+							transcodeOptions.add("-bsf:v");
+							transcodeOptions.add(framePackingFilter);
+						} else if (!customFFmpegOptions.contains("-x264-params")) {
 							String framePackingArrangement = getFramePackingArrangement(defaultVideoTrack, renderer);
 							if (framePackingArrangement != null) {
 								transcodeOptions.add("-x264-params");
@@ -519,16 +529,23 @@ public class FFMpegVideo extends Engine {
 							transcodeOptions.add("-preset");
 							transcodeOptions.add("superfast");
 						}
+
+						// x265 does not write the message, hevc_metadata does
+						String framePackingFilter = getFramePackingBitstreamFilter(getOutputLayout(defaultVideoTrack, renderer), "hevc_metadata", getExecutable());
+						if (framePackingFilter != null && !customFFmpegOptions.contains("-bsf")) {
+							transcodeOptions.add("-bsf:v");
+							transcodeOptions.add(framePackingFilter);
+						}
 					}
 
-					if (defaultVideoTrack.getBitDepth() == 8 || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
+					if ((defaultVideoTrack != null && defaultVideoTrack.getBitDepth() == 8) || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
 						transcodeOptions.add("-pix_fmt");
 						transcodeOptions.add("yuv420p");
 					}
 				}
 
 				// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
-				if (defaultVideoTrack.getHDRFormatForRenderer() != null) {
+				if (defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null) {
 					transcodeOptions.add("-strict");
 					transcodeOptions.add("unofficial");
 					transcodeOptions.add("-tune");
@@ -599,6 +616,92 @@ public class FFMpegVideo extends Engine {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Returns the bitstream filter that writes the frame packing arrangement
+	 * SEI while the video is copied, or {@code null} when the video is not
+	 * frame-packed 3D, is not H.264 or H.265, or FFmpeg cannot write it.
+	 *
+	 * A container-level stereoscopic tag, like Matroska's {@code StereoMode},
+	 * does not survive a remux to MPEG-TS, and the renderers that auto-detect
+	 * 3D read the in-stream SEI (see {@link #getFramePackingArrangement}).
+	 * Copying the video would drop the signal that re-encoding keeps, so the
+	 * message is written by {@code h264_metadata} or {@code hevc_metadata}
+	 * without touching the picture.
+	 *
+	 * @param defaultVideoTrack the video track being copied
+	 * @param ffmpegPath the FFmpeg executable
+	 * @return the value for {@code -bsf:v}, or {@code null}
+	 */
+	static String getFramePackingBitstreamFilter(MediaVideo defaultVideoTrack, String ffmpegPath) {
+		if (defaultVideoTrack == null || !defaultVideoTrack.is3d() || defaultVideoTrack.multiViewIsAnaglyph()) {
+			return null;
+		}
+
+		String filter;
+		if (defaultVideoTrack.isH264()) {
+			filter = "h264_metadata";
+		} else if (defaultVideoTrack.isH265()) {
+			filter = "hevc_metadata";
+		} else {
+			return null;
+		}
+
+		return getFramePackingBitstreamFilter(defaultVideoTrack.get3DLayout(), filter, ffmpegPath);
+	}
+
+	private static String getFramePackingBitstreamFilter(MediaVideo.Mode3D layout, String filter, String ffmpegPath) {
+		String options = getFramePackingFilterOptions(layout);
+		if (options == null || !FFmpegOptions.isFramePackingSupported(ffmpegPath, filter)) {
+			return null;
+		}
+
+		return filter + "=frame_packing=insert:" + options;
+	}
+
+	/**
+	 * Returns the 3D layout a transcode outputs: the one the renderer asked
+	 * for, else the one of the source.
+	 */
+	private static MediaVideo.Mode3D getOutputLayout(MediaVideo defaultVideoTrack, Renderer renderer) {
+		if (defaultVideoTrack == null || !defaultVideoTrack.is3d()) {
+			return null;
+		}
+
+		String outputLayout = renderer.getOutput3DFormat();
+		if (StringUtils.isBlank(outputLayout)) {
+			return defaultVideoTrack.get3DLayout();
+		}
+
+		try {
+			return MediaVideo.Mode3D.valueOf(outputLayout.toUpperCase(Locale.ROOT));
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns the {@code h264_metadata} and {@code hevc_metadata} options for
+	 * a 3D layout. The SEI does not tell half from full resolution, so the
+	 * half and full layouts give the same options.
+	 *
+	 * @param layout the 3D layout of the video
+	 * @return the options, or {@code null} for a layout without a frame
+	 *         packing arrangement
+	 */
+	static String getFramePackingFilterOptions(MediaVideo.Mode3D layout) {
+		if (layout == null) {
+			return null;
+		}
+
+		return switch (layout) {
+			case SBSL, SBS2L -> "frame_packing_type=side_by_side:frame_packing_view=left_first";
+			case SBSR, SBS2R -> "frame_packing_type=side_by_side:frame_packing_view=right_first";
+			case ABL, AB2L -> "frame_packing_type=top_bottom:frame_packing_view=left_first";
+			case ABR, AB2R -> "frame_packing_type=top_bottom:frame_packing_view=right_first";
+			default -> null;
+		};
 	}
 
 	/**
@@ -1030,7 +1133,10 @@ public class FFMpegVideo extends Engine {
 		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			if (!renderer.doesDefaultVideoStreamMatchTranscodingGoal(media, encodingFormat)) {
+			if (defaultVideoTrack == null) {
+				canMuxVideoWithFFmpeg = false;
+				LOGGER.debug(prependFfmpegTraceReason + "video stream metadata is missing.");
+			} else if (!renderer.doesDefaultVideoStreamMatchTranscodingGoal(media, encodingFormat)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (item.isInsideTranscodeFolder()) {
@@ -1090,7 +1196,10 @@ public class FFMpegVideo extends Engine {
 		if (!(renderer instanceof OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (item.isInsideTranscodeFolder()) {
+			if (defaultVideoTrack == null) {
+				deferToTsmuxer = false;
+				LOGGER.debug(prependTraceReason + "video stream metadata is missing.");
+			} else if (item.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, FormatConfiguration.MPEGTS)) {

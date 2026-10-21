@@ -5,7 +5,10 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.*;
+import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
+import net.pms.parsers.Parser;
 import org.junit.jupiter.api.Test;
 
 public class MediaInfoStoreCacheTest {
@@ -29,21 +32,42 @@ public class MediaInfoStoreCacheTest {
 		check(true);
 	}
 
+	private static MediaInfo parsedAudio() {
+		MediaInfo media = new MediaInfo();
+		media.addAudioTrack(new MediaAudio());
+		media.setMediaParser("JAudiotagger");
+		return media;
+	}
+
+	@Test
+	public void manuallySuppliedMetadataDoesNotRequireTracks() throws Exception {
+		String key = "manual-cache-test-" + UUID.randomUUID();
+		MediaInfo media = new MediaInfo();
+		media.setMediaParser(Parser.MANUAL_PARSER);
+		File file = new File(key);
+		publish(key, media, file.lastModified());
+		try {
+			assertSame(media, MediaInfoStore.getMediaInfo(key, file, null, Format.VIDEO));
+		} finally {
+			MediaInfoStore.removeMediaEntryFromCache(key);
+		}
+	}
+
 	private void check(boolean changed) throws Exception {
 		String key = "cache-test-" + UUID.randomUUID();
 		CountDownLatch statRead = new CountDownLatch(1);
 		File file = new File(key) {
 			@Override public long lastModified() { statRead.countDown(); return changed ? 2 : 1; }
 		};
-		MediaInfo cached = new MediaInfo();
-		MediaInfo fresh = new MediaInfo();
+		MediaInfo cached = parsedAudio();
+		MediaInfo fresh = parsedAudio();
 		publish(key, cached, 1);
 		Object lock = method("acquireLock", String.class).invoke(null, key);
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		Future<MediaInfo> result;
 		try {
 			synchronized (lock) {
-				result = executor.submit(() -> MediaInfoStore.getMediaInfo(key, file, null, 0));
+				result = executor.submit(() -> MediaInfoStore.getMediaInfo(key, file, null, Format.AUDIO));
 				if (changed) {
 					assertTrue(statRead.await(2, TimeUnit.SECONDS));
 					assertThrows(TimeoutException.class, () -> result.get(150, TimeUnit.MILLISECONDS));

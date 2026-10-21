@@ -774,7 +774,9 @@ public class MediaVideo extends MediaLang implements Cloneable {
 				"side by side (left eye first)",
 				"side by side (right eye first)",
 				"half top-bottom (left eye first)",
-				"half side by side (left eye first)" -> false;
+				"half top-bottom (right eye first)",
+				"half side by side (left eye first)",
+				"half side by side (right eye first)" -> false;
 			default -> true;
 		};
 	}
@@ -800,8 +802,14 @@ public class MediaVideo extends MediaLang implements Cloneable {
 			case "half top-bottom (left eye first)" -> {
 				return Mode3D.AB2L;
 			}
+			case "half top-bottom (right eye first)" -> {
+				return Mode3D.AB2R;
+			}
 			case "half side by side (left eye first)" -> {
 				return Mode3D.SBS2L;
+			}
+			case "half side by side (right eye first)" -> {
+				return Mode3D.SBS2R;
 			}
 			case "arcg" -> {
 				return Mode3D.ARCG;
