@@ -75,7 +75,7 @@
 		<project.binaries-base>https://www.universalmediaserver.com/binaries</project.binaries-base>
 
 		<!-- This MUST be bumped every time binaries (files in /bin) are changed, or the Windows installer will not replace them -->
-		<binary-revision>225</binary-revision>
+		<binary-revision>226</binary-revision>
 
 		<exec-maven-plugin-version>3.6.4</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
@@ -784,7 +784,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire-version}</version>
 					<configuration>
-						<argLine>-Dfile.encoding=${project.encoding} --add-opens java.base/sun.nio.ch=ALL-UNNAMED</argLine>
+						<argLine>--add-modules=jdk.incubator.vector --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --enable-native-access=ALL-UNNAMED -Dfile.encoding=${project.encoding} -Djava.net.preferIPv4Stack=true -Djna.nosys=true</argLine>
 						<!--
 							Mark the whole forked JVM as a test run before any UMS class is loaded.
 						-->
@@ -894,6 +894,9 @@
 						<configuration>
 							<rules>
 								<dependencyConvergence/>
+								<requireJavaVersion>
+									<version>[25,26)</version>
+								</requireJavaVersion>
 								<!-- this is not required, but is recommended for plugin version checks -->
 								<requireMavenVersion>
 									<version>3.0.0</version>
@@ -1715,7 +1718,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>${project.jre-version}</version>
+											<version>[25,26)</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -1807,14 +1810,13 @@
 								<configuration>
 									<property environment="env" />
 									<target name="bundle" unless="jaronly">
-										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-											  failonerror="true"
-											  outputproperty="runtime">
-											<arg value="-v"/>
-											<arg value="${project.jre-version}"/>
-										</exec>
 
+										<!-- Normalize flat JDK installations before embedding the runtime. -->
+										<exec executable="/bin/sh" failonerror="true" outputproperty="macos.runtime.home">
+											<arg value="${project.basedir}/scripts/prepare-macos-runtime.sh"/>
+											<arg value="${java.home}"/>
+											<arg value="${project.build.directory}/macos-runtime25.jre"/>
+										</exec>
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
@@ -1832,14 +1834,17 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<!-- <runtime dir="${runtime}"/> -->
-											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
+											<!-- Bundle the JDK 25 selected by Maven; never fall back to a system JVM. -->
+											<runtime dir="${macos.runtime.home}"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-modules=jdk.incubator.vector"/>
+											<option value="--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"/>
+											<option value="--enable-native-access=ALL-UNNAMED"/>
+											<option value="-Djna.nosys=true"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -1961,7 +1966,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>${project.jre-version}</version>
+											<version>[25,26)</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -2053,14 +2058,13 @@
 								<configuration>
 									<property environment="env" />
 									<target name="bundle" unless="jaronly">
-										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-											  failonerror="true"
-											  outputproperty="runtime">
-											<arg value="-v"/>
-											<arg value="${project.jre-version}"/>
-										</exec>
 
+										<!-- Normalize flat JDK installations before embedding the runtime. -->
+										<exec executable="/bin/sh" failonerror="true" outputproperty="macos.runtime.home">
+											<arg value="${project.basedir}/scripts/prepare-macos-runtime.sh"/>
+											<arg value="${java.home}"/>
+											<arg value="${project.build.directory}/macos-runtime25.jre"/>
+										</exec>
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
@@ -2078,12 +2082,17 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<!-- <runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/> -->
+											<!-- Bundle the JDK 25 selected by Maven; never fall back to a system JVM. -->
+											<runtime dir="${macos.runtime.home}"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-modules=jdk.incubator.vector"/>
+											<option value="--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"/>
+											<option value="--enable-native-access=ALL-UNNAMED"/>
+											<option value="-Djna.nosys=true"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2206,7 +2215,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>${project.jre-version}</version>
+											<version>[25,26)</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -2298,14 +2307,13 @@
 								<configuration>
 									<property environment="env" />
 									<target name="bundle">
-										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-											  failonerror="true"
-											  outputproperty="runtime">
-											<arg value="-v"/>
-											<arg value="${project.jre-version}"/>
-										</exec>
 
+										<!-- Normalize flat JDK installations before embedding the runtime. -->
+										<exec executable="/bin/sh" failonerror="true" outputproperty="macos.runtime.home">
+											<arg value="${project.basedir}/scripts/prepare-macos-runtime.sh"/>
+											<arg value="${java.home}"/>
+											<arg value="${project.build.directory}/macos-runtime25.jre"/>
+										</exec>
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
@@ -2323,14 +2331,17 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<!-- <runtime dir="${runtime}"/> -->
-											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
+											<!-- Bundle the JDK 25 selected by Maven; never fall back to a system JVM. -->
+											<runtime dir="${macos.runtime.home}"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-modules=jdk.incubator.vector"/>
+											<option value="--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"/>
+											<option value="--enable-native-access=ALL-UNNAMED"/>
+											<option value="-Djna.nosys=true"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2452,7 +2463,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>${project.jre-version}</version>
+											<version>[25,26)</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -2544,14 +2555,13 @@
 								<configuration>
 									<property environment="env" />
 									<target name="bundle">
-										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-											  failonerror="true"
-											  outputproperty="runtime">
-											<arg value="-v"/>
-											<arg value="${project.jre-version}"/>
-										</exec>
 
+										<!-- Normalize flat JDK installations before embedding the runtime. -->
+										<exec executable="/bin/sh" failonerror="true" outputproperty="macos.runtime.home">
+											<arg value="${project.basedir}/scripts/prepare-macos-runtime.sh"/>
+											<arg value="${java.home}"/>
+											<arg value="${project.build.directory}/macos-runtime25.jre"/>
+										</exec>
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
@@ -2569,12 +2579,17 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<!-- <runtime dir="/Users/runner/hostedtoolcache/Java_Liberica_jre/JAVA_PATH_VERSION/arm64"/> -->
+											<!-- Bundle the JDK 25 selected by Maven; never fall back to a system JVM. -->
+											<runtime dir="${macos.runtime.home}"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-modules=jdk.incubator.vector"/>
+											<option value="--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"/>
+											<option value="--enable-native-access=ALL-UNNAMED"/>
+											<option value="-Djna.nosys=true"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2697,7 +2712,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>${project.jre-version}</version>
+											<version>[25,26)</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -2785,14 +2800,13 @@
 								<configuration>
 									<property environment="env" />
 									<target name="bundle">
-										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-											  failonerror="true"
-											  outputproperty="runtime">
-											<arg value="-v"/>
-											<arg value="${project.jre-version}"/>
-										</exec>
 
+										<!-- Normalize flat JDK installations before embedding the runtime. -->
+										<exec executable="/bin/sh" failonerror="true" outputproperty="macos.runtime.home">
+											<arg value="${project.basedir}/scripts/prepare-macos-runtime.sh"/>
+											<arg value="${java.home}"/>
+											<arg value="${project.build.directory}/macos-runtime25.jre"/>
+										</exec>
 										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
@@ -2810,14 +2824,17 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
-											<!-- <runtime dir="${runtime}"/> -->
-											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
+											<!-- Bundle the JDK 25 selected by Maven; never fall back to a system JVM. -->
+											<runtime dir="${macos.runtime.home}"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-modules=jdk.incubator.vector"/>
+											<option value="--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"/>
+											<option value="--enable-native-access=ALL-UNNAMED"/>
+											<option value="-Djna.nosys=true"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
@@ -2940,7 +2957,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>${project.jre-version}</version>
+											<version>[25,26)</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -3028,14 +3045,13 @@
 								<configuration>
 									<property environment="env" />
 									<target name="bundle">
-										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-											  failonerror="true"
-											  outputproperty="runtime">
-											<arg value="-v"/>
-											<arg value="${project.jre-version}"/>
-										</exec>
 
+										<!-- Normalize flat JDK installations before embedding the runtime. -->
+										<exec executable="/bin/sh" failonerror="true" outputproperty="macos.runtime.home">
+											<arg value="${project.basedir}/scripts/prepare-macos-runtime.sh"/>
+											<arg value="${java.home}"/>
+											<arg value="${project.build.directory}/macos-runtime25.jre"/>
+										</exec>
 										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
@@ -3053,11 +3069,17 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="${project.mainclass}"
 										>
+											<!-- Bundle the JDK 25 selected by Maven; never fall back to a system JVM. -->
+											<runtime dir="${macos.runtime.home}"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="--add-modules=jdk.incubator.vector"/>
+											<option value="--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"/>
+											<option value="--enable-native-access=ALL-UNNAMED"/>
+											<option value="-Djna.nosys=true"/>
 											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
