@@ -48,6 +48,3 @@ use JDK 25 and the same options:
 
     java --add-modules=jdk.incubator.vector --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --enable-native-access=ALL-UNNAMED -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true -jar ums.jar
 
-Launcher regression checks (Python 3, no external dependencies):
-
-    python3 scripts/test-startup.py
