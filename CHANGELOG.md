@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `@tabler/icons-react` from 3.41.1 to 3.48.0 ([#6386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6386))
+- Bump `@types/react` from 19.2.18 to 19.3.0 ([#6364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6364))
 - Bump `ch.qos.logback:logback-classic` from 1.6.3 to 1.6.5 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378), [#6397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6397))
 - Bump `ch.qos.logback:logback-core` from 1.6.3 to 1.6.5 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378), [#6397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6397))
 - Bump `com.github.oshi:oshi-core` from 7.6.1 to 7.7.1 ([#6396](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6396))
@@ -32,7 +33,9 @@
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.13 to 12.1.14 ([#6398](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6398))
 - Bump `org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jakarta-server` from 12.1.13 to 12.1.14 ([#6398](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6398))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.13 to 12.1.14 ([#6398](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6398))
+- Bump `react-dom` from 19.2.8 to 19.3.1 ([#6364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6364))
 - Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
+- Bump `react` from 19.2.8 to 19.3.1 ([#6364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6364))
 - Bump `source-map-js` from 1.2.1 to 1.2.2 ([#6405](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6405))
 - Bump `typescript-eslint` from 8.57.1 to 8.71.1 ([#6393](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6393))
 - Bump `vite` from 7.3.6 to 7.3.7 ([#6414](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6414))
