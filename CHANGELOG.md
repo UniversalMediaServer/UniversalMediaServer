@@ -26,6 +26,7 @@
 - Bump `commons-codec:commons-codec` from 1.22.1 to 1.23.0 ([#6395](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6395))
 - Bump `eslint-plugin-react-refresh` from 0.5.2 to 0.5.7 ([#6384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6384))
 - Bump `org.apache.commons:commons-collections4` from 4.5.0 to 4.6.0 ([#6380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6380))
+- Bump `org.apache.maven.plugins:maven-shade-plugin` from 3.6.0 to 3.6.2 ([#6408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6408))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.6 to 3.6.0 ([#6379](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6379))
 - Bump `org.eclipse.jetty:jetty-client` from 12.1.13 to 12.1.14 ([#6398](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6398))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.1.13 to 12.1.14 ([#6398](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6398))
