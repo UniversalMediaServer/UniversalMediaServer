@@ -286,7 +286,7 @@ jobs:
           mvn verify -P linter -DdisableXmlReport=true -DskipTests
 
   changelog:
-    if: github.actor == 'dependabot[bot]'
+    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
     needs:
       - macos-browser
     runs-on: ubuntu-latest
