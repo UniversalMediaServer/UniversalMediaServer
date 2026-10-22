@@ -80,6 +80,7 @@ public class MediaInfoStore {
 
 	// One lock per file or url
 	private static final Map<String, CountedLock> LOCKS = new HashMap<>();
+	private static final MediaParseRetry PARSE_RETRY = new MediaParseRetry();
 
 	// A per key lock that knows how many callers still need it.
 	private static final class CountedLock {
@@ -180,7 +181,7 @@ public class MediaInfoStore {
 		}
 	}
 
-	private static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
+	public static void storeMediaInfo(String filename, MediaInfo mediaInfo) {
 		storeMediaInfo(filename, mediaInfo, UNKNOWN_MODIFIED);
 	}
 
@@ -225,10 +226,16 @@ public class MediaInfoStore {
 		return null;
 	}
 
+	private static boolean isUsableMediaInfo(MediaInfo mediaInfo, int type) {
+		return mediaInfo != null &&
+			(Parser.MANUAL_PARSER.equals(mediaInfo.getMediaParser()) ||
+			(mediaInfo.isMediaParsed() && Parser.hasMediaContent(mediaInfo, type)));
+	}
+
 	public static MediaInfo getMediaInfo(String filename, File file, Format format, int type) {
 		// Published cache entries can be read without joining the per-file load queue.
 		MediaInfo cached = getMediaInfoStored(filename, file.lastModified());
-		if (cached != null) {
+		if (isUsableMediaInfo(cached, type)) {
 			return cached;
 		}
 		CountedLock lock = acquireLock(filename);
@@ -236,7 +243,7 @@ public class MediaInfoStore {
 			synchronized (lock) {
 				long lastModified = file.lastModified();
 				MediaInfo mediaInfo = getMediaInfoStored(filename, lastModified);
-				if (mediaInfo != null) {
+				if (isUsableMediaInfo(mediaInfo, type)) {
 					return mediaInfo;
 				}
 				LOGGER.trace("Store does not yet contain MediaInfo for {}", filename);
@@ -248,9 +255,13 @@ public class MediaInfoStore {
 					if (connection != null) {
 						connection.setAutoCommit(false);
 						try {
-							mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, lastModified);
+							MediaInfo stored = MediaTableFiles.getMediaInfo(connection, filename, lastModified);
+							if (stored != null) {
+								mediaInfo = stored;
+							}
 							if (mediaInfo != null) {
-								if (!mediaInfo.isMediaParsed()) {
+								if (!isUsableMediaInfo(mediaInfo, type) && PARSE_RETRY.acquire(file)) {
+									mediaInfo.setMediaParser(null);
 									Parser.parse(mediaInfo, input, format, type);
 									MediaTableFiles.insertOrUpdateData(connection, filename, lastModified, type, mediaInfo);
 								}
@@ -273,7 +284,11 @@ public class MediaInfoStore {
 					}
 
 					if (mediaInfo == null) {
+						PARSE_RETRY.acquire(file);
 						mediaInfo = updateMediaInfoFromFile(filename, file, format, type, connection, input);
+					} else if (connection == null && !isUsableMediaInfo(mediaInfo, type) && PARSE_RETRY.acquire(file)) {
+						mediaInfo.setMediaParser(null);
+						Parser.parse(mediaInfo, input, format, type);
 					}
 				} catch (Exception e) {
 					LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());

@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import jakarta.annotation.Nonnull;
 import net.pms.util.ProcessUtil;
 
@@ -96,6 +98,25 @@ public class FFmpegOptions extends OptionsHashMap {
 		}
 
 		transferAny(INPUT_FILE_OPTIONS, list);
+	}
+
+	private static final Map<String, Boolean> FRAME_PACKING_SUPPORT = new ConcurrentHashMap<>();
+
+	/**
+	 * Whether the FFmpeg at {@code executable} has the {@code frame_packing}
+	 * option on the {@code h264_metadata} or {@code hevc_metadata} bitstream
+	 * filter, which writes the frame packing arrangement SEI while the video
+	 * is copied. The answer is kept for each executable and filter.
+	 *
+	 * @param executable the FFmpeg executable
+	 * @param filter {@code h264_metadata} or {@code hevc_metadata}
+	 * @return whether the filter can write the SEI
+	 */
+	public static boolean isFramePackingSupported(@Nonnull String executable, @Nonnull String filter) {
+		return FRAME_PACKING_SUPPORT.computeIfAbsent(executable + "\n" + filter, key -> {
+			String output = ProcessUtil.run(executable, "-hide_banner", "-h", "bsf=" + filter);
+			return output.contains("-frame_packing ");
+		});
 	}
 
 	@Nonnull

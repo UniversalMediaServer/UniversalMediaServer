@@ -618,8 +618,8 @@ public class SubtitleUtils {
 			subsFileCharset = StandardCharsets.UTF_8;
 		}
 		Mode3D mode3D = media.getDefaultVideoTrack().get3DLayout();
-		boolean isOU = mode3D == Mode3D.ABL || mode3D == Mode3D.ABR || mode3D == Mode3D.AB2L;
-		boolean isSBS = mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR || mode3D == Mode3D.SBS2L;
+		boolean isOU = mode3D == Mode3D.ABL || mode3D == Mode3D.ABR || mode3D == Mode3D.AB2L || mode3D == Mode3D.AB2R;
+		boolean isSBS = mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR || mode3D == Mode3D.SBS2L || mode3D == Mode3D.SBS2R;
 		if (mode3D == null) {
 			LOGGER.debug("The 3D layout not recognized for the 3D video");
 			throw new NullPointerException("The 3D layout not recognized for the 3D video");
