@@ -38,6 +38,8 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
@@ -57,6 +59,31 @@ import org.xml.sax.SAXException;
 public abstract class HttpServletHelper extends HttpServlet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpServletHelper.class);
+	private static final AtomicLong TRANSFER_IDS = new AtomicLong();
+
+	private static final class TransferDiagnostics {
+		private final long id;
+		private boolean enabled;
+		private volatile String phase = "starting";
+		private volatile long phaseStarted = System.nanoTime();
+		private volatile long sent;
+		private volatile boolean finished;
+
+		private TransferDiagnostics(long id) {
+			this.id = id;
+		}
+
+		private void phase(String value) {
+			long now = System.nanoTime();
+			long elapsedMs = TimeUnit.NANOSECONDS.toMillis(now - phaseStarted);
+			if (enabled && elapsedMs >= 1000) {
+				LOGGER.debug("Audio transfer {} slow operation: phase={} durationMs={} sent={}", id, phase, elapsedMs, sent);
+			}
+			phaseStarted = now;
+			phase = value;
+		}
+	}
+
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static final String LOG_START = "============================= ";
 	private static final String LOG_REQUEST_BEGIN = " REQUEST BEGIN ================================";
@@ -257,25 +284,65 @@ public abstract class HttpServletHelper extends HttpServlet {
 		ByteBuffer buffer = BUFFER.get();
 		buffer.clear();
 		long sendBytes = 0;
+		long transferId = TRANSFER_IDS.incrementAndGet();
+		long started = System.nanoTime();
+		TransferDiagnostics diagnostics = new TransferDiagnostics(transferId);
+		HttpServletRequest request = (HttpServletRequest) context.getRequest();
+		HttpServletResponse response = (HttpServletResponse) context.getResponse();
+		boolean diagnose = LOGGER.isDebugEnabled() && response.getContentType() != null && response.getContentType().startsWith("audio/");
+		diagnostics.enabled = diagnose;
+		Thread watchdog = null;
+		if (diagnose) {
+			LOGGER.debug("Audio transfer {} start: peer={}:{} method={} agent={} range={} icyRequest={} status={} type={} length={} contentRange={} acceptRanges={} connection={} icyInterval={} asyncTimeoutMs={} input={}",
+				transferId, request.getRemoteAddr(), request.getRemotePort(), request.getMethod(), request.getHeader("User-Agent"),
+				request.getHeader("Range"), request.getHeader("Icy-MetaData"), response.getStatus(), response.getContentType(),
+				response.getHeader("Content-Length"), response.getHeader("Content-Range"), response.getHeader("Accept-Ranges"),
+				response.getHeader("Connection"), response.getHeader("icy-metaint"), context.getTimeout(), in.getClass().getSimpleName());
+			watchdog = Thread.ofVirtual().name("audio-transfer-watch-" + transferId).start(() -> {
+				try {
+					while (!diagnostics.finished) {
+						Thread.sleep(30000);
+						if (!diagnostics.finished) {
+							LOGGER.debug("Audio transfer {} progress: sent={} bytes phase={} phaseMs={} ageMs={}", transferId,
+								diagnostics.sent, diagnostics.phase, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - diagnostics.phaseStarted),
+								TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
+						}
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			});
+		}
 		boolean hasListener = umsAsyncListener != null;
 		int flushInterval = 512 * 1024;
 		long lastFlushBytes = 0;
+		long lastFlushTime = System.nanoTime();
 
 		try (ReadableByteChannel inChannel = Channels.newChannel(in);
 			WritableByteChannel outChannel = Channels.newChannel(os)) {
 
-			while (inChannel.read(buffer) != -1) {
+			while (true) {
+				diagnostics.phase("read");
+				if (inChannel.read(buffer) == -1) {
+					break;
+				}
 				buffer.flip();
 				while (buffer.hasRemaining()) {
+					diagnostics.phase("write");
 					int bytesWritten = outChannel.write(buffer);
 					if (bytesWritten == 0) {
 						continue;
 					}
 					sendBytes += bytesWritten;
+					diagnostics.sent = sendBytes;
 
-					if (sendBytes - lastFlushBytes >= flushInterval) {
+					long now = System.nanoTime();
+					// Radio needs timely output even when it never fills a large transfer buffer.
+					if (lastFlushBytes == 0 || sendBytes - lastFlushBytes >= flushInterval || now - lastFlushTime >= 250_000_000L) {
+						diagnostics.phase("flush");
 						os.flush();
 						lastFlushBytes = sendBytes;
+						lastFlushTime = now;
 					}
 					if (hasListener) {
 						umsAsyncListener.setBytesSent(sendBytes);
@@ -284,7 +351,9 @@ public abstract class HttpServletHelper extends HttpServlet {
 				buffer.clear();
 			}
 
+			diagnostics.phase("final-flush");
 			os.flush();
+			diagnostics.phase("close");
 			LOGGER.trace("Sending stream finished after: {} bytes.", sendBytes);
 		} catch (IOException | IndexOutOfBoundsException e) {
 			String reason = e.getMessage();
@@ -292,10 +361,23 @@ public abstract class HttpServletHelper extends HttpServlet {
 				reason = e.getCause().getMessage();
 			}
 			LOGGER.debug("Sending stream with premature end: {} bytes. Reason: {}", sendBytes, reason);
+			if (diagnose) {
+				LOGGER.debug("Audio transfer {} failure: phase={} phaseMs={} sent={} ageMs={} exception={}", transferId,
+					diagnostics.phase, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - diagnostics.phaseStarted), sendBytes,
+					TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), e.getClass().getSimpleName());
+			}
 			if (hasListener) {
 				umsAsyncListener.onPrematureEnd(reason);
 			}
 		} finally {
+			diagnostics.finished = true;
+			if (watchdog != null) {
+				watchdog.interrupt();
+			}
+			if (diagnose) {
+				LOGGER.debug("Audio transfer {} finished: sent={} ageMs={} lastPhase={}", transferId, sendBytes,
+					TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), diagnostics.phase);
+			}
 			context.complete();
 		}
 	}
