@@ -33,6 +33,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -107,6 +110,7 @@ public class APIUtils {
 	}
 
 	private static final Gson GSON = new Gson();
+	private static final ConcurrentMap<MediaInfo, Object> PENDING_METADATA_LOOKUPS = new ConcurrentHashMap<>();
 
 	/**
 	 * These versions are returned to us from the API server. The versions are
@@ -551,8 +555,34 @@ public class APIUtils {
 				LOGGER.trace("Error in API parsing:", ex);
 			}
 		};
-		LOGGER.trace("Queuing background API lookup for {}", file.getName());
-		BACKGROUND_EXECUTOR.execute(r);
+		if (executeMetadataLookup(media, r, BACKGROUND_EXECUTOR)) {
+			LOGGER.trace("Queued background API lookup for {}", file.getName());
+		}
+	}
+
+	/**
+	 * Coalesce requests sharing cached metadata while queued or running. Separate
+	 * MediaInfo instances must still be populated independently. Completed or
+	 * rejected requests do not prevent a later retry.
+	 */
+	static boolean executeMetadataLookup(MediaInfo media, Runnable lookup, Executor executor) {
+		Object request = new Object();
+		if (PENDING_METADATA_LOOKUPS.putIfAbsent(media, request) != null) {
+			return false;
+		}
+		try {
+			executor.execute(() -> {
+				try {
+					lookup.run();
+				} finally {
+					PENDING_METADATA_LOOKUPS.remove(media, request);
+				}
+			});
+			return true;
+		} catch (RuntimeException | Error ex) {
+			PENDING_METADATA_LOOKUPS.remove(media, request);
+			throw ex;
+		}
 	}
 
 	private static void exitLookupAndAddMetadata(Connection connection) {

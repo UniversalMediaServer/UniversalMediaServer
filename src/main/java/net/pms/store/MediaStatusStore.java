@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import net.pms.Messages;
 import net.pms.configuration.sharedcontent.FolderContent;
 import net.pms.configuration.sharedcontent.SharedContent;
@@ -35,35 +36,81 @@ import net.pms.media.MediaStatus;
 public class MediaStatusStore {
 
 	private static final Map<Integer, Map<String, MediaStatus>> STORE = new HashMap<>();
+	private static final Map<StatusKey, StatusLoadLock> LOAD_LOCKS = new HashMap<>();
+
+	private record StatusKey(int userId, String filename) { }
+
+	private static final class StatusLoadLock {
+		private int users;
+	}
+
 
 	private MediaStatusStore() {
 		//should not be instantiated
 	}
 
 	public static MediaStatus getMediaStatus(int userId, String filename) {
-		synchronized (STORE) {
-			if (STORE.containsKey(userId) && STORE.get(userId) != null && STORE.get(userId).containsKey(filename)) {
-				return STORE.get(userId).get(filename);
-			}
-			MediaStatus mediaStatus = null;
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					mediaStatus = MediaTableFilesStatus.getMediaStatus(connection, filename, userId);
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-			if (mediaStatus == null) {
-				mediaStatus = new MediaStatus();
-			}
-			if (!STORE.containsKey(userId)) {
-				STORE.put(userId, new HashMap<>());
-			}
-			STORE.get(userId).put(filename, mediaStatus);
-			return mediaStatus;
+		return getMediaStatus(userId, filename, () -> loadMediaStatus(userId, filename));
+	}
+
+	static MediaStatus getMediaStatus(int userId, String filename, Supplier<MediaStatus> loader) {
+		MediaStatus stored = getStoredMediaStatus(userId, filename);
+		if (stored != null) {
+			return stored;
 		}
+		StatusKey key = new StatusKey(userId, filename);
+		StatusLoadLock lock;
+		synchronized (LOAD_LOCKS) {
+			lock = LOAD_LOCKS.computeIfAbsent(key, ignored -> new StatusLoadLock());
+			lock.users++;
+		}
+		try {
+			synchronized (lock) {
+				stored = getStoredMediaStatus(userId, filename);
+				if (stored != null) {
+					return stored;
+				}
+				MediaStatus loaded = loader.get();
+				if (loaded == null) {
+					loaded = new MediaStatus();
+				}
+				synchronized (STORE) {
+					MediaStatus known = getStoredMediaStatusLocked(userId, filename);
+					if (known != null) {
+						return known;
+					}
+					STORE.computeIfAbsent(userId, id -> new HashMap<>()).put(filename, loaded);
+					return loaded;
+				}
+			}
+		} finally {
+			synchronized (LOAD_LOCKS) {
+				if (--lock.users == 0) {
+					LOAD_LOCKS.remove(key);
+				}
+			}
+		}
+	}
+
+	private static MediaStatus loadMediaStatus(int userId, String filename) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			return connection == null ? null : MediaTableFilesStatus.getMediaStatus(connection, filename, userId);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	private static MediaStatus getStoredMediaStatus(int userId, String filename) {
+		synchronized (STORE) {
+			return getStoredMediaStatusLocked(userId, filename);
+		}
+	}
+
+	private static MediaStatus getStoredMediaStatusLocked(int userId, String filename) {
+		Map<String, MediaStatus> userStatus = STORE.get(userId);
+		return userStatus != null ? userStatus.get(filename) : null;
 	}
 
 	/**

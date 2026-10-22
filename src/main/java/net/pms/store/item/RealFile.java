@@ -24,7 +24,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Set;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.dlna.DLNAImageProfile;
@@ -43,9 +45,11 @@ import net.pms.store.MediaStatusStore;
 import net.pms.store.StoreItem;
 import net.pms.store.SystemFileResource;
 import net.pms.store.SystemFilesHelper;
+import net.pms.store.ThumbnailStore;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
+import net.pms.util.GenericIcons;
 import net.pms.util.InputFile;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +70,10 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	private final Object displayNameBaseLock = new Object();
 	private String lang;
 	private volatile String baseNamePrettified;
+	private MediaVideoMetadata nameMetadata;
+	private Object nameSeriesMetadata;
+	private long nameTranslationVersion;
+	private long nameSeriesTranslationVersion;
 
 	private final File file;
 	private boolean addToMediaLibrary = true;
@@ -89,27 +97,29 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	 *
 	 * @return true : File is an empty container. Upload by AV client is still missing. No need to check any formats yet.
 	 */
-	private static boolean isUploadResource(File file, int type) {
-		if (type == Format.AUDIO || type == Format.VIDEO) {
-			try {
-				//FIXME : this mean each file that has this length is valid !
-				//UmsContentDirectoryService has nothing to sit in store.
-				//Upload by AV client is still missing, so it is not a valid media.
-				//A new store item class should be added that handle this special things
-				if (Files.size(file.toPath()) == UmsContentDirectoryService.EMPTY_FILE_CONTENT.length()) {
-					LOGGER.trace("isUploadResource true for {}", file.getAbsolutePath());
-					return true;
-				}
-			} catch (Exception e) {
-				LOGGER.error("cannot check file size", e);
-			}
+	private static boolean isUploadResource(File file, int type, long size) {
+		if ((type == Format.AUDIO || type == Format.VIDEO) &&
+				size == UmsContentDirectoryService.EMPTY_FILE_CONTENT.length()) {
+			// Preserve the existing upload-placeholder size check.
+			LOGGER.trace("isUploadResource true for {}", file.getAbsolutePath());
+			return true;
 		}
 		return false;
 	}
 
 	@Override
 	public boolean isValid() {
-		if (file == null || !file.exists() || !file.isFile()) {
+		if (file == null) {
+			return false;
+		}
+		BasicFileAttributes attributes;
+		try {
+			// Follows symbolic links, like File.isFile(), and reads the size in the same operation.
+			attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+		} catch (IOException e) {
+			return false;
+		}
+		if (!attributes.isRegularFile()) {
 			return false;
 		}
 		resolveFormat();
@@ -119,7 +129,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			return false;
 		}
 
-		if (isUploadResource(file, getType())) {
+		if (isUploadResource(file, getType(), attributes.size())) {
 			return true;
 		}
 
@@ -243,7 +253,12 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			return;
 		}
 
-		if (file.isFile() && (getMediaInfo() == null || !getMediaInfo().isMediaParsed())) {
+		if ((getMediaInfo() == null || !getMediaInfo().isMediaParsed()) && file.isFile()) {
+			resolveFormat();
+			if (getType() == Format.SUBTITLE) {
+				// isValid() excludes standalone subtitles. Do not parse them before that check.
+				return;
+			}
 			Boolean useSymlinks = renderer.getUmsConfiguration().isUseSymlinksTargetFile();
 			String filename;
 			if (useSymlinks && FileUtil.isSymbolicLink(file)) {
@@ -256,7 +271,6 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			}
 			InputFile input = new InputFile();
 			input.setFile(file);
-			resolveFormat();
 			setMediaInfo(MediaInfoStore.getMediaInfo(filename, file, getFormat(), getType()));
 			setMediaStatus(MediaStatusStore.getMediaStatus(renderer.getAccountUserId(), filename));
 		}
@@ -266,6 +280,14 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File cachedThumbnail = null;
 		MediaType mediaType = getMediaInfo() != null ? getMediaInfo().getMediaType() : MediaType.UNKNOWN;
+
+		// An audio track with a stored cover uses it anyway
+		if (getType() == Format.AUDIO && getMediaInfo() != null && getMediaInfo().getThumbnailId() != null) {
+			DLNAThumbnailInputStream stored = getMediaInfo().getThumbnailInputStream();
+			if (stored != null) {
+				return stored;
+			}
+		}
 
 		if (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) {
 			String alternativeFolder = renderer.getUmsConfiguration().getAlternateThumbFolder();
@@ -294,11 +316,19 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			}
 		}
 
+		// Fetch remote posters only when the thumbnail itself is requested.
+		// Local cover files retain priority; browsing does not need this download.
+		if (cachedThumbnail == null && getMediaInfo() != null) {
+			File thumbnailFile = renderer.getUmsConfiguration().isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file) ?
+				FileUtil.getRealFile(file) : file;
+			ThumbnailStore.resolveLocalizedPoster(getMediaInfo(), thumbnailFile.getAbsolutePath());
+		}
+
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMediaInfo() != null && getMediaInfo().getThumbnail() != null;
 		DLNAThumbnailInputStream result = null;
 		try {
 			if (cachedThumbnail != null && !hasAlreadyEmbeddedCoverArt) {
-				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
+				result = ThumbnailStore.getThumbnailInputStreamForFile(cachedThumbnail);
 			} else if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 				result = getMediaInfo().getThumbnailInputStream();
 			}
@@ -306,7 +336,13 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
 			LOGGER.trace("", e);
 		}
-		return result != null ? result : super.getThumbnailInputStream();
+		if (result != null) {
+			return result;
+		}
+		if (getMediaInfo() != null && getMediaInfo().isThumbnailPending()) {
+			return GenericIcons.INSTANCE.getCoverPendingIcon(this);
+		}
+		return super.getThumbnailInputStream();
 	}
 
 	@Override
@@ -433,7 +469,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	public String getLocalizedDisplayName(String lang) {
 		synchronized (displayNameBaseLock) {
 			lang = CONFIGURATION.getTranslationLanguage(lang);
-			if (lang != null && !lang.equals(this.lang) || this.lang != null) {
+			if (!Objects.equals(lang, this.lang)) {
 				//language changed
 				this.lang = lang;
 				baseNamePrettified = null;
@@ -458,8 +494,16 @@ public class RealFile extends StoreItem implements SystemFileResource {
 
 	protected String getBaseNamePrettified(boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
 		synchronized (displayNameBaseLock) {
-			if (baseNamePrettified == null) {
-				MediaVideoMetadata videoMetadata = getMediaInfo() != null ? getMediaInfo().getVideoMetadata() : null;
+			MediaVideoMetadata videoMetadata = getMediaInfo() != null ? getMediaInfo().getVideoMetadata() : null;
+			var series = videoMetadata != null ? videoMetadata.getSeriesMetadata() : null;
+			long version = videoMetadata != null ? videoMetadata.getTranslationVersion() : 0;
+			long seriesVersion = series != null ? series.getTranslationVersion() : 0;
+			if (baseNamePrettified == null || nameMetadata != videoMetadata || nameSeriesMetadata != series ||
+				nameTranslationVersion != version || nameSeriesTranslationVersion != seriesVersion) {
+				nameMetadata = videoMetadata;
+				nameSeriesMetadata = series;
+				nameTranslationVersion = version;
+				nameSeriesTranslationVersion = seriesVersion;
 				baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), videoMetadata, isEpisodeWithinSeasonFolder, isEpisodeWithinTVSeriesFolder, file.getAbsolutePath(), lang);
 			}
 			return baseNamePrettified;

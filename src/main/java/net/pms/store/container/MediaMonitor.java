@@ -129,7 +129,7 @@ public class MediaMonitor extends LocalizedStoreContainer {
 	@Override
 	public void doRefreshChildren() {
 		if (isDiscovered()) {
-			notifyRefresh();
+			notifyRefreshIfChanged();
 		}
 	}
 

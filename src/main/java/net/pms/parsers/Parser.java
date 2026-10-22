@@ -33,10 +33,13 @@ import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.store.ThumbnailSource;
 import net.pms.util.InputFile;
 import net.pms.util.UnknownFormatException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,29 +100,59 @@ public class Parser {
 			if (ext.getIdentifier() == Format.Identifier.RAW && DCRawParser.parse(media, file, type)) {
 				return;
 			}
-			// MediaInfo can't correctly parse ADPCM, DFF, DSF or PNM
-			if (
-				MediaInfoParser.isValid() &&
-				ext.getIdentifier() != Format.Identifier.ADPCM &&
-				ext.getIdentifier() != Format.Identifier.DFF &&
-				ext.getIdentifier() != Format.Identifier.DSF &&
-				ext.getIdentifier() != Format.Identifier.PNM
-			) {
-				MediaInfoParser.parse(media, file.getFile(), type);
-				if ((type == Format.VIDEO || type == Format.AUDIO) && !hasMediaContent(media, type)) {
-					LOGGER.debug("MediaInfo found no usable content in {}, trying FFmpeg", file.getFile());
-					MediaInfo fallback = new MediaInfo();
-					FFmpegParser.parse(fallback, file);
-					applyFallback(media, fallback, type);
-				}
-			} else if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
+			if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
+				// Audio goes to JAudiotagger first. Tag and audio header are all an audio file has to offer, and reading them avoids what
+				// MediaInfo costs on top.
+				MediaAudioMetadata previousMetadata = media.getAudioMetadata();
 				JaudiotaggerParser.parse(media, file.getFile(), ext);
+				if (!isAudioParsed(media)) {
+					LOGGER.trace("JAudiotagger could not parse \"{}\", falling back", file.getFile().getName());
+					media.resetParser();
+					// a failed attempt should keep what was known before
+					media.setAudioMetadata(previousMetadata);
+					if (canMediaInfoParse(ext)) {
+						parseWithMediaInfo(media, file, type);
+					} else {
+						FFmpegParser.parse(media, file, ext, type);
+					}
+				}
+			} else if (canMediaInfoParse(ext)) {
+				parseWithMediaInfo(media, file, type);
 			} else {
 				FFmpegParser.parse(media, file, ext, type);
 			}
 		} else {
 			FFmpegParser.parse(media, file, ext, type);
 		}
+	}
+
+	private static void parseWithMediaInfo(MediaInfo media, InputFile file, int type) {
+		MediaInfoParser.parse(media, file.getFile(), type);
+		if ((type == Format.VIDEO || type == Format.AUDIO) && !hasMediaContent(media, type)) {
+			LOGGER.debug("MediaInfo found no usable content in {}, trying FFmpeg", file.getFile());
+			MediaInfo fallback = new MediaInfo();
+			FFmpegParser.parse(fallback, file);
+			applyFallback(media, fallback, type);
+		}
+	}
+
+	/**
+	 * MediaInfo can't correctly parse ADPCM, DFF, DSF or PNM.
+	 */
+	private static boolean canMediaInfoParse(Format ext) {
+		return MediaInfoParser.isValid() &&
+			ext.getIdentifier() != Format.Identifier.ADPCM &&
+			ext.getIdentifier() != Format.Identifier.DFF &&
+			ext.getIdentifier() != Format.Identifier.DSF &&
+			ext.getIdentifier() != Format.Identifier.PNM;
+	}
+
+	/**
+	 * @return whether the result is usable ? TRUE else FALSE
+	 */
+	private static boolean isAudioParsed(MediaInfo media) {
+		MediaAudio audio = media.getDefaultAudioTrack();
+		return audio != null && StringUtils.isNotBlank(audio.getCodec()) && media.getDurationInSeconds() > 0;
 	}
 
 	/** Structural validation, independent of a parser having completed its attempt. */
