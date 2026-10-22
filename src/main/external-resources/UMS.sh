@@ -1,7 +1,7 @@
 #!/bin/sh
 
-CMD=`readlink -f $0`
-DIRNAME=`dirname "$CMD"`
+CMD=$(readlink -f "$0")
+DIRNAME=$(dirname "$CMD")
 
 # OS specific support (must be 'true' or 'false').
 cygwin=false;
@@ -26,7 +26,7 @@ fi
 
 export PMS_HOME
 # XXX: always cd to the working dir: https://code.google.com/p/ps3mediaserver/issues/detail?id=730
-cd "$PMS_HOME"
+cd "$PMS_HOME" || exit 1
 
 # Setup the JVM
 if [ -z "$JAVA" ]; then
@@ -38,8 +38,8 @@ if [ -z "$JAVA" ]; then
 fi
 
 # Use our JVM if it exists
-if [ -f jre17/bin/java ]; then
-    JAVA="jre17/bin/java"
+if [ -x jre25/bin/java ]; then
+    JAVA="jre25/bin/java"
 fi
 
 # Setup the classpath
@@ -47,10 +47,19 @@ fi
 # be unqualified: https://code.google.com/p/ps3mediaserver/issues/detail?id=1122
 PMS_JARS="update.jar:ums.jar"
 
+# Check the selected executable, including JAVA/JAVA_HOME overrides, before starting UMS.
+JAVA_VERSION=$("$JAVA" -XshowSettings:properties -version 2>&1 | sed -n 's/^[[:space:]]*java.specification.version = //p')
+if [ "$JAVA_VERSION" != "25" ]; then
+    echo "UMS requires Java 25. Selected executable: $JAVA (version: ${JAVA_VERSION:-unknown})." >&2
+    echo "Install JDK 25 and set JAVA_HOME, or use the bundled jre25 runtime." >&2
+    exit 1
+fi
+
 # For Cygwin, switch paths to Windows format before running java
 if $cygwin; then
     PMS_HOME=`cygpath --path --windows "$PMS_HOME"`
     JAVA_HOME=`cygpath --path --windows "$JAVA_HOME"`
+    PMS_JARS=$(cygpath --path --windows "$PMS_JARS")
 fi
 
 # Configure fontconfig (used by our build of FFmpeg)
@@ -69,4 +78,4 @@ if [ -z "$UMS_MAX_MEMORY" ]; then
 fi
 
 # Execute the JVM
-exec "$JAVA" $JAVA_OPTS -Xmx$UMS_MAX_MEMORY -Xss2048k -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true -classpath "$PMS_JARS" net.pms.PMS "$@"
+exec "$JAVA" $JAVA_OPTS -Xmx$UMS_MAX_MEMORY -Xss2048k --add-modules=jdk.incubator.vector --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --enable-native-access=ALL-UNNAMED -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true -classpath "$PMS_JARS" net.pms.PMS "$@"
