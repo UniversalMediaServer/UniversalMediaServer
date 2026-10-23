@@ -355,6 +355,8 @@ public class SubtitleUtils {
 			} catch (IOException ex) {
 				params.getSid().setSubCharacterSet(null);
 				LOGGER.warn("Exception during external file charset detection.", ex);
+				// Never continue with the original when its cache copy could not be created.
+				return null;
 			}
 		} else {
 			FileUtils.copyFile(tempSubs, convertedSubs);
