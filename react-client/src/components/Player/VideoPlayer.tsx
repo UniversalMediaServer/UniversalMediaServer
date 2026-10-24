@@ -189,12 +189,16 @@ const VideoPlayer = (vpOptions: VideoPlayerOption) => {
 
     const videoPlayer = videojs(videoElem, options, onready) as VideoJsPlayer
 
-    const removeSubtitleStyle = videoMedia?.subtitleStyle
-      ? applySubtitleStyle(videoPlayer.el() as HTMLElement, videoMedia.subtitleStyle)
-      : undefined
+    let removeSubtitleStyle: (() => void) | undefined
+
+    if (videoMedia?.subtitleStyle) {
+      removeSubtitleStyle = applySubtitleStyle(videoPlayer.el() as HTMLElement, videoMedia.subtitleStyle)
+    }
 
     return () => {
-      removeSubtitleStyle?.()
+      if (removeSubtitleStyle) {
+        removeSubtitleStyle()
+      }
       if (!videoPlayer.isDisposed()) {
         videoPlayer.dispose()
       }
