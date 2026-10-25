@@ -582,7 +582,7 @@ public abstract class StoreItem extends StoreResource {
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
 					LOGGER.debug("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\" with mime type \"{}\"", getName(),
-							resolvedTranscodingSettings.toString(), getMimeType());
+							resolvedTranscodingSettings.toString(), getMimeType(resolvedTranscodingSettings));
 				} else {
 					LOGGER.debug("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\"", getName(), resolvedTranscodingSettings.toString());
 				}
