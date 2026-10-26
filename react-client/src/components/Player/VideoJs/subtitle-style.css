@@ -1,0 +1,15 @@
+.ums-subtitle-size .vjs-text-track-cue {
+  font-size: var(--ums-subtitle-size) !important;
+  height: auto !important;
+  top: auto !important;
+}
+
+.ums-subtitle-color .vjs-text-track-cue > div,
+.ums-subtitle-color .vjs-text-track-cue > div * {
+  color: var(--ums-subtitle-color) !important;
+}
+
+.ums-subtitle-font .vjs-text-track-cue > div,
+.ums-subtitle-font .vjs-text-track-cue > div * {
+  font-family: var(--ums-subtitle-font) !important;
+}

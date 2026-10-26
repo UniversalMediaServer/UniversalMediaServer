@@ -512,7 +512,7 @@ public class RendererConfigurationTest {
 
 		testHeaders("Sony Bravia EX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";");
 
-		testHeaders("Sony Bravia HX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";");
+		testHeaders("Sony Bravia HX75", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";");
 
 		testHeaders(
 			"Sony Bravia W",
@@ -597,6 +597,27 @@ public class RendererConfigurationTest {
 			"FriendlyName.DLNA.ORG: Xbox-SystemOS",
 			"FriendlyName.DLNA.ORG: XboxOne",
 			"User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411"
+		);
+	}
+
+	@Test
+	public void specificSonyProfilesOutrankTheirGenericMatches() throws Exception {
+		PMS.setConfiguration(new UmsConfiguration(false));
+		RendererConfigurations.loadRendererConfigurations();
+		assertAll("Specific Sony profiles",
+			() -> testUPNPDetails("Sony Bravia EX725", "BRAVIA Sony Corporation KDL-46EX725"),
+			() -> testUPNPDetails("Sony Bravia NX70x", "BRAVIA KDL-46NX703 Sony Corporation"),
+			() -> testUPNPDetails("BRAVIA KDL-xxNX800", "BRAVIA KDL-46NX800 Sony Corporation"),
+			() -> testHeaders("Sony Bravia HX75", "X-AV-Client-Info: BRAVIA KDL-55HX753"),
+			() -> testHeaders("Sony Bravia EX620", "X-AV-Client-Info: BRAVIA KDL-40EX620"),
+			() -> testHeaders("Sony Bravia BX305", "X-AV-Client-Info: BRAVIA KDL-32BX305"),
+			() -> testHeaders("Sony Bravia 4500", "X-AV-Client-Info: BRAVIA KDL-40W4500"),
+			() -> testHeaders("Sony Bravia 5500", "X-AV-Client-Info: BRAVIA KDL-40W5500"),
+			() -> testHeaders("Sony Bravia AG", "X-AV-Client-Info: BRAVIA KD-55AG9"),
+			() -> testHeaders("Sony Bravia XD/XE/XF", "X-AV-Client-Info: BRAVIA KD-55XE9005"),
+			() -> testUPNPDetails("Sony Bravia EX", "BRAVIA Sony KDL-40EX500"),
+			() -> testUPNPDetails("Sony Bravia HX", "BRAVIA Sony KDL-46HX855"),
+			() -> testHeaders("Sony Bravia", "X-AV-Client-Info: BRAVIA unknown model")
 		);
 	}
 
