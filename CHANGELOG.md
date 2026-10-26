@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `@tabler/icons-react` from 3.41.1 to 3.48.0 ([#6386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6386))
+- Bump `@tabler/icons-react` from 3.41.1 to 3.49.0 ([#6386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6386), [#6392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6392))
 - Bump `ch.qos.logback:logback-classic` from 1.6.3 to 1.6.5 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378), [#6397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6397))
 - Bump `ch.qos.logback:logback-core` from 1.6.3 to 1.6.5 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378), [#6397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6397))
 - Bump `com.github.oshi:oshi-core` from 7.6.1 to 7.7.1 ([#6396](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6396))
