@@ -35,7 +35,7 @@
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.1.13 to 12.1.14 ([#6398](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6398))
 - Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
 - Bump `source-map-js` from 1.2.1 to 1.2.2 ([#6405](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6405))
-- Bump `typescript-eslint` from 8.57.1 to 8.71.1 ([#6393](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6393))
+- Bump `typescript-eslint` from 8.57.1 to 8.72.0 ([#6393](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6393), [#6435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6435))
 - Bump `vite` from 7.3.6 to 7.3.7 ([#6414](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6414))
 
 ## [15.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.2...15.9.0) (2026-10-05)
