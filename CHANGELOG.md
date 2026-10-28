@@ -7,6 +7,7 @@
 - Bump `@types/lodash` from 4.17.25 to 4.17.26 ([#6434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6434))
 - Bump `ch.qos.logback:logback-classic` from 1.6.3 to 1.6.5 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378), [#6397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6397))
 - Bump `ch.qos.logback:logback-core` from 1.6.3 to 1.6.5 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378), [#6397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6397))
+- Bump `com.github.junrar:junrar` from 7.6.1 to 8.1.1 ([#6407](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6407))
 - Bump `com.github.oshi:oshi-core` from 7.6.1 to 7.7.1 ([#6396](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6396))
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
 - Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
