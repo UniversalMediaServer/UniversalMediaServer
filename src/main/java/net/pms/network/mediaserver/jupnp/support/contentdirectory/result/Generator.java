@@ -34,6 +34,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.pv.PV;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.sec.SEC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
+import net.pms.util.XmlUtils;
 import org.jupnp.model.XMLUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +86,7 @@ public class Generator {
 
 	protected Document buildDOM(Result content) throws ParserConfigurationException {
 
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilderFactory factory = XmlUtils.xxeDisabledDocumentBuilderFactory();
 		factory.setNamespaceAware(true);
 
 		Document d = factory.newDocumentBuilder().newDocument();

@@ -3,13 +3,13 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject;
 import java.io.IOException;
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import net.pms.store.StoreResource;
+import net.pms.util.XmlUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.slf4j.Logger;
@@ -76,7 +76,7 @@ public class UpdateObjectFactory {
 
 		InputSource is = new InputSource(new StringReader(xml));
 		try {
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			DocumentBuilder builder = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
 			Document doc = builder.parse(is);
 			NodeList node = (NodeList) xpath.evaluate("//*", doc, XPathConstants.NODESET);
 
