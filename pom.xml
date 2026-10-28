@@ -62,7 +62,7 @@
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
-		<sevenzip-version>16.02-2.01</sevenzip-version>
+		<sevenzip-version>23.01-2.2</sevenzip-version>
 		<logback-version>1.6.5</logback-version>
 
 		<project.encoding>UTF-8</project.encoding>
