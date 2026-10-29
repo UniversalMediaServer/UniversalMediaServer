@@ -44,9 +44,9 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@playwright/test": "1.63.0",
+    "@playwright/test": "1.64.1",
     "@stylistic/eslint-plugin": "5.10.0",
-    "@types/lodash": "4.17.25",
+    "@types/lodash": "4.17.26",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "6.1.1",
