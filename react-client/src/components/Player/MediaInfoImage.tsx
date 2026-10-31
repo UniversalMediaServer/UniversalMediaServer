@@ -31,7 +31,7 @@ export default function MediaInfoImage({ i18n, image, title }: { i18n: I18nInter
         <Button variant="default" size="compact-xs" onClick={toggle}>{title}</Button>
       </Group>
 
-      <Collapse in={opened}>
+      <Collapse expanded={opened}>
         <MediaInfoStringValue value={image.format} title={i18n.get('Format')} />
         <MediaInfoStringValue value={image.resolution} title={i18n.get('Resolution')} />
         <MediaInfoNumberValue value={image.size} title={i18n.get('Size')} />

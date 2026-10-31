@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableResourceRatings;
 import net.pms.database.MediaTableStoreIds;
 import net.pms.media.audio.metadata.DoubleRecordFilter;
 import net.pms.media.audio.metadata.AlbumMetadata;
@@ -36,6 +37,7 @@ import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.util.StringUtil;
 
@@ -49,20 +51,41 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 
 	private final DbIdTypeAndIdent typeIdent;
 
+	// System update id the children were built at. -1 means never built.
+	private long builtAtSystemUpdateId = -1;
+
 	public VirtualFolderDbId(Renderer renderer, String i18nName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, i18nName, null);
 		this.typeIdent = typeIdent;
 		setId(typeIdent.toString());
 	}
 
+	/**
+	 * This folder is a database query, and its result can only differ once something in the store was written.
+	 */
 	@Override
-	public boolean isDiscovered() {
-		return false;
+	public boolean isRefreshNeeded() {
+		return builtAtSystemUpdateId != MediaStoreIds.getSystemUpdateId().getValue();
 	}
 
 	@Override
 	public String getSystemName() {
 		return this.typeIdent.toString();
+	}
+
+	/**
+	 * The system name is the type prefix followed by an intrinsic identifier, for
+	 * example $DBID$MUSICBRAINZALBUM$ and a MusicBrainz release id. That is
+	 * globally unique and independent of the store tree, of the UI language and
+	 * of any generated database id, so it must not be qualified with the ancestor
+	 * names. This is what lets an album keep its rating across a database
+	 * rebuild.
+	 *
+	 * @see net.pms.store.StoreResource GETRATINGKEY()
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
 	}
 
 	public String getMediaIdent() {
@@ -213,6 +236,11 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 						}
 						case TYPE_MYMUSIC_ALBUM -> {
 							clearChildren();
+							// Liked albums are the album containers rated with 5 stars in
+							// RESOURCE_RATINGS. Their RESOURCE_KEY is the system name of the
+							// album container, so the release id prefixed with its DBID type.
+							// That key is independent of any generated id and survives a
+							// database rebuild.
 							sql = "SELECT DISTINCT ON (MBID_RELEASE, DISCOGS_RELEASE_ID) " +
 								"    AM.DISCOGS_RELEASE_ID, " +
 								"    AM.MBID_RECORD AS MBID_RELEASE, " +
@@ -222,12 +250,14 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								"    AM.MEDIA_YEAR " +
 								"FROM AUDIO_METADATA AM " +
 								"WHERE EXISTS ( " +
-								"    SELECT 1 FROM MUSIC_BRAINZ_RELEASE_LIKE MBRL " +
-								"    WHERE MBRL.MBID_RELEASE = AM.MBID_RECORD " +
+								"    SELECT 1 FROM " + MediaTableResourceRatings.TABLE_NAME + " RR " +
+								"    WHERE RR.RESOURCE_KEY = '" + DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID + "' || CAST(AM.MBID_RECORD AS VARCHAR) " +
+								"      AND RR.RATING = " + MediaTableResourceRatings.RATING_LIKED + " " +
 								") " +
 								"OR EXISTS ( " +
-								"    SELECT 1 FROM DISCOGS_RELEASE_LIKE DRL " +
-								"    WHERE DRL.DISCOGS_RELEASE_ID = AM.DISCOGS_RELEASE_ID " +
+								"    SELECT 1 FROM " + MediaTableResourceRatings.TABLE_NAME + " RR " +
+								"    WHERE RR.RESOURCE_KEY = '" + DbIdMediaType.TYPE_DISCOGS_RELEASEID + "' || CAST(AM.DISCOGS_RELEASE_ID AS VARCHAR) " +
+								"      AND RR.RATING = " + MediaTableResourceRatings.RATING_LIKED + " " +
 								");";
 
 							LOGGER.debug("VirtualFolderDbid TYPE_MYMUSIC_ALBUM.");
@@ -298,7 +328,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 										String name = resultSet.getString("NAME");
 										LOGGER.debug("person name is : {}", name);
 										DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(typeIdent.type, name.substring(name.lastIndexOf("$") + 1));
-										MusicBrainzPersonFolder person = new MusicBrainzPersonFolder(renderer, tiPerson.getIdentUnprefixed(), tiPerson);
+										PersonFolder person = new PersonFolder(renderer, tiPerson.getIdentUnprefixed(), tiPerson);
 										addChild(person);
 										person.discoverChildren();
 									}
@@ -308,7 +338,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							} else {
 								// We have a person folder which means, we need to add the two virtual folders "all files" and "by album".
 								LOGGER.debug("Person {}", typeIdent.ident);
-								if (this instanceof MusicBrainzPersonFolder person) {
+								if (this instanceof PersonFolder person) {
 									person.discoverChildren();
 								} else {
 									LOGGER.warn("unknown folder type.");
@@ -324,6 +354,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 						default -> throw new RuntimeException("Unknown Type : " + typeIdent);
 					}
 					if (filesListFromDb != null) {
+						renderer.getMediaStore().prepareResources(filesListFromDb);
 						for (File file : filesListFromDb) {
 							if (renderer.hasShareAccess(file)) {
 								StoreResource sr = renderer.getMediaStore().createResourceFromFile(file);
@@ -338,6 +369,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 						}
 					}
 				}
+				builtAtSystemUpdateId = MediaStoreIds.getSystemUpdateId().getValue();
 			} else {
 				LOGGER.error("database not available !");
 			}

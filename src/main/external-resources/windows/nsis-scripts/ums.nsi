@@ -33,11 +33,11 @@ ShowInstDetails nevershow
 Section ""
 	Pop $R0
 
-	StrCpy $R0 "jre${PROJECT_JRE_VERSION}\bin\${JAVAEXE}"
+	StrCpy $R0 "$EXEDIR\jre${PROJECT_JRE_VERSION}\bin\${JAVAEXE}"
 	; Change for your purpose (-jar, -Xmx etc.)
 	${GetParameters} $1
 
-	StrCpy $0 '"$R0" -classpath update.jar;${PROJECT_JARFILE} -Djava.net.preferIPv4Stack=true -Dfile.encoding=${PROJECT_ENCODING} --add-opens java.base/sun.nio.ch=ALL-UNNAMED ${PROJECT_MAIN_CLASS} $1'
+	StrCpy $0 '"$R0" --add-modules=jdk.incubator.vector --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --enable-native-access=ALL-UNNAMED -Djna.nosys=true -classpath $\"$EXEDIR\update.jar;$EXEDIR\${PROJECT_JARFILE}$\" -Djava.net.preferIPv4Stack=true -Dfile.encoding=${PROJECT_ENCODING} ${PROJECT_MAIN_CLASS} $1'
 	SetOutPath $EXEDIR
 	Exec $0
 SectionEnd

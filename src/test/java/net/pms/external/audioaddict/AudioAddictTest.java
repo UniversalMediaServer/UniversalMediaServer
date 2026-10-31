@@ -28,6 +28,8 @@ public class AudioAddictTest {
 		rn.extractAuthInfo(json);
 		assertEquals("SECRET", rn.getApiKey());
 		assertEquals("SECRET_LISTEN_KEY", rn.getListenKey());
+		// Without it the followed playlists of every network stay empty.
+		assertEquals(1234567, rn.getMemberId());
 
 		InputStream isrr = getClass().getResourceAsStream("/net/pms/external/audioaddict/rockradio.txt");
 		String pls = IO.readLines(isrr);

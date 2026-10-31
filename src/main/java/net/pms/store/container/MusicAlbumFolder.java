@@ -24,6 +24,7 @@ import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.ThumbnailStore;
 
 public class MusicAlbumFolder extends VirtualFolderDbIdNamed {
 
@@ -61,9 +62,18 @@ public class MusicAlbumFolder extends VirtualFolderDbIdNamed {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		MediaTableCoverArtArchive.CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(getMediaIdent());
-		if (res.isFound()) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(res.getCoverBytes());
+		String mbid = getMediaIdent();
+		// Through the store, so the cover is read from the database and decoded once
+		DLNAThumbnailInputStream thumbnail = ThumbnailStore.getThumbnailInputStreamForKey(mbid, () -> {
+			MediaTableCoverArtArchive.CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(mbid);
+			return res.isFound() ? res.getCoverBytes() : null;
+		});
+		if (thumbnail != null) {
+			Long id = ThumbnailStore.getCachedIdForKey(mbid);
+			if (id != null && getMediaInfo() != null) {
+				getMediaInfo().setThumbnailId(id);
+			}
+			return thumbnail;
 		}
 		return super.getThumbnailInputStream();
 	}

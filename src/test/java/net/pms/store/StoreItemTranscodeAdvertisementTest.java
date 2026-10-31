@@ -89,7 +89,7 @@ class StoreItemTranscodeAdvertisementTest {
 		ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> events = new ListAppender<>();
 		events.start();
 		logger.addAppender(events);
-		logger.setLevel(Level.DEBUG);
+		logger.setLevel(Level.TRACE);
 		try {
 			assertNotNull(item.resolveTranscodingSettings());
 			assertNull(item.getTranscodingSettings());

@@ -37,6 +37,13 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 	private final Long tvSeriesId;
 	private TvSeriesMetadata tvSeriesMetadata;
 
+	public MediaLibraryTvSeries(Renderer renderer, Long tvSeriesId, String sql, int expectedOutput) {
+		super(renderer, null, sql, expectedOutput);
+		setName(tvSeriesId.toString());
+		this.tvSeriesId = tvSeriesId;
+		setSortable(false);
+	}
+
 	public MediaLibraryTvSeries(Renderer renderer, Long tvSeriesId, String[] sql, int[] expectedOutput) {
 		super(renderer, null, sql, expectedOutput);
 		setName(tvSeriesId.toString());
@@ -46,7 +53,14 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 
 	@Override
 	public String getSystemName() {
-		return "tv_series_" + getName();
+		return getSystemName(tvSeriesId);
+	}
+
+	/**
+	 * The store name of the container holding the given TV series.
+	 */
+	public static String getSystemName(Long tvSeriesId) {
+		return "tv_series_" + tvSeriesId;
 	}
 
 	/**
@@ -83,8 +97,13 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (getTvSeriesMetadata() != null && getTvSeriesMetadata().getThumbnailId() != null) {
-			return ThumbnailStore.getThumbnailInputStream(getTvSeriesMetadata().getThumbnailId());
+		TvSeriesMetadata metadata = getTvSeriesMetadata();
+		ThumbnailStore.resolveLocalizedSeriesPoster(metadata);
+		if (metadata != null && metadata.getThumbnailId() != null) {
+			DLNAThumbnailInputStream thumbnail = ThumbnailStore.getThumbnailInputStream(metadata.getThumbnailId());
+			if (thumbnail != null) {
+				return thumbnail;
+			}
 		}
 
 		try {

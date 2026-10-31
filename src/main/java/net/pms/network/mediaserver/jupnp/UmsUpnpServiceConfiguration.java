@@ -21,6 +21,8 @@ import ch.qos.logback.classic.LoggerContext;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionHandler;
@@ -113,6 +115,9 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	private ExecutorService remoteListenerExecutorService;
 	private ExecutorService registryListenerExecutorService;
 	private ExecutorService registryMaintainerExecutorService;
+
+	// One pool per role, created on first use.
+	private final Map<String, ExecutorService> sharedExecutors = new ConcurrentHashMap<>();
 
 	static {
 		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {
@@ -232,10 +237,18 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 			LOGGER.trace("Shutting down remote listener executor service");
 			remoteListenerExecutorService.shutdownNow();
 		}
+		for (ExecutorService executor : sharedExecutors.values()) {
+			executor.shutdownNow();
+		}
+		sharedExecutors.clear();
 	}
 
 	private ExecutorService createDefaultExecutorService(String name) {
 		return new JUPnPExecutor(name);
+	}
+
+	private ExecutorService getSharedExecutor(String name) {
+		return sharedExecutors.computeIfAbsent(name, key -> Executors.newCachedThreadPool(new SimpleThreadFactory(key, true)));
 	}
 
 	@Override
@@ -289,7 +302,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && multicastReceiverThreadPool) {
 			return multicastReceiverExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(MULTICAST_RECEIVER_THREAD_NAME, true));
+			return getSharedExecutor(MULTICAST_RECEIVER_THREAD_NAME);
 		}
 	}
 
@@ -298,7 +311,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && datagramIOThreadPool) {
 			return datagramIOExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(DATAGRAM_IO_THREAD_NAME, true));
+			return getSharedExecutor(DATAGRAM_IO_THREAD_NAME);
 		}
 	}
 
@@ -307,7 +320,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && asyncProtocolThreadPool) {
 			return asyncProtocolExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(ASYNC_PROTOCOL_THREAD_NAME, true));
+			return getSharedExecutor(ASYNC_PROTOCOL_THREAD_NAME);
 		}
 	}
 
@@ -316,7 +329,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && syncProtocolThreadPool) {
 			return syncProtocolExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(SYNC_PROTOCOL_THREAD_NAME, true));
+			return getSharedExecutor(SYNC_PROTOCOL_THREAD_NAME);
 		}
 	}
 
@@ -324,7 +337,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && streamClientThreadPool) {
 			return streamClientExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(STREAM_CLIENT_THREAD_NAME, true));
+			return getSharedExecutor(STREAM_CLIENT_THREAD_NAME);
 		}
 	}
 
@@ -333,7 +346,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && streamServerThreadPool) {
 			return streamServerExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(STREAM_SERVER_THREAD_NAME, true));
+			return getSharedExecutor(STREAM_SERVER_THREAD_NAME);
 		}
 	}
 
@@ -342,7 +355,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && registryMaintainerThreadPool) {
 			return registryMaintainerExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(REGISTRY_MAINTAINER_THREAD_NAME, true));
+			return getSharedExecutor(REGISTRY_MAINTAINER_THREAD_NAME);
 		}
 	}
 
@@ -351,7 +364,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && registryListenerThreadPool) {
 			return registryListenerExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(REGISTRY_LISTENER_THREAD_NAME, true));
+			return getSharedExecutor(REGISTRY_LISTENER_THREAD_NAME);
 		}
 	}
 
@@ -360,7 +373,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 		if (useThreadPool && remoteListenerThreadPool) {
 			return remoteListenerExecutorService;
 		} else {
-			return Executors.newCachedThreadPool(new SimpleThreadFactory(REMOTE_LISTENER_THREAD_NAME, true));
+			return getSharedExecutor(REMOTE_LISTENER_THREAD_NAME);
 		}
 	}
 

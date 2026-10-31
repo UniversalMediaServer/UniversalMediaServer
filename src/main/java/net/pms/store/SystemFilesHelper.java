@@ -28,6 +28,8 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.image.ImageFormat;
 import net.pms.util.FileUtil;
 
 public class SystemFilesHelper {
@@ -98,6 +100,65 @@ public class SystemFilesHelper {
 			LOGGER.trace("", e);
 		}
 		return null;
+	}
+
+	/**
+	 * Stores a picture as thumbnail
+	 */
+	public static File storeThumbnail(File folder, String baseName, DLNAThumbnail thumbnail) throws IOException {
+		if (folder == null || StringUtils.isBlank(baseName) || thumbnail == null) {
+			return null;
+		}
+		String extension = thumbnailExtension(thumbnail.getFormat());
+		if (extension == null) {
+			LOGGER.debug("not storing a cover in {} : {} is no thumbnail format", folder, thumbnail.getFormat());
+			return null;
+		}
+		File cover = new File(folder, baseName + "." + extension);
+		Files.write(cover.toPath(), thumbnail.getBytes(false));
+		File[] siblings = folder.listFiles();
+		if (siblings != null) {
+			for (File sibling : siblings) {
+				if (sibling.isFile() && !sibling.getName().equalsIgnoreCase(cover.getName()) &&
+						isThumbnailOf(sibling.getName(), baseName)) {
+					if (!sibling.delete()) {
+						LOGGER.warn("cannot remove the previous cover {}", sibling);
+					}
+				}
+			}
+		}
+		LOGGER.debug("stored a cover as {}", cover);
+		return cover;
+	}
+
+	/**
+	 * Whether the file is a thumbnail spelling of baseName
+	 */
+	private static boolean isThumbnailOf(String fileName, String baseName) {
+		String prefix = baseName + ".";
+		if (!fileName.startsWith(prefix)) {
+			return false;
+		}
+		String extension = fileName.substring(prefix.length());
+		return THUMBNAIL_EXTENSIONS.contains(extension.toLowerCase(Locale.ROOT));
+	}
+
+	/**
+	 * The extension a picture of this format may be stored under, or null when no name we could give
+	 * it would be recognised as a thumbnail.
+	 */
+	private static String thumbnailExtension(ImageFormat format) {
+		if (format == null) {
+			return null;
+		}
+		return switch (format) {
+			case JPEG -> "jpg";
+			case PNG -> "png";
+			case GIF -> "gif";
+			case BMP -> "bmp";
+			case WEBP -> "webp";
+			default -> null;
+		};
 	}
 
 	/**

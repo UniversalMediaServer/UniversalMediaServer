@@ -30,6 +30,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
 import net.pms.parsers.MediaInfoParser;
+import net.pms.parsers.JaudiotaggerParser;
 import net.pms.parsers.ParserTest;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -58,6 +59,50 @@ class MediaParseRetryTest {
 		assertTrue(result.getWidth() > 0);
 		assertEquals(MediaInfoParser.PARSER_NAME, result.getMediaParser());
 	}
+	@Test
+	void containerOnlyAudioCacheKeepsJaudiotaggerFastPath() throws Exception {
+		var path = directory.resolve("cached.mp3");
+		Files.copy(ParserTest.getTestFile("audio-mp3-infos.mp3").toPath(), path);
+		var cached = new MediaInfo();
+		cached.setContainer("mp3");
+		cached.setMediaParser("MediaInfo");
+		MediaInfoStore.storeMediaInfo(path.toString(), cached);
+		try {
+			var result = MediaInfoStore.getMediaInfo(path.toString(), path.toFile(),
+				FormatFactory.getAssociatedFormat(path.toString()), Format.AUDIO);
+			assertNotNull(result.getDefaultAudioTrack());
+			assertTrue(result.getDurationInSeconds() > 0);
+			assertEquals(JaudiotaggerParser.PARSER_NAME, result.getMediaParser());
+		} finally {
+			MediaInfoStore.removeMediaEntryFromCache(path.toString());
+		}
+	}
+
+	@Test
+	void failedCachedParseDoesNotProbeAgainDuringCooldown() throws Exception {
+		var path = Files.writeString(directory.resolve("broken.mp3"), "broken");
+		var resets = new AtomicLong();
+		var cached = new MediaInfo() {
+			@Override
+			public void resetParser() {
+				resets.incrementAndGet();
+				super.resetParser();
+			}
+		};
+		cached.setMediaParser("MediaInfo");
+		MediaInfoStore.storeMediaInfo(path.toString(), cached);
+		var format = FormatFactory.getAssociatedFormat(path.toString());
+		try {
+			MediaInfoStore.getMediaInfo(path.toString(), path.toFile(), format, Format.AUDIO);
+			long attempts = resets.get();
+			assertTrue(attempts > 0, "An empty cached result must be retried");
+			MediaInfoStore.getMediaInfo(path.toString(), path.toFile(), format, Format.AUDIO);
+			assertEquals(attempts, resets.get(), "An unchanged failed result must honor the retry cooldown");
+		} finally {
+			MediaInfoStore.removeMediaEntryFromCache(path.toString());
+		}
+	}
+
 	@Test
 	void unchangedFileIsRetriedOnlyAfterCooldown() throws Exception {
 		var now = new AtomicLong();
