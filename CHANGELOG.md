@@ -2,12 +2,48 @@
 
 ## [Unreleased]
 
+### General
+- Added support for setting custom colors, fonts, and positions for subtitles in the web player
+- Enabled media players to automatically detect when videos are 3D, part 2 (thanks, Daniel Ramos!)
+- Fixed DivX codec detectio
+- Fixed WTV transcoding with missing metadata
+- Fixed parsing bugs with MediaInfo
+- Fixed detection of some 3D video formats (thanks, Daniel Ramos!)
+- Fixed selection of wrong external subtitles in the web player
+- Reduced size of distributed packages
+- Fixed incorrect logging (thanks, Daniel Ramos!)
+
+### Security
+- Harden against XML XXE attacks
+
+### Media players
+- Fixed detection of many Sony TVs (thanks, Daniel Ramos!)
+- Fixed Xbox 360 transcoding (#6104)
+
+### Translation updates via Crowdin
+- Chinese (Simplified) (54%) (thanks, yuanzhoulvACS!)
+- Czech (100%)
+- Dutch (100%) (thanks, Lefteye!)
+- Finnish (70%) (thanks, Esko Gardner!)
+- German (74%) (thanks, richie2000-1!)
+- Greek (34%) (thanks, Ιάκωβος Ιακωβίδης!)
+- Korean (85%) (thanks, VenusGirl!)
+- Slovak (48%) (thanks, padi-sk!)
+- Turkish (89%) (thanks, Burak Yavuz!)
+- Ukrainian (100%) (thanks, Yaroslav Maikovych!)
+
 ### Dependencies
+- Bump `@playwright/test` from 1.63.0 to 1.64.1
 - Bump `@tabler/icons-react` from 3.41.1 to 3.49.0 ([#6386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6386), [#6392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6392))
 - Bump `@types/lodash` from 4.17.25 to 4.17.26 ([#6434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6434))
+- Bump `axios` from 1.18.1 to 1.20.0
 - Bump `ch.qos.logback:logback-classic` from 1.6.3 to 1.6.5 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378), [#6397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6397))
 - Bump `ch.qos.logback:logback-core` from 1.6.3 to 1.6.5 ([#6378](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6378), [#6397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6397))
+- Bump `com.auth0:java-jwt` from 4.6.0 to 4.6.2
+- Bump `com.drewnoakes:metadata-extractor` from 2.20.0 to 2.21.0
 - Bump `com.github.oshi:oshi-core` from 7.6.1 to 7.7.1 ([#6396](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6396))
+- Bump `com.google.guava:guava` from 33.7.1-jre to 33.7.2-jre
+- Bump `com.h2database:h2` from 2.4.240 to 2.5.252
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
 - Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
 - Bump `com.twelvemonkeys.imageio:imageio-core` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
@@ -26,6 +62,7 @@
 - Bump `com.twelvemonkeys.imageio:imageio-webp` from 3.15.2 to 3.15.3 ([#6399](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6399))
 - Bump `commons-codec:commons-codec` from 1.22.1 to 1.23.0 ([#6395](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6395))
 - Bump `eslint-plugin-react-refresh` from 0.5.2 to 0.5.7 ([#6384](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6384))
+- Bump `follow-redirects` from 1.16.0 to 1.16.1
 - Bump `org.apache.commons:commons-collections4` from 4.5.0 to 4.6.0 ([#6380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6380))
 - Bump `org.apache.maven.plugins:maven-shade-plugin` from 3.6.0 to 3.6.2 ([#6408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6408))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.6 to 3.6.0 ([#6379](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6379))
@@ -36,6 +73,7 @@
 - Bump `react-router` from 7.18.2 to 7.18.4 ([#6385](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6385))
 - Bump `source-map-js` from 1.2.1 to 1.2.2 ([#6405](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6405))
 - Bump `typescript-eslint` from 8.57.1 to 8.71.1 ([#6393](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6393))
+- Bump `undici` from 8.10.2 to 8.12.2
 - Bump `vite` from 7.3.6 to 7.3.7 ([#6414](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6414))
 
 ## [15.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.8.2...15.9.0) (2026-10-05)
