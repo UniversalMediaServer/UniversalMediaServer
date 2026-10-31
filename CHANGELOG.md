@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Translation updates via Crowdin
+- Chinese (Simplified) (54%) (thanks, yuanzhoulvACS!)
+- Czech (100%)
+- Dutch (100%) (thanks, Lefteye!)
+- Finnish (70%) (thanks, Esko Gardner!)
+- German (74%) (thanks, richie2000-1!)
+- Greek (34%) (thanks, Ιάκωβος Ιακωβίδης!)
+- Korean (85%) (thanks, VenusGirl!)
+- Slovak (48%) (thanks, padi-sk!)
+- Turkish (89%) (thanks, Burak Yavuz!)
+- Ukrainian (100%) (thanks, Yaroslav Maikovych!)
+
 ### Dependencies
 - Bump `@tabler/icons-react` from 3.41.1 to 3.49.0 ([#6386](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6386), [#6392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6392))
 - Bump `@types/lodash` from 4.17.25 to 4.17.26 ([#6434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6434))
