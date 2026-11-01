@@ -292,7 +292,7 @@ jobs:
           key: node-dependencies-${{ hashFiles('react-client/yarn.lock', 'react-client/.yarnrc.yml', 'react-client/package.json') }}
       - name: Run tests
         run: |
-          sudo apt-get -y install libzen0t64
+          sudo apt-get -y install libmms0 libzen0t64
           wget https://mediaarea.net/download/binary/libmediainfo0/26.05/libmediainfo0v5_26.05-1_amd64.Ubuntu_26.04.deb
           sudo dpkg -i libmediainfo0v5_26.05-1_amd64.Ubuntu_26.04.deb
           mvn verify -P testing -DdisableXmlReport=true
