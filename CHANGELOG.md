@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [15.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.9.0...15.10.0) (2026-10-31)
+
 ### General
 - Added support for setting custom colors, fonts, and positions for subtitles in the web player
 - Enabled media players to automatically detect when videos are 3D, part 2 (thanks, Daniel Ramos!)

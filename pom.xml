@@ -55,7 +55,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>15.9.0</project.version.short>
+		<project.version.short>16.0.0</project.version.short>
 		<project.jre-version>25</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
