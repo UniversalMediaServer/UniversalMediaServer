@@ -3,7 +3,8 @@
 ## [Unreleased]
 
 ### Dependencies
-
+- Bump `@types/lodash` from 4.17.26 to 4.17.27 ([#6448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6448))
+- Bump `typescript-eslint` from 8.71.1 to 8.72.1 ([#6449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6449))
 - Bump `@types/lodash` from 4.17.26 to 4.17.27 ([#6448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6448))
 
 ## [15.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.9.0...15.10.0) (2026-10-31)
