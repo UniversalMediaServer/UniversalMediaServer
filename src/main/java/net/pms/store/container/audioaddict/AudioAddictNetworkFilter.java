@@ -5,10 +5,11 @@ import net.pms.external.audioaddict.AudioAddictChannelDto;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.Platform;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
-import net.pms.store.item.WebAudioStream;
+import org.apache.commons.lang3.StringUtils;
 
 public class AudioAddictNetworkFilter extends StoreContainer {
 
@@ -23,7 +24,16 @@ public class AudioAddictNetworkFilter extends StoreContainer {
 			MediaInfo mi = new MediaInfo();
 			mi.setMimeType("audio/mpeg");
 			mi.setMediaParser("STATIC");
-			StoreResource sr = new WebAudioStream(renderer, c.name, c.streamUrl, "http:" + c.albumArt);
+			String genres = StringUtils.trimToNull(c.genres);
+			String descShort = StringUtils.trimToNull(c.descShort);
+			if (genres != null || descShort != null) {
+				MediaAudioMetadata md = new MediaAudioMetadata();
+				md.setArtist(genres);
+				md.setGenre(genres);
+				md.setAlbum(descShort);
+				mi.setAudioMetadata(md);
+			}
+			StoreResource sr = new AudioAddictRadioStream(renderer, c.name, c.streamUrl, "http:" + c.albumArt, network, c.id);
 			sr.setMediaInfo(mi);
 			addChild(sr);
 		}

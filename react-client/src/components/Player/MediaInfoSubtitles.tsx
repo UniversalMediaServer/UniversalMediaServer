@@ -38,7 +38,7 @@ export default function MediaInfoSubtitles({ i18n, subtitles }: { i18n: I18nInte
         <Button variant="default" size="compact-xs" onClick={toggle}><Title i18n={i18n} subtitles={subtitles} /></Button>
       </Group>
 
-      <Collapse in={opened}>
+      <Collapse expanded={opened}>
         <MediaInfoBooleanValue i18n={i18n} value={subtitles.embedded} title={i18n.get('Embedded')} />
         <MediaInfoBooleanValue i18n={i18n} value={subtitles.default} title={i18n.get('Default')} />
         <MediaInfoBooleanValue i18n={i18n} value={subtitles.forced} title={i18n.get('Forced')} />

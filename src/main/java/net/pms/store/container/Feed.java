@@ -56,11 +56,23 @@ public class Feed extends StoreContainer {
 	private String tempCategory;
 	private String tempItemThumbURL;
 
+	/**
+	 * Creates the feed without reading it.
+	 */
 	public Feed(Renderer renderer, String name, String url, int type) {
 		super(renderer, name, null);
 		childSpecificType = type;
 		this.url = getFeedUrl(url);
-		discoverChildren();
+	}
+
+	/**
+	 * Reads the feed in the background, so its entries are there before somebody browses the folder without making anybody wait for them.
+	 */
+	public void discoverChildrenInBackground() {
+		Thread thread = new Thread(() -> discover(false), "feed-" + getSystemName());
+		thread.setDaemon(true);
+		thread.setPriority(Thread.MIN_PRIORITY);
+		thread.start();
 	}
 
 	public void parse() throws Exception {
@@ -226,6 +238,15 @@ public class Feed extends StoreContainer {
 	@Override
 	public String getSystemName() {
 		return url;
+	}
+
+	/**
+	 * GETSYSTEMNAME() returns a file path or an URL, which identifies this
+	 * container globally, so GETRATINGKEY() can use it as is.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
 	}
 
 	protected void manageItem() {

@@ -91,6 +91,7 @@ public class PlaylistManager {
 		}
 
 		if (playlistFolder.deleteEntry(filenameToRemove) || playlistFolder.deleteEntry(relativePath)) {
+			playlistFolder.removeChild(entry);
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
 			Long containerId = MediaTableFiles.getFileId(playlistPath.toString());
 			Long entryId = MediaTableFiles.getFileId(filenameToRemove);
@@ -215,7 +216,7 @@ public class PlaylistManager {
 		return false;
 	}
 
-	private static boolean isValidPlaylist(String filename) {
+	public static boolean isValidPlaylist(String filename) {
 		return (filename.toLowerCase().endsWith(".m3u") ||
 				filename.toLowerCase().endsWith(".m3u8") ||
 				filename.toLowerCase().endsWith(".pls"));

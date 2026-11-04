@@ -87,6 +87,12 @@ public class ParserTest {
 			getTestFileMediaInfo("audio-realmedia.ra").getMediaParser()
 		);
 
+		// Audio keeps the v16 fast path even when MediaInfo is available.
+		assertEquals(
+			JaudiotaggerParser.PARSER_NAME,
+			getTestFileMediaInfo("audio-mp3-infos.mp3").getMediaParser()
+		);
+
 		//disable MediaInfoParser
 		MediaInfoParser.block();
 		//should fallback to FFmpegParser when MediaInfoParser is not found
