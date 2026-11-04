@@ -33,7 +33,7 @@ public class AlbumArtUriHandler extends BaseUpdateObjectHandler {
 					"the CurrentTagValue argument do not match the current state of the ContentDirectory service. " +
 					"The specified data is likely out of date.");
 			}
-			ThumbnailStore.updateThumbnailByURI(newValue, getObjectResource().getFileName(), ThumbnailSource.USER);
+			ThumbnailStore.enqueueThumbnailUpdate(newValue, getObjectResource().getFileName(), ThumbnailSource.USER);
 			if (getObjectResource() instanceof WebStream ws && getObjectResource().getParent() instanceof PlaylistFolder pls) {
 				// This entry is a webResource from a Playlist. We can try to update the album art uri
 				pls.updateAlbumArtUriDirective(ws.getUrl(), newValue);

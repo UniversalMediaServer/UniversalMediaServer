@@ -20,6 +20,9 @@ import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
@@ -35,8 +38,14 @@ public class ThumbnailStore {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailStore.class.getName());
 
 	private static final Map<Long, WeakReference<DLNAThumbnail>> STORE = new HashMap<>();
+	private static final BlockingQueue<ThumbnailUpdateRequest> THUMBNAIL_UPDATE_QUEUE = new LinkedBlockingQueue<>();
+	private static final AtomicBoolean QUEUE_WORKER_RUNNING = new AtomicBoolean(false);
+	private static final String QUEUE_WORKER_THREAD_NAME = "thumbnail-update-worker";
 
 	private static Long tempId = Long.MAX_VALUE;
+
+	public record ThumbnailUpdateRequest(String uri, String filePath, ThumbnailSource thumbnailSource) { }
+
 
 	private ThumbnailStore() {
 		//should not be instantiated
@@ -64,7 +73,48 @@ public class ThumbnailStore {
 		}
 	}
 
-	public static Long updateThumbnailByURI(String uri, String filePath, ThumbnailSource thumbnailSource) {
+	public static void enqueueThumbnailUpdate(ThumbnailUpdateRequest request) {
+		if (request == null) {
+			return;
+		}
+		THUMBNAIL_UPDATE_QUEUE.offer(request);
+		startQueueWorkerIfNeeded();
+	}
+
+	public static void enqueueThumbnailUpdate(String uri, String filePath, ThumbnailSource thumbnailSource) {
+		enqueueThumbnailUpdate(new ThumbnailUpdateRequest(uri, filePath, thumbnailSource));
+	}
+
+	private static void startQueueWorkerIfNeeded() {
+		if (QUEUE_WORKER_RUNNING.compareAndSet(false, true)) {
+			Thread workerThread = new Thread(ThumbnailStore::runQueueWorker, QUEUE_WORKER_THREAD_NAME);
+			workerThread.setDaemon(true);
+			workerThread.start();
+		}
+	}
+
+	private static void runQueueWorker() {
+		try {
+			while (!Thread.currentThread().isInterrupted()) {
+				ThumbnailUpdateRequest request = THUMBNAIL_UPDATE_QUEUE.take();
+				try {
+					updateThumbnailByURI(request.uri(), request.filePath(), request.thumbnailSource());
+				} catch (Exception e) {
+					LOGGER.debug("Error while processing thumbnail update request for filePath: {}", request.filePath(), e);
+				}
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} finally {
+			QUEUE_WORKER_RUNNING.set(false);
+		}
+	}
+
+	private static Long updateThumbnailByURI(String uri, String filePath, ThumbnailSource thumbnailSource) {
+		if (uri == null || filePath == null || thumbnailSource == null) {
+			LOGGER.debug("Cannot update thumbnail because uri/filePath/thumbnailSource is null");
+			return null;
+		}
 		DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(uri);
 		Long fileId = MediaTableFiles.getFileId(filePath);
 
