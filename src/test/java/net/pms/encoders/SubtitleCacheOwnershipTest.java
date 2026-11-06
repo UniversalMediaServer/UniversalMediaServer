@@ -19,8 +19,10 @@ package net.pms.encoders;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
@@ -82,5 +84,27 @@ class SubtitleCacheOwnershipTest {
 		assertEquals(modified, Files.getLastModifiedTime(original.toPath()));
 		assertFalse(new File(tempDir, "user_3D.ass").exists(), "No converted file beside the user file");
 		assertNull(converted);
+		assertFalse(isOpenByThisProcess(original), "The user file must be closed after a failed conversion");
+	}
+
+	/**
+	 * Linux lists this process's open files in /proc/self/fd. Windows reports a
+	 * file left open when the temporary folder cannot be deleted after the test.
+	 */
+	private static boolean isOpenByThisProcess(File file) throws IOException {
+		Path fds = Path.of("/proc/self/fd");
+		if (!Files.isDirectory(fds)) {
+			return false;
+		}
+		Path target = file.toPath().toRealPath();
+		try (var links = Files.list(fds)) {
+			return links.anyMatch(link -> {
+				try {
+					return Files.readSymbolicLink(link).equals(target);
+				} catch (IOException e) {
+					return false;
+				}
+			});
+		}
 	}
 }
