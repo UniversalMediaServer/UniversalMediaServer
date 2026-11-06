@@ -17,7 +17,10 @@
 package net.pms.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.ref.Reference;
 import java.net.URI;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -101,14 +104,14 @@ public class ResourceIdentifier {
 			if (size == 0) {
 				hash = xx3.hashVoid();
 			} else if (size <= WHOLE_FILE_THRESHOLD) {
-				hash = xx3.hashBytes(fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size));
+				hash = hashMapped(xx3, fileChannel, 0, size);
 			} else {
 				long[] hashes = new long[SEGMENTS + 1];
 				hashes[0] = size;
 				long lastOffset = size - SEGMENT_BYTES;
 				for (int i = 0; i < SEGMENTS; i++) {
 					long offset = lastOffset * i / (SEGMENTS - 1);
-					hashes[i + 1] = xx3.hashBytes(fileChannel.map(FileChannel.MapMode.READ_ONLY, offset, SEGMENT_BYTES));
+					hashes[i + 1] = hashMapped(xx3, fileChannel, offset, SEGMENT_BYTES);
 				}
 				hash = xx3.hashLongs(hashes);
 			}
@@ -120,6 +123,22 @@ public class ResourceIdentifier {
 			LOGGER.trace("", ex);
 		}
 		return null;
+	}
+
+	/**
+	 * Hashes a mapped region of {@code channel}.
+	 *
+	 * <p>XXH3 reads the mapping through a raw address and does not retain the
+	 * buffer. The buffer has to stay reachable until that read returns, or the
+	 * garbage collector can unmap it and crash the JVM.
+	 */
+	private static long hashMapped(LongHashFunction xx3, FileChannel channel, long offset, long length) throws IOException {
+		MappedByteBuffer mapped = channel.map(FileChannel.MapMode.READ_ONLY, offset, length);
+		try {
+			return xx3.hashBytes(mapped);
+		} finally {
+			Reference.reachabilityFence(mapped);
+		}
 	}
 
 	/**
