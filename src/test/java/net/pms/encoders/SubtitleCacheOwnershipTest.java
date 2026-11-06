@@ -52,9 +52,10 @@ class SubtitleCacheOwnershipTest {
 			"Dialogue: 0,0:00:00.00,0:00:01.00,Default,,0,0,0,,Caption\n").getBytes(StandardCharsets.UTF_16LE);
 		Files.write(original.toPath(), bytes);
 		var modified = Files.getLastModifiedTime(original.toPath());
+		// A regular file where the cache folder should be denies every write below it
+		// on all platforms, unlike File.setWritable(false) which Windows ignores for folders.
 		File cache = new File(tempDir, "unwritable-cache");
-		assertTrue(cache.mkdir());
-		assertTrue(cache.setWritable(false, false));
+		assertTrue(cache.createNewFile());
 		UmsConfiguration config = new UmsConfiguration(false) {
 			@Override
 			public String getDataFile(String name) { return cache.getAbsolutePath(); }
@@ -76,14 +77,10 @@ class SubtitleCacheOwnershipTest {
 		item.setMediaInfo(media);
 		var params = new OutputParams(config);
 		params.setSid(subtitle);
-		try {
-			File converted = SubtitleUtils.getSubtitles(item, media, params, config, SubtitleType.ASS);
-			assertArrayEquals(bytes, Files.readAllBytes(original.toPath()), "Cache failure must not modify the user file");
-			assertEquals(modified, Files.getLastModifiedTime(original.toPath()));
-			assertFalse(new File(tempDir, "user_3D.ass").exists(), "No converted file beside the user file");
-			assertNull(converted);
-		} finally {
-			assertTrue(cache.setWritable(true, true));
-		}
+		File converted = SubtitleUtils.getSubtitles(item, media, params, config, SubtitleType.ASS);
+		assertArrayEquals(bytes, Files.readAllBytes(original.toPath()), "Cache failure must not modify the user file");
+		assertEquals(modified, Files.getLastModifiedTime(original.toPath()));
+		assertFalse(new File(tempDir, "user_3D.ass").exists(), "No converted file beside the user file");
+		assertNull(converted);
 	}
 }
