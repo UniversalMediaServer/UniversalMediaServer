@@ -19,7 +19,10 @@ package net.pms.util;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.Reference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.InvalidPathException;
@@ -44,6 +47,8 @@ public class ResourceIdentifier {
 	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
 	private static final String LOG_RUID_RESULTS = "RUID for \"{}\": {}";
 	private static final String LOG_RUID_ERROR = "Error creating ruid ({}) for \"{}\"";
+	private static final Object UNSAFE = lookupUnsafe();
+	private static final Method INVOKE_CLEANER = lookupInvokeCleaner();
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -130,7 +135,9 @@ public class ResourceIdentifier {
 	 *
 	 * <p>XXH3 reads the mapping through a raw address and does not retain the
 	 * buffer. The buffer has to stay reachable until that read returns, or the
-	 * garbage collector can unmap it and crash the JVM.
+	 * garbage collector can unmap it and crash the JVM. It is released
+	 * immediately afterwards so mapped files do not accumulate until the next
+	 * collection.
 	 */
 	private static long hashMapped(LongHashFunction xx3, FileChannel channel, long offset, long length) throws IOException {
 		MappedByteBuffer mapped = channel.map(FileChannel.MapMode.READ_ONLY, offset, length);
@@ -138,6 +145,42 @@ public class ResourceIdentifier {
 			return xx3.hashBytes(mapped);
 		} finally {
 			Reference.reachabilityFence(mapped);
+			unmap(mapped);
+		}
+	}
+
+	/**
+	 * Releases a mapped file without waiting for a garbage collection.
+	 * Mapped memory is outside the Java heap, so a quiet heap never collects
+	 * it and the mappings stay resident.
+	 */
+	private static void unmap(MappedByteBuffer mapped) {
+		if (UNSAFE == null || INVOKE_CLEANER == null) {
+			return;
+		}
+		try {
+			INVOKE_CLEANER.invoke(UNSAFE, mapped);
+		} catch (ReflectiveOperationException e) {
+			LOGGER.debug("Could not release mapped file: {}", e.toString());
+		}
+	}
+
+	private static Object lookupUnsafe() {
+		try {
+			Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+			Field field = unsafeClass.getDeclaredField("theUnsafe");
+			field.setAccessible(true);
+			return field.get(null);
+		} catch (ReflectiveOperationException e) {
+			return null;
+		}
+	}
+
+	private static Method lookupInvokeCleaner() {
+		try {
+			return Class.forName("sun.misc.Unsafe").getMethod("invokeCleaner", ByteBuffer.class);
+		} catch (ReflectiveOperationException e) {
+			return null;
 		}
 	}
 
