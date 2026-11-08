@@ -3495,11 +3495,11 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-                                        <get src="https://evermeet.cx/ffmpeg/ffmpeg-8.1.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
-                                        <unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel"></unzip>
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.1.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel"></unzip>
 
 										<!-- Copy FFmpeg binary -->
-                                        <copy file="${project.basedir}/target/ffmpeg-macos-intel/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
+										<copy file="${project.basedir}/target/ffmpeg-macos-intel/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
 
 										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
