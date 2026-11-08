@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### General
-- Fixed a media scanner crash while hashing files, and release each mapped file when its hash finishes
+- Fixed a media scanner crash while hashing files
 
 ### Dependencies
 - Bump `@types/lodash` from 4.17.26 to 4.17.27 ([#6448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6448))

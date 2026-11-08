@@ -18,16 +18,10 @@ package net.pms.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.Reference;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.io.RandomAccessFile;
 import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +36,12 @@ public class ResourceIdentifier {
 
 	private static final int SEGMENTS = 2;
 	private static final int SEGMENT_BYTES = 1024 * 128;
-	private static final long WHOLE_FILE_THRESHOLD = (long) SEGMENTS * SEGMENT_BYTES;
+	private static final int WHOLE_FILE_THRESHOLD = SEGMENTS * SEGMENT_BYTES;
+	private static final ThreadLocal<byte[]> FILE_HASH_BUFFER = ThreadLocal.withInitial(() -> new byte[WHOLE_FILE_THRESHOLD]);
 
 	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
 	private static final String LOG_RUID_RESULTS = "RUID for \"{}\": {}";
 	private static final String LOG_RUID_ERROR = "Error creating ruid ({}) for \"{}\"";
-	private static final Object UNSAFE = lookupUnsafe();
-	private static final Method INVOKE_CLEANER = lookupInvokeCleaner();
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -102,21 +95,21 @@ public class ResourceIdentifier {
 	 */
 	private static String getFileIdentifier(final File file) {
 		String pathname = file.getAbsolutePath();
-		try (FileChannel fileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+		try (RandomAccessFile input = new RandomAccessFile(file, "r")) {
 			LongHashFunction xx3 = LongHashFunction.xx3();
-			long size = fileChannel.size();
+			long size = input.length();
 			long hash;
 			if (size == 0) {
 				hash = xx3.hashVoid();
 			} else if (size <= WHOLE_FILE_THRESHOLD) {
-				hash = hashMapped(xx3, fileChannel, 0, size);
+				hash = hashFileRegion(xx3, input, 0, (int) size);
 			} else {
 				long[] hashes = new long[SEGMENTS + 1];
 				hashes[0] = size;
 				long lastOffset = size - SEGMENT_BYTES;
 				for (int i = 0; i < SEGMENTS; i++) {
 					long offset = lastOffset * i / (SEGMENTS - 1);
-					hashes[i + 1] = hashMapped(xx3, fileChannel, offset, SEGMENT_BYTES);
+					hashes[i + 1] = hashFileRegion(xx3, input, offset, SEGMENT_BYTES);
 				}
 				hash = xx3.hashLongs(hashes);
 			}
@@ -130,58 +123,11 @@ public class ResourceIdentifier {
 		return null;
 	}
 
-	/**
-	 * Hashes a mapped region of {@code channel}.
-	 *
-	 * <p>XXH3 reads the mapping through a raw address and does not retain the
-	 * buffer. The buffer has to stay reachable until that read returns, or the
-	 * garbage collector can unmap it and crash the JVM. It is released
-	 * immediately afterwards so mapped files do not accumulate until the next
-	 * collection.
-	 */
-	private static long hashMapped(LongHashFunction xx3, FileChannel channel, long offset, long length) throws IOException {
-		MappedByteBuffer mapped = channel.map(FileChannel.MapMode.READ_ONLY, offset, length);
-		try {
-			return xx3.hashBytes(mapped);
-		} finally {
-			Reference.reachabilityFence(mapped);
-			unmap(mapped);
-		}
-	}
-
-	/**
-	 * Releases a mapped file without waiting for a garbage collection.
-	 * Mapped memory is outside the Java heap, so a quiet heap never collects
-	 * it and the mappings stay resident.
-	 */
-	private static void unmap(MappedByteBuffer mapped) {
-		if (UNSAFE == null || INVOKE_CLEANER == null) {
-			return;
-		}
-		try {
-			INVOKE_CLEANER.invoke(UNSAFE, mapped);
-		} catch (ReflectiveOperationException e) {
-			LOGGER.debug("Could not release mapped file: {}", e.toString());
-		}
-	}
-
-	private static Object lookupUnsafe() {
-		try {
-			Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
-			Field field = unsafeClass.getDeclaredField("theUnsafe");
-			field.setAccessible(true);
-			return field.get(null);
-		} catch (ReflectiveOperationException e) {
-			return null;
-		}
-	}
-
-	private static Method lookupInvokeCleaner() {
-		try {
-			return Class.forName("sun.misc.Unsafe").getMethod("invokeCleaner", ByteBuffer.class);
-		} catch (ReflectiveOperationException e) {
-			return null;
-		}
+	private static long hashFileRegion(LongHashFunction xx3, RandomAccessFile input, long offset, int length) throws IOException {
+		byte[] buffer = FILE_HASH_BUFFER.get();
+		input.seek(offset);
+		input.readFully(buffer, 0, length);
+		return xx3.hashBytes(buffer, 0, length);
 	}
 
 	/**
