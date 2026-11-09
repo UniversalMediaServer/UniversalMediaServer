@@ -1,4 +1,4 @@
-FROM bellsoft/liberica-openjre-debian:25.0.3-11
+FROM bellsoft/liberica-openjre-debian:25
 LABEL org.opencontainers.image.title="Universal Media Server"
 
 ARG DEBIAN_FRONTEND=noninteractive
