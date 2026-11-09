@@ -686,7 +686,7 @@ public class SearchRequestDatabaseTest {
 	 * before MediaTableAudioMetadata drops that column.
 	 */
 	@Test
-	public void testMigrateAudioTagRatings() throws Exception {
+	public void testMigrateAudioTagRatingsForV16() throws Exception {
 		try (Connection c = MediaDatabase.get().getConnection(); Statement st = c.createStatement()) {
 			String filename;
 			try (ResultSet rs = st.executeQuery("select F.FILENAME from FILES F join AUDIO_METADATA A on A.FILEID = F.ID " +
@@ -699,11 +699,11 @@ public class SearchRequestDatabaseTest {
 			st.execute("ALTER TABLE AUDIO_METADATA ADD COLUMN IF NOT EXISTS RATING INTEGER");
 			try {
 				st.execute("UPDATE AUDIO_METADATA SET RATING = 3 WHERE FILEID IN (SELECT ID FROM FILES WHERE FILENAME = '" + quoted + "')");
-				MediaTableResourceRatings.migrateAudioTagRatings(c);
+				MediaTableResourceRatings.migrateAudioTagRatingsForV16(c);
 				assertEquals(3, MediaTableResourceRatings.getRating(c, filename), "the tag rating was moved over");
 
 				st.execute("UPDATE AUDIO_METADATA SET RATING = 5 WHERE FILEID IN (SELECT ID FROM FILES WHERE FILENAME = '" + quoted + "')");
-				MediaTableResourceRatings.migrateAudioTagRatings(c);
+				MediaTableResourceRatings.migrateAudioTagRatingsForV16(c);
 				assertEquals(3, MediaTableResourceRatings.getRating(c, filename), "the migration is insert only");
 			} finally {
 				st.execute("DELETE FROM RESOURCE_RATINGS WHERE RESOURCE_KEY = '" + quoted + "'");

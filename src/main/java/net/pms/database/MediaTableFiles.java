@@ -950,7 +950,7 @@ public class MediaTableFiles extends MediaTable {
 			MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
 			MediaTableAudioMetadata.insertOrUpdateAudioMetadata(connection, fileId, media);
 			if (media.hasAudioMetadata()) {
-				MediaTableResourceRatings.insertTagRating(connection, name, media.getAudioMetadata().getRating());
+				MediaTableResourceRatings.insertAudioTagRatingFromFile(connection, name, media.getAudioMetadata().getRating());
 			}
 			MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
 			MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
