@@ -107,7 +107,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder continueWatchingVideos = new MediaLibraryFolder(
 			renderer,
 			"ContinueWatching",
-			SELECT_FILES_STATUS_VIDEOMETA_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + getWasPlayedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + DESC + LIMIT_100,
+			SELECT_FILES_STATUS_VIDEOMETA_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + getWasPlayedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + DESC + LIMIT_1000,
 			CONTINUE_WATCHING
 		);
 		MediaLibraryFolder tvShowsFolder = new MediaLibraryFolder(
