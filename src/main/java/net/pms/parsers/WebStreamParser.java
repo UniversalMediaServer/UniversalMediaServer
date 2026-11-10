@@ -27,8 +27,8 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +63,7 @@ public class WebStreamParser {
 			addAudioIcyInfos(mediaInfo, url, headers);
 		}
 		mediaInfo.setParsing(false);
-		if (Strings.CI.contains(url, "youtube")) {
+		if (UMSUtils.isYouTubeURL(url)) {
 			YoutubeParser.parseUrl(mediaInfo, url);
 		} else {
 			FFmpegParser.parseUrl(mediaInfo, url);
