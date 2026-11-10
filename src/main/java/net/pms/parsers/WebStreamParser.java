@@ -32,7 +32,6 @@ import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class WebStreamParser {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebStreamParser.class.getName());

@@ -159,14 +159,6 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 		return getWasPlayedCondition(userId) + AND + NOT_FULLYPLAYED_CONDITION;
 	}
 
-	protected static String getInProgressTVEpisodesCondition(int userId) {
-		return TVEPISODE_CONDITION + AND + getWasPlayedCondition(userId);
-	}
-
-	protected static String getInProgressMoviesCondition(int userId) {
-		return MOVIE_CONDITION + AND + getWasPlayedCondition(userId) + AND + NOT_FULLYPLAYED_CONDITION;
-	}
-
 	protected static String getWasPlayedCondition(int userId) {
 		return getUserCondition(userId) + AND + WAS_PLAYED_CONDITION;
 	}
