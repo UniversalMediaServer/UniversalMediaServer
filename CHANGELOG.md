@@ -42,14 +42,14 @@
 - Documented more configuration options in UMS.conf and DefaultRenderer.conf
 
 ### Dependencies
-- Bump `ESLint` from 9.39.2 to 10.11.0
+- Bump `ESLint` from 9.39.2 to 10.14.0
 - Bump `FFmpeg` from 8.1.2 to 9.0.2
 - Bump `git-commit-id-plugin` from 9.1.0 to 10.0.1
 - Bump `Java Runtime Environment` from 17 to 25
 - Bump `Lucene` from 9.12.3 to 10.6.0
-- Bump `Mantine` from 8.3.18 to 9.6.1
+- Bump `Mantine` from 8.3.18 to 9.7.4
 - Bump `Typescript` from 5.9.3 to 6.0.3
-- Bump `Vite` from 7.3.7 to 8.3.0
+- Bump `Vite` from 7.3.7 to 8.3.5
 
 ## [15.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.9.0...15.10.0) (2026-10-31)
 
