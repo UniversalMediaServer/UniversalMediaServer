@@ -32,6 +32,9 @@
 	- genre
 
 	[![a video thumbnail for RadioBrowser support](./changelog-images/16.0.0-radiobrowser.png)](https://github.com/user-attachments/assets/38193429-f478-4284-aa67-de2fd5a3da6e)
+- Added support for updating renderers about specific files and containers that have changed
+- Added support for sending metadata to renderers
+- Improved parsing of YouTube streams
 - **Portable backup/restore**: ratings_backup stores every entry in up to three flavours, so a rating survives a moved file and a changed mount point. Old backup files cannot be used any more!
 - The Ubuntu (default) **Docker release now uses Debian**. Ubuntu is a Debian fork so it shouldn't change much.
 - Increased startup performance by **~95%**
@@ -39,7 +42,14 @@
 - Documented more configuration options in UMS.conf and DefaultRenderer.conf
 
 ### Dependencies
+- Bump `ESLint` from 9.39.2 to 10.11.0
+- Bump `FFmpeg` from 8.1.2 to 9.0.2
+- Bump `git-commit-id-plugin` from 9.1.0 to 10.0.1
 - Bump `Java Runtime Environment` from 17 to 25
+- Bump `Lucene` from 9.12.3 to 10.6.0
+- Bump `Mantine` from 8.3.18 to 9.6.1
+- Bump `Typescript` from 5.9.3 to 6.0.3
+- Bump `Vite` from 7.3.7 to 8.3.0
 
 ## [15.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.9.0...15.10.0) (2026-10-31)
 
