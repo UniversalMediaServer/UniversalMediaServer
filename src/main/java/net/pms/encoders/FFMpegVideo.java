@@ -313,6 +313,8 @@ public class FFMpegVideo extends Engine {
 			!stereoLayout.equals(renderer3DOutputFormat)
 		) {
 			filterChain.add("stereo3d=" + stereoLayout + ":" + renderer3DOutputFormat);
+			// stereo3d keeps the source frame's layout; the output encoder must not reuse it.
+			filterChain.add("sidedata=mode=delete:type=STEREO3D");
 		}
 
 		if (!filterChain.isEmpty()) {
