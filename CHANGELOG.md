@@ -12,12 +12,18 @@
 - We no longer support x86 (32-bit) architecture. This means we are losing the following 4 releases: Linux ARMel, Linux ARMhf, Linux x86, and Windows x86.
 
 ### General
-- Added a Continue Watching folder to the Media Library. It shows all videos that are in progress, as well as the next episodes for in-progress TV series, ordered by most recently watched
-- Added support for **DI.fm (AudioAddict) Events and Playlists**
+- Added a **Continue Watching** folder to the Media Library. It shows all videos that are in progress, as well as the next episodes for in-progress TV series, ordered by most recently watched
+- Added support for **[DI.fm (AudioAddict)](https://www.di.fm/) Events and Playlists**
 
 	[![a video thumbnail for DI.fm support](./changelog-images/16.0.0-difm.png)](https://github.com/user-attachments/assets/61d680d0-911b-4cd6-a564-cffc51b05e83)
-- Added support for offering **HLS versions of videos** in renderer configs
 - Added support for **3-box configuration**
+- Added **[RadioBrowser](https://www.radio-browser.info/)** support for finding and adding radio stations to server side playlists. Search supports:
+	- station name
+	- country 
+	- language
+	- genre
+
+	[![a video thumbnail for RadioBrowser support](./changelog-images/16.0.0-radiobrowser.png)](https://github.com/user-attachments/assets/38193429-f478-4284-aa67-de2fd5a3da6e)
 - Added support for **liking/rating** for all media types (like videos, playlists, folders, etc.) via renderers and media players (before, it was only available for audio)
 
 	[![a video thumbnail for liking and rating support](./changelog-images/16.0.0-like.png)](https://github.com/user-attachments/assets/f6c6085c-dbf0-491b-afd3-ef7bc490caaa)
@@ -25,15 +31,9 @@
 
 	[![a video thumbnail for updating album art](./changelog-images/16.0.0-album-art.png)](https://github.com/user-attachments/assets/5f5739b2-77da-43d3-b7e8-a53cd938cdb8)
 - Added support for **Album** and **Person** containers
-- Added [RadioBrowser](https://www.radio-browser.info/) support for finding and adding radio stations to server side playlists. Search supports:
-	- station name
-	- country 
-	- language
-	- genre
-
-	[![a video thumbnail for RadioBrowser support](./changelog-images/16.0.0-radiobrowser.png)](https://github.com/user-attachments/assets/38193429-f478-4284-aa67-de2fd5a3da6e)
 - Added support for updating renderers about specific files and containers that have changed
 - Added support for sending metadata to renderers
+- Added support for offering **HLS versions of videos** in renderer configs
 - Improved parsing of YouTube streams
 - **Portable backup/restore**: ratings_backup stores every entry in up to three flavours, so a rating survives a moved file and a changed mount point. Old backup files cannot be used any more!
 - The Ubuntu (default) **Docker release now uses Debian**. Ubuntu is a Debian fork so it shouldn't change much.
