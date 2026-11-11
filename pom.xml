@@ -2781,7 +2781,7 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
 
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.1.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-9.0.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel"></unzip>
 
 										<!-- Copy FFmpeg binary -->
@@ -3026,7 +3026,7 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.1.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-9.0.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel" />
 
 										<!-- Copy FFmpeg binary -->
