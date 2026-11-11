@@ -425,7 +425,7 @@ public class DlnaHelper {
 		} else {
 			orgPN += "_MP";
 		}
-		
+
 		orgPN += getResolutionString(media);
 
 		if (media != null && media.getDefaultAudioTrack() != null) {
