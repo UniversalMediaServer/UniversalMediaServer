@@ -1790,11 +1790,11 @@
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
 										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-9.0.2.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-9.0.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel" />
 
 										<!-- Copy FFmpeg binary -->
-										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
+										<copy file="${project.basedir}/target/ffmpeg-macos-intel/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
 
 										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
@@ -2036,11 +2036,11 @@
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
 										<get src="https://github.com/yt-dlp/yt-dlp/releases/download/2026.03.17/yt-dlp_macos" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-9.0.2.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-9.0.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel" />
 
 										<!-- Copy FFmpeg binary -->
-										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
+										<copy file="${project.basedir}/target/ffmpeg-macos-intel/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
 
 										<get src="${project.binaries-base}/osx/10.15/flac" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mencoder" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
@@ -2782,7 +2782,7 @@
 										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
 
 										<get src="https://evermeet.cx/ffmpeg/ffmpeg-8.1.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel"></unzip>
 
 										<!-- Copy FFmpeg binary -->
 										<copy file="${project.basedir}/target/ffmpeg-macos-intel/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
@@ -3799,9 +3799,9 @@
 										<mkdir dir="${project.binaries}/osx" />
 
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="https://evermeet.cx/ffmpeg/ffmpeg-9.0.2.zip" dest="${project.basedir}/target/ffmpeg-macos-1015.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/ffmpeg-macos-1015.zip" dest="${project.basedir}/target/ffmpeg-macos-1015" />
-										<copy file="${project.basedir}/target/ffmpeg-macos-1015/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
+										<get src="https://evermeet.cx/ffmpeg/ffmpeg-9.0.2.zip" dest="${project.basedir}/target/ffmpeg-macos-intel.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/ffmpeg-macos-intel.zip" dest="${project.basedir}/target/ffmpeg-macos-intel" />
+										<copy file="${project.basedir}/target/ffmpeg-macos-intel/ffmpeg" tofile="${project.binaries}/osx/ffmpeg" overwrite="true" />
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />

@@ -370,13 +370,17 @@ public class DlnaHelper {
 		return "MPEG_PS_PAL";
 	}
 
+	private static String getResolutionString(MediaInfo media) {
+		if (media != null && media.getDefaultVideoTrack() != null && media.getDefaultVideoTrack().isHDVideo()) {
+			return "HD";
+		} else {
+			return "SD";
+		}
+	}
+
 	private static String getMpegTsMpeg2OrgPN(int index, MediaInfo media, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
-		if (media != null && media.getDefaultVideoTrack() == null && media.getDefaultVideoTrack().isHDVideo()) {
-			orgPN += "HD";
-		} else {
-			orgPN += "SD";
-		}
+		orgPN += getResolutionString(media);
 
 		orgPN += (
 			switch (index) {
@@ -422,7 +426,7 @@ public class DlnaHelper {
 			orgPN += "_MP";
 		}
 
-		orgPN += "_HD";
+		orgPN += getResolutionString(media);
 
 		if (media != null && media.getDefaultAudioTrack() != null) {
 			if (
@@ -469,21 +473,24 @@ public class DlnaHelper {
 	private static String getMp4H264OrgPN(MediaInfo media, EncodingFormat encodingFormat) {
 		String orgPN = "AVC_MP4";
 
-		if (media != null && media.getDefaultVideoTrack() != null &&
-			media.getDefaultVideoTrack().getFormatProfile() != null) {
+		if (
+			media != null &&
+			media.getDefaultVideoTrack() != null &&
+			media.getDefaultVideoTrack().getFormatProfile() != null
+		) {
 			if (media.getDefaultVideoTrack().getFormatProfile().contains("high")) {
 				if (encodingFormat == null && media.getDefaultAudioTrack() != null && media.getDefaultAudioTrack().isHEAAC()) {
-					orgPN += "_HD_HEAACv2_L6";
+					orgPN += "_" + getResolutionString(media) + "_HEAACv2_L6";
 				} else {
-					orgPN += "_HP_HD";
+					orgPN += "_HP_" + getResolutionString(media);
 				}
 			} else if (media.getDefaultVideoTrack().getFormatProfile().contains("baseline")) {
-				orgPN += "_BL";
+				orgPN += "_BL_" + getResolutionString(media);
 			} else {
-				orgPN += "_MP_SD";
+				orgPN += "_MP_" + getResolutionString(media);
 			}
 		} else {
-			orgPN += "_MP_SD";
+			orgPN += "_MP_" + getResolutionString(media);
 		}
 
 		if (media != null && media.getDefaultAudioTrack() != null) {
@@ -510,6 +517,11 @@ public class DlnaHelper {
 				media.getDefaultAudioTrack().isDTSHD()
 			) {
 				orgPN += "_DTSHD";
+			} else if (
+				encodingFormat == null &&
+				media.getDefaultAudioTrack().isAACLC()
+			) {
+				orgPN += "_AAC";
 			}
 		}
 

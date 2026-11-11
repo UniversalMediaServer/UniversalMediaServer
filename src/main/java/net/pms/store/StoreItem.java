@@ -509,6 +509,28 @@ public abstract class StoreItem extends StoreResource {
 		String configurationForceExtensions = renderer.getUmsConfiguration().getForceTranscodeForExtensions();
 		String configurationSkipExtensions = renderer.getUmsConfiguration().getDisableTranscodeForExtensions();
 
+		MediaVideo defaultVideoTrack = mediaInfo.getDefaultVideoTrack();
+		String source3DLayout = null;
+		MediaVideo.Mode3D source3DMode = null;
+		if (defaultVideoTrack != null && defaultVideoTrack.is3d()) {
+			source3DMode = defaultVideoTrack.get3DLayout();
+			source3DLayout = source3DMode != null ?
+				source3DMode.toString().toLowerCase(Locale.ROOT) :
+				defaultVideoTrack.getMultiViewLayout();
+		}
+		if (
+			(source3DMode == null || !isSupportedStereo3DInput(source3DMode)) &&
+			source3DLayout != null &&
+			StringUtils.isNotBlank(renderer.getOutput3DFormat()) &&
+			!source3DLayout.equals(renderer.getOutput3DFormat())
+		) {
+			String message = "No supported conversion can convert \"" + getName() + "\" from \"" +
+				source3DLayout + "\" to \"" + renderer.getOutput3DFormat() + "\"";
+			// The caller logs a failed child at debug level, so say it where the person reads it
+			LOGGER.warn("{}, so it is not offered to {}", message, renderer.getRendererName());
+			throw new IllegalStateException(message);
+		}
+
 		// Should transcoding be skipped for this format?
 		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
 
@@ -613,6 +635,14 @@ public abstract class StoreItem extends StoreResource {
 			LOGGER.trace("Final verdict: \"{}\" will be streamed because no compatible engine was found", getName());
 		}
 		return resolvedTranscodingSettings;
+	}
+
+	private static boolean isSupportedStereo3DInput(MediaVideo.Mode3D source3DMode) {
+		return switch (source3DMode) {
+			case ML, MR, ARCG, ARCH, ARCC, ARCD, AGMG, AGMH, AGMC, AGMD,
+				AYBG, AYBH, AYBC, AYBD -> false;
+			case SBSL, SBSR, SBS2L, SBS2R, ABL, ABR, AB2L, AB2R -> true;
+		};
 	}
 
 	/**

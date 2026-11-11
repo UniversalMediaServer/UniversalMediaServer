@@ -18,7 +18,13 @@ package net.pms.store;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import java.io.File;
 import java.util.List;
 import net.pms.encoders.EncodingFormat;
@@ -31,6 +37,7 @@ import net.pms.renderers.Renderer;
 import net.pms.store.item.RealFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 class StoreItemStereoTest {
 
@@ -39,8 +46,13 @@ class StoreItemStereoTest {
 		ParserTest.setUpClass();
 	}
 
-	private StoreItem item(String codec, String layout, String output) throws Exception {
+	private StoreItem item(String codec, String layout, String output, boolean streamed) throws Exception {
 		Renderer renderer = new Renderer((String) null) {
+			@Override
+			public String getRendererName() {
+				return "Stereo refusal test";
+			}
+
 			@Override
 			public boolean isUseMediaInfo() {
 				return true;
@@ -60,6 +72,11 @@ class StoreItemStereoTest {
 			public String getOutput3DFormat() {
 				return output;
 			}
+
+			@Override
+			public String getStreamedExtensions() {
+				return streamed ? "mkv" : null;
+			}
 		};
 		MediaVideo video = new MediaVideo();
 		video.setCodec(codec);
@@ -70,26 +87,74 @@ class StoreItemStereoTest {
 		MediaInfo media = new MediaInfo();
 		media.addVideoTrack(video);
 		StoreItem item = new RealFile(renderer, new File("stereo.mkv"));
-		item.setFormat(new MKV());
+		MKV format = new MKV();
+		assertTrue(format.match("stereo.mkv"));
+		item.setFormat(format);
 		item.setMediaInfo(media);
 		return item;
 	}
 
 	@Test
 	void h264StereoRequiresTheRequestedConversion() throws Exception {
-		assertNotNull(item("h264", "side by side (left eye first)", "abl").resolveTranscodingSettings());
-		assertNotNull(item("h264", "side by side (left eye first)", "ml").resolveTranscodingSettings());
+		assertNotNull(item("h264", "side by side (left eye first)", "abl", false).resolveTranscodingSettings());
+		assertNotNull(item("h264", "side by side (left eye first)", "ml", false).resolveTranscodingSettings());
 	}
 
 	@Test
 	void compatibleAndUnspecifiedStereoAndMonoCanStream() throws Exception {
-		assertNull(item("h264", "side by side (left eye first)", "sbsl").resolveTranscodingSettings());
-		assertNull(item("h264", "side by side (left eye first)", "").resolveTranscodingSettings());
-		assertNull(item("h264", null, "abl").resolveTranscodingSettings());
+		assertNull(item("h264", "side by side (left eye first)", "sbsl", true).resolveTranscodingSettings());
+		assertNull(item("h264", "side by side (left eye first)", "", true).resolveTranscodingSettings());
+		assertNull(item("h264", null, "abl", true).resolveTranscodingSettings());
 	}
 
 	@Test
-	void unsupportedPackingDoesNotBecomeAConversion() throws Exception {
-		assertNull(item("h265", "Checkboard (left eye first)", "sbsl").resolveTranscodingSettings());
+	void unsupportedPackingFailsVisiblyInsteadOfStreaming() {
+		IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+			item("h265", "checkboard (left eye first)", "sbsl", false).resolveTranscodingSettings();
+		});
+		assertTrue(exception.getMessage().contains("from \"checkboard (left eye first)\" to \"sbsl\""));
 	}
+
+	@Test
+	void streamedUnsupportedPackingFailsVisiblyInsteadOfStreaming() {
+		IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+			item("h265", "checkboard (left eye first)", "sbsl", true).resolveTranscodingSettings();
+		});
+		assertTrue(exception.getMessage().contains("from \"checkboard (left eye first)\" to \"sbsl\""));
+	}
+
+	@Test
+	void unsupportedRecognizedAnaglyphPackingFailsVisiblyInsteadOfStreaming() {
+		IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+			item("h265", "arcc", "sbsl", false).resolveTranscodingSettings();
+		});
+		assertTrue(exception.getMessage().contains("from \"arcc\" to \"sbsl\""));
+	}
+	@Test
+	void refusalNamesTheFileLayoutsAndRendererAtWarningLevel() throws Exception {
+		StoreItem resource = item("h265", "arcc", "sbsl", false);
+		Logger logger = (Logger) LoggerFactory.getLogger(StoreItem.class);
+		Level previous = logger.getLevel();
+		ListAppender<ILoggingEvent> events = new ListAppender<>();
+		events.start();
+		logger.addAppender(events);
+		logger.setLevel(Level.WARN);
+		try {
+			assertThrows(IllegalStateException.class, resource::resolveTranscodingSettings);
+			assertTrue(events.list.stream().anyMatch(event -> event.getLevel() == Level.WARN &&
+				event.getFormattedMessage().contains("No supported conversion can convert \"stereo.mkv\" from \"arcc\" to \"sbsl\", so it is not offered to ") &&
+				event.getFormattedMessage().endsWith("Stereo refusal test")));
+		} finally {
+			logger.detachAppender(events);
+			logger.setLevel(previous);
+			events.stop();
+		}
+	}
+
+	@Test
+	void unsupportedPackingCanStreamWhenNoConversionIsRequested() throws Exception {
+		assertNull(item("h265", "checkboard (left eye first)", "", true).resolveTranscodingSettings());
+		assertNull(item("h265", "arcc", "arcc", true).resolveTranscodingSettings());
+	}
+
 }
