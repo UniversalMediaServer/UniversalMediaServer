@@ -46,7 +46,9 @@ public final class FramePackingParser {
 	private static final long TIMEOUT_MS = 5000;
 	// FFmpeg 7.1 added the view, and FFmpeg before 6.0 named it "stereoscopic information"
 	private static final Pattern STEREO_3D = Pattern.compile(
-		"(?:Stereo 3D|stereoscopic information): type - (side by side|top and bottom)( \\(inverted\\))?(?:, view - packed|$)",
+		"(?:Stereo 3D|stereoscopic information): type - " +
+			"(side by side \\(quincunx subsampling\\)|side by side|top and bottom|checkerboard|frame alternate|interleaved lines|interleaved columns)" +
+			"( \\(inverted\\))?(?:,|$)",
 		Pattern.MULTILINE
 	);
 
@@ -110,8 +112,8 @@ public final class FramePackingParser {
 	 * @param showinfoOutput the log of FFmpeg
 	 * @param width the width of the video
 	 * @param height the height of the video
-	 * @return the layout, or {@code null} if the first frame is not
-	 *         side by side or top and bottom
+	 * @return the layout, or {@code null} if the first frame has no
+	 *         recognized stereo layout
 	 */
 	public static String getMultiViewLayout(String showinfoOutput, int width, int height) {
 		if (showinfoOutput == null) {
@@ -124,7 +126,30 @@ public final class FramePackingParser {
 		}
 
 		String eye = matcher.group(2) == null ? "left" : "right";
-		if (matcher.group(1).startsWith("side")) {
+		String arrangement = matcher.group(1);
+		// frame_packing_arrangement_type of ITU-T H.264 D.2.26 (table D-9) and H.265 D.3.16: 0 checkerboard,
+		// 1 column interleaving, 2 row interleaving, 3 side by side, 4 top and bottom, 5 temporal interleaving
+		if (arrangement.equals("checkerboard")) {
+			return "checkerboard (" + eye + " eye first)";
+		}
+
+		if (arrangement.equals("interleaved lines")) {
+			return "row interleaved (" + eye + " eye first)";
+		}
+
+		if (arrangement.equals("interleaved columns")) {
+			return "column interleaved (" + eye + " eye first)";
+		}
+
+		if (arrangement.equals("frame alternate")) {
+			return "both eyes laced in one block (" + eye + " eye first)";
+		}
+
+		if (arrangement.contains("quincunx")) {
+			return "side by side quincunx (" + eye + " eye first)";
+		}
+
+		if (arrangement.startsWith("side")) {
 			return (width > 1920 ? "" : "half ") + "side by side (" + eye + " eye first)";
 		}
 

@@ -20,8 +20,11 @@ import java.io.File;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
+import net.pms.media.video.MediaVideo;
+import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.util.InputFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -230,6 +233,20 @@ public class FFmpegParserTest {
 			getTestFileMediaInfo("image-gif.gif").getMediaParser()
 		);
 
+	}
+
+
+	@Test
+	public void checkerboardIsAModeWhenParsedByFFmpeg() {
+		if (!FFmpegParser.isValid()) {
+			LOGGER.info("FFmpegParser test skipped");
+			return;
+		}
+
+		MediaVideo video = getTestFileMediaInfo("video-h264_frame_packing_checkerboard.mp4").getDefaultVideoTrack();
+		assertEquals("checkerboard (left eye first)", video.getMultiViewLayout());
+		assertTrue(video.is3d());
+		assertEquals(Mode3D.CHL, video.get3DLayout());
 	}
 
 }

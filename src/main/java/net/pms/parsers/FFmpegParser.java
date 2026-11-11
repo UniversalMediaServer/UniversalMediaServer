@@ -99,6 +99,14 @@ public class FFmpegParser {
 				parse(media, inputFile);
 				if (
 					file != null &&
+					type == Format.VIDEO &&
+					media.getDefaultVideoTrack() != null &&
+					!media.getDefaultVideoTrack().is3d()
+				) {
+					FramePackingParser.parse(file, media);
+				}
+				if (
+					file != null &&
 					"mpegts".equals(media.getContainer()) &&
 					media.getDefaultVideoTrack() != null &&
 					media.getDefaultVideoTrack().isH264() &&

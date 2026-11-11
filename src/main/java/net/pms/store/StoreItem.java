@@ -624,7 +624,7 @@ public abstract class StoreItem extends StoreResource {
 		return switch (source3DMode) {
 			case ML, MR, ARCG, ARCH, ARCC, ARCD, AGMG, AGMH, AGMC, AGMD,
 				AYBG, AYBH, AYBC, AYBD -> false;
-			case SBSL, SBSR, SBS2L, SBS2R, ABL, ABR, AB2L, AB2R -> true;
+			case SBSL, SBSR, SBS2L, SBS2R, ABL, ABR, AB2L, AB2R, IRL, IRR, ICL, ICR, AL, AR, CHL, CHR -> true;
 		};
 	}
 

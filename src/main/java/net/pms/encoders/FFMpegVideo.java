@@ -96,6 +96,15 @@ public class FFMpegVideo extends Engine {
 	/** The {@link Configuration} key for the custom FFmpeg path. */
 	public static final String KEY_FFMPEG_PATH = "ffmpeg_path";
 
+	/**
+	 * FFmpeg's {@code stereo3d} filter copies the Stereo 3D side data of the
+	 * source to the frames it converts, so the encoders would mark the new
+	 * picture with the layout it no longer has (the frame packing SEI of x264
+	 * and the user data of MPEG-2 follow the frame, not the x264 option).
+	 * What the output must carry is written from the output layout.
+	 */
+	static final String DELETE_STEREO_SIDE_DATA = "sidedata=mode=delete:type=STEREO3D";
+
 	/** The {@link Configuration} key for the FFmpeg executable type. */
 	public static final String KEY_FFMPEG_EXECUTABLE_TYPE = "ffmpeg_executable_type";
 	public static final String NAME = "FFmpeg Video";
@@ -312,9 +321,14 @@ public class FFMpegVideo extends Engine {
 			StringUtils.isNotBlank(renderer3DOutputFormat) &&
 			!stereoLayout.equals(renderer3DOutputFormat)
 		) {
-			filterChain.add("stereo3d=" + stereoLayout + ":" + renderer3DOutputFormat);
-			// stereo3d keeps the source frame's layout; the output encoder must not reuse it.
-			filterChain.add("sidedata=mode=delete:type=STEREO3D");
+			MediaVideo.Mode3D sourceLayout = defaultVideoTrack.get3DLayout();
+			if (isUnpackedBeforeScaling(sourceLayout)) {
+				// Scaling a picture that interleaves the views would mix them
+				filterChain.addAll(0, getStereoConversionFilters(sourceLayout, renderer3DOutputFormat));
+			} else {
+				filterChain.add("stereo3d=" + stereoLayout + ":" + renderer3DOutputFormat);
+				filterChain.add(DELETE_STEREO_SIDE_DATA);
+			}
 		}
 
 		if (!filterChain.isEmpty()) {
@@ -575,6 +589,61 @@ public class FFMpegVideo extends Engine {
 	}
 
 	/**
+	 * Tells whether the views of a layout are mixed inside the picture or
+	 * across pictures, so that the picture must be converted before it is
+	 * scaled, padded or has subtitles burned in.
+	 *
+	 * @param layout the 3D layout of the source
+	 * @return {@code true} for rows, columns, checkerboard and alternating frames
+	 */
+	static boolean isUnpackedBeforeScaling(MediaVideo.Mode3D layout) {
+		return layout != null && switch (layout) {
+			case IRL, IRR, ICL, ICR, AL, AR, CHL, CHR -> true;
+			default -> false;
+		};
+	}
+
+	/**
+	 * Returns the FFmpeg filters that turn a source in the given 3D layout
+	 * into the layout a renderer takes. A view is never resampled: FFmpeg's
+	 * {@code stereo3d} copies samples, and the checkerboard is compacted from
+	 * the samples each view owns.
+	 *
+	 * {@code stereo3d} has no checkerboard input, so that layout goes to side by side with
+	 * {@code geq}: view samples sit where the column and row add up to an even number
+	 * (left first) or an odd one (right first), and each row of a view is its samples in
+	 * order (ITU-T H.264 D.2.26, table D-9 value 0). {@code interpolation=n} is needed:
+	 * the default bilinear {@code p()} reads the neighbouring sample at the last column.
+	 *
+	 * {@code stereo3d=icr:...} gives the views swapped (FFmpeg 6.1), and {@code stereo3d=irr:ml}
+	 * gives the right view, so every one of these layouts first goes to side by side with the
+	 * left view first, the one conversion checked sample by sample for each of them, and from
+	 * there to the layout of the renderer. Columns with the right eye first are read as left
+	 * first and put on the other side.
+	 *
+	 * @param source the 3D layout of the source
+	 * @param output the {@code Output3DFormat} of the renderer, in lower case
+	 * @return the filters, in order
+	 */
+	static List<String> getStereoConversionFilters(MediaVideo.Mode3D source, String output) {
+		List<String> filters = new ArrayList<>();
+		switch (source) {
+			case CHL, CHR -> {
+				int phase = source == MediaVideo.Mode3D.CHL ? 0 : 1;
+				String sample = "if(lt(X,W/2),p(2*X+mod(Y+" + phase + ",2),Y),p(2*(X-W/2)+1-mod(Y+" + phase + ",2),Y))";
+				filters.add("geq=interpolation=n:lum='" + sample + "':cb='" + sample + "':cr='" + sample + "'");
+			}
+			case ICR -> filters.add("stereo3d=icl:sbsr");
+			default -> filters.add("stereo3d=" + source.toString().toLowerCase(Locale.ROOT) + ":sbsl");
+		}
+		if (!"sbsl".equals(output)) {
+			filters.add("stereo3d=sbsl:" + output);
+		}
+		filters.add(DELETE_STEREO_SIDE_DATA);
+		return filters;
+	}
+
+	/**
 	 * Returns the x264 {@code frame-packing} value for the 3D layout this
 	 * transcode outputs, or {@code null} when the output is not frame-packed 3D.
 	 *
@@ -606,13 +675,29 @@ public class FFMpegVideo extends Engine {
 			outputLayout = sourceLayout.toString().toLowerCase(Locale.ROOT);
 		}
 
-		// Anything else is either 2D output (ml, mr) or anaglyph, which is not frame-packed
-		if (outputLayout.startsWith("sbs")) {
+		return getFramePackingArrangementForOutput(outputLayout);
+	}
+
+	/**
+	 * Returns the x264 {@code frame-packing} value of an output layout.
+	 *
+	 * @param outputLayout the layout, in lower case
+	 * @return the value, or {@code null} for 2D output and anaglyph, which are not frame-packed
+	 */
+	static String getFramePackingArrangementForOutput(String outputLayout) {
+		// ITU-T H.264 D.2.26, table D-9
+		if (outputLayout.startsWith("ch")) {
+			return "0";
+		} else if (outputLayout.startsWith("ic")) {
+			return "1";
+		} else if (outputLayout.startsWith("ir")) {
+			return "2";
+		} else if (outputLayout.startsWith("sbs")) {
 			return "3";
 		} else if (outputLayout.startsWith("ab")) {
 			return "4";
-		} else if (outputLayout.startsWith("ir")) {
-			return "2";
+		} else if (outputLayout.equals("al") || outputLayout.equals("ar")) {
+			return "5";
 		}
 
 		return null;
