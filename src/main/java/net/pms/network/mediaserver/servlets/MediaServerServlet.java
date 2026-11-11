@@ -176,9 +176,11 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			if (GET.equals(method) || HEAD.equals(method)) {
 				// Get resource
 				StoreResource resource = null;
-				if (!CONFIGURATION.isAuthenticationEnabled() &&
-						mediaServerRequest.getRequestType() == MediaServerRequestType.THUMBNAIL &&
-						ControlPoint.getRenderer() != null) {
+				if (
+					!CONFIGURATION.isAuthenticationEnabled() &&
+					mediaServerRequest.getRequestType() == MediaServerRequestType.THUMBNAIL &&
+					ControlPoint.getRenderer() != null
+				) {
 					resource = ControlPoint.getRenderer().getMediaStore().getResource(mediaServerRequest.getResourceId());
 				}
 				if (resource == null) {

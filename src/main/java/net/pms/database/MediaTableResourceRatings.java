@@ -99,8 +99,8 @@ public final class MediaTableResourceRatings extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1 -> migrateAlbumLikes(connection);
-				case 2 -> migrateAudioTagRatings(connection);
+				case 1 -> migrateAlbumLikesForV16(connection);
+				case 2 -> migrateAudioTagRatingsForV16(connection);
 				default -> throw new IllegalStateException(
 					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 				);
@@ -125,7 +125,7 @@ public final class MediaTableResourceRatings extends MediaTable {
 	/**
 	 * Stores the rating an audio file carries in its tag, unless the resource is already rated.
 	 */
-	public static void insertTagRating(final Connection connection, final String resourceKey, final Integer rating) {
+	public static void insertAudioTagRatingFromFile(final Connection connection, final String resourceKey, final Integer rating) {
 		if (connection == null || resourceKey == null || rating == null) {
 			return;
 		}
@@ -140,7 +140,7 @@ public final class MediaTableResourceRatings extends MediaTable {
 		}
 	}
 
-	public static void migrateAudioTagRatings(final Connection connection) throws SQLException {
+	public static void migrateAudioTagRatingsForV16(final Connection connection) throws SQLException {
 		if (!tableExists(connection, MediaTableAudioMetadata.TABLE_NAME) || !tableExists(connection, MediaTableFiles.TABLE_NAME)) {
 			return;
 		}
@@ -155,12 +155,12 @@ public final class MediaTableResourceRatings extends MediaTable {
 		}
 	}
 
-	public static void migrateAlbumLikes(final Connection connection) throws SQLException {
-		migrateAlbumLikes(connection, MediaTableMusicBrainzReleaseLike.TABLE_NAME, "MBID_RELEASE", DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID);
-		migrateAlbumLikes(connection, MediaTableDiscogsReleaseLike.TABLE_NAME, "DISCOGS_RELEASE_ID", DbIdMediaType.TYPE_DISCOGS_RELEASEID);
+	public static void migrateAlbumLikesForV16(final Connection connection) throws SQLException {
+		migrateAlbumLikesForV16(connection, MediaTableMusicBrainzReleaseLike.TABLE_NAME, "MBID_RELEASE", DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID);
+		migrateAlbumLikesForV16(connection, MediaTableDiscogsReleaseLike.TABLE_NAME, "DISCOGS_RELEASE_ID", DbIdMediaType.TYPE_DISCOGS_RELEASEID);
 	}
 
-	private static void migrateAlbumLikes(final Connection connection, final String likeTable, final String likeColumn, final DbIdMediaType type) throws SQLException {
+	private static void migrateAlbumLikesForV16(final Connection connection, final String likeTable, final String likeColumn, final DbIdMediaType type) throws SQLException {
 		if (!tableExists(connection, likeTable)) {
 			//nothing to migrate, for example after a cache reset
 			return;

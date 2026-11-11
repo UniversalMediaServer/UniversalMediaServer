@@ -157,7 +157,7 @@ public class MediaTableResourceRatingsTest {
 	 * the My Albums folder would look empty after the upgrade.
 	 */
 	@Test
-	public void testLegacyAlbumLikesAreMigrated() throws Exception {
+	public void testLegacyAlbumLikesAreMigratedInV16() throws Exception {
 		MediaDatabase.init();
 		MediaDatabase database = MediaDatabase.get();
 		try (Connection connection = database.getConnection()) {
@@ -173,13 +173,13 @@ public class MediaTableResourceRatingsTest {
 				"MERGE INTO " + MediaTableDiscogsReleaseLike.TABLE_NAME + " KEY (DISCOGS_RELEASE_ID) VALUES (" + discogs + ")"
 			);
 
-			MediaTableResourceRatings.migrateAlbumLikes(connection);
+			MediaTableResourceRatings.migrateAlbumLikesForV16(connection);
 
 			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, mbKey));
 			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, discogsKey));
 
 			//running it twice must not fail on the unique key
-			MediaTableResourceRatings.migrateAlbumLikes(connection);
+			MediaTableResourceRatings.migrateAlbumLikesForV16(connection);
 			assertEquals(Integer.valueOf(5), MediaTableResourceRatings.getRating(connection, mbKey));
 
 			MediaTableResourceRatings.deleteRating(connection, mbKey);
