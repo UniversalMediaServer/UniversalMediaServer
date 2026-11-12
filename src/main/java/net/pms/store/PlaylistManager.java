@@ -122,44 +122,17 @@ public class PlaylistManager {
 	}
 
 	protected static String calculateRelativeEntryPath(Path absoluteEntryPath, Path absolutePlaylistPath) {
-		StringBuilder sb = new StringBuilder();
-
-		if (isEntryInSubfolderOfPlaylist(absoluteEntryPath, absolutePlaylistPath)) {
-			String relativePath = removeSameParentPathFromEntryPath(absoluteEntryPath, absolutePlaylistPath);
-			sb.append(".");
-			if (!relativePath.startsWith(File.separator)) {
-				sb.append(File.separator);
-			}
-			sb.append(relativePath);
-		} else {
-			Path commonParent = findFirstCommonParentFolder(absoluteEntryPath, absolutePlaylistPath, sb);
-			String relativePath = removeCommonParentPathFromEntryPath(absoluteEntryPath, commonParent);
-			sb.append(relativePath);
-			return sb.toString();
+		Path entry = absoluteEntryPath.toAbsolutePath().normalize();
+		Path playlistDirectory = absolutePlaylistPath.toAbsolutePath().normalize().getParent();
+		if (!playlistDirectory.getRoot().equals(entry.getRoot())) {
+			return entry.toString();
 		}
-		return sb.toString();
-	}
 
-	private static String removeCommonParentPathFromEntryPath(Path absoluteEntryPath, Path commonParent) {
-		return absoluteEntryPath.toString().substring(commonParent.toString().length() + 1);
-	}
-
-	private static Path findFirstCommonParentFolder(Path absoluteEntryPath, Path absolutePlaylistPath, StringBuilder sb) {
-		Path commonRoot = absolutePlaylistPath.getParent();
-		do {
-			sb.append("..");
-			sb.append(File.separator);
-			commonRoot = commonRoot.getParent();
-		} while (!absoluteEntryPath.toString().startsWith(commonRoot.toString()));
-		return commonRoot;
-	}
-
-	private static String removeSameParentPathFromEntryPath(Path absoluteEntryPath, Path absolutePlaylistPath) {
-		return absoluteEntryPath.toString().substring(absolutePlaylistPath.getParent().toString().length());
-	}
-
-	private static boolean isEntryInSubfolderOfPlaylist(Path absoluteEntryPath, Path absolutePlaylistPath) {
-		return absoluteEntryPath.toString().startsWith(absolutePlaylistPath.getParent().toString());
+		String relativePath = playlistDirectory.relativize(entry).toString();
+		if (relativePath.isEmpty()) {
+			return ".";
+		}
+		return entry.startsWith(playlistDirectory) ? "." + File.separator + relativePath : relativePath;
 	}
 
 	private static void writePlaylistToDisk(List<String> lines, Path playlistFile) throws IOException {
