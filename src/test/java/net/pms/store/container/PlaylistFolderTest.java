@@ -70,13 +70,24 @@ public class PlaylistFolderTest {
 
 	@Test
 	public void testDirectoryReferenceSurvivesReload(@TempDir Path temp) throws Exception {
+		assertDirectoryReferenceSurvivesReload(temp, false);
+	}
+
+	@Test
+	public void testAncestorDirectoryReferenceSurvivesReload(@TempDir Path temp) throws Exception {
+		assertDirectoryReferenceSurvivesReload(temp, true);
+	}
+
+	private static void assertDirectoryReferenceSurvivesReload(Path temp, boolean playlistInsideFolder) throws Exception {
 		Path source = Files.createDirectory(temp.resolve("Music"));
 		Files.copy(Path.of("src/test/resources/net/pms/parsers/audio-mp3.mp3"), source.resolve("Track.mp3"));
-		Path playlist = Files.writeString(temp.resolve("Links.m3u8"), "#EXTM3U\n");
+		Path playlistDirectory = playlistInsideFolder ? Files.createDirectories(source.resolve("Library").resolve("Playlists")) : temp;
+		Path playlist = Files.writeString(playlistDirectory.resolve("Links.m3u8"), "#EXTM3U\n");
 		PlaylistFolder target = playlistOf(playlist);
 		target.getDefaultRenderer().getMediaStore().addChild(target);
 		assertNotNull(PlaylistManager.addEntryToPlaylist(new RealFolder(target.getDefaultRenderer(), source.toFile()), target));
-		assertEquals(List.of("#EXTM3U", "." + File.separator + "Music"), Files.readAllLines(playlist));
+		String expectedReference = playlistInsideFolder ? ".." + File.separator + ".." : "." + File.separator + "Music";
+		assertEquals(List.of("#EXTM3U", expectedReference), Files.readAllLines(playlist));
 
 		PlaylistFolder reloaded = playlistOf(playlist);
 		reloaded.resolve();
