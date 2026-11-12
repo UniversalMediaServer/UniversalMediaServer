@@ -399,7 +399,9 @@ public final class PlaylistFolder extends StoreContainer {
 				}
 				File en = new File(FilenameUtils.concat(new File(uri).getParent(), entry.fileName()));
 				if (en.exists()) {
-					if (type == Format.PLAYLIST) {
+					if (en.isDirectory()) {
+						addChild(new RealFolder(renderer, en));
+					} else if (type == Format.PLAYLIST) {
 						addChild(new PlaylistFolder(renderer, en));
 					} else {
 						addChild(new RealFile(renderer, en, entry.title()));
