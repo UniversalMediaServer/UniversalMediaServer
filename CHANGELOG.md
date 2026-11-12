@@ -13,6 +13,8 @@
 
 ### General
 - Added a **Continue Watching** folder to the Media Library. It shows all videos that are in progress, as well as the next episodes for in-progress TV series, ordered by most recently watched
+
+  ![a video thumbnail for Continue Watching](./changelog-images/16.0.0-continue-watching.gif)
 - Added support for **[DI.fm (AudioAddict)](https://www.di.fm/) Events and Playlists**
 
 	[![a video thumbnail for DI.fm support](./changelog-images/16.0.0-difm.png)](https://github.com/user-attachments/assets/61d680d0-911b-4cd6-a564-cffc51b05e83)
