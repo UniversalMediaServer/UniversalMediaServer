@@ -55,6 +55,10 @@ public class PlaylistManager {
 	public static String addEntryToPlaylist(StoreResource entry, PlaylistFolder playlistFolder) throws Exception {
 		Path playlistPath = getPlaylistPathFromObjectId(playlistFolder);
 		String filenameToAdd = entry.getFileName();
+		if (entry instanceof StoreContainer && (StringUtils.isBlank(filenameToAdd) ||
+				!FileUtil.isUrl(filenameToAdd) && !(new File(filenameToAdd).isAbsolute() && new File(filenameToAdd).exists()))) {
+			throw new IOException("The container has no persistent file path or URL");
+		}
 		String relativeEntryPath;
 		if (FileUtil.isUrl(filenameToAdd)) {
 			relativeEntryPath = filenameToAdd;

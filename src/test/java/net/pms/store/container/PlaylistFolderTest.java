@@ -2,8 +2,10 @@ package net.pms.store.container;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -11,6 +13,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -18,6 +21,7 @@ import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.store.PlaylistManager;
 
 public class PlaylistFolderTest {
 
@@ -62,6 +66,23 @@ public class PlaylistFolderTest {
 				assertTrue(false, "Failed to get thumbnail input stream for child: " + child.getName());
 			}
 		});
+	}
+
+	@Test
+	public void testDirectoryReferenceSurvivesReload(@TempDir Path temp) throws Exception {
+		Path source = Files.createDirectory(temp.resolve("Music"));
+		Files.copy(Path.of("src/test/resources/net/pms/parsers/audio-mp3.mp3"), source.resolve("Track.mp3"));
+		Path playlist = Files.writeString(temp.resolve("Links.m3u8"), "#EXTM3U\n");
+		PlaylistFolder target = playlistOf(playlist);
+		target.getDefaultRenderer().getMediaStore().addChild(target);
+		assertNotNull(PlaylistManager.addEntryToPlaylist(new RealFolder(target.getDefaultRenderer(), source.toFile()), target));
+		assertEquals(List.of("#EXTM3U", "." + File.separator + "Music"), Files.readAllLines(playlist));
+
+		PlaylistFolder reloaded = playlistOf(playlist);
+		reloaded.resolve();
+		assertEquals(1, reloaded.getChildren().size());
+		RealFolder linked = assertInstanceOf(RealFolder.class, reloaded.getChildren().getFirst());
+		assertEquals(source, Path.of(linked.getSystemName()));
 	}
 
 	private static PlaylistFolder playlistOf(Path file) {
