@@ -7,14 +7,13 @@ import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
 /**
  * The recent, older on-demand episodes of a single show, shown as a container next to the show's
  * current episode item. When there are more episodes than the configured page size they are split
  * into several sub containers. The signed content URLs expire, so the episodes are refetched on every browse.
  */
-public class AudioAddictShowEpisodes extends StoreContainer {
+public class AudioAddictShowEpisodes extends AudioAddictFolder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictShowEpisodes.class.getName());
 
@@ -24,7 +23,7 @@ public class AudioAddictShowEpisodes extends StoreContainer {
 	private volatile long builtAt = 0;
 
 	public AudioAddictShowEpisodes(Renderer renderer, Platform network, String showSlug, String showName, String thumb) {
-		super(renderer, showName != null ? showName : showSlug, thumb);
+		super(renderer, showName != null ? showName : showSlug, network, thumb);
 		this.network = network;
 		this.showSlug = showSlug;
 		this.thumb = thumb;
@@ -71,7 +70,7 @@ public class AudioAddictShowEpisodes extends StoreContainer {
 			for (int start = 0; start < episodes.size(); start += pageSize) {
 				int end = Math.min(start + pageSize, episodes.size());
 				List<AudioAddictTrackDto> chunk = episodes.subList(start, end);
-				addChild(new AudioAddictEpisodeChunk(renderer, chunkLabel(chunk), thumb, chunk));
+				addChild(new AudioAddictEpisodeChunk(renderer, network, chunkLabel(chunk), thumb, chunk));
 			}
 		}
 	}

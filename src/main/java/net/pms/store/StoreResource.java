@@ -542,6 +542,10 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		return sb.toString();
 	}
 
+	public String getThumbnailETag() {
+		return MediaStoreIds.getObjectUpdateIdAsString(getLongId());
+	}
+
 	/**
 	 * @param subs
 	 * @return Returns a URL for a given subtitles item. Not used for container

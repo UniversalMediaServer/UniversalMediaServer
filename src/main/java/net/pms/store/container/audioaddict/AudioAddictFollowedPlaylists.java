@@ -7,12 +7,11 @@ import net.pms.external.audioaddict.AudioAddictPlaylistDto;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
 /**
  * The curated playlists this member follows.
  */
-public class AudioAddictFollowedPlaylists extends StoreContainer {
+public class AudioAddictFollowedPlaylists extends AudioAddictFolder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictFollowedPlaylists.class.getName());
 
@@ -20,7 +19,7 @@ public class AudioAddictFollowedPlaylists extends StoreContainer {
 	private volatile boolean populated;
 
 	public AudioAddictFollowedPlaylists(Renderer renderer, Platform network) {
-		super(renderer, "Followed playlists", network.albumArt);
+		super(renderer, "Followed playlists", network, null);
 		this.network = network;
 	}
 

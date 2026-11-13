@@ -7,7 +7,6 @@ import net.pms.external.audioaddict.AudioAddictEventDto;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
 /**
  * Upcoming events (scheduled show episodes) of a network. Each event contributes the current,
@@ -15,7 +14,7 @@ import net.pms.store.StoreContainer;
  * show's older, on-demand episodes. The episode content URLs are signed and expire, so the children
  * are (re)resolved on every browse instead of being cached.
  */
-public class AudioAddictEvents extends StoreContainer {
+public class AudioAddictEvents extends AudioAddictFolder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictEvents.class.getName());
 
@@ -23,7 +22,7 @@ public class AudioAddictEvents extends StoreContainer {
 	private volatile long builtAt = 0;
 
 	public AudioAddictEvents(Renderer renderer, Platform network) {
-		super(renderer, "Events", network.albumArt);
+		super(renderer, "Events", network, null);
 		this.network = network;
 	}
 
@@ -67,8 +66,7 @@ public class AudioAddictEvents extends StoreContainer {
 			}
 			// Older episodes of the show go into their own (lazily filled) container.
 			if (event.showSlug != null && event.ondemandEpisodeCount > 0) {
-				String thumb = event.albumArt != null ? event.albumArt : network.albumArt;
-				addChild(new AudioAddictShowEpisodes(renderer, network, event.showSlug, event.showName, thumb));
+				addChild(new AudioAddictShowEpisodes(renderer, network, event.showSlug, event.showName, event.albumArt));
 			}
 		}
 	}

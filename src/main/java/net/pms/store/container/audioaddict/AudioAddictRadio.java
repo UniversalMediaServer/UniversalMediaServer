@@ -6,20 +6,19 @@ import org.slf4j.LoggerFactory;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
 /**
  * Collection of the live radio stations of a network, grouped by their channel filters
  * (e.g. "Favorites" and the genre filters).
  */
-public class AudioAddictRadio extends StoreContainer {
+public class AudioAddictRadio extends AudioAddictFolder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictRadio.class.getName());
 
 	private final Platform network;
 
 	public AudioAddictRadio(Renderer renderer, Platform network) {
-		super(renderer, "Radio", network.albumArt);
+		super(renderer, "Radio", network, null);
 		this.network = network;
 	}
 
