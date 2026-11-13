@@ -104,6 +104,7 @@ public class LikeMusic {
 			LOGGER.warn("{} album failed : ", liked ? "like" : "dislike", e);
 			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Like album : " + e.getMessage());
 		}
+		RatingBackupManager.scheduleBackup();
 	}
 
 }

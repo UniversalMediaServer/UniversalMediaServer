@@ -7,6 +7,7 @@ import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableResourceRatings;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.parsers.JaudiotaggerParser;
@@ -102,6 +103,7 @@ public class StoreResourceRatings {
 		} finally {
 			MediaDatabase.close(connection);
 		}
+		RatingBackupManager.scheduleBackup();
 		resource.notifyRefresh();
 	}
 
