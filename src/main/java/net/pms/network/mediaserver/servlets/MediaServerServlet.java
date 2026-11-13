@@ -793,14 +793,14 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 
 	private static void sendThumbnailResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, StoreResource resource, String filename) throws IOException {
 		// Request to retrieve a thumbnail
-		String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
-		String etag = req.getHeader("If-None-Match");
-		if (etag != null && etag.equals(updateId)) {
-			respondNotModified(req, resp);
-			return;
-		}
-		if (updateId != null) {
-			resp.setHeader("etag", updateId);
+		boolean genericThumbnail = !CONFIGURATION.isShowCodeThumbs() && !resource.isCodeValid(resource);
+		String thumbnailETag = genericThumbnail ? MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId()) : resource.getThumbnailETag();
+		if (thumbnailETag != null) {
+			resp.setHeader("ETag", thumbnailETag);
+			if (thumbnailETag.equals(req.getHeader("If-None-Match"))) {
+				respondNotModified(req, resp);
+				return;
+			}
 		}
 
 		InputStream inputStream = null;
@@ -822,7 +822,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		}
 
 		DLNAThumbnailInputStream thumbInputStream;
-		if (!CONFIGURATION.isShowCodeThumbs() && !resource.isCodeValid(resource)) {
+		if (genericThumbnail) {
 			thumbInputStream = resource.getGenericThumbnailInputStream(null);
 		} else {
 			resource.checkThumbnail();

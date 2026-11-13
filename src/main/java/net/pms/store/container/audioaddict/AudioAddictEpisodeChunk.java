@@ -4,18 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import net.pms.external.audioaddict.AudioAddictTrackDto;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
+import net.pms.external.audioaddict.Platform;
 
 /**
  * A page of a show's older on-demand episodes. It simply lists the episodes of its slice as playable items.
  * The slice is resolved fresh whenever the parent show container is browsed, so it carries currently valid signed content URLs.
  */
-public class AudioAddictEpisodeChunk extends StoreContainer {
+public class AudioAddictEpisodeChunk extends AudioAddictFolder {
 
 	private final List<AudioAddictTrackDto> episodes;
 
-	public AudioAddictEpisodeChunk(Renderer renderer, String label, String thumb, List<AudioAddictTrackDto> episodes) {
-		super(renderer, label, thumb);
+	public AudioAddictEpisodeChunk(Renderer renderer, Platform network, String label, String thumb, List<AudioAddictTrackDto> episodes) {
+		super(renderer, label, network, thumb);
 		this.episodes = new ArrayList<>(episodes);
 	}
 

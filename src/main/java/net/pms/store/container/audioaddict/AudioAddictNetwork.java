@@ -5,15 +5,14 @@ import org.slf4j.LoggerFactory;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
-public class AudioAddictNetwork extends StoreContainer implements INetworkInitialized {
+public class AudioAddictNetwork extends AudioAddictFolder implements INetworkInitialized {
 
 	private Platform network = null;
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictNetwork.class.getName());
 
 	public AudioAddictNetwork(Renderer renderer, String name, Platform network) {
-		super(renderer, name, network.albumArt);
+		super(renderer, name, network, null);
 		this.network = network;
 		AudioAddictService.get().getRadioNetwork(network).addInitCallbackHandler(this);
 		if (AudioAddictService.get().getRadioNetwork(network).isInitilized()) {
