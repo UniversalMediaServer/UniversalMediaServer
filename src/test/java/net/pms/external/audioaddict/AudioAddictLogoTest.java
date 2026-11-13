@@ -47,6 +47,10 @@ class AudioAddictLogoTest {
 			assertEquals(2, metadataRequests.get());
 
 			version.set(3);
+			clock.addAndGet(Duration.ofHours(23).toMillis());
+			assertEquals(firstTag, logo.get().etag());
+			assertEquals(2, metadataRequests.get());
+
 			clock.addAndGet(Duration.ofHours(1).toMillis());
 			assertEquals(firstTag, logo.get().etag());
 			assertEquals(firstTag, logo.get().etag());

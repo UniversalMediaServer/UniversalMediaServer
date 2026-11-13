@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public final class AudioAddictLogo {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictLogo.class);
-	private static final long REFRESH_INTERVAL = Duration.ofHours(1).toMillis();
+	private static final long REFRESH_INTERVAL = Duration.ofDays(1).toMillis();
 	private static final long RETRY_INTERVAL = Duration.ofMinutes(5).toMillis();
 	private static final int REQUEST_TIMEOUT = 5_000;
 	private static final int MAX_RESPONSE_BYTES = 1_000_000;
