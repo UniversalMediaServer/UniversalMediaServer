@@ -74,6 +74,7 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.jupnp.support.umsservice.impl.RatingBackupManager;
 import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.network.webguiserver.WebSocketDispatcher;
 import net.pms.network.webplayerserver.WebPlayerServer;
@@ -1142,6 +1143,7 @@ public class PMS {
 		}
 
 		if (MediaDatabase.isInstantiated()) {
+			RatingBackupManager.flushPendingBackup();
 			LOGGER.debug("Shutting down media database");
 			MediaDatabase.shutdown();
 			MediaDatabase.createDatabaseReportIfNeeded();

@@ -2,9 +2,12 @@ package net.pms.network.mediaserver.jupnp.support.umsservice.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -16,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +51,17 @@ import net.pms.util.RelativeMediaPath.Relative;
 public class RatingBackupManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RatingBackupManager.class.getName());
+	private static final long BACKUP_DELAY_MINUTES = 1;
+	private static final int BACKUP_HISTORY_SIZE = 6;
+	private static final Object SCHEDULE_LOCK = new Object();
+	private static final ScheduledThreadPoolExecutor BACKUP_EXECUTOR =
+		new ScheduledThreadPoolExecutor(1, Thread.ofPlatform().daemon().name("rating-backup").factory());
+	private static ScheduledFuture<?> pendingBackup;
+	private static long backupGeneration;
+
+	static {
+		BACKUP_EXECUTOR.setRemoveOnCancelPolicy(true);
+	}
 
 	private final static String RESOURCE_PREFIX = "resource:";
 	private final static String PORTABLE_PREFIX = "portable:";
@@ -56,63 +73,150 @@ public class RatingBackupManager {
 
 	}
 
-	public static void backupRatings() {
-		Properties p = new Properties();
-		Connection c = MediaDatabase.getConnectionIfAvailable();
-		if (c == null) {
-			throw new IllegalStateException("Database is not available");
+	/**
+	 * Updates the exported snapshot after a burst of rating changes has finished.
+	 */
+	public static void scheduleBackup() {
+		synchronized (SCHEDULE_LOCK) {
+			if (pendingBackup != null) {
+				pendingBackup.cancel(false);
+			}
+			long generation = ++backupGeneration;
+			pendingBackup = BACKUP_EXECUTOR.schedule(() -> runScheduledBackup(generation), BACKUP_DELAY_MINUTES, TimeUnit.MINUTES);
 		}
+	}
+
+	private static synchronized void runScheduledBackup(long generation) {
+		synchronized (SCHEDULE_LOCK) {
+			if (generation != backupGeneration) {
+				return;
+			}
+			pendingBackup = null;
+		}
+		exportAutomatically();
+	}
+
+	/**
+	 * Writes the pending snapshot before the media database is closed.
+	 */
+	public static synchronized void flushPendingBackup() {
+		synchronized (SCHEDULE_LOCK) {
+			if (pendingBackup == null) {
+				return;
+			}
+			backupGeneration++;
+			pendingBackup.cancel(false);
+			pendingBackup = null;
+		}
+		exportAutomatically();
+	}
+
+	private static void exportAutomatically() {
+		try {
+			backupRatings();
+		} catch (RuntimeException e) {
+			LOGGER.warn("Could not update the ratings backup automatically", e);
+		}
+	}
+
+	public static synchronized void backupRatings() {
+		Properties p = new Properties();
+		List<ResourceRating> resourceRatings = readRatings();
 		int items = 0;
 		int portableItems = 0;
 		int contentItems = 0;
 		List<File> sharedFolders = SharedContentConfiguration.getSharedFolders();
 		Set<Integer> usedRoots = new HashSet<>();
-		try {
-			List<ResourceRating> resourceRatings = MediaTableResourceRatings.getAllRatings(c);
-			for (ResourceRating resourceRating : resourceRatings) {
-				String objectType = getObjectType(resourceRating.objectType());
-				String rating = Integer.toString(resourceRating.rating());
-				String resourceKey = resourceRating.resourceKey();
-				p.put(RESOURCE_PREFIX + objectType + ":" + resourceKey, rating);
-				items++;
-				if (!RelativeMediaPath.isFileSystemPath(resourceKey)) {
-					//already independent of any mount point
-					continue;
-				}
-				Relative relative = RelativeMediaPath.relativize(resourceKey, sharedFolders);
-				if (relative != null) {
-					p.put(PORTABLE_PREFIX + objectType + ":" + relative.rootIndex() + ":" + relative.path(), rating);
-					usedRoots.add(relative.rootIndex());
-					portableItems++;
-				} else {
-					LOGGER.debug("[backupRatings] \"{}\" is not below a shared folder, its rating is bound to that path", resourceKey);
-				}
-				String resourceUid = MediaTableFiles.getResourceUidForFilename(c, resourceKey);
-				if (resourceUid != null) {
-					p.put(CONTENT_PREFIX + objectType + ":" + resourceUid, rating);
-					contentItems++;
-				}
+		for (ResourceRating resourceRating : resourceRatings) {
+			String objectType = getObjectType(resourceRating.objectType());
+			String rating = Integer.toString(resourceRating.rating());
+			String resourceKey = resourceRating.resourceKey();
+			p.put(RESOURCE_PREFIX + objectType + ":" + resourceKey, rating);
+			items++;
+			if (!RelativeMediaPath.isFileSystemPath(resourceKey)) {
+				//already independent of any mount point
+				continue;
 			}
-			for (Integer rootIndex : usedRoots) {
-				p.put(SHARED_ROOT_PREFIX + rootIndex, sharedFolders.get(rootIndex).getAbsolutePath());
+			Relative relative = RelativeMediaPath.relativize(resourceKey, sharedFolders);
+			if (relative != null) {
+				p.put(PORTABLE_PREFIX + objectType + ":" + relative.rootIndex() + ":" + relative.path(), rating);
+				usedRoots.add(relative.rootIndex());
+				portableItems++;
+			} else {
+				LOGGER.debug("[backupRatings] \"{}\" is not below a shared folder, its rating is bound to that path", resourceKey);
 			}
-		} finally {
-			MediaDatabase.close(c);
+			String resourceUid = resourceRating.resourceUid();
+			if (resourceUid != null) {
+				p.put(CONTENT_PREFIX + objectType + ":" + resourceUid, rating);
+				contentItems++;
+			}
+		}
+		for (Integer rootIndex : usedRoots) {
+			p.put(SHARED_ROOT_PREFIX + rootIndex, sharedFolders.get(rootIndex).getAbsolutePath());
 		}
 
-		String backupFilename = getBackupFilename();
-		try (FileOutputStream fs = new FileOutputStream(new File(backupFilename))) {
-			DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-			p.store(fs, "ratings backup from " + formatter.format(LocalDateTime.now()));
+		Path backupFile = Path.of(getBackupFilename());
+		try {
+			Path temporaryFile = Files.createTempFile(backupFile.getParent(), "ratings_backup-", ".tmp");
+			try {
+				try (OutputStream output = Files.newOutputStream(temporaryFile)) {
+					DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+					p.store(output, "ratings backup from " + formatter.format(LocalDateTime.now()));
+				}
+				rotateBackups(backupFile);
+				Files.move(temporaryFile, backupFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+			} finally {
+				Files.deleteIfExists(temporaryFile);
+			}
 		} catch (IOException e) {
-			LOGGER.error("backup rating failed", e);
-			throw new UncheckedIOException("writing the backup file failed : " + backupFilename, e);
+			throw new UncheckedIOException("writing the backup file failed : " + backupFile, e);
 		}
-		LOGGER.info("save {} items into backup file {} ", items, backupFilename);
+		LOGGER.info("save {} items into backup file {} ", items, backupFile);
 		LOGGER.info("{} ratings can be restored below another mount point, {} after a move of the file", portableItems, contentItems);
 	}
 
-	public static void restoreRating() {
+	private static void rotateBackups(Path backupFile) throws IOException {
+		if (!Files.isRegularFile(backupFile)) {
+			return;
+		}
+		Path previousBackup = Files.createTempFile(backupFile.getParent(), "ratings_backup-", ".tmp");
+		try {
+			// Keep the current backup available until the new one replaces it.
+			Files.copy(backupFile, previousBackup, StandardCopyOption.REPLACE_EXISTING);
+			for (int generation = BACKUP_HISTORY_SIZE; generation > 1; generation--) {
+				Path olderBackup = backupGenerationPath(backupFile, generation - 1);
+				if (Files.exists(olderBackup)) {
+					Files.move(olderBackup, backupGenerationPath(backupFile, generation), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+				}
+			}
+			Files.move(previousBackup, backupGenerationPath(backupFile, 1), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+		} finally {
+			Files.deleteIfExists(previousBackup);
+		}
+	}
+
+	private static Path backupGenerationPath(Path backupFile, int generation) {
+		return backupFile.resolveSibling(backupFile.getFileName() + "." + generation);
+	}
+
+	private static List<ResourceRating> readRatings() {
+		// A rating update can also write the file tag and change the RUID.
+		synchronized (StoreResourceRatings.class) {
+			Connection connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection == null) {
+				throw new IllegalStateException("Database is not available");
+			}
+			try {
+				return MediaTableResourceRatings.getAllRatings(connection);
+			} catch (SQLException e) {
+				throw new IllegalStateException("Could not read ratings for backup", e);
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+	}
+
+	public static synchronized void restoreRating() {
 		String backupFilename = getBackupFilename();
 		File f = new File(backupFilename);
 		if (!f.exists()) {

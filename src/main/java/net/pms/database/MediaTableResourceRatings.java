@@ -67,7 +67,9 @@ public final class MediaTableResourceRatings extends MediaTable {
 		COMMA + COL_RATING + COMMA + COL_MODIFIED + ") KEY(" + COL_RESOURCE_KEY + ") VALUES (?, ?, ?, ?)";
 	private static final String SQL_GET_ALL_KEY = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_RATING_KEY = SELECT + COL_RATING + FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_GET_ALL_ROWS = SELECT + COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE + COMMA + COL_RATING + FROM + TABLE_NAME + WHERE + COL_RATING + IS_NOT_NULL;
+	private static final String SQL_GET_ALL_ROWS = SELECT + TABLE_COL_RESOURCE_KEY + COMMA + COL_OBJECT_TYPE + COMMA + COL_RATING + COMMA +
+		MediaTableFiles.TABLE_COL_RESOURCE_UID + FROM + TABLE_NAME + LEFT_JOIN + MediaTableFiles.TABLE_NAME + ON +
+		TABLE_COL_RESOURCE_KEY + EQUAL + MediaTableFiles.TABLE_COL_FILENAME + WHERE + COL_RATING + IS_NOT_NULL;
 	private static final String SQL_DELETE_KEY = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_RESOURCE_KEY + EQUAL + PARAMETER;
 
 	/**
@@ -348,7 +350,7 @@ public final class MediaTableResourceRatings extends MediaTable {
 	/**
 	 * Returns every stored rating. Used to backup ratings.
 	 */
-	public static List<ResourceRating> getAllRatings(final Connection connection) {
+	public static List<ResourceRating> getAllRatings(final Connection connection) throws SQLException {
 		List<ResourceRating> result = new ArrayList<>();
 		if (connection == null) {
 			return result;
@@ -359,13 +361,11 @@ public final class MediaTableResourceRatings extends MediaTable {
 					result.add(new ResourceRating(
 						rs.getString(COL_RESOURCE_KEY),
 						rs.getString(COL_OBJECT_TYPE),
-						toInteger(rs, COL_RATING)
+						toInteger(rs, COL_RATING),
+						rs.getString(MediaTableFiles.COL_RESOURCE_UID)
 					));
 				}
 			}
-		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "getting ratings", TABLE_NAME, "all", e.getMessage());
-			LOGGER.trace("", e);
 		}
 		return result;
 	}
@@ -373,7 +373,7 @@ public final class MediaTableResourceRatings extends MediaTable {
 	/**
 	 * A stored rating row.
 	 */
-	public record ResourceRating(String resourceKey, String objectType, Integer rating) {
+	public record ResourceRating(String resourceKey, String objectType, Integer rating, String resourceUid) {
 	}
 
 }

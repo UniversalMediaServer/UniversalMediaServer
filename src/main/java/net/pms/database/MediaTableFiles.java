@@ -118,7 +118,7 @@ public class MediaTableFiles extends MediaTable {
 	public static final String COL_FILENAME = "FILENAME";
 	private static final String COL_MODIFIED = "MODIFIED";
 	private static final String COL_DATEADDED = "DATEADDED";
-	private static final String COL_RESOURCE_UID = "RUID";
+	static final String COL_RESOURCE_UID = "RUID";
 	private static final String COL_PARSER = "PARSER";
 	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
 	private static final String COL_CONTAINER = "CONTAINER";
@@ -141,6 +141,7 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
 	public static final String TABLE_COL_DATEADDED = TABLE_NAME + "." + COL_DATEADDED;
 	public static final String TABLE_COL_MODIFIED = TABLE_NAME + "." + COL_MODIFIED;
+	static final String TABLE_COL_RESOURCE_UID = TABLE_NAME + "." + COL_RESOURCE_UID;
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
 	public static final String TABLE_COL_DURATION = TABLE_NAME + "." + COL_DURATION;
 	public static final String TABLE_COL_PARSER = TABLE_NAME + "." + COL_PARSER;

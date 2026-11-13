@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Comparator;
+import java.util.Properties;
 import java.util.stream.Stream;
 import net.pms.PMS;
 import net.pms.TestHelper;
@@ -17,13 +19,20 @@ import net.pms.configuration.sharedcontent.FolderContent;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableResourceRatings;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreResourceRatings;
+import net.pms.store.item.RealFile;
 import net.pms.util.ProcessUtil;
+import net.pms.util.ResourceIdentifier;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,12 +61,109 @@ public class RatingBackupManagerTest {
 		assertTrue(backupDir.exists() || backupDir.mkdirs());
 		File blocker = new File(backupDir, "ratings_backup");
 		Files.deleteIfExists(blocker.toPath());
-		//a directory in place of the file makes the FileOutputStream fail on every platform
+		// A directory in place of the file prevents the atomic replacement.
 		assertTrue(blocker.mkdir());
 		try {
 			assertThrows(UncheckedIOException.class, RatingBackupManager::backupRatings);
+			assertTrue(blocker.isDirectory());
+			try (var files = Files.list(backupDir.toPath())) {
+				assertTrue(files.noneMatch(file -> file.getFileName().toString().startsWith("ratings_backup-")));
+			}
 		} finally {
 			Files.delete(blocker.toPath());
+		}
+	}
+
+	@Test
+	public void testPendingBackupExportsTheLatestRatingAndRuid() throws Exception {
+		MediaDatabase.init();
+		File track = new File(tempDir, "rated.flac");
+		try (var source = getClass().getResourceAsStream("/net/pms/parsers/audio-flac24.flac")) {
+			Files.copy(source, track.toPath());
+		}
+		String filename = key(track);
+		String originalRuid = ResourceIdentifier.getResourceIdentifier(filename);
+		assertNotNull(originalRuid);
+		RealFile resource = new RealFile(null, track);
+		MediaInfo media = new MediaInfo();
+		media.setResourceId(originalRuid);
+		media.setAudioMetadata(new MediaAudioMetadata());
+		resource.setMediaInfo(media);
+		boolean originalTagSetting = PMS.getConfiguration().isAudioUpdateTag();
+		try (Connection connection = MediaDatabase.get().getConnection()) {
+			addFile(connection, filename, originalRuid);
+			MediaTableResourceRatings.setRating(connection, filename, "RealFile", 1);
+			RatingBackupManager.backupRatings();
+			assertEquals("1", readBackup().getProperty("content:RealFile:" + originalRuid));
+
+			PMS.getConfiguration().setAudioUpdateTag(true);
+			resource.setRating(3);
+			resource.setRating(5);
+
+			String newRuid = media.getResourceId();
+			assertNotNull(newRuid);
+			assertNotEquals(originalRuid, newRuid);
+			assertEquals(ResourceIdentifier.getResourceIdentifier(filename), newRuid);
+			assertEquals(newRuid, MediaTableFiles.getResourceUidForFilename(connection, filename));
+			assertEquals("1", readBackup().getProperty("resource:RealFile:" + filename));
+
+			RatingBackupManager.flushPendingBackup();
+			Properties backup = readBackup();
+			assertEquals("5", backup.getProperty("content:RealFile:" + newRuid));
+			assertEquals("5", backup.getProperty("resource:RealFile:" + filename));
+			assertNull(backup.getProperty("content:RealFile:" + originalRuid));
+			assertEquals("1", readBackup("ratings_backup.1").getProperty("content:RealFile:" + originalRuid));
+
+			resource.setRating(null);
+			RatingBackupManager.flushPendingBackup();
+			assertNull(readBackup().getProperty("resource:RealFile:" + filename));
+			assertNull(readBackup().getProperty("content:RealFile:" + newRuid));
+		} finally {
+			PMS.getConfiguration().setAudioUpdateTag(originalTagSetting);
+			try (Connection connection = MediaDatabase.get().getConnection()) {
+				MediaTableResourceRatings.setRating(connection, filename, "RealFile", null);
+				removeFile(connection, filename);
+			}
+			StoreResourceRatings.clearCache();
+			RatingBackupManager.flushPendingBackup();
+		}
+	}
+
+	private static Properties readBackup() throws IOException {
+		return readBackup("ratings_backup");
+	}
+
+	private static Properties readBackup(String filename) throws IOException {
+		Properties backup = new Properties();
+		Path path = Path.of(UmsConfiguration.getProfileDirectory(), "database_backup", filename);
+		try (var input = Files.newInputStream(path)) {
+			backup.load(input);
+		}
+		return backup;
+	}
+
+	@Test
+	public void testKeepsTheSevenLatestBackups() throws Exception {
+		MediaDatabase.init();
+		Path backupDir = Path.of(UmsConfiguration.getProfileDirectory(), "database_backup");
+		String objectType = "WebStream";
+		String prefix = "https://example.org/backup-generation-";
+		try (Connection connection = MediaDatabase.get().getConnection()) {
+			for (int generation = 0; generation < 8; generation++) {
+				String key = prefix + generation;
+				MediaTableResourceRatings.setRating(connection, key, objectType, 5);
+				RatingBackupManager.backupRatings();
+				MediaTableResourceRatings.setRating(connection, key, objectType, null);
+			}
+			assertEquals("5", readBackup().getProperty("resource:" + objectType + ":" + prefix + 7));
+			for (int generation = 1; generation <= 6; generation++) {
+				Properties backup = readBackup("ratings_backup." + generation);
+				assertEquals("5", backup.getProperty("resource:" + objectType + ":" + prefix + (7 - generation)));
+				assertNull(backup.getProperty("resource:" + objectType + ":" + prefix + 0));
+			}
+			try (var files = Files.list(backupDir)) {
+				assertEquals(7, files.filter(file -> file.getFileName().toString().startsWith("ratings_backup")).count());
+			}
 		}
 	}
 
