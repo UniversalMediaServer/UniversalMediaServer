@@ -16,6 +16,8 @@
  */
 package net.pms.util;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.Locale;
 import net.pms.TestHelper;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -117,5 +119,18 @@ public class LanguagesTest {
 		Locale locale = null;
 		assertNull(Languages.toLocale(locale), "NullIsNull");
 	}
+
+	@Test
+	public void testArabicLanguageUsesValidCountryCode() {
+		for (JsonElement language : Languages.getLanguagesAsJsonArray(Locale.forLanguageTag("en-US"))) {
+			JsonObject languageObject = language.getAsJsonObject();
+			if ("ar".equals(languageObject.get("id").getAsString())) {
+				assertEquals("SA", languageObject.get("country").getAsString(), "ArabicUsesSaudiArabiaCountryCode");
+				return;
+			}
+		}
+		fail("Arabic language should be included in the language list");
+	}
+
 }
 
