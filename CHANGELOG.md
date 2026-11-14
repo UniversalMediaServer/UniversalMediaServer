@@ -2,8 +2,19 @@
 
 ## [Unreleased]
 
+### General
+- Improved support for 3D videos (thanks, Daniel Ramos!)
+- Fixed a media scanner crash while hashing files
+- Fixed FFmpeg on macOS pre-10.15 (#6388) (thanks, @elektronen!)
+- Fixed file compatibility on some media players
+- Increased validation of dependency downloads
+
+### Media players
+- Added recognition of the Flat Headset renderer (thanks, Daniel Ramos!)
+
 ### Dependencies
 - Bump `@types/lodash` from 4.17.26 to 4.17.27 ([#6448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6448))
+- Bump `axios` from 1.20.0 to 1.21.0
 - Bump `follow-redirects` from 1.16.1 to 1.16.2 ([#6447](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6447))
 
 ## [16.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.10.0...16.0.0-b1) (2026-?)
@@ -12,6 +23,7 @@
 - We no longer support x86 (32-bit) architecture. This means we are losing the following 4 releases: Linux ARMel, Linux ARMhf, Linux x86, and Windows x86.
 
 ### General
+- For a more detailed and readable list of changes in v16, see our docs at https://support.universalmediaserver.com/next/whats-new-in-v16#overview
 - Added a **Continue Watching** folder to the Media Library. It shows all videos that are in progress, as well as the next episodes for in-progress TV series, ordered by most recently watched
 
   ![a video thumbnail for Continue Watching](./changelog-images/16.0.0-continue-watching.gif)
