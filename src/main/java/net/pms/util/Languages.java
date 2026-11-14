@@ -562,7 +562,8 @@ public final class Languages {
 				String country = entry.locale.getCountry();
 				if ("".equals(country)) {
 					country = switch (entry.locale.getLanguage()) {
-						case "ca" -> "es";
+						case "ar" -> "SA";
+					case "ca" -> "es";
 						case "cs" -> "CZ";
 						case "da" -> "DK";
 						case "el" -> "GR";
