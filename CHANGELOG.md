@@ -3,10 +3,18 @@
 ## [Unreleased]
 
 ### General
+- Improved support for 3D videos (thanks, Daniel Ramos!)
 - Fixed a media scanner crash while hashing files
+- Fixed FFmpeg on macOS pre-10.15 (#6388) (thanks, @elektronen!)
+- Fixed file compatibility on some media players
+- Increased validation of dependency downloads
+
+### Media players
+- Added recognition of the Flat Headset renderer (thanks, Daniel Ramos!)
 
 ### Dependencies
 - Bump `@types/lodash` from 4.17.26 to 4.17.27 ([#6448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6448))
+- Bump `axios` from 1.20.0 to 1.21.0
 - Bump `follow-redirects` from 1.16.1 to 1.16.2 ([#6447](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6447))
 
 ## [15.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.9.0...15.10.0) (2026-10-31)
