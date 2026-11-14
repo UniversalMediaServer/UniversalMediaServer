@@ -776,7 +776,17 @@ public class MediaVideo extends MediaLang implements Cloneable {
 				"half top-bottom (left eye first)",
 				"half top-bottom (right eye first)",
 				"half side by side (left eye first)",
-				"half side by side (right eye first)" -> false;
+				"half side by side (right eye first)",
+				"row interleaved (left eye first)",
+				"row interleaved (right eye first)",
+				"column interleaved (left eye first)",
+				"column interleaved (right eye first)",
+				"both eyes laced in one block (left eye first)",
+				"both eyes laced in one block (right eye first)",
+				"checkerboard (left eye first)",
+				"checkerboard (right eye first)",
+				"checkboard (left eye first)",
+				"checkboard (right eye first)" -> false;
 			default -> true;
 		};
 	}
@@ -810,6 +820,31 @@ public class MediaVideo extends MediaLang implements Cloneable {
 			}
 			case "half side by side (right eye first)" -> {
 				return Mode3D.SBS2R;
+			}
+			case "row interleaved (left eye first)" -> {
+				return Mode3D.IRL;
+			}
+			case "row interleaved (right eye first)" -> {
+				return Mode3D.IRR;
+			}
+			case "column interleaved (left eye first)" -> {
+				return Mode3D.ICL;
+			}
+			case "column interleaved (right eye first)" -> {
+				return Mode3D.ICR;
+			}
+			case "both eyes laced in one block (left eye first)" -> {
+				return Mode3D.AL;
+			}
+			case "both eyes laced in one block (right eye first)" -> {
+				return Mode3D.AR;
+			}
+			// MediaInfo spells it "Checkboard"
+			case "checkerboard (left eye first)", "checkboard (left eye first)" -> {
+				return Mode3D.CHL;
+			}
+			case "checkerboard (right eye first)", "checkboard (right eye first)" -> {
+				return Mode3D.CHR;
 			}
 			case "arcg" -> {
 				return Mode3D.ARCG;
@@ -1111,6 +1146,14 @@ public class MediaVideo extends MediaLang implements Cloneable {
 		ABR,
 		AB2L,
 		AB2R,
+		IRL,
+		IRR,
+		ICL,
+		ICR,
+		AL,
+		AR,
+		CHL,
+		CHR,
 		ARCG,
 		ARCH,
 		ARCC,
