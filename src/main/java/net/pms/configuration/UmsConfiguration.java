@@ -315,6 +315,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_FLATTEN_FOLDERS = "flatten_folders";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
+	private static final String KEY_FOLDER_THUMBNAIL_NAMES = "folder_thumbnail_names";
 	private static final String KEY_FILE_EXTENSIONS_IGNORED = "file_extensions_ignored";
 	private static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	private static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
@@ -3845,6 +3846,20 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * List of system folder to always skip.
 	 */
 	private List<String> ignoredSystemFolderNames = List.of(".unwanted", "$RECYCLE.BIN", "System Volume Information", "CacheClip");
+
+	/**
+	 * Returns the file names, without extension, that are used as the cover
+	 * image of a folder and the tracks in it, in order of priority. Files
+	 * whose name contains "albumart" are always considered after these.
+	 * <p>
+	 * Default value: {@code folder,cover}.
+	 *
+	 * @return The {@link List} of folder thumbnail file names.
+	 */
+	@Nonnull
+	public List<String> getFolderThumbnailNames() {
+		return getStringList(KEY_FOLDER_THUMBNAIL_NAMES, "folder,cover");
+	}
 
 	/**
 	 * @return The {@link List} of {@link Path}s of ignored folder names.
