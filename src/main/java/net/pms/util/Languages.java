@@ -563,7 +563,7 @@ public final class Languages {
 				if ("".equals(country)) {
 					country = switch (entry.locale.getLanguage()) {
 						case "ar" -> "SA";
-					case "ca" -> "es";
+						case "ca" -> "es";
 						case "cs" -> "CZ";
 						case "da" -> "DK";
 						case "el" -> "GR";
