@@ -16,7 +16,10 @@
  */
 import { showNotification } from '@mantine/notifications'
 import { useEffect } from 'react'
-import useWebSocket from 'react-use-websocket'
+import useWebSocketRaw from 'react-use-websocket'
+
+// @ts-expect-error needed because of vite and default export, see https://rolldown.rs/in-depth/bundling-cjs#recommendations-for-library-authors
+const useWebSocket = typeof useWebSocketRaw === 'object' && useWebSocketRaw !== null && useWebSocketRaw.__esModule ? useWebSocketRaw.default : useWebSocketRaw
 
 import { RendererAction } from '../../services/home-service'
 import { I18nInterface } from '../../services/i18n-service'

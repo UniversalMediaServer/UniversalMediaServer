@@ -55,6 +55,10 @@ public class PlaylistManager {
 	public static String addEntryToPlaylist(StoreResource entry, PlaylistFolder playlistFolder) throws Exception {
 		Path playlistPath = getPlaylistPathFromObjectId(playlistFolder);
 		String filenameToAdd = entry.getFileName();
+		if (entry instanceof StoreContainer && (StringUtils.isBlank(filenameToAdd) ||
+				!FileUtil.isUrl(filenameToAdd) && !(new File(filenameToAdd).isAbsolute() && new File(filenameToAdd).exists()))) {
+			throw new IOException("The container has no persistent file path or URL");
+		}
 		String relativeEntryPath;
 		if (FileUtil.isUrl(filenameToAdd)) {
 			relativeEntryPath = filenameToAdd;
@@ -91,6 +95,7 @@ public class PlaylistManager {
 		}
 
 		if (playlistFolder.deleteEntry(filenameToRemove) || playlistFolder.deleteEntry(relativePath)) {
+			playlistFolder.removeChild(entry);
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
 			Long containerId = MediaTableFiles.getFileId(playlistPath.toString());
 			Long entryId = MediaTableFiles.getFileId(filenameToRemove);
@@ -117,44 +122,17 @@ public class PlaylistManager {
 	}
 
 	protected static String calculateRelativeEntryPath(Path absoluteEntryPath, Path absolutePlaylistPath) {
-		StringBuilder sb = new StringBuilder();
-
-		if (isEntryInSubfolderOfPlaylist(absoluteEntryPath, absolutePlaylistPath)) {
-			String relativePath = removeSameParentPathFromEntryPath(absoluteEntryPath, absolutePlaylistPath);
-			sb.append(".");
-			if (!relativePath.startsWith(File.separator)) {
-				sb.append(File.separator);
-			}
-			sb.append(relativePath);
-		} else {
-			Path commonParent = findFirstCommonParentFolder(absoluteEntryPath, absolutePlaylistPath, sb);
-			String relativePath = removeCommonParentPathFromEntryPath(absoluteEntryPath, commonParent);
-			sb.append(relativePath);
-			return sb.toString();
+		Path entry = absoluteEntryPath.toAbsolutePath().normalize();
+		Path playlistDirectory = absolutePlaylistPath.toAbsolutePath().normalize().getParent();
+		if (!playlistDirectory.getRoot().equals(entry.getRoot())) {
+			return entry.toString();
 		}
-		return sb.toString();
-	}
 
-	private static String removeCommonParentPathFromEntryPath(Path absoluteEntryPath, Path commonParent) {
-		return absoluteEntryPath.toString().substring(commonParent.toString().length() + 1);
-	}
-
-	private static Path findFirstCommonParentFolder(Path absoluteEntryPath, Path absolutePlaylistPath, StringBuilder sb) {
-		Path commonRoot = absolutePlaylistPath.getParent();
-		do {
-			sb.append("..");
-			sb.append(File.separator);
-			commonRoot = commonRoot.getParent();
-		} while (!absoluteEntryPath.toString().startsWith(commonRoot.toString()));
-		return commonRoot;
-	}
-
-	private static String removeSameParentPathFromEntryPath(Path absoluteEntryPath, Path absolutePlaylistPath) {
-		return absoluteEntryPath.toString().substring(absolutePlaylistPath.getParent().toString().length());
-	}
-
-	private static boolean isEntryInSubfolderOfPlaylist(Path absoluteEntryPath, Path absolutePlaylistPath) {
-		return absoluteEntryPath.toString().startsWith(absolutePlaylistPath.getParent().toString());
+		String relativePath = playlistDirectory.relativize(entry).toString();
+		if (relativePath.isEmpty()) {
+			return ".";
+		}
+		return entry.startsWith(playlistDirectory) ? "." + File.separator + relativePath : relativePath;
 	}
 
 	private static void writePlaylistToDisk(List<String> lines, Path playlistFile) throws IOException {
@@ -215,7 +193,7 @@ public class PlaylistManager {
 		return false;
 	}
 
-	private static boolean isValidPlaylist(String filename) {
+	public static boolean isValidPlaylist(String filename) {
 		return (filename.toLowerCase().endsWith(".m3u") ||
 				filename.toLowerCase().endsWith(".m3u8") ||
 				filename.toLowerCase().endsWith(".pls"));

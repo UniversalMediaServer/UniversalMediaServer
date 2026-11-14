@@ -262,6 +262,7 @@ public abstract class DatabaseHelper {
 	protected static final String INDEX = "INDEX ";
 	protected static final String JOIN = " JOIN ";
 	protected static final String LESS_OR_EQUAL_THAN = " <= ";
+	protected static final String LESS_THAN = " < ";
 	protected static final String NOT = "NOT ";
 	protected static final String NOT_IN = " NOT" + IN;
 	protected static final String NOT_EQUAL = " != ";

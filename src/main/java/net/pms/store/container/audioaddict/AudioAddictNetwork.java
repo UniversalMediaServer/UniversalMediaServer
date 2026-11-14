@@ -1,20 +1,18 @@
 package net.pms.store.container.audioaddict;
 
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.external.audioaddict.AudioAddictService;
 import net.pms.external.audioaddict.Platform;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
-public class AudioAddictNetwork extends StoreContainer implements INetworkInitialized {
+public class AudioAddictNetwork extends AudioAddictFolder implements INetworkInitialized {
 
 	private Platform network = null;
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioAddictNetwork.class.getName());
 
 	public AudioAddictNetwork(Renderer renderer, String name, Platform network) {
-		super(renderer, name, network.albumArt);
+		super(renderer, name, network, null);
 		this.network = network;
 		AudioAddictService.get().getRadioNetwork(network).addInitCallbackHandler(this);
 		if (AudioAddictService.get().getRadioNetwork(network).isInitilized()) {
@@ -31,11 +29,18 @@ public class AudioAddictNetwork extends StoreContainer implements INetworkInitia
 
 	private void addChildren() {
 		clearChildren();
-		LOGGER.debug("AudioAddictNetwork store container {} : adding childs ... ", network.displayName);
-		List<String> filterList = AudioAddictService.get().getFiltersForNetwork(this.network);
-		for (String filter : filterList) {
-			LOGGER.debug("AudioAddictNetwork store container {} : adding child {}", network.displayName, filter);
-			addChild(new AudioAddictNetworkFilter(renderer, network, filter));
+		if (network == Platform.DI_FM) {
+			// Only DI.fm exposes curated playlists and events
+			LOGGER.debug("AudioAddictNetwork store container {} : adding Radio, Playlists, Followed playlists and Events folders.", network.displayName);
+			addChild(new AudioAddictRadio(renderer, network));
+			addChild(new AudioAddictPlaylists(renderer, network));
+			addChild(new AudioAddictFollowedPlaylists(renderer, network));
+			addChild(new AudioAddictEvents(renderer, network));
+		} else {
+			LOGGER.debug("AudioAddictNetwork store container {} : adding radio filters directly.", network.displayName);
+			for (String filter : AudioAddictService.get().getFiltersForNetwork(network)) {
+				addChild(new AudioAddictNetworkFilter(renderer, network, filter));
+			}
 		}
 	}
 }

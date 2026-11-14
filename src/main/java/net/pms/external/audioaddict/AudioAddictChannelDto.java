@@ -10,6 +10,10 @@ public class AudioAddictChannelDto {
 	public String descLong;
 	public String descShort;
 	public String albumArt;
+	/**
+	 * Comma separated genre/category names of the channel (e.g. "Trance, Vocal Trance").
+	 */
+	public String genres;
 
 	public AudioAddictChannelDto() {
 	}

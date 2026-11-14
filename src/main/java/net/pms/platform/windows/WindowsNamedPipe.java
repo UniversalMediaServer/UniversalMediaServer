@@ -17,6 +17,7 @@
 package net.pms.platform.windows;
 
 import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.WinError;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.ptr.IntByReference;
 import java.io.*;
@@ -170,7 +171,9 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	@Override
 	public void run() {
 		LOGGER.debug("Waiting for Windows named pipe connection \"{}\"", path);
-		boolean b1 = Kernel32.INSTANCE.ConnectNamedPipe(handle1, null);
+		// A client may connect between CreateNamedPipe and this call.
+		boolean b1 = Kernel32.INSTANCE.ConnectNamedPipe(handle1, null) ||
+			Kernel32.INSTANCE.GetLastError() == WinError.ERROR_PIPE_CONNECTED;
 
 		if (forceReconnect) {
 			while (forced.isAlive()) {

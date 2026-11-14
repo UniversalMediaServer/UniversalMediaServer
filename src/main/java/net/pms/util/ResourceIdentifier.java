@@ -17,11 +17,13 @@
 package net.pms.util;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.net.URI;
+import java.nio.channels.FileChannel;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +36,14 @@ public class ResourceIdentifier {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceIdentifier.class);
 
+	// Number of segments read from a file that is not hashed completely.
 	private static final int SEGMENTS = 2;
-	private static final int SEGMENT_BYTES = 1024 * 128;
-	private static final int WHOLE_FILE_THRESHOLD = SEGMENTS * SEGMENT_BYTES;
-	private static final ThreadLocal<byte[]> FILE_HASH_BUFFER = ThreadLocal.withInitial(() -> new byte[WHOLE_FILE_THRESHOLD]);
+
+	// Number of bytes of a single segment.
+	private static final int SEGMENT_BYTES = 1024 * 128; // 128 kB
+
+	// Files up to this size are hashed completely, which is the size at which the segments cover the file without a gap anyway.
+	private static final long WHOLE_FILE_THRESHOLD = (long) SEGMENTS * SEGMENT_BYTES;
 
 	private static final String LOG_RUID_CREATE = "Creating ruid ({}) for \"{}\"";
 	private static final String LOG_RUID_RESULTS = "RUID for \"{}\": {}";
@@ -50,36 +56,38 @@ public class ResourceIdentifier {
 	}
 
 	/**
-	 * Calculates the XXH3 hash and returns the value as a 16 character hex
-	 * string.
+	 * Calculates the XXH3 hash and returns the value as hex string.
 	 *
 	 * @param uri the file/url to identify
 	 * @return the pseudo unique file identifier.
-	 * @throws IOException
 	 */
 	public static String getResourceIdentifier(final String uri) {
 		if (StringUtils.isBlank(uri)) {
 			return null;
 		}
 		File file = getFile(uri);
-		if (file != null && file.exists() && file.isFile()) {
+		if (file != null && file.isFile()) {
 			return getFileIdentifier(file);
 		}
 		return getTextIdentifier(uri);
 	}
 
 	private static File getFile(final String uri) {
-		// try URI
-		try {
-			return new File(URI.create(uri));
-		} catch (IllegalArgumentException es) {
-			// not a file URI
-		}
-		// try path
-		try {
-			return Path.of(uri).toFile();
-		} catch (InvalidPathException e) {
-			// not a path
+		// The scheme decides how to read it. Trying URI.create() first, as it was done
+		// before, threw for every plain path containing a character that is not allowed
+		// in a URI - a space for example - which happens for most files of a library.
+		if (StringUtils.startsWithIgnoreCase(uri, "file:")) {
+			try {
+				return new File(URI.create(uri));
+			} catch (IllegalArgumentException e) {
+				// not a usable file URI
+			}
+		} else if (!uri.contains("://")) {
+			try {
+				return Path.of(uri).toFile();
+			} catch (InvalidPathException e) {
+				// not a path
+			}
 		}
 		return null;
 	}
@@ -87,58 +95,51 @@ public class ResourceIdentifier {
 	/**
 	 * Calculates the XXH3 hash of a file and returns the value as hex string.
 	 *
-	 * Files larger than WHOLE_FILE_THRESHOLD are identified by their size plus #SEGMENTS, the first one
-	 * at the beginning, the last one at the end and the others spread evenly in between.
+	 * Files larger than WHOLE_FILE_THRESHOLD are identified by their size plus #SEGMENTS, the first one at the beginning, the last one at
+	 * the end and the others spread evenly in between.
 	 *
 	 * @param file the file to identify
 	 * @return the pseudo unique file identifier.
 	 */
 	private static String getFileIdentifier(final File file) {
-		String pathname = file.getAbsolutePath();
-		try (RandomAccessFile input = new RandomAccessFile(file, "r")) {
+		try (Arena arena = Arena.ofConfined(); FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
 			LongHashFunction xx3 = LongHashFunction.xx3();
-			long size = input.length();
+			long size = channel.size();
 			long hash;
 			if (size == 0) {
 				hash = xx3.hashVoid();
 			} else if (size <= WHOLE_FILE_THRESHOLD) {
-				hash = hashFileRegion(xx3, input, 0, (int) size);
+				MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, 0, size, arena);
+				hash = xx3.hashMemory(segment.address(), size);
 			} else {
 				long[] hashes = new long[SEGMENTS + 1];
 				hashes[0] = size;
 				long lastOffset = size - SEGMENT_BYTES;
 				for (int i = 0; i < SEGMENTS; i++) {
+					// i = 0 starts at the beginning, i = SEGMENTS - 1 ends at the end of the file
 					long offset = lastOffset * i / (SEGMENTS - 1);
-					hashes[i + 1] = hashFileRegion(xx3, input, offset, SEGMENT_BYTES);
+					MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, offset, SEGMENT_BYTES, arena);
+					hashes[i + 1] = xx3.hashMemory(segment.address(), SEGMENT_BYTES);
 				}
 				hash = xx3.hashLongs(hashes);
 			}
 			String ruid = Long.toHexString(hash);
-			LOGGER.trace(LOG_RUID_RESULTS, pathname, ruid);
+			LOGGER.trace(LOG_RUID_RESULTS, file.getAbsolutePath(), ruid);
 			return ruid;
 		} catch (Exception ex) {
-			LOGGER.error(LOG_RUID_ERROR, "file", pathname);
+			LOGGER.error(LOG_RUID_ERROR, "file", file.getAbsolutePath());
 			LOGGER.trace("", ex);
 		}
 		return null;
 	}
 
-	private static long hashFileRegion(LongHashFunction xx3, RandomAccessFile input, long offset, int length) throws IOException {
-		byte[] buffer = FILE_HASH_BUFFER.get();
-		input.seek(offset);
-		input.readFully(buffer, 0, length);
-		return xx3.hashBytes(buffer, 0, length);
-	}
-
 	/**
-	 * Calculates the XXH3 hash and returns the value as a 16 character hex
-	 * string.
+	 * Calculates the XXH3 hash and returns the value as 16 character hex string.
 	 *
 	 * Will process the entire text bytes.
 	 *
 	 * @param text the text to identify
 	 * @return the pseudo unique file identifier.
-	 * @throws IOException
 	 */
 	private static String getTextIdentifier(final String text) {
 		try {

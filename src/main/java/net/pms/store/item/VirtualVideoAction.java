@@ -88,7 +88,7 @@ public abstract class VirtualVideoAction extends StoreItem {
 	 * @return Always returns <code>false</code>
 	 */
 	@Override
-	public boolean isTranscodeFolderAvailable() {
+	public boolean supportsTranscodeFolder() {
 		return false;
 	}
 
