@@ -17,7 +17,7 @@
 - Bump `axios` from 1.20.0 to 1.21.0
 - Bump `follow-redirects` from 1.16.1 to 1.16.2 ([#6447](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6447))
 
-## [16.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.10.0...16.0.0-b1) (2026-?)
+## [16.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.10.0...16.0.0-b1) (2026-11-14)
 
 ### BREAKING CHANGES
 - We no longer support x86 (32-bit) architecture. This means we are losing the following 4 releases: Linux ARMel, Linux ARMhf, Linux x86, and Windows x86.
