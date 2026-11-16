@@ -1136,7 +1136,7 @@ public class SubtitleUtils {
 		}
 
 		try {
-			subtitles.setDefault(difault);
+			subtitles.setDefault(default);
 			subtitles.setForced(forced);
 			// TODO: support for marking a hearingImpaired subtitle track if this
 			// feature will be added in the future.
