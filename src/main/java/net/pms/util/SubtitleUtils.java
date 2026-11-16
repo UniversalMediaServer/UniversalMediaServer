@@ -1096,7 +1096,7 @@ public class SubtitleUtils {
 
 		String language = null;
 		boolean forced = false;
-		boolean difault = false;
+		boolean default = false;
 		boolean hearingImpaired = false;
 		if (suffixParts != null && !suffixParts.isEmpty()) {
 			ArrayList<String> modifiableSuffixParts = new ArrayList<>(suffixParts);
