@@ -96,7 +96,7 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.18</slf4j-api-version>
+		<slf4j-api-version>2.0.20</slf4j-api-version>
 		<lucene-version>10.6.0</lucene-version>
 		<surefire-version>3.6.0</surefire-version>
 
@@ -491,7 +491,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>7.7.1</version>
+			<version>7.7.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
