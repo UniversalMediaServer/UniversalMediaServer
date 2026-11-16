@@ -1792,11 +1792,12 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static CharsetMatch getFileCharsetMatch(@Nonnull File file) throws IOException {
-		InputStream in = new BufferedInputStream(new FileInputStream(file));
-		CharsetDetector detector = new CharsetDetector();
-		detector.setText(in);
-		// Get best match only.
-		return detector.detect();
+		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+			CharsetDetector detector = new CharsetDetector();
+			detector.setText(in);
+			// Get best match only.
+			return detector.detect();
+		}
 	}
 
 	/**
