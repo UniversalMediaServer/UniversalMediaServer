@@ -1110,7 +1110,7 @@ public class SubtitleUtils {
 				} else if (part.equals("default")) {
 					// Default: default
 					// Marks the stream as the default.
-					difault = true;
+					default = true;
 					iterator.remove();
 				} else if (part.equals("forced") || part.equals("foreign")) {
 					// Forced: forced, foreign
