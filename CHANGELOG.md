@@ -16,6 +16,7 @@
 - Bump `@types/lodash` from 4.17.26 to 4.17.27 ([#6448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6448))
 - Bump `axios` from 1.20.0 to 1.21.0
 - Bump `follow-redirects` from 1.16.1 to 1.16.2 ([#6447](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6447))
+- Bump `typescript-eslint` from 8.71.1 to 8.72.1 ([#6449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6449))
 
 ## [16.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.10.0...16.0.0-b1) (2026-11-14)
 
