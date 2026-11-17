@@ -22,9 +22,13 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.formats.Format;
 import net.pms.renderers.Renderer;
 import net.pms.store.PlaylistManager;
+import net.pms.store.ThumbnailStore;
+import net.pms.store.ThumbnailSource;
 
 public class PlaylistFolderTest {
 
@@ -89,11 +93,36 @@ public class PlaylistFolderTest {
 			}
 
 			Path playlist = Files.writeString(directory.resolve("Mix.m3u8"), "#EXTM3U\n");
-			try (DLNAThumbnailInputStream thumbnail = playlistOf(playlist).getThumbnailInputStream()) {
+			PlaylistFolder mix = playlistOf(playlist);
+			ImageIO.write(new BufferedImage(35, 35, BufferedImage.TYPE_INT_RGB), "png", directory.resolve("Mix.png").toFile());
+			try (DLNAThumbnailInputStream thumbnail = mix.getThumbnailInputStream()) {
+				assertEquals(35, thumbnail.getWidth());
+			}
+			Files.delete(directory.resolve("Mix.png"));
+			ImageIO.write(new BufferedImage(45, 45, BufferedImage.TYPE_INT_RGB), "png", directory.resolve("Mix.preview.png").toFile());
+			try (DLNAThumbnailInputStream thumbnail = mix.getThumbnailInputStream()) {
 				assertEquals(25, thumbnail.getWidth());
 			}
 		} finally {
 			config.clearProperty("folder_thumbnail_names");
+		}
+	}
+
+	@Test
+	public void testStoredPlaylistCoverTakesPriorityOverLegacyAlbumArt(@TempDir Path directory) throws IOException {
+		Path playlist = Files.writeString(directory.resolve("Mix.m3u8"), "#EXTM3U\n");
+		PlaylistFolder mix = playlistOf(playlist);
+		Path albumArt = directory.resolve("AlbumArt.png");
+		Path storedCover = directory.resolve("User.png");
+		ImageIO.write(new BufferedImage(15, 15, BufferedImage.TYPE_INT_RGB), "png", albumArt.toFile());
+		ImageIO.write(new BufferedImage(25, 25, BufferedImage.TYPE_INT_RGB), "png", storedCover.toFile());
+		Long fileId = MediaTableFiles.getOrInsertFileId(mix.getFileName(), playlist.toFile().lastModified(), Format.PLAYLIST);
+		assertNotNull(fileId);
+		try (DLNAThumbnailInputStream thumbnail = ThumbnailStore.getThumbnailInputStreamForFile(storedCover.toFile())) {
+			assertNotNull(ThumbnailStore.getId(thumbnail.getThumbnail(), fileId, ThumbnailSource.USER));
+		}
+		try (DLNAThumbnailInputStream thumbnail = mix.getThumbnailInputStream()) {
+			assertEquals(25, thumbnail.getWidth());
 		}
 	}
 

@@ -142,9 +142,13 @@ public class SystemFilesHelper {
 	}
 
 	/**
-	 * Finds a thumbnail by basename, optionally accepting the legacy albumart match.
+	 * Finds an image with the exact basename of a resource.
 	 */
-	public static File getFolderThumbnail(File folder, String thumbFilename, boolean includeAlbumArt) {
+	public static File getNamedThumbnail(File folder, String thumbFilename) {
+		return getFolderThumbnail(folder, thumbFilename, false);
+	}
+
+	private static File getFolderThumbnail(File folder, String thumbFilename, boolean includeAlbumArt) {
 		if (folder == null || !folder.isDirectory()) {
 			return null;
 		}
@@ -158,10 +162,12 @@ public class SystemFilesHelper {
 			}
 			String fileName = fileNamePath.toString();
 			String fileNameLower = fileName.toLowerCase(Locale.ROOT);
-			if (fileName.startsWith(thumbPrefix) || (includeAlbumArt && fileNameLower.contains("albumart"))) {
-				return isPotentialThumbnail(fileNameLower);
+			boolean matchesPrefix = fileName.startsWith(thumbPrefix);
+			if (includeAlbumArt) {
+				return (matchesPrefix || fileNameLower.contains("albumart")) && isPotentialThumbnail(fileNameLower);
 			}
-			return false;
+			return matchesPrefix && fileName.lastIndexOf('.') == thumbPrefix.length() - 1 &&
+				isPotentialThumbnail(fileNameLower) && Files.isRegularFile(entry);
 		})) {
 			for (Path folderThumbnail : folderThumbnails) {
 				return folderThumbnail.toFile();
