@@ -244,14 +244,11 @@ public final class PlaylistFolder extends StoreContainer {
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		List<String> thumbnailNames = List.of();
 		if (!isweb) {
-			thumbnailNames = renderer.getUmsConfiguration().getFolderThumbnailNames();
 			DLNAThumbnailInputStream named = readDiskThumbnail(
-				SystemFilesHelper.getFolderThumbnail(
+				SystemFilesHelper.getNamedThumbnail(
 					uriAsFile.getParentFile(),
-					FilenameUtils.removeExtension(uriAsFile.getName()),
-					thumbnailNames.isEmpty()
+					FilenameUtils.removeExtension(uriAsFile.getName())
 				)
 			);
 			if (named != null) {
@@ -265,6 +262,7 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 
 		if (!isweb) {
+			List<String> thumbnailNames = renderer.getUmsConfiguration().getFolderThumbnailNames();
 			DLNAThumbnailInputStream folderImage = readDiskThumbnail(SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile(), thumbnailNames));
 			if (folderImage != null) {
 				return folderImage;
