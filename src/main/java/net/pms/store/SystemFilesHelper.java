@@ -109,7 +109,7 @@ public class SystemFilesHelper {
 				}
 			}
 		} catch (IOException e) {
-			LOGGER.warn("An error occurred while trying to browse folder \"{}\": {}", folder.getAbsolutePath(), e.getMessage());
+			LOGGER.warn("An error occurred while trying to get folder thumbnail \"{}\": {}", folder.getAbsolutePath(), e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return best;
