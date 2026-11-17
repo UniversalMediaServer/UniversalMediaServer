@@ -240,13 +240,19 @@ public final class PlaylistFolder extends StoreContainer {
 	 *
 	 * 1. an image named after the playlist
 	 * 2. a cover set through UpdateObject
-	 * 3. the folder.* picture of the directory
+	 * 3. the cover picture of the directory
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		List<String> thumbnailNames = List.of();
 		if (!isweb) {
+			thumbnailNames = renderer.getUmsConfiguration().getFolderThumbnailNames();
 			DLNAThumbnailInputStream named = readDiskThumbnail(
-				SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile(), FilenameUtils.removeExtension(uriAsFile.getName()))
+				SystemFilesHelper.getFolderThumbnail(
+					uriAsFile.getParentFile(),
+					FilenameUtils.removeExtension(uriAsFile.getName()),
+					thumbnailNames.isEmpty()
+				)
 			);
 			if (named != null) {
 				return named;
@@ -259,7 +265,7 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 
 		if (!isweb) {
-			DLNAThumbnailInputStream folderImage = readDiskThumbnail(SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile()));
+			DLNAThumbnailInputStream folderImage = readDiskThumbnail(SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile(), thumbnailNames));
 			if (folderImage != null) {
 				return folderImage;
 			}
@@ -305,7 +311,8 @@ public final class PlaylistFolder extends StoreContainer {
 		if (playlistFile == null || thumbnail == null) {
 			return null;
 		}
-		if (SystemFilesHelper.isFolderThumbnail(playlistFile, false)) {
+		List<String> thumbnailNames = renderer.getUmsConfiguration().getFolderThumbnailNames();
+		if (SystemFilesHelper.isFolderThumbnail(playlistFile, false, thumbnailNames)) {
 			LOGGER.warn("not storing the cover of {} : the name is reserved for the folder thumbnail", playlistFile);
 			return null;
 		}

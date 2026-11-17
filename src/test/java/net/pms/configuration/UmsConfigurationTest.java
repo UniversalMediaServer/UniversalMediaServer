@@ -18,6 +18,7 @@ package net.pms.configuration;
 
 import ch.qos.logback.classic.Level;
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
 import net.pms.PMS;
 import net.pms.TestHelper;
@@ -37,6 +38,15 @@ public class UmsConfigurationTest {
 
 		// Create default configuration instance
 		configuration = new UmsConfiguration(false);
+	}
+
+	@Test
+	public void testFolderThumbnailNamesAreOptionalAndOrdered() {
+		assertEquals(List.of(), configuration.getFolderThumbnailNames());
+		configuration.getConfiguration().setProperty("folder_thumbnail_names", " Cover, , Front, COVER ");
+		assertEquals(List.of("cover", "front"), configuration.getFolderThumbnailNames());
+		configuration.getConfiguration().setProperty("folder_thumbnail_names", " ");
+		assertEquals(List.of(), configuration.getFolderThumbnailNames());
 	}
 
 	/**

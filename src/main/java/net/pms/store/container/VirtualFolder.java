@@ -298,13 +298,28 @@ public class VirtualFolder extends StoreContainer {
 		// Build a map of all files and their corresponding formats
 		Set<File> images = new HashSet<>();
 		Set<File> audioVideo = new HashSet<>();
+		List<String> thumbnailNames = renderer.getUmsConfiguration().getFolderThumbnailNames();
+		boolean useCoverPriorities = !thumbnailNames.isEmpty();
+		int coverPriority = Integer.MAX_VALUE;
+		if (useCoverPriorities) {
+			potentialCover = null;
+		}
 		Iterator<File> iterator = childrenFiles.iterator();
 		while (iterator.hasNext()) {
 			File file = iterator.next();
 			if (file.isFile()) {
-				if (SystemFilesHelper.isPotentialThumbnail(file.getName())) {
-					if (SystemFilesHelper.isFolderThumbnail(file, false)) {
-						potentialCover = file;
+				String fileName = file.getName();
+				if (useCoverPriorities) {
+					fileName = fileName.toLowerCase(Locale.ROOT);
+				}
+				if (SystemFilesHelper.isPotentialThumbnail(fileName)) {
+					String coverName = useCoverPriorities ? fileName : fileName.toLowerCase(Locale.ROOT);
+					int priority = SystemFilesHelper.getFolderThumbnailPriority(coverName, thumbnailNames);
+					if (priority >= 0) {
+						if (!useCoverPriorities || priority < coverPriority) {
+							potentialCover = file;
+							coverPriority = priority;
+						}
 						iterator.remove();
 					} else {
 						images.add(file);

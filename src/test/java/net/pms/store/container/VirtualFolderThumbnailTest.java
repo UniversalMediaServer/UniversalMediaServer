@@ -1,7 +1,11 @@
 package net.pms.store.container;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,8 +14,40 @@ import java.util.Random;
 import java.util.Set;
 import net.pms.store.SystemFilesHelper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class VirtualFolderThumbnailTest {
+
+	@Test
+	void additionalFolderCoversAreOptIn(@TempDir Path directory) throws IOException {
+		File cover = Files.createFile(directory.resolve("Cover.JPG")).toFile();
+		Files.createFile(directory.resolve("cover.jpg.bak"));
+		Files.createFile(directory.resolve("cover.extra.png"));
+		Files.createDirectory(directory.resolve("cover.gif"));
+		assertNull(SystemFilesHelper.getFolderThumbnail(directory.toFile(), List.of()));
+		assertEquals(cover, SystemFilesHelper.getFolderThumbnail(directory.toFile(), List.of("cover")));
+
+		Files.delete(cover.toPath());
+		assertNull(SystemFilesHelper.getFolderThumbnail(directory.toFile(), List.of("cover")));
+	}
+
+	@Test
+	void prefersFolderThenConfiguredNamesThenAlbumArt(@TempDir Path directory) throws IOException {
+		File albumArt = Files.createFile(directory.resolve("AlbumArtSmall.png")).toFile();
+		File cover = Files.createFile(directory.resolve("cover.png")).toFile();
+		File front = Files.createFile(directory.resolve("front.jpg")).toFile();
+		File folder = Files.createFile(directory.resolve("folder.jpg")).toFile();
+		List<String> names = List.of("front", "cover");
+
+		assertEquals(folder, SystemFilesHelper.getFolderThumbnail(directory.toFile(), names));
+		Files.delete(folder.toPath());
+		assertEquals(front, SystemFilesHelper.getFolderThumbnail(directory.toFile(), names));
+		assertEquals(cover, SystemFilesHelper.getFolderThumbnail(directory.toFile(), List.of("cover", "front")));
+		assertEquals(albumArt, SystemFilesHelper.getFolderThumbnail(directory.toFile(), List.of()));
+		Files.delete(front.toPath());
+		Files.delete(cover.toPath());
+		assertEquals(albumArt, SystemFilesHelper.getFolderThumbnail(directory.toFile(), names));
+	}
 
 	@Test
 	void preservesOrderAndUnrelatedImages() {

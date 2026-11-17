@@ -5,12 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,6 +23,7 @@ import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.renderers.Renderer;
 import net.pms.store.PlaylistManager;
 
 public class PlaylistFolderTest {
@@ -66,6 +69,32 @@ public class PlaylistFolderTest {
 				assertTrue(false, "Failed to get thumbnail input stream for child: " + child.getName());
 			}
 		});
+	}
+
+	@Test
+	public void testConfiguredFolderCoverForFolderTracksAndPlaylist(@TempDir Path directory) throws IOException {
+		Renderer renderer = RendererConfigurations.getDefaultRenderer();
+		var config = renderer.getUmsConfiguration().getConfiguration();
+		config.setProperty("folder_thumbnail_names", "cover");
+		try {
+			Path albumArt = directory.resolve("AlbumArt.png");
+			Path cover = directory.resolve("Cover.PNG");
+			ImageIO.write(new BufferedImage(15, 15, BufferedImage.TYPE_INT_RGB), "png", albumArt.toFile());
+			ImageIO.write(new BufferedImage(25, 25, BufferedImage.TYPE_INT_RGB), "png", cover.toFile());
+			RealFolder folder = new RealFolder(renderer, directory.toFile());
+			folder.discoverChildren();
+			assertEquals(cover.toFile(), folder.getPotentialCover());
+			try (DLNAThumbnailInputStream thumbnail = folder.getThumbnailInputStream()) {
+				assertEquals(25, thumbnail.getWidth());
+			}
+
+			Path playlist = Files.writeString(directory.resolve("Mix.m3u8"), "#EXTM3U\n");
+			try (DLNAThumbnailInputStream thumbnail = playlistOf(playlist).getThumbnailInputStream()) {
+				assertEquals(25, thumbnail.getWidth());
+			}
+		} finally {
+			config.clearProperty("folder_thumbnail_names");
+		}
 	}
 
 	@Test
