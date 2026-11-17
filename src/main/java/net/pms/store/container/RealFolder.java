@@ -163,7 +163,7 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		File cachedThumbnail = SystemFilesHelper.getFolderThumbnail(directory);
+		File cachedThumbnail = SystemFilesHelper.getFolderThumbnail(directory, renderer.getUmsConfiguration().getFolderThumbnailNames());
 
 		DLNAThumbnailInputStream result = null;
 		try {

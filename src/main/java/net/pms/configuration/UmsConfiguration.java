@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -318,6 +319,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_FLATTEN_FOLDERS = "flatten_folders";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
+	private static final String KEY_FOLDER_THUMBNAIL_NAMES = "folder_thumbnail_names";
 	private static final String KEY_FILE_EXTENSIONS_IGNORED = "file_extensions_ignored";
 	private static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	private static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
@@ -610,6 +612,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		KEY_DISABLE_TRANSCODING,
 		KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
 		KEY_FLATTEN_FOLDERS,
+		KEY_FOLDER_THUMBNAIL_NAMES,
 		KEY_FULLY_PLAYED_ACTION,
 		KEY_HIDE_EMPTY_FOLDERS,
 		KEY_OPEN_ARCHIVES,
@@ -3919,6 +3922,22 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * List of system folder to always skip.
 	 */
 	private List<String> ignoredSystemFolderNames = List.of(".unwanted", "$RECYCLE.BIN", "System Volume Information", "CacheClip");
+
+	/**
+	 * Returns the optional folder cover basenames, lowercased and in priority order.
+	 */
+	public List<String> getFolderThumbnailNames() {
+		String names = getString(KEY_FOLDER_THUMBNAIL_NAMES, null);
+		if (names == null || EMPTY_LIST_VALUE.equalsIgnoreCase(names)) {
+			return List.of();
+		}
+		return Arrays.stream(names.split(","))
+			.map(String::trim)
+			.filter(name -> !name.isEmpty())
+			.map(name -> name.toLowerCase(Locale.ROOT))
+			.distinct()
+			.toList();
+	}
 
 	/**
 	 * @return The {@link List} of {@link Path}s of ignored folder names.
