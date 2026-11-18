@@ -17,6 +17,7 @@
 - Bump `axios` from 1.20.0 to 1.21.0
 - Bump `follow-redirects` from 1.16.1 to 1.16.2 ([#6447](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6447))
 - Bump `typescript-eslint` from 8.71.1 to 8.72.1 ([#6449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6449))
+- Bump `vite` from 7.3.7 to 7.3.8 ([#6488](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6488))
 
 ## [15.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/15.9.0...15.10.0) (2026-10-31)
 
