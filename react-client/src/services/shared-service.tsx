@@ -52,7 +52,12 @@ export interface ITunes extends SharedContentInterface {
   path: string
 }
 
-export interface SharedContentConfiguration {
+export interface ScanSettings {
+  scan_shared_folders_on_startup: boolean
+  scan_only_monitored_folders_on_startup: boolean
+}
+
+export interface SharedContentConfiguration extends ScanSettings {
   shared_content: SharedContentInterface[]
   show_itunes_library: boolean
   show_iphoto_library: boolean

@@ -14,13 +14,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Group } from '@mantine/core'
+import { Checkbox, Group, Stack, Tooltip } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import _ from 'lodash'
 import { useEffect, useState } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
-import { Feed, Folder, getFeedName, ITunes, NamedSharedContent, SharedContentConfiguration, SharedContentData, SharedContentInterface, Stream, VirtualFolder } from '../../services/shared-service'
+import { Feed, Folder, getFeedName, ITunes, NamedSharedContent, ScanSettings, SharedContentConfiguration, SharedContentData, SharedContentInterface, Stream, VirtualFolder } from '../../services/shared-service'
+import { allowHtml, defaultTooltipSettings } from '../../utils'
 import SharedContentModal from './SharedContentModal'
 import SharedContentList from './SharedContentList'
 import NewSharedContentButton from './NewSharedContentButton'
@@ -33,6 +34,8 @@ export default function SharedContentSettings({
   configuration,
   sharedContents,
   setSharedContents,
+  scanSettings,
+  setScanSettings,
 }: {
   i18n: I18nInterface
   scan: boolean
@@ -40,6 +43,8 @@ export default function SharedContentSettings({
   configuration: SharedContentConfiguration
   sharedContents: SharedContentInterface[]
   setSharedContents: (sharedContents: SharedContentInterface[]) => void
+  scanSettings?: ScanSettings
+  setScanSettings: (scanSettings: ScanSettings) => void
 }) {
   const [editOpened, setEditOpened] = useState(false)
   const modalForm = useForm()
@@ -187,6 +192,26 @@ export default function SharedContentSettings({
         groups={configuration.groups}
         canModify={canModify}
       />
+      {scanSettings && (
+        <Stack align="flex-start" mt="md">
+          <Tooltip label={allowHtml(i18n.get('ThisControlsUmsScanShared'))} {...defaultTooltipSettings}>
+            <Checkbox
+              label={i18n.get('ScanSharedFoldersStartup')}
+              checked={scanSettings.scan_shared_folders_on_startup}
+              disabled={!canModify}
+              onChange={event => setScanSettings({ ...scanSettings, scan_shared_folders_on_startup: event.currentTarget.checked })}
+            />
+          </Tooltip>
+          <Tooltip label={allowHtml(i18n.get('ThisControlsUmsScanOnlyMonitored'))} {...defaultTooltipSettings}>
+            <Checkbox
+              label={i18n.get('ScanOnlyMonitoredFoldersStartup')}
+              checked={scanSettings.scan_only_monitored_folders_on_startup}
+              disabled={!canModify || !scanSettings.scan_shared_folders_on_startup}
+              onChange={event => setScanSettings({ ...scanSettings, scan_only_monitored_folders_on_startup: event.currentTarget.checked })}
+            />
+          </Tooltip>
+        </Stack>
+      )}
     </>
   )
 }

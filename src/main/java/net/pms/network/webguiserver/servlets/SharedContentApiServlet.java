@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
+import net.pms.PMS;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
@@ -71,6 +72,8 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 				jsonResponse.addProperty("show_itunes_library", Platform.isMac() || Platform.isWindows());
 				jsonResponse.addProperty("show_iphoto_library", Platform.isMac());
 				jsonResponse.addProperty("show_aperture_library", Platform.isMac());
+				jsonResponse.addProperty("scan_shared_folders_on_startup", PMS.getConfiguration().isScanSharedFoldersOnStartup());
+				jsonResponse.addProperty("scan_only_monitored_folders_on_startup", PMS.getConfiguration().isScanOnlyMonitoredFoldersOnStartup());
 				JsonArray jGroups = new JsonArray();
 				for (Group group : AccountService.getAllGroups()) {
 					jGroups.add(groupToJsonObject(group));
@@ -110,6 +113,12 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 					JsonObject data = getJsonObjectFromBody(req);
 					if (data.has("shared_content") && data.get("shared_content").isJsonArray()) {
 						SharedContentConfiguration.setFromJsonArray(data.get("shared_content").getAsJsonArray());
+					}
+					if (isBoolean(data, "scan_shared_folders_on_startup")) {
+						PMS.getConfiguration().setScanSharedFoldersOnStartup(data.get("scan_shared_folders_on_startup").getAsBoolean());
+					}
+					if (isBoolean(data, "scan_only_monitored_folders_on_startup")) {
+						PMS.getConfiguration().setScanOnlyMonitoredFoldersOnStartup(data.get("scan_only_monitored_folders_on_startup").getAsBoolean());
 					}
 					respond(req, resp, "{}", 200, "application/json");
 				}
@@ -202,6 +211,10 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 			LOGGER.error("Unexpected error in SettingsApiServlet.doPost(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	private static boolean isBoolean(JsonObject data, String key) {
+		return data.has(key) && data.get(key).isJsonPrimitive() && data.getAsJsonPrimitive(key).isBoolean();
 	}
 
 	private static String getDirectoryResponse(JsonObject data) {
