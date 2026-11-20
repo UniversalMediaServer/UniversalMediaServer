@@ -5,6 +5,7 @@
 ### General
 - Improved support for 3D videos (thanks, Daniel Ramos!)
 - Fixed a media scanner crash while hashing files
+- Fixed copying web streams between M3U playlists via UPnP, preserving their title and playlist metadata
 - Fixed FFmpeg on macOS pre-10.15 (#6388) (thanks, @elektronen!)
 - Fixed file compatibility on some media players
 - Increased validation of dependency downloads

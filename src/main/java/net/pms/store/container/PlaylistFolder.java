@@ -31,6 +31,7 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -602,20 +603,56 @@ public final class PlaylistFolder extends StoreContainer {
 	 * Appends a web resource.The url has to come last!
 	 */
 	public synchronized boolean addWebEntry(String url, String title, String albumArtUri, String radioBrowserUuid) {
-		if (StringUtils.isBlank(url)) {
+		Map<String, String> directives = new LinkedHashMap<>();
+		directives.put(DIRECTIVE_RADIOBROWSERUUID, radioBrowserUuid);
+		directives.put(DIRECTIVE_ALBUMART_URI, albumArtUri);
+		String entryUrl = StringUtils.trim(url);
+		try {
+			if (!appendWebEntry(new Entry(entryUrl, title, directives))) {
+				return false;
+			}
+		} catch (IOException e) {
+			LOGGER.error("cannot add {} to playlist", entryUrl, e);
 			return false;
 		}
-		if (!isM3uPlaylist()) {
-			LOGGER.debug("adding entries is only possible for m3u or m3u8 files. This playlist is {}", getExtension());
-			return false;
+		warmWebEntry(entryUrl);
+		webEntryAdded();
+		return true;
+	}
+
+	public synchronized String addWebStreamReference(WebStream source, int type) throws IOException {
+		String url = StringUtils.trim(source.getUrl());
+		Entry entry = new Entry(url, source.getName(), source.getPlaylistDirectives());
+		StoreResource reference = createWebResource(entry, url, type);
+		if (reference == null) {
+			throw new IOException("The web stream type is not supported by playlists");
 		}
-		String entryUrl = url.trim();
+		if (!appendWebEntry(entry)) {
+			return null;
+		}
+		// The source already supplied the type. Register the new child without probing it again.
+		addChildInternal(reference);
+		webEntryAdded();
+		return reference.getId();
+	}
+
+	private boolean appendWebEntry(Entry entry) throws IOException {
+		String entryUrl = entry.fileName();
+		if (StringUtils.isBlank(entryUrl)) {
+			throw new IOException("The playlist entry has no URL");
+		}
+		if (isweb || !isM3uPlaylist()) {
+			throw new IOException("Web entries can only be added to a local M3U or M3U8 playlist");
+		}
+		StringBuilder out = new StringBuilder();
+		String nl = System.lineSeparator();
 		try (BufferedReader br = getBufferedReader(utf8)) {
-			StringBuilder out = new StringBuilder();
-			String nl = System.getProperty("line.separator");
+			if (br == null) {
+				throw new IOException("The playlist is too large to read");
+			}
 			boolean firstline = true;
 			String line;
-			while (br != null && (line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null) {
 				line = line.trim();
 				if (firstline) {
 					firstline = false;
@@ -635,25 +672,23 @@ public final class PlaylistFolder extends StoreContainer {
 				out.append("#EXTM3U").append(nl).append(nl);
 			}
 			out.append(nl);
-			out.append("#EXTINF:-1,").append(StringUtils.isBlank(title) ? entryUrl : title.trim()).append(nl);
-			if (StringUtils.isNotBlank(radioBrowserUuid)) {
-				out.append(DIRECTIVE_RADIOBROWSERUUID).append(radioBrowserUuid.trim()).append(nl);
-			}
-			if (StringUtils.isNotBlank(albumArtUri)) {
-				out.append(DIRECTIVE_ALBUMART_URI).append(albumArtUri.trim()).append(nl);
+			out.append("#EXTINF:-1,").append(StringUtils.isBlank(entry.title()) ? entryUrl : entry.title().trim()).append(nl);
+			for (Map.Entry<String, String> directive : entry.directives().entrySet()) {
+				if (StringUtils.isNotBlank(directive.getValue())) {
+					out.append(directive.getKey()).append(directive.getValue().trim()).append(nl);
+				}
 			}
 			out.append(entryUrl).append(nl);
-			writeContentToFile(out);
-		} catch (Exception er) {
-			LOGGER.error("cannot add {} to playlist", entryUrl, er);
-			return false;
 		}
-		warmWebEntry(entryUrl);
+		writeContentToFile(out);
+		return true;
+	}
+
+	private void webEntryAdded() {
 		// the children were built from the old file, so the next browse has to read it again
 		setDiscovered(false);
 		// let the renderers know the playlist changed
 		MediaStoreIds.incrementUpdateIdForFilename(getFileName());
-		return true;
 	}
 
 	/**
@@ -807,17 +842,9 @@ public final class PlaylistFolder extends StoreContainer {
 
 	private void writeContentToFile(StringBuilder out) throws IOException {
 		File file = new File(getFileName());
-		BufferedWriter writer = null;
-		try {
-			LOGGER.debug("writing playlist file ...");
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), getCharset()));
+		LOGGER.debug("writing playlist file ...");
+		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), getCharset()))) {
 			writer.append(out);
-		} catch (Exception e) {
-			LOGGER.warn("cannot update playlist", e);
-		} finally {
-			if (writer != null) {
-				writer.close();
-			}
 		}
 	}
 

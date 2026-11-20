@@ -23,6 +23,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -292,6 +293,14 @@ public class WebStream extends StoreItem {
 
 	protected String getDirective(String directive) {
 		return directives == null ? null : directives.get(directive);
+	}
+
+	public Map<String, String> getPlaylistDirectives() {
+		Map<String, String> result = directives == null ? new HashMap<>() : new HashMap<>(directives);
+		if (StringUtils.isNotBlank(thumbURL)) {
+			result.putIfAbsent(PlaylistFolder.DIRECTIVE_ALBUMART_URI, thumbURL);
+		}
+		return result;
 	}
 
 	private void applyRatingDirective() {
