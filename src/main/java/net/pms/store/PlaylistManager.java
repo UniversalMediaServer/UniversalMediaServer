@@ -34,6 +34,7 @@ import net.pms.renderers.Renderer;
 import net.pms.store.container.CueFolder;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.UmsPlaylist;
+import net.pms.store.item.WebStream;
 import net.pms.util.FileUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,9 @@ public class PlaylistManager {
 	}
 
 	public static String addEntryToPlaylist(StoreResource entry, PlaylistFolder playlistFolder) throws Exception {
+		if (entry instanceof WebStream stream) {
+			return playlistFolder.addWebStreamReference(stream, stream.getSpecificType());
+		}
 		Path playlistPath = getPlaylistPathFromObjectId(playlistFolder);
 		String filenameToAdd = entry.getFileName();
 		if (entry instanceof StoreContainer && (StringUtils.isBlank(filenameToAdd) ||

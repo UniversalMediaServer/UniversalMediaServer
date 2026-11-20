@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -12,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,7 @@ import net.pms.renderers.Renderer;
 import net.pms.store.PlaylistManager;
 import net.pms.store.ThumbnailStore;
 import net.pms.store.ThumbnailSource;
+import net.pms.store.item.WebVideoStream;
 
 public class PlaylistFolderTest {
 
@@ -182,6 +185,30 @@ public class PlaylistFolderTest {
 		assertEquals("#EXTIMG:http://img.example/logo.png", lines.get(3));
 		assertEquals("http://stream.example/live", lines.get(4));
 		assertEquals(5, lines.size());
+	}
+
+	@Test
+	public void testCreateWebVideoReferencePreservesPlaylistMetadata(@TempDir Path directory) throws Exception {
+		Path playlist = Files.writeString(directory.resolve("Videos.m3u8"), "#EXTM3U\n");
+		PlaylistFolder target = playlistOf(playlist);
+		Renderer renderer = target.getDefaultRenderer();
+		renderer.getMediaStore().addChild(target);
+		String url = "http://127.0.0.1:9/video.mp4";
+		String cover = "http://127.0.0.1:9/cover.jpg";
+		WebVideoStream source = new WebVideoStream(renderer, "A web video", url, null,
+			Map.of(PlaylistFolder.DIRECTIVE_ALBUMART_URI, cover));
+
+		String id = PlaylistManager.addEntryToPlaylist(source, target);
+
+		assertNotNull(id);
+		WebVideoStream reference = assertInstanceOf(WebVideoStream.class, renderer.getMediaStore().getResource(id));
+		assertEquals(target, reference.getParent());
+		assertEquals(url, reference.getUrl());
+		assertNull(source.getParent());
+		assertEquals(List.of("#EXTM3U", "#EXTINF:-1,A web video", "#EXTIMG:" + cover, url),
+			Files.readAllLines(playlist).stream().filter(line -> !line.isBlank()).toList());
+		assertNull(PlaylistManager.addEntryToPlaylist(source, target));
+		assertEquals(1, Files.readAllLines(playlist).stream().filter(url::equals).count());
 	}
 
 	@Test
