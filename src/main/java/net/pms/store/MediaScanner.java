@@ -205,8 +205,11 @@ public class MediaScanner implements SharedContentListener {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
 					scan(RENDERER.getMediaStore());
-					// Running might have been set false during scan
-					if (running) {
+					// Running might have been set false during scan.
+					// The cleanup covers the whole database, so it is skipped
+					// when folders were left out of the scan, otherwise it
+					// would drop entries of folders that were not rescanned.
+					if (running && !monitoredOnly) {
 						MediaTableFiles.cleanup(connection);
 					}
 				}
