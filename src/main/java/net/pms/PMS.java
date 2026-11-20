@@ -513,7 +513,7 @@ public class PMS {
 
 		// Initiate a media scan in case files were added to folders while UMS was closed.
 		if (umsConfiguration.isScanSharedFoldersOnStartup()) {
-			MediaScanner.startMediaScan();
+			MediaScanner.startMediaScan(umsConfiguration.isScanOnlyMonitoredFoldersOnStartup());
 		}
 
 		return true;

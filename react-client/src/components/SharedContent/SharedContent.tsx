@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react'
 
 import { I18nInterface } from '../../services/i18n-service'
 import { SessionInterface, UmsPermission } from '../../services/session-service'
-import { SharedContentConfiguration, SharedContentInterface } from '../../services/shared-service'
+import { ScanSettings, SharedContentConfiguration, SharedContentInterface } from '../../services/shared-service'
 import { sharedApiUrl } from '../../utils'
 import { showError, showInfo } from '../../utils/notifications'
 import SharedContentSettings from './SharedContentSettings'
@@ -30,6 +30,8 @@ export default function SharedContent({ i18n, session }: { i18n: I18nInterface, 
   const [isLoading, setLoading] = useState(true)
   const [configuration, setConfiguration] = useState<SharedContentConfiguration>()
   const [sharedContents, setSharedContents] = useState<SharedContentInterface[]>()
+  const [scanSettings, setScanSettings] = useState<ScanSettings>()
+  const [savedScanSettings, setSavedScanSettings] = useState<ScanSettings>()
   const [modified, setModified] = useState(false)
   const canModify = session.havePermission(UmsPermission.settings_modify)
   const canView = canModify || session.havePermission(UmsPermission.settings_view)
@@ -65,6 +67,12 @@ export default function SharedContent({ i18n, session }: { i18n: I18nInterface, 
           const sharedResponse = response.data as SharedContentConfiguration
           setConfiguration(sharedResponse)
           setSharedContents(sharedResponse.shared_content)
+          const loadedScanSettings = {
+            scan_shared_folders_on_startup: sharedResponse.scan_shared_folders_on_startup,
+            scan_only_monitored_folders_on_startup: sharedResponse.scan_only_monitored_folders_on_startup,
+          }
+          setScanSettings(loadedScanSettings)
+          setSavedScanSettings(loadedScanSettings)
         })
         .catch(function (error: AxiosError) {
           if (!error.response && error.request) {
@@ -86,8 +94,8 @@ export default function SharedContent({ i18n, session }: { i18n: I18nInterface, 
   }, [canView])
 
   useEffect(() => {
-    setModified(!_.isEqual(configuration?.shared_content, sharedContents))
-  }, [configuration, sharedContents])
+    setModified(!_.isEqual(configuration?.shared_content, sharedContents) || !_.isEqual(savedScanSettings, scanSettings))
+  }, [configuration, sharedContents, savedScanSettings, scanSettings])
 
   const submit = async () => {
     setLoading(true)
@@ -98,6 +106,9 @@ export default function SharedContent({ i18n, session }: { i18n: I18nInterface, 
       if (!_.isEqual(configuration?.shared_content, sharedContents)) {
         changedValues['shared_content'] = sharedContents
       }
+      if (scanSettings && !_.isEqual(savedScanSettings, scanSettings)) {
+        Object.assign(changedValues, scanSettings)
+      }
 
       if (_.isEmpty(changedValues)) {
         showInfo({
@@ -107,6 +118,7 @@ export default function SharedContent({ i18n, session }: { i18n: I18nInterface, 
       }
       else {
         await axios.post(sharedApiUrl, changedValues)
+        setSavedScanSettings(scanSettings)
         setLoading(false)
         showInfo({
           title: i18n.get('Saved'),
@@ -129,7 +141,7 @@ export default function SharedContent({ i18n, session }: { i18n: I18nInterface, 
         <Box style={{ maxWidth: 1024 }} mx="auto">
           <Text size="lg" mb="md">{i18n.get('SharedContent')}</Text>
           {sharedContents && configuration && (
-            <SharedContentSettings i18n={i18n} canModify={canModify} scan={session.mediaScan} sharedContents={sharedContents} setSharedContents={setSharedContents} configuration={configuration} />
+            <SharedContentSettings i18n={i18n} canModify={canModify} scan={session.mediaScan} sharedContents={sharedContents} setSharedContents={setSharedContents} configuration={configuration} scanSettings={scanSettings} setScanSettings={setScanSettings} />
           )}
           {canModify && (modified || isLoading) && (
             <Box h={50}>

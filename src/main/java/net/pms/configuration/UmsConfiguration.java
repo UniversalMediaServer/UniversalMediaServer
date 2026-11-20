@@ -405,6 +405,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
+	private static final String KEY_SCAN_ONLY_MONITORED_FOLDERS_ON_STARTUP = "scan_only_monitored_folders_on_startup";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_LUCENE_USE = "search_lucene_use_engine";
@@ -4563,6 +4564,26 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public void setScanSharedFoldersOnStartup(final boolean value) {
 		this.configuration.setProperty(KEY_SCAN_SHARED_FOLDERS_ON_STARTUP, value);
+	}
+
+	/**
+	 * Whether the startup scan of shared folders is limited to the folders
+	 * that are monitored.
+	 *
+	 * @return whether only monitored folders are scanned on startup
+	 */
+	public boolean isScanOnlyMonitoredFoldersOnStartup() {
+		return getBoolean(KEY_SCAN_ONLY_MONITORED_FOLDERS_ON_STARTUP, false);
+	}
+
+	/**
+	 * Whether the startup scan of shared folders is limited to the folders
+	 * that are monitored.
+	 *
+	 * @param value whether only monitored folders are scanned on startup
+	 */
+	public void setScanOnlyMonitoredFoldersOnStartup(final boolean value) {
+		this.configuration.setProperty(KEY_SCAN_ONLY_MONITORED_FOLDERS_ON_STARTUP, value);
 	}
 
 	/**
