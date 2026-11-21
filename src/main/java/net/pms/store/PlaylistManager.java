@@ -54,6 +54,10 @@ public class PlaylistManager {
 	}
 
 	public static String addEntryToPlaylist(StoreResource entry, PlaylistFolder playlistFolder) throws Exception {
+		DbIdTypeAndIdent dbId = DbIdResourceLocator.getVirtualResourceId(entry);
+		if (dbId != null) {
+			return playlistFolder.addDbIdReference(dbId);
+		}
 		if (entry instanceof WebStream stream) {
 			return playlistFolder.addWebStreamReference(stream, stream.getSpecificType());
 		}
@@ -88,6 +92,10 @@ public class PlaylistManager {
 	}
 
 	public static boolean removeEntryFromPlaylist(StoreResource entry, PlaylistFolder playlistFolder) throws IOException {
+		DbIdTypeAndIdent dbId = DbIdResourceLocator.getVirtualResourceId(entry);
+		if (dbId != null) {
+			return playlistFolder.removeDbIdReference(entry, dbId);
+		}
 		Path playlistPath = getPlaylistPathFromObjectId(playlistFolder);
 		String filenameToRemove = entry.getFileName();
 

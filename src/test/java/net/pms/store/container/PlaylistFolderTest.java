@@ -3,8 +3,10 @@ package net.pms.store.container;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -27,10 +29,17 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.DbIdResourceLocator;
+import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.PlaylistManager;
+import net.pms.store.StoreResource;
 import net.pms.store.ThumbnailStore;
 import net.pms.store.ThumbnailSource;
+import net.pms.store.item.RealFile;
 import net.pms.store.item.WebVideoStream;
 
 public class PlaylistFolderTest {
@@ -209,6 +218,99 @@ public class PlaylistFolderTest {
 			Files.readAllLines(playlist).stream().filter(line -> !line.isBlank()).toList());
 		assertNull(PlaylistManager.addEntryToPlaylist(source, target));
 		assertEquals(1, Files.readAllLines(playlist).stream().filter(url::equals).count());
+	}
+
+	@Test
+	public void testDbIdMusicBrainzAlbumReference(@TempDir Path directory) throws Exception {
+		assertDbIdAlbumReferenceSurvivesReloadAndCanBeRemoved(true, directory);
+	}
+
+	@Test
+	public void testDbIdDiscogsAlbumReference(@TempDir Path directory) throws Exception {
+		assertDbIdAlbumReferenceSurvivesReloadAndCanBeRemoved(false, directory);
+	}
+
+	private static void assertDbIdAlbumReferenceSurvivesReloadAndCanBeRemoved(boolean musicBrainz, Path directory) throws Exception {
+		Renderer renderer = new Renderer(RendererConfigurations.getDefaultRenderer()) {
+			@Override
+			public boolean hasShareAccess(File file) {
+				return file.toPath().startsWith(directory);
+			}
+		};
+		String mbid = "b53328e0-54b0-4906-9edc-bec957c97c4c";
+		DbIdTypeAndIdent dbId = musicBrainz
+			? new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid)
+			: new DbIdTypeAndIdent(DbIdMediaType.TYPE_DISCOGS_RELEASEID, "938274");
+		Path track = Files.copy(Path.of("src/test/resources/net/pms/parsers/audio-mp3.mp3"), directory.resolve("Track.mp3"));
+		MediaInfo media = new MediaInfo();
+		MediaAudioMetadata audio = new MediaAudioMetadata();
+		audio.setAlbum("An indexed album");
+		audio.setArtist("An artist");
+		if (musicBrainz) {
+			audio.setMbidRecord(mbid);
+		} else {
+			audio.setDiscogsReleaseId(938274L);
+		}
+		media.setAudioMetadata(audio);
+		MediaTableFiles.insertOrUpdateData(track.toString(), track.toFile().lastModified(), Format.AUDIO, media);
+		MusicAlbumFolder original = assertInstanceOf(MusicAlbumFolder.class,
+			DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, dbId));
+		renderer.getMediaStore().addChild(original);
+		Path file = Files.writeString(directory.resolve("Mix.m3u8"), "#EXTM3U\n#EXTPLAYLISTRATING:5\n");
+		PlaylistFolder playlist = new PlaylistFolder(renderer, file.toFile());
+		renderer.getMediaStore().addChild(playlist);
+
+		String linkId = PlaylistManager.addEntryToPlaylist(original, playlist);
+
+		assertNotNull(linkId);
+		assertNotEquals(original.getId(), linkId);
+		assertSame(renderer.getMediaStore(), original.getParent());
+		assertNull(PlaylistManager.addEntryToPlaylist(original, playlist));
+		assertSame(playlist, renderer.getMediaStore().getResource(linkId).getParent());
+		assertTrue(Files.readAllLines(file).contains("#DBIDRESOURCE:" + dbId.toEncodedDbId()));
+
+		renderer.getMediaStore().removeChild(playlist);
+		PlaylistFolder reloaded = new PlaylistFolder(renderer, file.toFile());
+		renderer.getMediaStore().addChild(reloaded);
+		reloaded.resolve();
+		assertEquals(1, reloaded.getChildren().size());
+		MusicAlbumFolder link = assertInstanceOf(MusicAlbumFolder.class, reloaded.getChildren().getFirst());
+		assertEquals(linkId, link.getId());
+		assertEquals("An indexed album", link.getName());
+		assertSame(reloaded, link.getParent());
+		link.discoverChildren();
+		assertEquals(List.of(track.toString()), link.getChildren().stream()
+			.filter(RealFile.class::isInstance).map(StoreResource::getFileName).toList());
+		assertTrue(PlaylistManager.removeEntryFromPlaylist(link, reloaded));
+		assertTrue(Files.isRegularFile(track));
+		assertSame(original, renderer.getMediaStore().getResource(original.getId()));
+		assertEquals(List.of("#EXTM3U", "#EXTPLAYLISTRATING:5"),
+			Files.readAllLines(file).stream().filter(line -> !line.isBlank()).toList());
+	}
+
+	@Test
+	public void testDbIdDirectiveKeepsItsOrderAndEncodesTheIdentifier(@TempDir Path directory) throws Exception {
+		Path file = Files.writeString(directory.resolve("Mix.m3u"), "#EXTM3U\n#DbIdResource:$DBID$UNKNOWN$ignored\n");
+		Path folder = Files.createDirectory(directory.resolve("Music"));
+		Files.copy(Path.of("src/test/resources/net/pms/parsers/audio-mp3.mp3"), folder.resolve("Track.mp3"));
+		PlaylistFolder playlist = playlistOf(file);
+		Renderer renderer = playlist.getDefaultRenderer();
+		renderer.getMediaStore().addChild(playlist);
+		DbIdTypeAndIdent id = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_COMPOSER, "A+B / Jérôme%$");
+		StoreResource person = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, id);
+		assertNotNull(PlaylistManager.addEntryToPlaylist(person, playlist));
+		assertNotNull(PlaylistManager.addEntryToPlaylist(new RealFolder(renderer, folder.toFile()), playlist));
+
+		playlist.resolve();
+
+		assertEquals(2, playlist.getChildren().size());
+		PersonFolder link = assertInstanceOf(PersonFolder.class, playlist.getChildren().getFirst());
+		assertEquals(id.ident, link.getMediaIdent());
+		assertInstanceOf(RealFolder.class, playlist.getChildren().get(1));
+		assertTrue(PlaylistManager.removeEntryFromPlaylist(link, playlist));
+		playlist.resolve();
+		assertEquals(1, playlist.getChildren().size());
+		assertInstanceOf(RealFolder.class, playlist.getChildren().getFirst());
 	}
 
 	@Test

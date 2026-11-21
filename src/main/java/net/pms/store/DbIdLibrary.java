@@ -27,6 +27,7 @@ import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MusicAlbumFolder;
 import net.pms.store.container.PersonFolder;
+import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.VirtualFolderDbId;
 
 /**
@@ -104,7 +105,12 @@ public class DbIdLibrary {
 			if (ids.size() > 1) {
 				LOGGER.warn("multiple StoreResource ids exist for: {}", typeRootFolder);
 			}
-			return (VirtualFolderDbId) renderer.getMediaStore().getResource(Long.toString(ids.get(0)));
+			for (Long id : ids) {
+				if (renderer.getMediaStore().getResource(id.toString()) instanceof VirtualFolderDbId folder &&
+					!(folder.getParent() instanceof PlaylistFolder)) {
+					return folder;
+				}
+			}
 		}
 		return null;
 	}
