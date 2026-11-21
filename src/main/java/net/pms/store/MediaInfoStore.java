@@ -514,6 +514,7 @@ public class MediaInfoStore {
 							try {
 								MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, mediaInfo.getFileId(), mediaInfo, true);
 							} catch (SQLException ex) {
+								LOGGER.error("updateTvEpisodesTvSeriesId Exception: {}", ex);
 							}
 							File file = new File(filename);
 							mediaInfo.setLastExternalLookup(0);
