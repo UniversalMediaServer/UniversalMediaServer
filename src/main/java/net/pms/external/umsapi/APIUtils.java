@@ -445,6 +445,32 @@ public class APIUtils {
 					return;
 				}
 
+				String posterFromApi = getPosterUrlFromApiInfo(
+					getStringOrNull(metadataFromAPI, "poster"),
+					getStringOrNull(metadataFromAPI, "posterRelativePath")
+				);
+
+				/**
+				 * Only continue if the API returned a result that provides value.
+				 * Specifically, fail early if:
+				 * - there is no cover image
+				 */
+				if (posterFromApi == null) {
+					LOGGER.debug("API returned no poster, discarding result.");
+					MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "No poster", true);
+
+					LOGGER.trace("Filename data: " + media);
+					LOGGER.trace("API data: " + metadataFromAPI);
+
+					// Before we return, attempt to enhance TV series data
+					if (isTVEpisode) {
+						setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, videoMetadata, null, null);
+					}
+
+					exitLookupAndAddMetadata(connection);
+					return;
+				}
+
 				LOGGER.trace("API data matches filename data for " + file.getName());
 
 				if (isTVEpisode) {
@@ -478,22 +504,17 @@ public class APIUtils {
 				}
 
 				// Set the poster as the thumbnail
-				String posterFromApi = getPosterUrlFromApiInfo(
-					getStringOrNull(metadataFromAPI, "poster"),
-					getStringOrNull(metadataFromAPI, "posterRelativePath")
-				);
-				if (posterFromApi != null) {
-					videoMetadata.setPoster(posterFromApi);
-					media.waitMediaParsing(5);
-					media.setParsing(true);
-					DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
-					if (thumbnail != null) {
-						Long thumbnailId = ThumbnailStore.getId(thumbnail);
-						media.setThumbnailSource(ThumbnailSource.TMDB);
-						media.setThumbnailId(thumbnailId);
-					}
-					media.setParsing(false);
+				videoMetadata.setPoster(posterFromApi);
+				media.waitMediaParsing(5);
+				media.setParsing(true);
+				DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
+				if (thumbnail != null) {
+					Long thumbnailId = ThumbnailStore.getId(thumbnail);
+					media.setThumbnailSource(ThumbnailSource.TMDB);
+					media.setThumbnailId(thumbnailId);
 				}
+				media.setParsing(false);
+
 				if (metadataFromAPI.has("actors")) {
 					videoMetadata.setActors(getApiStringArrayFromJsonElement(metadataFromAPI.get("actors")));
 				}
