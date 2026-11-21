@@ -131,7 +131,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 				}
 				default ->
 					throw new IllegalStateException(
-							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 			}
 		}
@@ -206,12 +206,12 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 		} catch (Exception e) {
 			LOGGER.error(
-					LOG_ERROR_WHILE_IN_FOR,
-					DATABASE_NAME,
-					"writing",
-					TABLE_NAME,
-					fullPathToFile,
-					e.getMessage()
+				LOG_ERROR_WHILE_IN_FOR,
+				DATABASE_NAME,
+				"writing",
+				TABLE_NAME,
+				fullPathToFile,
+				e.getMessage()
 			);
 			LOGGER.trace("", e);
 		} finally {
@@ -288,12 +288,12 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-					LOG_ERROR_WHILE_IN_FOR,
-					DATABASE_NAME,
-					"removing entries",
-					TABLE_NAME,
-					filename,
-					e.getMessage()
+				LOG_ERROR_WHILE_IN_FOR,
+				DATABASE_NAME,
+				"removing entries",
+				TABLE_NAME,
+				filename,
+				e.getMessage()
 			);
 			LOGGER.trace("", e);
 		}
