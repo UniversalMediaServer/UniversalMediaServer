@@ -642,6 +642,8 @@ public abstract class DatabaseHelper {
 				LOGGER.error("error during executing update with SQL \"" + sql + "\":" + e.getMessage(), e);
 				throw e;
 			}
+		} else {
+			LOGGER.error("connection was null during executing update with SQL \"" + sql);
 		}
 	}
 

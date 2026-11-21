@@ -504,9 +504,14 @@ public class MediaInfoStore {
 					MediaInfo mediaInfo = getMediaInfo(filename);
 					if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
 						mediaInfo.getVideoMetadata().setSeriesMetadata(tvSeriesMetadata);
-						if ((tvSeriesMetadata != null && tvSeriesMetadata.getTmdbId() != null &&
-								!tvSeriesMetadata.getTmdbId().equals(mediaInfo.getVideoMetadata().getTmdbTvId())) ||
-								!tvSeriesId.equals(mediaInfo.getVideoMetadata().getTvSeriesId())) {
+						if (
+							(
+								tvSeriesMetadata != null &&
+								tvSeriesMetadata.getTmdbId() != null &&
+								!tvSeriesMetadata.getTmdbId().equals(mediaInfo.getVideoMetadata().getTmdbTvId())
+							) ||
+							!tvSeriesId.equals(mediaInfo.getVideoMetadata().getTvSeriesId())
+						) {
 							//changed, remove old values to lookup for new metadata
 							mediaInfo.getVideoMetadata().setTvSeriesId(tvSeriesId);
 							mediaInfo.getVideoMetadata().setTmdbId(null);
@@ -514,6 +519,7 @@ public class MediaInfoStore {
 							try {
 								MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, mediaInfo.getFileId(), mediaInfo, true);
 							} catch (SQLException ex) {
+								LOGGER.error("updateTvEpisodesTvSeriesId Exception: {}", ex);
 							}
 							File file = new File(filename);
 							mediaInfo.setLastExternalLookup(0);
