@@ -320,14 +320,16 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								// This folder is filled lazy. Entries will be created after a user submits a search request.
 								// Without any submitted search requests with hits this folder will stay empty.
 								//
+								VirtualFolderDbId root = DbIdResourceLocator.getPersonRoot(renderer, typeIdent.type);
+								Long sourceId = root == null ? getLongId() : root.getLongId();
 								sql = String.format("SELECT ID, NAME FROM " + MediaTableStoreIds.TABLE_NAME + " WHERE PARENT_ID = %s " +
-									"AND name like '%s%s%%'", getLongId(), DbIdMediaType.GENERAL_PREFIX, typeIdent.type.dbidPrefix);
+									"AND name like '%s%s%%'", sourceId, DbIdMediaType.GENERAL_PREFIX, typeIdent.type.dbidPrefix);
 								LOGGER.debug("All person Folder sql : {}", sql);
 								try (ResultSet resultSet = statement.executeQuery(sql)) {
 									while (resultSet.next()) {
 										String name = resultSet.getString("NAME");
 										LOGGER.debug("person name is : {}", name);
-										DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(typeIdent.type, name.substring(name.lastIndexOf("$") + 1));
+										DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(typeIdent.type, name.substring(typeIdent.type.toString().length()));
 										PersonFolder person = new PersonFolder(renderer, tiPerson.getIdentUnprefixed(), tiPerson);
 										addChild(person);
 										person.discoverChildren();

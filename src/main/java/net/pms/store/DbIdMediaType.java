@@ -90,7 +90,7 @@ public enum DbIdMediaType {
 				}
 			}
 		}
-		throw new RuntimeException("Unknown DBID type : " + id);
+		throw new IllegalArgumentException("Unknown DBID type : " + id);
 	}
 
 }

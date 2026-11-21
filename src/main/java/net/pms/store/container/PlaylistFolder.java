@@ -41,6 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -57,6 +58,9 @@ import net.pms.formats.FormatFactory;
 import net.pms.parsers.WebStreamParser;
 import net.pms.parsers.WebStreamParser.WebStreamProbe;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.DbIdResourceLocator;
+import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStore;
 import net.pms.store.MediaStoreIds;
@@ -95,6 +99,7 @@ public final class PlaylistFolder extends StoreContainer {
 	public static final String DIRECTIVE_RATING = "#EXTRATING:";
 	public static final String DIRECTIVE_PLAYLIST_RATING = "#EXTPLAYLISTRATING:";
 	public static final String DIRECTIVE_ICY_ORDER = "#EXTICYORDER:";
+	private static final String DIRECTIVE_DB_ID_RESOURCE = "#DBIDRESOURCE:";
 
 	// How long the first browse of a web playlist waits for its entries.
 	private static final long WEB_ENTRY_BUDGET_SECONDS = 2;
@@ -348,7 +353,7 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 		List<CompletableFuture<Void>> pending = new ArrayList<>();
 		for (Entry entry : entries) {
-			if (entry == null || FileUtil.isUrl(entry.fileName())) {
+			if (entry == null || entry.dbIdReference() || FileUtil.isUrl(entry.fileName())) {
 				continue;
 			}
 			File file = new File(FilenameUtils.concat(parent, entry.fileName()));
@@ -393,7 +398,9 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 			LOGGER.debug("Adding playlist entry: {}", entry);
 
-			if (!isweb && !FileUtil.isUrl(entry.fileName())) {
+			if (entry.dbIdReference()) {
+				addSavedDbIdReference(entry.fileName());
+			} else if (!isweb && !FileUtil.isUrl(entry.fileName())) {
 				int type = defaultContent;
 				String ext = FileUtil.getUrlExtension(entry.fileName());
 				if (ext != null) {
@@ -559,7 +566,11 @@ public final class PlaylistFolder extends StoreContainer {
 		};
 	}
 
-	public boolean deleteEntry(String url) {
+	public synchronized boolean deleteEntry(String url) {
+		return deleteEntry(line -> !isDbIdReferenceLine(line) && line.equalsIgnoreCase(url));
+	}
+
+	private boolean deleteEntry(Predicate<String> matches) {
 		try (BufferedReader br = getBufferedReader(utf8)) {
 			boolean entryRemoved = false;
 			StringBuilder out = new StringBuilder();
@@ -573,13 +584,15 @@ public final class PlaylistFolder extends StoreContainer {
 			lastEntry = new StringBuilder();
 			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
-				if (line.startsWith("#")) {
+				if ("#EXTM3U".equalsIgnoreCase(line) || StringUtils.startsWithIgnoreCase(line, DIRECTIVE_PLAYLIST_RATING)) {
+					out.append(line).append(System.lineSeparator());
+				} else if (line.startsWith("#") && !isDbIdReferenceLine(line)) {
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 				} else if (StringUtils.isAllBlank(line)) {
 					lastEntry.append(System.getProperty("line.separator"));
 				} else {
-					// Parsing finished. This line is the filename.
-					if (!line.equalsIgnoreCase(url)) {
+					// A path, URL or DBID directive closes the entry block.
+					if (!matches.test(line)) {
 						lastEntry.append(line).append(System.getProperty("line.separator"));
 						out.append(lastEntry);
 					} else {
@@ -590,7 +603,7 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 
 			if (entryRemoved) {
-				writeContentToFile(out);
+				writeContentToFile(out.append(lastEntry));
 			}
 			return entryRemoved;
 		} catch (Exception er) {
@@ -608,7 +621,7 @@ public final class PlaylistFolder extends StoreContainer {
 		directives.put(DIRECTIVE_ALBUMART_URI, albumArtUri);
 		String entryUrl = StringUtils.trim(url);
 		try {
-			if (!appendWebEntry(new Entry(entryUrl, title, directives))) {
+			if (!appendEntry(new Entry(entryUrl, title, directives, false))) {
 				return false;
 			}
 		} catch (IOException e) {
@@ -616,27 +629,107 @@ public final class PlaylistFolder extends StoreContainer {
 			return false;
 		}
 		warmWebEntry(entryUrl);
-		webEntryAdded();
+		playlistEntryChanged();
 		return true;
 	}
 
 	public synchronized String addWebStreamReference(WebStream source, int type) throws IOException {
 		String url = StringUtils.trim(source.getUrl());
-		Entry entry = new Entry(url, source.getName(), source.getPlaylistDirectives());
+		Entry entry = new Entry(url, source.getName(), source.getPlaylistDirectives(), false);
 		StoreResource reference = createWebResource(entry, url, type);
 		if (reference == null) {
 			throw new IOException("The web stream type is not supported by playlists");
 		}
-		if (!appendWebEntry(entry)) {
+		if (!appendEntry(entry)) {
 			return null;
 		}
 		// The source already supplied the type. Register the new child without probing it again.
 		addChildInternal(reference);
-		webEntryAdded();
+		playlistEntryChanged();
 		return reference.getId();
 	}
 
-	private boolean appendWebEntry(Entry entry) throws IOException {
+	public synchronized String addDbIdReference(DbIdTypeAndIdent id) throws IOException {
+		if (isweb || !isM3uPlaylist()) {
+			throw new IOException("DBID references can only be added to a local M3U or M3U8 playlist");
+		}
+		StringBuilder content = buildPlaylistWithEntry(new Entry(id.toEncodedDbId(), null, Map.of(), true));
+		if (content == null) {
+			return null;
+		}
+		StoreResource reference = DbIdResourceLocator.createPlaylistReference(renderer, id);
+		if (reference == null) {
+			throw new IOException("Cannot resolve DBID resource " + id);
+		}
+		addChildInternal(reference);
+		boolean saved = false;
+		try {
+			if (reference.getLongId() == null) {
+				throw new IOException("Cannot register the DBID playlist entry");
+			}
+			writeContentToFile(content);
+			saved = true;
+			playlistEntryChanged();
+			return reference.getId();
+		} finally {
+			if (!saved) {
+				removeChild(reference);
+			}
+		}
+	}
+
+	public synchronized boolean removeDbIdReference(StoreResource reference, DbIdTypeAndIdent id) {
+		if (!deleteEntry(line -> sameDbIdReference(line, id.toEncodedDbId()))) {
+			return false;
+		}
+		removeChild(reference);
+		playlistEntryChanged();
+		return true;
+	}
+
+	private void addSavedDbIdReference(String encodedId) {
+		try {
+			if (encodedId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+				DbIdTypeAndIdent id = DbIdMediaType.getTypeIdentByDbid(encodedId);
+				StoreResource reference = DbIdResourceLocator.createPlaylistReference(renderer, id);
+				if (reference != null) {
+					addChildInternal(reference);
+					return;
+				}
+			}
+			LOGGER.debug("Unavailable DBID resource {} in playlist {}", encodedId, getName());
+		} catch (IllegalArgumentException e) {
+			LOGGER.debug("Invalid DBID resource {} in playlist {}", encodedId, getName(), e);
+		}
+	}
+
+	private static boolean isDbIdReferenceLine(String line) {
+		return StringUtils.startsWithIgnoreCase(line, DIRECTIVE_DB_ID_RESOURCE);
+	}
+
+	private static boolean sameDbIdReference(String line, String encodedId) {
+		if (!isDbIdReferenceLine(line)) {
+			return false;
+		}
+		String storedId = line.substring(DIRECTIVE_DB_ID_RESOURCE.length()).trim();
+		try {
+			return storedId.startsWith(DbIdMediaType.GENERAL_PREFIX) &&
+				DbIdMediaType.getTypeIdentByDbid(storedId).toEncodedDbId().equals(encodedId);
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
+
+	private boolean appendEntry(Entry entry) throws IOException {
+		StringBuilder content = buildPlaylistWithEntry(entry);
+		if (content == null) {
+			return false;
+		}
+		writeContentToFile(content);
+		return true;
+	}
+
+	private StringBuilder buildPlaylistWithEntry(Entry entry) throws IOException {
 		String entryUrl = entry.fileName();
 		if (StringUtils.isBlank(entryUrl)) {
 			throw new IOException("The playlist entry has no URL");
@@ -661,9 +754,9 @@ public final class PlaylistFolder extends StoreContainer {
 						out.append("#EXTM3U").append(nl).append(nl);
 					}
 				}
-				if (line.equalsIgnoreCase(entryUrl)) {
+				if (entry.dbIdReference() ? sameDbIdReference(line, entryUrl) : line.equalsIgnoreCase(entryUrl)) {
 					LOGGER.debug("{} is already in this playlist", entryUrl);
-					return false;
+					return null;
 				}
 				out.append(line).append(nl);
 			}
@@ -672,19 +765,22 @@ public final class PlaylistFolder extends StoreContainer {
 				out.append("#EXTM3U").append(nl).append(nl);
 			}
 			out.append(nl);
-			out.append("#EXTINF:-1,").append(StringUtils.isBlank(entry.title()) ? entryUrl : entry.title().trim()).append(nl);
-			for (Map.Entry<String, String> directive : entry.directives().entrySet()) {
-				if (StringUtils.isNotBlank(directive.getValue())) {
-					out.append(directive.getKey()).append(directive.getValue().trim()).append(nl);
+			if (entry.dbIdReference()) {
+				out.append(DIRECTIVE_DB_ID_RESOURCE);
+			} else {
+				out.append("#EXTINF:-1,").append(StringUtils.isBlank(entry.title()) ? entryUrl : entry.title().trim()).append(nl);
+				for (Map.Entry<String, String> directive : entry.directives().entrySet()) {
+					if (StringUtils.isNotBlank(directive.getValue())) {
+						out.append(directive.getKey()).append(directive.getValue().trim()).append(nl);
+					}
 				}
 			}
 			out.append(entryUrl).append(nl);
 		}
-		writeContentToFile(out);
-		return true;
+		return out;
 	}
 
-	private void webEntryAdded() {
+	private void playlistEntryChanged() {
 		// the children were built from the old file, so the next browse has to read it again
 		setDiscovered(false);
 		// let the renderers know the playlist changed
@@ -812,12 +908,12 @@ public final class PlaylistFolder extends StoreContainer {
 				}
 				if (line.toUpperCase().startsWith(directive)) {
 					lastDirective = line.substring(directive.length());
-				} else if (line.startsWith("#")) {
+				} else if (line.startsWith("#") && !isDbIdReferenceLine(line)) {
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 				} else if (StringUtils.isAllBlank(line)) {
 					lastEntry.append(System.getProperty("line.separator"));
 				} else {
-					// Parsing finished. This line is the filename.
+					// A path, URL or DBID directive closes the entry block.
 					if (line.equalsIgnoreCase(url)) {
 						if (value != null) {
 							lastEntry.append(directive).append(value).append(System.getProperty("line.separator"));
@@ -876,7 +972,14 @@ public final class PlaylistFolder extends StoreContainer {
 						}
 					}
 				} else if (isM3uPlaylist()) {
-					if (line.startsWith("#EXTINF:")) {
+					if (isDbIdReferenceLine(line)) {
+						if (!isweb) {
+							String id = line.substring(DIRECTIVE_DB_ID_RESOURCE.length()).trim();
+							entries.add(new Entry(id, title, directives, true));
+						}
+						title = null;
+						directives = new HashMap<>();
+					} else if (line.startsWith("#EXTINF:")) {
 						line = line.substring(8).trim();
 						if (line.matches("^-?\\d+,.+")) {
 							title = line.substring(line.indexOf(',') + 1).trim();
@@ -894,7 +997,7 @@ public final class PlaylistFolder extends StoreContainer {
 					} else if (line.toUpperCase().startsWith(DIRECTIVE_ICY_ORDER)) {
 						directives.put(DIRECTIVE_ICY_ORDER, line.substring(DIRECTIVE_ICY_ORDER.length()));
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
-						entries.add(new Entry(line, title, directives));
+						entries.add(new Entry(line, title, directives, false));
 						title = null;
 						directives = new HashMap<>();
 					}
@@ -903,14 +1006,14 @@ public final class PlaylistFolder extends StoreContainer {
 			// Build PLS entries sorted by index
 			plsData.entrySet().stream()
 				.sorted(Map.Entry.comparingByKey())
-				.forEach(e -> entries.add(new Entry(e.getValue()[0], e.getValue()[1], null)));
+				.forEach(e -> entries.add(new Entry(e.getValue()[0], e.getValue()[1], null, false)));
 		} catch (NumberFormatException | IOException e) {
 			LOGGER.error(null, e);
 		}
 		return entries;
 	}
 
-	private record Entry(String fileName, String title, Map<String, String> directives) {
+	private record Entry(String fileName, String title, Map<String, String> directives, boolean dbIdReference) {
 		@Override
 		public String toString() {
 			return "[" + fileName + "," + title + "]";
