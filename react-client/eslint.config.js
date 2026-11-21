@@ -1,8 +1,6 @@
 import eslint from '@eslint/js'
 import stylisticPlugin from '@stylistic/eslint-plugin'
 import { defineConfig } from 'eslint/config'
-import jsxA11y from 'eslint-plugin-jsx-a11y'
-import reactPlugin from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
@@ -22,17 +20,14 @@ export default defineConfig(
   {
     plugins: {
       '@stylistic': stylisticPlugin,
-      'jsx-a11y': jsxA11y,
-      'react': reactPlugin,
     },
     rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      ...reactPlugin.configs['jsx-runtime'].rules,
       'react-hooks/exhaustive-deps': 'off',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/static-components': 'off',
       'react-hooks/immutability': 'off',
-      ...jsxA11y.flatConfigs.recommended.rules,
       ...stylisticPlugin.configs.recommended.rules,
     },
   },

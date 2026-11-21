@@ -33,6 +33,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -107,6 +110,7 @@ public class APIUtils {
 	}
 
 	private static final Gson GSON = new Gson();
+	private static final ConcurrentMap<MediaInfo, Object> PENDING_METADATA_LOOKUPS = new ConcurrentHashMap<>();
 
 	/**
 	 * These versions are returned to us from the API server. The versions are
@@ -441,6 +445,32 @@ public class APIUtils {
 					return;
 				}
 
+				String posterFromApi = getPosterUrlFromApiInfo(
+					getStringOrNull(metadataFromAPI, "poster"),
+					getStringOrNull(metadataFromAPI, "posterRelativePath")
+				);
+
+				/**
+				 * Only continue if the API returned a result that provides value.
+				 * Specifically, fail early if:
+				 * - there is no cover image
+				 */
+				if (posterFromApi == null) {
+					LOGGER.debug("API returned no poster, discarding result.");
+					MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "No poster", true);
+
+					LOGGER.trace("Filename data: " + media);
+					LOGGER.trace("API data: " + metadataFromAPI);
+
+					// Before we return, attempt to enhance TV series data
+					if (isTVEpisode) {
+						setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, videoMetadata, null, null);
+					}
+
+					exitLookupAndAddMetadata(connection);
+					return;
+				}
+
 				LOGGER.trace("API data matches filename data for " + file.getName());
 
 				if (isTVEpisode) {
@@ -474,22 +504,17 @@ public class APIUtils {
 				}
 
 				// Set the poster as the thumbnail
-				String posterFromApi = getPosterUrlFromApiInfo(
-					getStringOrNull(metadataFromAPI, "poster"),
-					getStringOrNull(metadataFromAPI, "posterRelativePath")
-				);
-				if (posterFromApi != null) {
-					videoMetadata.setPoster(posterFromApi);
-					media.waitMediaParsing(5);
-					media.setParsing(true);
-					DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
-					if (thumbnail != null) {
-						Long thumbnailId = ThumbnailStore.getId(thumbnail);
-						media.setThumbnailSource(ThumbnailSource.TMDB);
-						media.setThumbnailId(thumbnailId);
-					}
-					media.setParsing(false);
+				videoMetadata.setPoster(posterFromApi);
+				media.waitMediaParsing(5);
+				media.setParsing(true);
+				DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
+				if (thumbnail != null) {
+					Long thumbnailId = ThumbnailStore.getId(thumbnail);
+					media.setThumbnailSource(ThumbnailSource.TMDB);
+					media.setThumbnailId(thumbnailId);
 				}
+				media.setParsing(false);
+
 				if (metadataFromAPI.has("actors")) {
 					videoMetadata.setActors(getApiStringArrayFromJsonElement(metadataFromAPI.get("actors")));
 				}
@@ -551,8 +576,34 @@ public class APIUtils {
 				LOGGER.trace("Error in API parsing:", ex);
 			}
 		};
-		LOGGER.trace("Queuing background API lookup for {}", file.getName());
-		BACKGROUND_EXECUTOR.execute(r);
+		if (executeMetadataLookup(media, r, BACKGROUND_EXECUTOR)) {
+			LOGGER.trace("Queued background API lookup for {}", file.getName());
+		}
+	}
+
+	/**
+	 * Coalesce requests sharing cached metadata while queued or running. Separate
+	 * MediaInfo instances must still be populated independently. Completed or
+	 * rejected requests do not prevent a later retry.
+	 */
+	static boolean executeMetadataLookup(MediaInfo media, Runnable lookup, Executor executor) {
+		Object request = new Object();
+		if (PENDING_METADATA_LOOKUPS.putIfAbsent(media, request) != null) {
+			return false;
+		}
+		try {
+			executor.execute(() -> {
+				try {
+					lookup.run();
+				} finally {
+					PENDING_METADATA_LOOKUPS.remove(media, request);
+				}
+			});
+			return true;
+		} catch (RuntimeException | Error ex) {
+			PENDING_METADATA_LOOKUPS.remove(media, request);
+			throw ex;
+		}
 	}
 
 	private static void exitLookupAndAddMetadata(Connection connection) {
@@ -986,87 +1037,66 @@ public class APIUtils {
 		return getJson(url);
 	}
 
-	private static final int MAX_RETRIES = 3;
-	private static final long RETRY_DELAY_MS = 5000; // 5 seconds
-
 	private static String getJson(URL url) throws IOException {
 		HttpURLConnection connection = null;
-		int retries = 0;
 
-		while (retries < MAX_RETRIES) {
-			try {
-				connection = (HttpURLConnection) url.openConnection();
-				connection.setAllowUserInteraction(false);
-				connection.setRequestProperty("Content-Type", "application/json");
-				connection.setRequestProperty("Content-length", "0");
-				connection.setRequestProperty("User-Agent", VERBOSE_UA);
-				connection.setConnectTimeout(30000);
-				connection.setReadTimeout(30000);
-				connection.connect();
+		try {
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setAllowUserInteraction(false);
+			connection.setRequestProperty("Content-Type", "application/json");
+			connection.setRequestProperty("Content-length", "0");
+			connection.setRequestProperty("User-Agent", VERBOSE_UA);
+			connection.setConnectTimeout(30000);
+			connection.setReadTimeout(30000);
+			connection.connect();
 
-				int status = connection.getResponseCode();
+			int status = connection.getResponseCode();
 
-				switch (status) {
-					case 200, 201 -> {
-						StringBuilder sb = new StringBuilder();
+			switch (status) {
+				case 200, 201 -> {
+					StringBuilder sb = new StringBuilder();
+					try (
+						InputStreamReader instream = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
+						BufferedReader br = new BufferedReader(instream)
+					) {
+						String line;
+						while ((line = br.readLine()) != null) {
+							sb.append(line.trim()).append("\n");
+						}
+					} catch (Exception e) {
+						LOGGER.error("API lookup error for {}, {}", connection.getURL(), e.getMessage());
+					}
+					return sb.toString().trim();
+				}
+				default -> {
+					// we didn't get a success response from the API, so fail
+					StringBuilder errorMessage = new StringBuilder();
+					if (connection.getErrorStream() != null) {
 						try (
-							InputStreamReader instream = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
+							InputStreamReader instream = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
 							BufferedReader br = new BufferedReader(instream)
 						) {
 							String line;
 							while ((line = br.readLine()) != null) {
-								sb.append(line.trim()).append("\n");
+								errorMessage.append(line.trim()).append("\n");
 							}
 						} catch (Exception e) {
 							LOGGER.error("API lookup error for {}, {}", connection.getURL(), e.getMessage());
 						}
-						return sb.toString().trim();
 					}
-					default -> {
-						// we didn't get a success response from the API, so retry or fail
-						retries++;
-						if (retries == MAX_RETRIES) {
-							StringBuilder errorMessage = new StringBuilder();
-							if (connection.getErrorStream() != null) {
-								try (
-									InputStreamReader instream = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
-									BufferedReader br = new BufferedReader(instream)
-								) {
-									String line;
-									while ((line = br.readLine()) != null) {
-										errorMessage.append(line.trim()).append("\n");
-									}
-								} catch (Exception e) {
-									LOGGER.error("API lookup error for {}, {}", connection.getURL(), e.getMessage());
-								}
-							}
 
-							LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
-							return "{ statusCode: \"" + status + "\", serverResponse: " + GSON.toJson(errorMessage) + " }";
-						}
-					}
-				}
-			} catch (IOException e) {
-				LOGGER.debug("Error with HttpURLConnection: {}", e);
-				retries++;
-			} finally {
-				if (connection != null) {
-					try {
-						connection.disconnect();
-					} catch (Exception ex) {
-						LOGGER.error("Error while disconnecting connection: {}", ex);
-					}
+					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
+					return "{ statusCode: \"" + status + "\", serverResponse: " + GSON.toJson(errorMessage) + " }";
 				}
 			}
-
-			if (retries < MAX_RETRIES) {
+		} catch (IOException e) {
+			LOGGER.warn("Error with HttpURLConnection: {}", e);
+		} finally {
+			if (connection != null) {
 				try {
-					LOGGER.debug("Retrying API request in {} seconds...", (RETRY_DELAY_MS / 1000));
-					Thread.sleep(RETRY_DELAY_MS);
-				} catch (InterruptedException ie) {
-					Thread.currentThread().interrupt(); // Restore the interrupted status
-					LOGGER.error("Retry delay interrupted");
-					break; // Exit the loop if interrupted
+					connection.disconnect();
+				} catch (Exception ex) {
+					LOGGER.error("Error while disconnecting connection: {}", ex);
 				}
 			}
 		}

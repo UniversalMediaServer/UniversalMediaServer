@@ -36,7 +36,7 @@ export default function MediaInfoAudiotrack({ i18n, audioTrack }: { i18n: I18nIn
         <Button variant="default" size="compact-xs" onClick={toggle}><Title i18n={i18n} audioTrack={audioTrack} /></Button>
       </Group>
 
-      <Collapse in={opened}>
+      <Collapse expanded={opened}>
         <MediaInfoBooleanValue i18n={i18n} value={audioTrack.default} title={i18n.get('Default')} />
         <MediaInfoBooleanValue i18n={i18n} value={audioTrack.forced} title={i18n.get('Forced')} />
         <MediaInfoStringValue value={audioTrack.title} title={i18n.get('Title')} />

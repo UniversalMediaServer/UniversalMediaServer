@@ -12,6 +12,9 @@ class TermNode extends Node {
 	private static UmsConfiguration umsConfiguration;
 	private static final Pattern LUCENE_PATTERN = Pattern.compile("([-+&|!(){}\\[\\]^\"~*?:/\\\\])");
 
+	/** Below this, a prefix matches too much of the index to be worth adding. */
+	private static final int MIN_WILDCARD_LENGTH = 3;
+
 	String field, operator, value;
 
 	TermNode(String f, String o, String v) {
@@ -39,7 +42,7 @@ class TermNode extends Node {
 		switch (operator.toLowerCase()) {
 			case "contains":
 				if (getUmsConfiguration().getLuceneContainsFuzzySearch()) {
-					value = prepareLuceneSearch(value, "~2");
+					value = prepareLuceneContains(value);
 				} else {
 					if (!(value.startsWith("\"") && value.endsWith("\""))) {
 						LOGGER.debug("for classic contains logic, title must be between \"\".");
@@ -57,6 +60,33 @@ class TermNode extends Node {
 			default:
 				return field + ":" + value;
 		}
+	}
+
+	/**
+	 * Builds a "contains" the way a type-ahead search box is expected to behave.
+	 *
+	 * @param title the already escaped search term
+	 */
+	private String prepareLuceneContains(String title) {
+		if (title.startsWith("\"") && title.endsWith("\"")) {
+			// A quoted phrase cannot carry a wildcard, so it stays a proximity search.
+			return title + "~2";
+		}
+		StringBuilder query = new StringBuilder();
+		for (String word : title.split("\\s+")) {
+			if (word.isEmpty()) {
+				continue;
+			}
+			if (query.length() > 0) {
+				query.append(" ");
+			}
+			if (word.length() >= MIN_WILDCARD_LENGTH) {
+				query.append("(").append(word).append("* OR ").append(word).append("~2)");
+			} else {
+				query.append(word).append("~2");
+			}
+		}
+		return query.toString();
 	}
 
 	/**

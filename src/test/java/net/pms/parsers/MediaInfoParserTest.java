@@ -299,7 +299,7 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("audio-mp3-infos.mp3").toString()
 		);
 		assertEquals(
-			"Container: FLAC, Size: 3208022, Overall Bitrate: 1231959, Duration: 0:00:20.832, Audio Tracks: 1 [Audio Id: 0, Codec: FLAC, Bitrate: 1231916, Bits per Sample: 24, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: audio/x-flac",
+			"Container: FLAC, Size: 3208022, Overall Bitrate: 1231959, Duration: 0:00:20.832, Audio Tracks: 1 [Audio Id: 0, Codec: FLAC, Bitrate: 1231916, Bits per Sample: 24, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: audio/flac",
 			getTestFileMediaInfo("audio-flac24.flac").toString()
 		);
 		assertEquals(

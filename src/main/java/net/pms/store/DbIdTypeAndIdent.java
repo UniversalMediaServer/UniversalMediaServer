@@ -16,6 +16,9 @@
  */
 package net.pms.store;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 /**
  */
 public class DbIdTypeAndIdent {
@@ -43,6 +46,10 @@ public class DbIdTypeAndIdent {
 	@Override
 	public String toString() {
 		return type.toString() + ident;
+	}
+
+	public String toEncodedDbId() {
+		return type.toString() + URLEncoder.encode(ident, StandardCharsets.UTF_8);
 	}
 
 	/**

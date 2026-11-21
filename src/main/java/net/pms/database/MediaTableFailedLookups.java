@@ -17,12 +17,15 @@
 package net.pms.database;
 
 import java.sql.Connection;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 import net.pms.external.umsapi.APIUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,13 +40,14 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 3;
+	private static final int TABLE_VERSION = 5;
 
 	/**
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_ID = "ID";
 	private static final String COL_LASTATTEMPT = "LASTATTEMPT";
+	private static final String COL_NEXTATTEMPTINTERVALMINUTES = "NEXTATTEMPTINTERVALMINUTES";
 	private static final String COL_FAILUREDETAILS = "FAILUREDETAILS";
 	private static final String COL_FILENAME = "FILENAME";
 	private static final String COL_VERSION = "VERSION";
@@ -54,16 +58,18 @@ public final class MediaTableFailedLookups extends MediaTable {
 	private static final String TABLE_COL_LASTATTEMPT = TABLE_NAME + "." + COL_LASTATTEMPT;
 	private static final String TABLE_COL_FAILUREDETAILS = TABLE_NAME + "." + COL_FAILUREDETAILS;
 	private static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
+	private static final String TABLE_COL_NEXTATTEMPTINTERVALMINUTES = TABLE_NAME + "." + COL_NEXTATTEMPTINTERVALMINUTES;
 	private static final String TABLE_COL_VERSION = TABLE_NAME + "." + COL_VERSION;
 
 	/**
 	 * SQL Queries
 	 */
-	private static final String SQL_GET_LASTATTEMPT = SELECT + TABLE_COL_LASTATTEMPT + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_GET_LASTATTEMPT_VERSION = SELECT + TABLE_COL_LASTATTEMPT + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_VERSION + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_LASTATTEMPT = SELECT + TABLE_COL_LASTATTEMPT + COMMA + TABLE_COL_NEXTATTEMPTINTERVALMINUTES + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_LASTATTEMPT_VERSION = SELECT + TABLE_COL_LASTATTEMPT + COMMA + TABLE_COL_NEXTATTEMPTINTERVALMINUTES + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_VERSION + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_FILENAME = SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_FAILUREDETAILS + COMMA + TABLE_COL_VERSION + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_DELETE_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
+	private static final String SQL_UPDATE_NEXTATTEMPTINTERVALMINUTES = UPDATE + TABLE_NAME + SET + TABLE_COL_NEXTATTEMPTINTERVALMINUTES + EQUAL + PARAMETER + COMMA + TABLE_COL_LASTATTEMPT + EQUAL + PARAMETER + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -129,9 +135,15 @@ public final class MediaTableFailedLookups extends MediaTable {
 					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "FAILED_" + COL_FILENAME + IDX_MARKER + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER);
 					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER);
 				}
+				case 3 -> {
+					// unused
+				}
+				case 4 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_NEXTATTEMPTINTERVALMINUTES + INTEGER);
+				}
 				default ->
 					throw new IllegalStateException(
-							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 			}
 		}
@@ -147,15 +159,16 @@ public final class MediaTableFailedLookups extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-				CREATE_TABLE + TABLE_NAME + "(" +
-					COL_ID +               IDENTITY                 + PRIMARY_KEY    + COMMA +
-					COL_FILENAME +         VARCHAR_1024             + NOT_NULL       + COMMA +
-					COL_FAILUREDETAILS +   VARCHAR_20000            + NOT_NULL       + COMMA +
-					COL_VERSION +          VARCHAR_1024             + NOT_NULL       + COMMA +
-					COL_LASTATTEMPT +      TIMESTAMP_WITH_TIME_ZONE + DEFAULT + CURRENT_TIMESTAMP +
-				")",
-				CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + ")",
-				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")"
+			CREATE_TABLE + TABLE_NAME + "(" +
+				COL_ID                         + IDENTITY                 + PRIMARY_KEY    + COMMA +
+				COL_FILENAME                   + VARCHAR_1024             + NOT_NULL       + COMMA +
+				COL_FAILUREDETAILS             + VARCHAR_20000            + NOT_NULL       + COMMA +
+				COL_VERSION                    + VARCHAR_1024             + NOT_NULL       + COMMA +
+				COL_LASTATTEMPT                + TIMESTAMP_WITH_TIME_ZONE + DEFAULT + CURRENT_TIMESTAMP + COMMA +
+				COL_NEXTATTEMPTINTERVALMINUTES + INTEGER                  + DEFAULT + "0" +
+			")",
+			CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + ")",
+			CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")"
 		);
 	}
 
@@ -166,7 +179,8 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 * @return whether a lookup for this file has failed recently
 	 */
 	public static boolean hasLookupFailedRecently(final Connection connection, final String fullPathToFile, final boolean isVideo) {
-		boolean removeAfter = false;
+		boolean incrementAfter = false;
+		Integer nextStepOff = null;
 		String latestVersion = null;
 		if (CONFIGURATION.getExternalNetwork()) {
 			if (isVideo) {
@@ -191,12 +205,36 @@ public final class MediaTableFailedLookups extends MediaTable {
 				if (rs.next()) {
 					OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 					OffsetDateTime lastAttempt = rs.getObject(COL_LASTATTEMPT, OffsetDateTime.class);
-					if (lastAttempt.plusWeeks(1).isAfter(now)) {
-						// The last attempt happened in the last week
+					Integer thisAttemptIntervalMinutes = rs.getInt(COL_NEXTATTEMPTINTERVALMINUTES);
+
+					List<Integer> stepoffSteps = new ArrayList<>();
+					stepoffSteps.add(5);
+					stepoffSteps.add(30);
+					stepoffSteps.add(60);
+					stepoffSteps.add(120);
+					stepoffSteps.add(240);
+					stepoffSteps.add(480);
+					stepoffSteps.add(1440); // 24 hours
+					stepoffSteps.add(2880); // 48 hours
+					stepoffSteps.add(4320); // 3 days
+					stepoffSteps.add(5760); // 4 days
+					stepoffSteps.add(10080); // 7 days
+
+					if (thisAttemptIntervalMinutes == null || thisAttemptIntervalMinutes == 0) {
+						nextStepOff = stepoffSteps.getFirst();
+					} else if (stepoffSteps.getLast() == thisAttemptIntervalMinutes) {
+						nextStepOff = stepoffSteps.getLast();
+					} else {
+						int nextIndex = stepoffSteps.indexOf(thisAttemptIntervalMinutes) + 1;
+						nextStepOff = stepoffSteps.get(nextIndex);
+					}
+					// do gradual stepoff
+					if (lastAttempt.plusMinutes(nextStepOff).isAfter(now)) {
+						// The last attempt happened inside of the next stepoff time
 						return true;
 					} else {
-						// The last attempt happened over a week ago, let's remove it so it can be tried again
-						removeAfter = true;
+						// The last attempt happened outside of the next stepoff time, let's remove it so it can be tried again
+						incrementAfter = true;
 						return false;
 					}
 				} else {
@@ -206,17 +244,17 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 		} catch (Exception e) {
 			LOGGER.error(
-					LOG_ERROR_WHILE_IN_FOR,
-					DATABASE_NAME,
-					"writing",
-					TABLE_NAME,
-					fullPathToFile,
-					e.getMessage()
+				LOG_ERROR_WHILE_IN_FOR,
+				DATABASE_NAME,
+				"writing",
+				TABLE_NAME,
+				fullPathToFile,
+				e.getMessage()
 			);
 			LOGGER.trace("", e);
 		} finally {
-			if (removeAfter) {
-				remove(connection, fullPathToFile, false);
+			if (incrementAfter) {
+				setAttemptInterval(connection, fullPathToFile, nextStepOff);
 			}
 		}
 
@@ -288,15 +326,46 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-					LOG_ERROR_WHILE_IN_FOR,
-					DATABASE_NAME,
-					"removing entries",
-					TABLE_NAME,
-					filename,
-					e.getMessage()
+				LOG_ERROR_WHILE_IN_FOR,
+				DATABASE_NAME,
+				"removing entries",
+				TABLE_NAME,
+				filename,
+				e.getMessage()
 			);
 			LOGGER.trace("", e);
 		}
 	}
 
+	/**
+	 * Sets a new last attempt interval for an entry or entries based on filename.
+	 *
+	 * If {@code useLike} is {@code true} {@code filename} must be properly
+	 * escaped.
+	 *
+	 * @param connection the db connection
+	 * @param filename the filename to remove
+	 */
+	public static void setAttemptInterval(final Connection connection, final String filename, final Integer nextStepOff) {
+		try {
+			OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+			String sql = SQL_UPDATE_NEXTATTEMPTINTERVALMINUTES;
+			try (PreparedStatement statement = connection.prepareStatement(sql)) {
+				statement.setInt(1, nextStepOff);
+				statement.setObject(2, now, JDBCType.TIMESTAMP_WITH_TIMEZONE);
+				statement.setString(3, filename);
+				statement.executeUpdate();
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				LOG_ERROR_WHILE_IN_FOR,
+				DATABASE_NAME,
+				"incrementing stepoff",
+				TABLE_NAME,
+				filename,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
 }

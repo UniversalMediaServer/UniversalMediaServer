@@ -156,16 +156,20 @@ public class TranscodingSettings {
 			LOGGER.warn("Invalid resource (null): no engine found");
 			return null;
 		}
+		return getBestTranscodingSettings(item, item.getDefaultRenderer().getTranscodingFormats(), EngineFactory.getEngines());
+	}
+
+	static TranscodingSettings getBestTranscodingSettings(StoreItem item, List<EncodingFormat> encodingFormats, List<Engine> engines) {
 		boolean isImage = item.getMediaInfo() != null && item.getMediaInfo().isImage();
-		List<EncodingFormat> encodingFormats = item.getDefaultRenderer().getTranscodingFormats();
-		List<Engine> engines = EngineFactory.getEngines();
+		byte[] itemCompatibility = new byte[engines.size()];
 
 		for (EncodingFormat encodingFormat : encodingFormats) {
-			for (Engine engine : engines) {
+			for (int i = 0; i < engines.size(); i++) {
+				Engine engine = engines.get(i);
 				if (isImage && !(engine instanceof ImageEngine)) {
 					continue;
 				}
-				boolean compatible = engine.isCompatible(encodingFormat) && engine.isCompatible(item);
+				boolean compatible = engine.isCompatible(encodingFormat) && isItemCompatible(engine, item, itemCompatibility, i);
 				if (compatible) {
 					// Engine is enabled and compatible
 					LOGGER.trace("Returning compatible engine \"{}\"", engine.getName());
@@ -194,15 +198,19 @@ public class TranscodingSettings {
 	 * {@code null} otherwise.
 	 */
 	public static List<TranscodingSettings> getTranscodingsSettings(final StoreItem item) {
-		List<TranscodingSettings> compatibleEngines = new ArrayList<>();
 		if (item == null) {
-			return compatibleEngines;
+			return new ArrayList<>();
 		}
-		List<EncodingFormat> encodingFormats = item.getDefaultRenderer().getTranscodingFormats();
-		List<Engine> engines = EngineFactory.getEngines();
+		return getTranscodingsSettings(item, item.getDefaultRenderer().getTranscodingFormats(), EngineFactory.getEngines());
+	}
+
+	static List<TranscodingSettings> getTranscodingsSettings(StoreItem item, List<EncodingFormat> encodingFormats, List<Engine> engines) {
+		List<TranscodingSettings> compatibleEngines = new ArrayList<>();
+		byte[] itemCompatibility = new byte[engines.size()];
 		for (EncodingFormat encodingFormat : encodingFormats) {
-			for (Engine engine : engines) {
-				if (engine.isCompatible(encodingFormat) && engine.isCompatible(item)) {
+			for (int i = 0; i < engines.size(); i++) {
+				Engine engine = engines.get(i);
+				if (engine.isCompatible(encodingFormat) && isItemCompatible(engine, item, itemCompatibility, i)) {
 					// Engine is enabled, available and compatible
 					LOGGER.trace("Engine {} is compatible with resource \"{}\"", engine.getName(), item.getName());
 					compatibleEngines.add(new TranscodingSettings(engine, encodingFormat));
@@ -210,6 +218,15 @@ public class TranscodingSettings {
 			}
 		}
 		return compatibleEngines;
+	}
+
+	private static boolean isItemCompatible(Engine engine, StoreItem item, byte[] results, int index) {
+		// Compatibility with the source does not depend on the output format.
+		// Keep both positive and negative results local to this selection only.
+		if (results[index] == 0) {
+			results[index] = (byte) (engine.isCompatible(item) ? 1 : -1);
+		}
+		return results[index] == 1;
 	}
 
 	/**

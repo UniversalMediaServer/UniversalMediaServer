@@ -25,8 +25,10 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.TranscodingSettings;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
+import net.pms.store.item.WebStream;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.FileTranscodeVirtualFolder;
 import net.pms.store.container.LocalizedStoreContainer;
@@ -120,7 +122,12 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (child instanceof StoreItem storeItem) {
-			child.resolve();
+			if (child instanceof WebStream webStream) {
+				// Probing a web stream like youtube item can take half a minute.
+				webStream.resolveInBackground();
+			} else {
+				child.resolve();
+			}
 			addChildItem(storeItem, isNew, isAddGlobally);
 		} else if (child instanceof StoreContainer storeContainer) {
 			addChildContainer(storeContainer, isNew, isAddGlobally);
@@ -191,7 +198,9 @@ public class StoreContainer extends StoreResource {
 
 						if (renderer.getUmsConfiguration().isShowRecentlyPlayedFolder()) {
 							transcodingSettings = item.getTranscodingSettings();
-						} else {
+						} else if (StringUtils.endsWith(currentName, "]") ||
+							(getParent() != null && StringUtils.endsWith(getParent().getName(), "]"))) {
+							// Only a name ending in ']' can contain a preferred-engine suffix.
 							for (TranscodingSettings tSettings : TranscodingSettings.getTranscodingsSettings(item)) {
 								String end = "[" + tSettings.getEngine().getEngineId().toString() + "]";
 
@@ -223,8 +232,8 @@ public class StoreContainer extends StoreResource {
 
 						if (!allChildrenAreContainers) {
 							// Should the item be added to the #--TRANSCODE--# folder?
-							if ((item.getFormat().isVideo() || item.getFormat().isAudio()) && item.isTranscodeFolderAvailable()) {
-								TranscodeVirtualFolder transcodeFolder = getTranscodeFolder();
+							if ((item.getFormat().isVideo() || item.getFormat().isAudio()) && item.supportsTranscodeFolder()) {
+								TranscodeVirtualFolder transcodeFolder = getOrAddTranscodeFolder();
 								if (transcodeFolder != null) {
 									FileTranscodeVirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(renderer, item);
 
@@ -468,8 +477,33 @@ public class StoreContainer extends StoreResource {
 	protected void refreshChildrenIfNeeded() {
 		if (isDiscovered() && isRefreshNeeded()) {
 			refreshChildren();
+			notifyRefreshIfChanged();
+		}
+	}
+
+	/**
+	 * Reports a change, but only if the children really differ from the last report.
+	 */
+	protected void notifyRefreshIfChanged() {
+		if (MediaStoreIds.isReportableChange(getLongId(), childrenSignature())) {
 			notifyRefresh();
 		}
+	}
+
+	/**
+	 * Records the children without reporting a change.
+	 */
+	protected void rememberChildren() {
+		markRefreshed();
+		MediaStoreIds.rememberReportedContent(getLongId(), childrenSignature());
+	}
+
+	private String childrenSignature() {
+		StringBuilder names = new StringBuilder();
+		for (StoreResource child : children) {
+			names.append(child.getSystemName()).append('\n');
+		}
+		return children.size() + ":" + names.toString().hashCode();
 	}
 
 	private void addDynamicPls(final StoreResource child) {
@@ -547,6 +581,40 @@ public class StoreContainer extends StoreResource {
 	}
 
 	/**
+	 * The default container name is only unique within its parent container, so
+	 * GETRATINGKEY() has to qualify it with the ancestor names. Containers
+	 * backed by a file path or an URL override this to return true.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return false;
+	}
+
+	/**
+	 * Tells whether this container represents exactly one music album, and if so
+	 * supplies its metadata. Used to report a musicAlbum instead of a plain folder,
+	 * and to rate the album rather than the folder.
+	 *
+	 * @return the album metadata, or NULL when this container is not an album
+	 */
+	public AlbumMetadata getAlbumMetadata() {
+		return null;
+	}
+
+	/**
+	 * A container that holds exactly one album is rated as that album, so rating
+	 * it in the file tree and rating it in the media library end up on the same row.
+	 */
+	@Override
+	public String getRatingKey() {
+		AlbumMetadata album = getAlbumMetadata();
+		if (album != null) {
+			return album.getTypeIdent().toString();
+		}
+		return super.getRatingKey();
+	}
+
+	/**
 	 * Returns a {@link InputStream} that represents the thumbnail used.
 	 *
 	 * @throws IOException
@@ -564,7 +632,9 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (FileUtil.isUrl(thumbnailIcon)) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.downloadAndSend(thumbnailIcon, true));
+			// Downloaded, decoded and cached once per URL, so container folders whose thumbnail is a
+			// remote image (e.g. AudioAddict show folders) are not re-fetched and re-decoded on every browse.
+			return ThumbnailStore.getThumbnailInputStreamForUrl(thumbnailIcon);
 		} else {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(HTTPResource.getResourceInputStream(thumbnailIcon));
 		}
@@ -586,17 +656,21 @@ public class StoreContainer extends StoreResource {
 	}
 
 	/**
-	 * Returns the transcode folder for this resource. If UMS is configured to
-	 * hide transcode folders, null is returned. If no folder exists, a new
-	 * transcode folder is created. If transcode folder exists, it is returned.
+	 * Returns the transcode folder for this resource.
+	 *
+	 * If UMS is configured to hide transcode folders, null is returned.
+	 *
+	 * If no folder exists, a new transcode folder is created.
+	 *
+	 * If transcode folder exists, it is returned.
+	 *
 	 * This method is called on the parent folder each time a child is added to
 	 * that parent (via {@link addChild(LibraryResource)}.
 	 *
 	 * @return the transcode virtual folder
 	 */
-	// XXX package-private: used by VirtualFile; should be protected?
-	private TranscodeVirtualFolder getTranscodeFolder() {
-		if (!isTranscodeFolderAvailable()) {
+	private TranscodeVirtualFolder getOrAddTranscodeFolder() {
+		if (!supportsTranscodeFolder()) {
 			return null;
 		}
 
@@ -705,7 +779,7 @@ public class StoreContainer extends StoreResource {
 
 			discoverChildren();
 			setDiscovered(true);
-			notifyRefresh();
+			rememberChildren();
 		} else {
 			// if forced, then call the old 'refreshChildren' method
 			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);
@@ -720,7 +794,7 @@ public class StoreContainer extends StoreResource {
 				// doRefreshChildren, which is what happens below
 				// (refreshChildren is not overridden in VirtualFile)
 				if (refreshChildren()) {
-					notifyRefresh();
+					notifyRefreshIfChanged();
 				} else {
 					sortChildrenIfNeeded();
 				}
@@ -729,7 +803,7 @@ public class StoreContainer extends StoreResource {
 				// pair.
 				if (isRefreshNeeded()) {
 					doRefreshChildren();
-					notifyRefresh();
+					notifyRefreshIfChanged();
 				} else {
 					sortChildrenIfNeeded();
 				}

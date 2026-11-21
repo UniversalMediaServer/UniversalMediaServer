@@ -93,7 +93,7 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 
 		// Initialize our internal RendererConfiguration vars
 		if (ref != null) {
-			sortedHeaderMatcher = ref.sortedHeaderMatcher;
+			sortedHeaderPattern = ref.sortedHeaderPattern;
 		}
 
 		// Note: intentionally omitting 'player = null' so as to preserve player state when reloading

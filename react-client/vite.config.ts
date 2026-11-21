@@ -11,7 +11,7 @@ export default defineConfig({
     assetsDir: 'static',
     sourcemap: true,
     chunkSizeWarningLimit: 2000,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         hashCharacters: 'hex',
       },
