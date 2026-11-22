@@ -467,30 +467,25 @@ public class MediaInfoParser {
 				media.setImageCount(imageCount.intValue());
 			}
 
-			if (media.getImageCount() > 0 || type == Format.IMAGE) {
-				boolean parseByMediainfo = false;
-				// For images use our own parser instead of MediaInfoHelper which doesn't provide enough information
+			if (type == Format.IMAGE) {
+				// Embedded covers are decoded from CoverData above. The image parser needs a standalone image file.
 				try {
 					MetadataExtractorParser.parse(file, media);
 				} catch (IOException e) {
 					if (media.getImageCount() > 0) {
 						LOGGER.debug("Error parsing image ({}), switching to MediaInfo: {}", file.getAbsolutePath(), e.getMessage());
 						LOGGER.trace("", e);
-						parseByMediainfo = true;
+						setFormat(StreamKind.IMAGE, media, currentVideoTrack, currentAudioTrack, StreamImage.getFormat(mediaInfoHelper, 0), file);
 					} else {
 						LOGGER.warn("Image parsing for \"{}\" failed both with MediaInfo and internally: {}", file.getAbsolutePath(), e.getMessage());
 						LOGGER.trace("", e);
 						media.setImageCount(1);
 					}
 				}
+			}
 
-				if (parseByMediainfo) {
-					setFormat(StreamKind.IMAGE, media, currentVideoTrack, currentAudioTrack, StreamImage.getFormat(mediaInfoHelper, 0), file);
-				}
-
-				if (parseLogger != null) {
-					parseLogger.logImageColumns(0);
-				}
+			if (parseLogger != null && (media.getImageCount() > 0 || type == Format.IMAGE)) {
+				parseLogger.logImageColumns(0);
 			}
 
 			// set Subs in text format
