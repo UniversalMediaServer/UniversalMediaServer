@@ -16,7 +16,13 @@
  */
 package net.pms.parsers;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import net.pms.TestHelper;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.Format;
@@ -25,9 +31,14 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.video.MediaVideo;
 import net.pms.parsers.mediainfo.StreamKind;
+import net.pms.store.ThumbnailSource;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.images.ArtworkFactory;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.LoggerFactory;
 
 public class MediaInfoParserTest {
 
@@ -114,6 +125,35 @@ public class MediaInfoParserTest {
 		MediaInfoParser.setFormat(StreamKind.VIDEO, media, video, audio, "DIVX", null);
 		assertEquals(FormatConfiguration.DIVX, video.getCodec());
 		// TODO this can continue with other container, video and audio formats
+	}
+
+	@Test
+	public void testEmbeddedArtworkDoesNotTriggerStandaloneImageParsing(@TempDir Path tempDir) throws Exception {
+		File mp3 = Files.copy(ParserTest.getTestFile("audio-mp3-infos.mp3").toPath(), tempDir.resolve("cover.mp3")).toFile();
+		var audioFile = AudioFileIO.read(mp3);
+		var artwork = ArtworkFactory.createArtworkFromFile(ParserTest.getTestFile("image-jpeg.jpg"));
+		audioFile.getTagOrCreateAndSetDefault().setField(artwork);
+		audioFile.commit();
+
+		Logger logger = (Logger) LoggerFactory.getLogger(MediaInfoParser.class);
+		Level previousLevel = logger.getLevel();
+		ListAppender<ILoggingEvent> events = new ListAppender<>();
+		events.start();
+		logger.addAppender(events);
+		logger.setLevel(Level.DEBUG);
+		try {
+			MediaInfo media = new MediaInfo();
+			MediaInfoParser.parse(media, mp3, Format.AUDIO);
+
+			assertTrue(media.isAudio());
+			assertEquals(1, media.getImageCount());
+			assertEquals(ThumbnailSource.EMBEDDED, media.getThumbnailSource());
+			assertFalse(events.list.stream().anyMatch(event -> event.getFormattedMessage().contains("Error parsing image")));
+		} finally {
+			logger.detachAppender(events);
+			logger.setLevel(previousLevel);
+			events.stop();
+		}
 	}
 
 	@Test
