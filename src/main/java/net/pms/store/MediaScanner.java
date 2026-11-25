@@ -188,7 +188,7 @@ public class MediaScanner implements SharedContentListener {
 		SharedContentConfiguration.addListener(INSTANCE);
 	}
 
-	private static void startScan() {
+	private static void startScan(boolean monitoredOnly) {
 		if (running) {
 			throw new IllegalStateException("Can't scan when scan in progress");
 		}
@@ -196,7 +196,7 @@ public class MediaScanner implements SharedContentListener {
 		reset();
 		GuiManager.setMediaScanStatus(true);
 
-		setSharedContent();
+		setSharedContent(monitoredOnly);
 
 		LOGGER.debug("Starting media scanner");
 		if (running) {
@@ -205,8 +205,11 @@ public class MediaScanner implements SharedContentListener {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
 					scan(RENDERER.getMediaStore());
-					// Running might have been set false during scan
-					if (running) {
+					// Running might have been set false during scan.
+					// The cleanup covers the whole database, so it is skipped
+					// when folders were left out of the scan, otherwise it
+					// would drop entries of folders that were not rescanned.
+					if (running && !monitoredOnly) {
 						MediaTableFiles.cleanup(connection);
 					}
 				}
@@ -270,21 +273,36 @@ public class MediaScanner implements SharedContentListener {
 		RENDERER.getMediaStore().setDiscovered(false);
 	}
 
-	private static void setSharedContent() {
+	private static void setSharedContent(boolean monitoredOnly) {
 		if (RENDERER.getMediaStore().isDiscovered()) {
 			return;
 		}
-		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
-		for (SharedContent sharedContent : sharedContents) {
-			if (sharedContent instanceof FolderContent folder && folder.getFile() != null && folder.isActive()) {
-				StoreResource realSystemFileResource = RENDERER.getMediaStore().createResourceFromFile(folder.getFile(), true);
-				if (realSystemFileResource != null) {
-					RENDERER.getMediaStore().addChild(realSystemFileResource);
-				} else {
-					LOGGER.trace("createResourceFromFile has failed for {}", folder.getFile());
-				}
+		for (FolderContent folder : getFoldersToScan(SharedContentConfiguration.getSharedContentArray(), monitoredOnly)) {
+			StoreResource realSystemFileResource = RENDERER.getMediaStore().createResourceFromFile(folder.getFile(), true);
+			if (realSystemFileResource != null) {
+				RENDERER.getMediaStore().addChild(realSystemFileResource);
+			} else {
+				LOGGER.trace("createResourceFromFile has failed for {}", folder.getFile());
 			}
 		}
+	}
+
+	/**
+	 * Collects the active top level shared folders that a full scan covers.
+	 *
+	 * @param contents the shared content to look through
+	 * @param monitoredOnly whether folders that are not monitored are left out
+	 * @return the folders to scan
+	 */
+	static List<FolderContent> getFoldersToScan(List<SharedContent> contents, boolean monitoredOnly) {
+		List<FolderContent> folders = new ArrayList<>();
+		for (SharedContent content : contents) {
+			if (content instanceof FolderContent folder && folder.getFile() != null && folder.isActive() &&
+					(!monitoredOnly || folder.isMonitored())) {
+				folders.add(folder);
+			}
+		}
+		return folders;
 	}
 
 	public static boolean isMediaScanRunning() {
@@ -292,6 +310,15 @@ public class MediaScanner implements SharedContentListener {
 	}
 
 	public static void startMediaScan() {
+		startMediaScan(false);
+	}
+
+	/**
+	 * Starts a scan of the shared folders.
+	 *
+	 * @param monitoredOnly whether the scan is limited to the monitored folders
+	 */
+	public static void startMediaScan(boolean monitoredOnly) {
 		if (isMediaScanRunning()) {
 			LOGGER.info("Cannot start media scanner: A scan is already in progress");
 		} else if (PMS.isRunningTests()) {
@@ -304,7 +331,7 @@ public class MediaScanner implements SharedContentListener {
 						long start = System.currentTimeMillis();
 						try {
 							SCANNER_LOCK.lock();
-							startScan();
+							startScan(monitoredOnly);
 						} finally {
 							SCANNER_LOCK.unlock();
 						}

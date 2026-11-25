@@ -4,6 +4,7 @@
 
 ### General
 - Improved support for 3D videos (thanks, Daniel Ramos!)
+- Added an option to scan only monitored folders on startup, and added the startup scan options to the web interface
 - Fixed a media scanner crash while hashing files
 - Fixed FFmpeg on macOS pre-10.15 (#6388) (thanks, @elektronen!)
 - Fixed file compatibility on some media players

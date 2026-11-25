@@ -34,6 +34,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentListener;
@@ -66,6 +67,18 @@ class MediaScannerTest {
 		assertTrue(MediaScanner.getScanFolders(List.of(disabled, excluded, hidden, new FolderContent(null))).isEmpty());
 		VirtualFolderContent nested = new VirtualFolderContent("nested", List.of(active));
 		assertEquals(Set.of(temp.resolve("active")), MediaScanner.getScanFolders(List.of(active, nested)));
+	}
+
+	@Test
+	void startupScanCanBeLimitedToMonitoredFolders() {
+		FolderContent monitored = new FolderContent(temp.resolve("monitored").toFile(), true);
+		FolderContent unmonitored = new FolderContent(temp.resolve("unmonitored").toFile(), false);
+		FolderContent disabled = new FolderContent(temp.resolve("disabled").toFile(), true);
+		disabled.setActive(false);
+		VirtualFolderContent virtual = new VirtualFolderContent("virtual", List.of(monitored));
+		List<SharedContent> contents = List.of(monitored, unmonitored, disabled, new FolderContent(null), virtual);
+		assertEquals(List.of(monitored, unmonitored), MediaScanner.getFoldersToScan(contents, false));
+		assertEquals(List.of(monitored), MediaScanner.getFoldersToScan(contents, true));
 	}
 
 	@Test
