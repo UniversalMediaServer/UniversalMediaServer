@@ -173,7 +173,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.28.4, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.7":
+"@babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.7":
   version: 7.29.7
   resolution: "@babel/runtime@npm:7.29.7"
   checksum: 10c0/ca11572f7146b21e0bde6a9ed4bb6a89eafbee5f0944c7eb54d0d8a2dac962c33638a1d611e14faa71dfbb92b4b5f9236232208568a6b7d5c6f3f39ddb91771e
@@ -1184,45 +1184,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:^3.17.3, @videojs/http-streaming@npm:^3.17.5":
-  version: 3.17.5
-  resolution: "@videojs/http-streaming@npm:3.17.5"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.5"
-    "@videojs/vhs-utils": "npm:^4.1.2"
-    aes-decrypter: "npm:^4.0.2"
-    global: "npm:^4.4.0"
-    m3u8-parser: "npm:^7.2.0"
-    mpd-parser: "npm:^1.4.0"
-    mux.js: "npm:7.1.0"
-    video.js: "npm:^7 || ^8"
-  peerDependencies:
-    video.js: ^8.19.0
-  checksum: 10c0/2c3017ed49a43be64dd6f69cbb251ccded49e8c0678b84b9ba2566e1e8b0cd7e93157ffe40f78dbfea3ee8684c05b1ad8cff3183be9b703d54eedfbd20338e1e
-  languageName: node
-  linkType: hard
-
-"@videojs/vhs-utils@npm:^4.1.1, @videojs/vhs-utils@npm:^4.1.2":
-  version: 4.1.2
-  resolution: "@videojs/vhs-utils@npm:4.1.2"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.5"
-    global: "npm:^4.4.0"
-  checksum: 10c0/233282f71c6c3cf2c4bde93785363f8d0308b8a701165928484cdb8bc5ee7491ad30ecccb76a758f07a6f7c1c7569d8d6e2ebcb99214455fe2d86505a0790a74
-  languageName: node
-  linkType: hard
-
-"@videojs/xhr@npm:2.7.0":
-  version: 2.7.0
-  resolution: "@videojs/xhr@npm:2.7.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.5.5"
-    global: "npm:~4.4.0"
-    is-function: "npm:^1.0.1"
-  checksum: 10c0/5dc0dd97bd8e4d5ef05bfd46ced6a9e26cad93335d3e4804ad1d8621d521c943712ad47ebc1968ed153b8cfad6702eafe400e659e724b8c1d005a5ad5f601d8a
-  languageName: node
-  linkType: hard
-
 "@vitejs/plugin-react@npm:5.1.4":
   version: 5.1.4
   resolution: "@vitejs/plugin-react@npm:5.1.4"
@@ -1236,13 +1197,6 @@ __metadata:
   peerDependencies:
     vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
   checksum: 10c0/dd7b8f40717ecd4a5ab18f467134ea8135f9a443359333d71e4114aeacfc8b679be9fd36dc12290d076c78883a02e708bfe1f0d93411c06c9659da0879b952e3
-  languageName: node
-  linkType: hard
-
-"@xmldom/xmldom@npm:^0.8.3":
-  version: 0.8.15
-  resolution: "@xmldom/xmldom@npm:0.8.15"
-  checksum: 10c0/59d09b85824b684fba5a0a224d5b43abea1a0d745e8d8b8136a7013e996eb6da122fdbb3deb32ed1621923a10e1937b1f7917cea43481d9d5b976e8c1ff836c1
   languageName: node
   linkType: hard
 
@@ -1268,18 +1222,6 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: 10c0/be771be2135cc07910cf76f444ad514d7dcfd6d4a8026e597e93155275abc8ef61eee12211d52146e9d962874269b634f397464942087be013c89d0c54c5f8e5
-  languageName: node
-  linkType: hard
-
-"aes-decrypter@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "aes-decrypter@npm:4.0.2"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.5"
-    "@videojs/vhs-utils": "npm:^4.1.1"
-    global: "npm:^4.4.0"
-    pkcs7: "npm:^1.0.4"
-  checksum: 10c0/fee05bd1e5bfc501c6446e2b6dd1811e33c045f7f408e7fb42697a2e8282235d5719b6b8547e96cdf86c826e4ed0e27ca98c0c5ddd34e3b9b3adf5b2f84fd99b
   languageName: node
   linkType: hard
 
@@ -1791,13 +1733,6 @@ __metadata:
     "@babel/runtime": "npm:^7.8.7"
     csstype: "npm:^3.0.2"
   checksum: 10c0/f735074d66dd759b36b158fa26e9d00c9388ee0e8c9b16af941c38f014a37fc80782de83afefd621681b19ac0501034b4f1c4a3bff5caa1b8667f0212b5e124c
-  languageName: node
-  linkType: hard
-
-"dom-walk@npm:^0.1.0":
-  version: 0.1.2
-  resolution: "dom-walk@npm:0.1.2"
-  checksum: 10c0/4d2ad9062a9423d890f8577aa202b597a6b85f9489bdde656b9443901b8b322b289655c3affefc58ec2e41931e0828dfee0a1d2db6829a607d76def5901fc5a9
   languageName: node
   linkType: hard
 
@@ -2531,16 +2466,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"global@npm:4.4.0, global@npm:^4.3.1, global@npm:^4.4.0, global@npm:~4.4.0":
-  version: 4.4.0
-  resolution: "global@npm:4.4.0"
-  dependencies:
-    min-document: "npm:^2.19.0"
-    process: "npm:^0.11.10"
-  checksum: 10c0/4a467aec6602c00a7c5685f310574ab04e289ad7f894f0f01c9c5763562b82f4b92d1e381ce6c5bbb12173e2a9f759c1b63dda6370cfb199970267e14d90aa91
-  languageName: node
-  linkType: hard
-
 "globals@npm:^14.0.0":
   version: 14.0.0
   resolution: "globals@npm:14.0.0"
@@ -2799,13 +2724,6 @@ __metadata:
   dependencies:
     call-bound: "npm:^1.0.3"
   checksum: 10c0/818dff679b64f19e228a8205a1e2d09989a98e98def3a817f889208cfcbf918d321b251aadf2c05918194803ebd2eb01b14fc9d0b2bea53d984f4137bfca5e97
-  languageName: node
-  linkType: hard
-
-"is-function@npm:^1.0.1":
-  version: 1.0.2
-  resolution: "is-function@npm:1.0.2"
-  checksum: 10c0/c55289042a0e828a773f1245e2652e0c029efacc78ebe03e61787746fda74e2c41006cd908f20b53c36e45f9e75464475a4b2d68b17f4c7b9f8018bcaec42f9e
   languageName: node
   linkType: hard
 
@@ -3135,17 +3053,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"m3u8-parser@npm:^7.2.0":
-  version: 7.2.0
-  resolution: "m3u8-parser@npm:7.2.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.5"
-    "@videojs/vhs-utils": "npm:^4.1.1"
-    global: "npm:^4.4.0"
-  checksum: 10c0/059571722e842a125f380c1eabb1897bfcda02732525fae73fd404bc18dcf6c8f2383a3102f3f1de45ecdb5774e0312f4558ad178e6fcbd10718f239925f7d83
-  languageName: node
-  linkType: hard
-
 "math-intrinsics@npm:^1.1.0":
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
@@ -3166,15 +3073,6 @@ __metadata:
   dependencies:
     mime-db: "npm:1.52.0"
   checksum: 10c0/82fb07ec56d8ff1fc999a84f2f217aa46cb6ed1033fefaabd5785b9a974ed225c90dc72fff460259e66b95b73648596dbcc50d51ed69cdf464af2d237d3149b2
-  languageName: node
-  linkType: hard
-
-"min-document@npm:^2.19.0":
-  version: 2.19.2
-  resolution: "min-document@npm:2.19.2"
-  dependencies:
-    dom-walk: "npm:^0.1.0"
-  checksum: 10c0/f6cd59ae07758583bda19cf86ffa8e072cc6e1d72d4e2a62fbf72af3ca630f66ac6a0b3e0ca2b83d5939886da2d006c309fbd0e94f17931ad117860c3fb51bf7
   languageName: node
   linkType: hard
 
@@ -3212,36 +3110,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mpd-parser@npm:^1.3.1, mpd-parser@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "mpd-parser@npm:1.4.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.5"
-    "@videojs/vhs-utils": "npm:^4.1.2"
-    "@xmldom/xmldom": "npm:^0.8.3"
-    global: "npm:^4.4.0"
-  bin:
-    mpd-to-m3u8-json: bin/parse.js
-  checksum: 10c0/a0e10f3f44e1691dd912f9b35a5d9e0ae6dd223acb38225aa09d76a2c399115cd3b97ab11f3b5b98d489eea2744f16fbaddfe6c3278b7f648008cebe3b1b32c5
-  languageName: node
-  linkType: hard
-
 "ms@npm:^2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: 10c0/d924b57e7312b3b63ad21fc5b3dc0af5e78d61a1fc7cfb5457edaf26326bf62be5307cc87ffb6862ef1c2b33b0233cdb5d4f01c4c958cc0d660948b65a287a48
-  languageName: node
-  linkType: hard
-
-"mux.js@npm:7.1.0, mux.js@npm:^7.0.1":
-  version: 7.1.0
-  resolution: "mux.js@npm:7.1.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.11.2"
-    global: "npm:^4.4.0"
-  bin:
-    muxjs-transmux: bin/transmux.js
-  checksum: 10c0/7e57de7087511ab8c0e8dae2ce0221c9f8e2dc53d484635a588ba1e6ed3638c4a8bf10f06b8a517bd8ebab25b303bc3069d3277f31387f7822418a162bbceb6a
   languageName: node
   linkType: hard
 
@@ -3470,17 +3342,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pkcs7@npm:^1.0.4":
-  version: 1.0.4
-  resolution: "pkcs7@npm:1.0.4"
-  dependencies:
-    "@babel/runtime": "npm:^7.5.5"
-  bin:
-    pkcs7: bin/cli.js
-  checksum: 10c0/455b6b9cb890ad5c63756cf8acca1764455aea15c9c694b4113b0a7ce2f64321a7625d73ec240b3984ccd120ceaaa69aec8a4420ae81f27df988d3fe27650d51
-  languageName: node
-  linkType: hard
-
 "playwright-core@npm:1.65.1":
   version: 1.65.1
   resolution: "playwright-core@npm:1.65.1"
@@ -3530,13 +3391,6 @@ __metadata:
   version: 7.0.0
   resolution: "proc-log@npm:7.0.0"
   checksum: 10c0/b89c2d862604f35fec795477b0c7e376feab3ba0d4f4d291c4e959567442697cf451ac557d0623c1cc38af45a78128b983410f397a10c5d3a67f76c33de4754b
-  languageName: node
-  linkType: hard
-
-"process@npm:^0.11.10":
-  version: 0.11.10
-  resolution: "process@npm:0.11.10"
-  checksum: 10c0/40c3ce4b7e6d4b8c3355479df77aeed46f81b279818ccdc500124e6a5ab882c0cc81ff7ea16384873a95a74c4570b01b120f287abbdd4c877931460eca6084b3
   languageName: node
   linkType: hard
 
@@ -4374,7 +4228,7 @@ __metadata:
     react-use-websocket: "npm:4.13.0"
     typescript: "npm:5.9.3"
     typescript-eslint: "npm:8.72.2"
-    video.js: "npm:8.23.7"
+    video.js: "npm:10.2.0"
     vite: "npm:7.3.8"
   languageName: unknown
   linkType: soft
@@ -4490,70 +4344,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.23.7":
-  version: 8.23.7
-  resolution: "video.js@npm:8.23.7"
-  dependencies:
-    "@babel/runtime": "npm:^7.28.4"
-    "@videojs/http-streaming": "npm:^3.17.3"
-    "@videojs/vhs-utils": "npm:^4.1.1"
-    "@videojs/xhr": "npm:2.7.0"
-    aes-decrypter: "npm:^4.0.2"
-    global: "npm:4.4.0"
-    m3u8-parser: "npm:^7.2.0"
-    mpd-parser: "npm:^1.3.1"
-    mux.js: "npm:^7.0.1"
-    videojs-contrib-quality-levels: "npm:4.1.0"
-    videojs-font: "npm:4.2.0"
-    videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/28ccb630ff9562f547bd3cd3e3abfef1d4346e1040b5101d876770ff7e3ad8ce670ffcbf725444b9422b45944ce4749dda5e23a7b88fb6d1d735c6ab920c4e32
-  languageName: node
-  linkType: hard
-
-"video.js@npm:^7 || ^8":
-  version: 8.24.1
-  resolution: "video.js@npm:8.24.1"
-  dependencies:
-    "@babel/runtime": "npm:^7.28.4"
-    "@videojs/http-streaming": "npm:^3.17.5"
-    "@videojs/vhs-utils": "npm:^4.1.2"
-    "@videojs/xhr": "npm:2.7.0"
-    aes-decrypter: "npm:^4.0.2"
-    global: "npm:4.4.0"
-    m3u8-parser: "npm:^7.2.0"
-    mpd-parser: "npm:^1.4.0"
-    mux.js: "npm:^7.0.1"
-    videojs-contrib-quality-levels: "npm:4.1.0"
-    videojs-font: "npm:4.2.0"
-    videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/453aabb7448802d1bad82bf91f5a89f87cb92af930342250c6cc3f8d8f0702eefcd1273cd93f42685d11dee4deeccd7445f6b5bf3646daddeeae8d2348ae6183
-  languageName: node
-  linkType: hard
-
-"videojs-contrib-quality-levels@npm:4.1.0":
-  version: 4.1.0
-  resolution: "videojs-contrib-quality-levels@npm:4.1.0"
-  dependencies:
-    global: "npm:^4.4.0"
-  peerDependencies:
-    video.js: ^8
-  checksum: 10c0/5ab25b0d93dfe97dcabd6b3008afd5d7faf2602de5d4953f79f0eedce346aec670bb6eb833c3225d7deac101ba8d97d13121a3a470f3584bae8b63eb3dc03148
-  languageName: node
-  linkType: hard
-
-"videojs-font@npm:4.2.0":
-  version: 4.2.0
-  resolution: "videojs-font@npm:4.2.0"
-  checksum: 10c0/c7960e13e70bd2dbf6940fa00ccd49547537bd0f56aed420d8049bcb908a4f0fabcb0d4693c43068c163b9ed09bfb641f205313ec3fec3143dffcff8c6d3ac6c
-  languageName: node
-  linkType: hard
-
-"videojs-vtt.js@npm:0.15.5":
-  version: 0.15.5
-  resolution: "videojs-vtt.js@npm:0.15.5"
-  dependencies:
-    global: "npm:^4.3.1"
-  checksum: 10c0/fd595a96c7bee3cb086f58a750d784a8d52db29b3ddf90a079cd283b097c36f976ac9f3835af53dfe5bdac5c7ccbd03db77abbaa37e38bfb3cbe4843e261e02b
+"video.js@npm:10.2.0":
+  version: 10.2.0
+  resolution: "video.js@npm:10.2.0"
+  checksum: 10c0/31c3ef4cb8e41308302f74ba9a09e0efee1142f7c5d88bbcc559e594187db79de032497b81e85610453599f942336cef0db67ea72b86d8bc5ded3d1437f41f12
   languageName: node
   linkType: hard
 
