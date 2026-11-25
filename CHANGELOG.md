@@ -14,6 +14,7 @@
 
 ### Dependencies
 - Bump `@playwright/test` from 1.64.1 to 1.65.1 ([#6500](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6500))
+- Bump `@tabler/icons-react` from 3.49.0 to 3.52.0 ([#6501](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6501))
 - Bump `@types/lodash` from 4.17.26 to 4.17.27 ([#6448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6448))
 - Bump `axios` from 1.20.0 to 1.21.0
 - Bump `follow-redirects` from 1.16.1 to 1.16.2 ([#6447](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/6447))
