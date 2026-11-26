@@ -365,6 +365,14 @@ public class MediaInfoStore {
 		return mediaInfo;
 	}
 
+	/**
+	 * Returns an already resolved stream without waiting for a database lookup or an ongoing probe.
+	 */
+	public static MediaInfo getCachedWebStreamMediaInfo(String url) {
+		MediaInfo cached = getMediaInfoStored(url);
+		return cached != null && cached.isMediaParsed() ? cached : null;
+	}
+
 	public static MediaInfo getWebStreamMediaInfo(String url, int type) {
 		return getWebStreamMediaInfo(url, type, null);
 	}

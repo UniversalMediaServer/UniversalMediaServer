@@ -25,10 +25,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
@@ -57,8 +60,9 @@ public class WebStream extends StoreItem {
 		return thread;
 	});
 
-	// Urls with a probe in flight, so the same stream is not probed by several browses at once.
-	private static final Set<String> RESOLVING = ConcurrentHashMap.newKeySet();
+	// Every resource for the same URL must receive the result, including the playback renderer's copy.
+	private static final Map<String, CompletableFuture<MediaInfo>> RESOLVING = new ConcurrentHashMap<>();
+	private static final long RESOLVE_TIMEOUT_SECONDS = 30;
 
 	private String url;
 	private String fluxName;
@@ -227,33 +231,90 @@ public class WebStream extends StoreItem {
 	 * Puts the stream away from the request that asked for it.
 	 */
 	public void resolveInBackground() {
-		if (!RESOLVING.add(url)) {
+		if (url == null) {
 			return;
+		}
+		resolveMediaInfoInBackground().thenAccept(resolved -> {
+			applyResolvedMediaInfo(resolved);
+			MediaStoreIds.incrementUpdateId(getLongId());
+		}).exceptionally(e -> {
+			LOGGER.debug("Could not resolve the web stream \"{}\": {}", url, e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		});
+	}
+
+	private CompletableFuture<MediaInfo> resolveMediaInfoInBackground() {
+		MediaInfo current = getMediaInfo();
+		if (current != null && current.isMediaParsed()) {
+			return CompletableFuture.completedFuture(current);
+		}
+		MediaInfo cached = MediaInfoStore.getCachedWebStreamMediaInfo(url);
+		if (cached != null) {
+			return CompletableFuture.completedFuture(cached);
+		}
+
+		String streamUrl = url;
+		CompletableFuture<MediaInfo> pending = new CompletableFuture<>();
+		CompletableFuture<MediaInfo> existing = RESOLVING.putIfAbsent(streamUrl, pending);
+		if (existing != null) {
+			return existing;
 		}
 		RESOLVE_EXECUTOR.execute(() -> {
 			try {
-				MediaInfo resolved = MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType());
-				keepStaticAudioMetadata(getMediaInfo(), resolved);
-				setMediaInfo(resolved);
-				MediaStoreIds.incrementUpdateId(getLongId());
+				pending.complete(MediaInfoStore.getWebStreamMediaInfo(streamUrl, getSpecificType()));
 			} catch (Exception e) {
-				LOGGER.debug("Could not resolve the web stream \"{}\": {}", url, e.getMessage());
-				LOGGER.trace("", e);
+				pending.completeExceptionally(e);
 			} finally {
-				RESOLVING.remove(url);
+				RESOLVING.remove(streamUrl, pending);
 			}
 		});
+		return pending;
+	}
+
+	private void applyResolvedMediaInfo(MediaInfo resolved) {
+		if (resolved != null) {
+			keepStaticAudioMetadata(getMediaInfo(), resolved);
+			setMediaInfo(resolved);
+		}
+	}
+
+	boolean awaitMediaInfo(long timeout, TimeUnit unit) {
+		if (url == null) {
+			LOGGER.error("WebStream points to a null url.");
+			return false;
+		}
+		try {
+			applyResolvedMediaInfo(resolveMediaInfoInBackground().get(timeout, unit));
+			return getMediaInfo() != null && getMediaInfo().isMediaParsed();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			LOGGER.debug("Interrupted while resolving the web stream \"{}\"", url);
+		} catch (TimeoutException e) {
+			// Other resources may still need this probe, so leave it running.
+			LOGGER.debug("Timed out waiting for the web stream \"{}\"", url);
+		} catch (ExecutionException e) {
+			LOGGER.debug("Could not resolve the web stream \"{}\": {}", url, e.getCause().getMessage());
+			LOGGER.trace("", e);
+		}
+		return false;
+	}
+
+	/**
+	 * Browsing can choose an engine before the background probe has finished.
+	 * Resolve again for the playback renderer before response headers or stream data are sent.
+	 */
+	public synchronized void prepareForPlayback() {
+		resolve();
+		if (getMediaInfo() != null && getMediaInfo().isMediaParsed() && !isInsideTranscodeFolder()) {
+			setTranscodingSettings(resolveTranscodingSettings());
+		}
 	}
 
 	@Override
 	public synchronized void resolve() {
-		if (url == null) {
-			LOGGER.error("WebStream points to a null url.");
+		if (!awaitMediaInfo(RESOLVE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
 			return;
-		}
-
-		if (getMediaInfo() == null || !getMediaInfo().isMediaParsed()) {
-			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
 		}
 		String radioBrowserUuid = getDirective(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID);
 		if (radioBrowserUuid != null) {
