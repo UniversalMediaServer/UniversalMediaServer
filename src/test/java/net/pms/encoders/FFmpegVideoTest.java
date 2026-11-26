@@ -17,6 +17,7 @@
 package net.pms.encoders;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,24 +31,32 @@ import net.pms.parsers.ParserTest;
 import net.pms.platform.PlatformUtils;
 
 public class FFmpegVideoTest {
-	public List<String> getFFmpegOutput(String filename, ArrayList<String> ffmpegArgs) {
-		ArrayList<String> args = new ArrayList<>();
-		UmsConfiguration umsConfiguration;
+	/**
+	 * Resolves a usable ffmpeg executable: the configured path if it exists, otherwise the binary
+	 * provided by the CI build. Returns {@code null} when no runnable ffmpeg is available.
+	 */
+	private static String resolveFFmpegPath() {
 		try {
-			umsConfiguration = new UmsConfiguration(false);
-			if (umsConfiguration.getFFmpegPath() == null) {
-				throw new Exception("no ffmpeg");
+			UmsConfiguration umsConfiguration = new UmsConfiguration(false);
+			String configured = umsConfiguration.getFFmpegPath();
+			if (configured != null && new File(configured).canExecute()) {
+				return configured;
 			}
-			args.add(umsConfiguration.getFFmpegPath());
 		} catch (Exception e) {
-			System.out.println("did not find ffmpeg, falling back manually");
-			// this is a lazy workaround for an error, but the error has nothing to do with the purpose of the test
-			if (PlatformUtils.isMac()) {
-				args.add("/Users/runner/work/UniversalMediaServer/UniversalMediaServer/target/bin/osx/ffmpeg");
-			} else {
-				args.add("/home/runner/work/UniversalMediaServer/UniversalMediaServer/target/bin/linux/ffmpeg");
-			}
+			// fall through to the CI fallback
 		}
+		String ciFallback = PlatformUtils.isMac() ? "/Users/runner/work/UniversalMediaServer/UniversalMediaServer/target/bin/osx/ffmpeg" :
+			"/home/runner/work/UniversalMediaServer/UniversalMediaServer/target/bin/linux/ffmpeg";
+		return new File(ciFallback).canExecute() ? ciFallback : null;
+	}
+
+	public List<String> getFFmpegOutput(String filename, ArrayList<String> ffmpegArgs) {
+		// Skip (instead of failing) when no ffmpeg binary is available.
+		String ffmpegPath = resolveFFmpegPath();
+		assumeTrue(ffmpegPath != null, "ffmpeg not available - skipping ffmpeg-dependent test");
+
+		ArrayList<String> args = new ArrayList<>();
+		args.add(ffmpegPath);
 
 		// uncomment these for files with streams that don't get parsed
 		// args.add("-analyzeduration");

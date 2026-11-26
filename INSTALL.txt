@@ -10,7 +10,8 @@ should work on most Unix distributions)
 1. Install the dependencies (this only needs to be done once):
     
     All releases of UMS come with Java Runtime Environment bundled, except for
-    the ARM architecture releases. You will need to ensure you have JRE 17 installed.
+    the ARM architecture releases. For ARM releases, install JDK 25 and set JAVA_HOME to its installation directory.
+    UMS startup scripts require Java 25 and reject other Java versions.
 
     Next, add some other pre-reqs:
 
@@ -38,3 +39,12 @@ should work on most Unix distributions)
 
 UMS accesses some files in the `ums-$VERSION/` directory (the working directory).
 Other files will be looked for in `~/.config/UMS`
+
+Java startup options
+--------------------
+The packaged launchers enable the Vector API, open sun.nio.ch for Lucene, and
+allow native access for JNA/FFM on Java 25. When launching ums.jar directly,
+use JDK 25 and the same options:
+
+    java --add-modules=jdk.incubator.vector --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --enable-native-access=ALL-UNNAMED -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true -jar ums.jar
+

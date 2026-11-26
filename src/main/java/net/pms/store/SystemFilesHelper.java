@@ -18,16 +18,20 @@ package net.pms.store;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.image.ImageFormat;
 import net.pms.util.FileUtil;
 
 public class SystemFilesHelper {
@@ -64,6 +68,68 @@ public class SystemFilesHelper {
 	}
 
 	/**
+	 * Looks for folder.* first, then the configured basenames in order, then albumart.
+	 * An empty list uses the original first-match lookup.
+	 *
+	 * @param folder the directory to search
+	 * @param additionalNames the lowercased cover basenames in priority order
+	 * @return the selected cover file, or null
+	 */
+	public static File getFolderThumbnail(File folder, List<String> additionalNames) {
+		if (additionalNames.isEmpty()) {
+			return getFolderThumbnail(folder);
+		}
+		if (folder == null || !folder.isDirectory()) {
+			return null;
+		}
+
+		File best = null;
+		int bestPriority = Integer.MAX_VALUE;
+		try (DirectoryStream<Path> entries = Files.newDirectoryStream(folder.toPath())) {
+			for (Path entry : entries) {
+				String name = entry.getFileName().toString().toLowerCase(Locale.ROOT);
+				int priority = getFolderThumbnailPriority(name, additionalNames);
+				if (priority >= 0 && priority < bestPriority && isPotentialThumbnail(name)) {
+					File candidate = entry.toFile();
+					if (candidate.isFile()) {
+						if (priority == 0) {
+							return candidate;
+						}
+						best = candidate;
+						bestPriority = priority;
+					}
+				}
+			}
+		} catch (IOException | DirectoryIteratorException e) {
+			LOGGER.warn("An error occurred while trying to browse folder \"{}\": {}", folder.getAbsolutePath(), e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return best;
+	}
+
+	/**
+	 * Ranks a lowercased filename by the folder cover naming rules. The caller checks the extension.
+	 *
+	 * @return zero for folder.*, the next ranks for the additional names, the last rank
+	 *         for albumart, or -1 for an unrelated name
+	 */
+	public static int getFolderThumbnailPriority(String fileName, List<String> additionalNames) {
+		if (fileName.startsWith("folder.")) {
+			return 0;
+		}
+		if (!additionalNames.isEmpty()) {
+			int dot = fileName.lastIndexOf('.');
+			for (int i = 0; i < additionalNames.size(); i++) {
+				String baseName = additionalNames.get(i);
+				if (baseName.length() == dot && fileName.startsWith(baseName)) {
+					return i + 1;
+				}
+			}
+		}
+		return fileName.contains("albumart") ? additionalNames.size() + 1 : -1;
+	}
+
+	/**
 	 * Returns the first {@link File} in a specified folder that is considered a
 	 * "folder thumbnail" by naming convention.
 	 *
@@ -72,6 +138,17 @@ public class SystemFilesHelper {
 	 *         {@code null} if none was found.
 	 */
 	public static File getFolderThumbnail(File folder, String thumbFilename) {
+		return getFolderThumbnail(folder, thumbFilename, true);
+	}
+
+	/**
+	 * Finds an image with the exact basename of a resource.
+	 */
+	public static File getNamedThumbnail(File folder, String thumbFilename) {
+		return getFolderThumbnail(folder, thumbFilename, false);
+	}
+
+	private static File getFolderThumbnail(File folder, String thumbFilename, boolean includeAlbumArt) {
 		if (folder == null || !folder.isDirectory()) {
 			return null;
 		}
@@ -85,10 +162,12 @@ public class SystemFilesHelper {
 			}
 			String fileName = fileNamePath.toString();
 			String fileNameLower = fileName.toLowerCase(Locale.ROOT);
-			if (fileName.startsWith(thumbPrefix) || fileNameLower.contains("albumart")) {
-				return isPotentialThumbnail(fileNameLower);
+			boolean matchesPrefix = fileName.startsWith(thumbPrefix);
+			if (includeAlbumArt) {
+				return (matchesPrefix || fileNameLower.contains("albumart")) && isPotentialThumbnail(fileNameLower);
 			}
-			return false;
+			return matchesPrefix && fileName.lastIndexOf('.') == thumbPrefix.length() - 1 &&
+				isPotentialThumbnail(fileNameLower) && Files.isRegularFile(entry);
 		})) {
 			for (Path folderThumbnail : folderThumbnails) {
 				return folderThumbnail.toFile();
@@ -98,6 +177,65 @@ public class SystemFilesHelper {
 			LOGGER.trace("", e);
 		}
 		return null;
+	}
+
+	/**
+	 * Stores a picture as thumbnail
+	 */
+	public static File storeThumbnail(File folder, String baseName, DLNAThumbnail thumbnail) throws IOException {
+		if (folder == null || StringUtils.isBlank(baseName) || thumbnail == null) {
+			return null;
+		}
+		String extension = thumbnailExtension(thumbnail.getFormat());
+		if (extension == null) {
+			LOGGER.debug("not storing a cover in {} : {} is no thumbnail format", folder, thumbnail.getFormat());
+			return null;
+		}
+		File cover = new File(folder, baseName + "." + extension);
+		Files.write(cover.toPath(), thumbnail.getBytes(false));
+		File[] siblings = folder.listFiles();
+		if (siblings != null) {
+			for (File sibling : siblings) {
+				if (sibling.isFile() && !sibling.getName().equalsIgnoreCase(cover.getName()) &&
+						isThumbnailOf(sibling.getName(), baseName)) {
+					if (!sibling.delete()) {
+						LOGGER.warn("cannot remove the previous cover {}", sibling);
+					}
+				}
+			}
+		}
+		LOGGER.debug("stored a cover as {}", cover);
+		return cover;
+	}
+
+	/**
+	 * Whether the file is a thumbnail spelling of baseName
+	 */
+	private static boolean isThumbnailOf(String fileName, String baseName) {
+		String prefix = baseName + ".";
+		if (!fileName.startsWith(prefix)) {
+			return false;
+		}
+		String extension = fileName.substring(prefix.length());
+		return THUMBNAIL_EXTENSIONS.contains(extension.toLowerCase(Locale.ROOT));
+	}
+
+	/**
+	 * The extension a picture of this format may be stored under, or null when no name we could give
+	 * it would be recognised as a thumbnail.
+	 */
+	private static String thumbnailExtension(ImageFormat format) {
+		if (format == null) {
+			return null;
+		}
+		return switch (format) {
+			case JPEG -> "jpg";
+			case PNG -> "png";
+			case GIF -> "gif";
+			case BMP -> "bmp";
+			case WEBP -> "webp";
+			default -> null;
+		};
 	}
 
 	/**
@@ -112,6 +250,13 @@ public class SystemFilesHelper {
 	 *         for folder thumbnails, {@code false} otherwise.
 	 */
 	public static boolean isFolderThumbnail(File file, boolean evaluateExtension) {
+		return isFolderThumbnail(file, evaluateExtension, List.of());
+	}
+
+	/**
+	 * Tests whether a file uses a name reserved for folder cover art.
+	 */
+	public static boolean isFolderThumbnail(File file, boolean evaluateExtension, List<String> additionalNames) {
 		if (file == null || !file.isFile()) {
 			return false;
 		}
@@ -123,8 +268,7 @@ public class SystemFilesHelper {
 		if (evaluateExtension && !isPotentialThumbnail(fileName)) {
 			return false;
 		}
-		fileName = fileName.toLowerCase(Locale.ROOT);
-		return fileName.startsWith("folder.") || fileName.contains("albumart");
+		return getFolderThumbnailPriority(fileName.toLowerCase(Locale.ROOT), additionalNames) >= 0;
 	}
 
 	/**
@@ -178,7 +322,8 @@ public class SystemFilesHelper {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
-		return THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
+		String extension = FileUtil.getExtension(fileName);
+		return extension != null && THUMBNAIL_EXTENSIONS.contains(extension);
 	}
 
 	/**

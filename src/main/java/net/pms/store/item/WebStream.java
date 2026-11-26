@@ -16,24 +16,36 @@
  */
 package net.pms.store.item;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.external.radiobrowser.RadioBrowser4j;
-import net.pms.network.HTTPResource;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreItem;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,10 +53,22 @@ public class WebStream extends StoreItem {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebStream.class);
 
+	// Probing a stream is an HTTP round trip, so a browse hands it over here instead of waiting for it.
+	private static final ExecutorService RESOLVE_EXECUTOR = Executors.newFixedThreadPool(4, r -> {
+		Thread thread = new Thread(r, "web-stream-resolve");
+		thread.setDaemon(true);
+		return thread;
+	});
+
+	// Every resource for the same URL must receive the result, including the playback renderer's copy.
+	private static final Map<String, CompletableFuture<MediaInfo>> RESOLVING = new ConcurrentHashMap<>();
+	private static final long RESOLVE_TIMEOUT_SECONDS = 30;
+
 	private String url;
 	private String fluxName;
 	private String thumbURL;
 	private final Map<String, String> directives;
+	private volatile String lastStreamError;
 
 	public WebStream(Renderer renderer, String fluxName, String url, String thumbURL, int type, Map<String, String> directives) {
 		super(renderer, type);
@@ -85,9 +109,7 @@ public class WebStream extends StoreItem {
 			result = getMediaInfo().getThumbnailInputStream();
 		}
 		if (result == null && thumbURL != null) {
-			result = DLNAThumbnailInputStream.toThumbnailInputStream(
-					FileUtil.isUrl(thumbURL) ? HTTPResource.downloadAndSend(thumbURL, true) : new FileInputStream(thumbURL)
-			);
+			result = FileUtil.isUrl(thumbURL) ? ThumbnailStore.getThumbnailInputStreamForUrl(thumbURL) : ThumbnailStore.getThumbnailInputStreamForFile(new File(thumbURL));
 		}
 		return result != null ? result : super.getThumbnailInputStream();
 	}
@@ -95,12 +117,40 @@ public class WebStream extends StoreItem {
 	@Override
 	public InputStream getInputStream() {
 		try {
-			InputStream input = new URL(url).openStream();
+			URLConnection connection = new URL(url).openConnection();
+			if (isUnboundedLiveStream()) {
+				connection.setConnectTimeout(10000);
+				connection.setReadTimeout(10000);
+			}
+			InputStream input = connection.getInputStream();
+			lastStreamError = null;
 			return input;
 		} catch (IOException e) {
 			LOGGER.error("cannot read input stream from {}", url, e);
+			lastStreamError = e.getMessage();
 		}
 		return null;
+	}
+
+	public String getLastStreamError() {
+		return lastStreamError;
+	}
+
+	/**
+	 * A radio stream has neither a size nor a duration, a hosted file has both.
+	 */
+	@Override
+	public boolean isUnboundedLiveStream() {
+		MediaInfo media = getMediaInfo();
+		if (media == null || !media.isMediaParsed()) {
+			return true;
+		}
+		return media.getSize() <= 0 && media.getDurationInSeconds() <= 0;
+	}
+
+	@Override
+	public boolean isAudioBroadcast() {
+		return isUnboundedLiveStream();
 	}
 
 	@Override
@@ -177,22 +227,153 @@ public class WebStream extends StoreItem {
 		return true;
 	}
 
-	@Override
-	public synchronized void resolve() {
+	/**
+	 * Puts the stream away from the request that asked for it.
+	 */
+	public void resolveInBackground() {
 		if (url == null) {
-			LOGGER.error("WebStream points to a null url.");
 			return;
 		}
+		resolveMediaInfoInBackground().thenAccept(resolved -> {
+			applyResolvedMediaInfo(resolved);
+			MediaStoreIds.incrementUpdateId(getLongId());
+		}).exceptionally(e -> {
+			LOGGER.debug("Could not resolve the web stream \"{}\": {}", url, e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		});
+	}
 
-		if (getMediaInfo() == null || !getMediaInfo().isMediaParsed()) {
-			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
+	private CompletableFuture<MediaInfo> resolveMediaInfoInBackground() {
+		MediaInfo current = getMediaInfo();
+		if (current != null && current.isMediaParsed()) {
+			return CompletableFuture.completedFuture(current);
 		}
-		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID)) {
+		MediaInfo cached = MediaInfoStore.getCachedWebStreamMediaInfo(url);
+		if (cached != null) {
+			return CompletableFuture.completedFuture(cached);
+		}
+
+		String streamUrl = url;
+		CompletableFuture<MediaInfo> pending = new CompletableFuture<>();
+		CompletableFuture<MediaInfo> existing = RESOLVING.putIfAbsent(streamUrl, pending);
+		if (existing != null) {
+			return existing;
+		}
+		RESOLVE_EXECUTOR.execute(() -> {
+			try {
+				pending.complete(MediaInfoStore.getWebStreamMediaInfo(streamUrl, getSpecificType()));
+			} catch (Exception e) {
+				pending.completeExceptionally(e);
+			} finally {
+				RESOLVING.remove(streamUrl, pending);
+			}
+		});
+		return pending;
+	}
+
+	private void applyResolvedMediaInfo(MediaInfo resolved) {
+		if (resolved != null) {
+			keepStaticAudioMetadata(getMediaInfo(), resolved);
+			setMediaInfo(resolved);
+		}
+	}
+
+	boolean awaitMediaInfo(long timeout, TimeUnit unit) {
+		if (url == null) {
+			LOGGER.error("WebStream points to a null url.");
+			return false;
+		}
+		try {
+			applyResolvedMediaInfo(resolveMediaInfoInBackground().get(timeout, unit));
+			return getMediaInfo() != null && getMediaInfo().isMediaParsed();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			LOGGER.debug("Interrupted while resolving the web stream \"{}\"", url);
+		} catch (TimeoutException e) {
+			// Other resources may still need this probe, so leave it running.
+			LOGGER.debug("Timed out waiting for the web stream \"{}\"", url);
+		} catch (ExecutionException e) {
+			LOGGER.debug("Could not resolve the web stream \"{}\": {}", url, e.getCause().getMessage());
+			LOGGER.trace("", e);
+		}
+		return false;
+	}
+
+	/**
+	 * Browsing can choose an engine before the background probe has finished.
+	 * Resolve again for the playback renderer before response headers or stream data are sent.
+	 */
+	public synchronized void prepareForPlayback() {
+		resolve();
+		if (getMediaInfo() != null && getMediaInfo().isMediaParsed() && !isInsideTranscodeFolder()) {
+			setTranscodingSettings(resolveTranscodingSettings());
+		}
+	}
+
+	@Override
+	public synchronized void resolve() {
+		if (!awaitMediaInfo(RESOLVE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+			return;
+		}
+		String radioBrowserUuid = getDirective(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID);
+		if (radioBrowserUuid != null) {
 			// Attempt to enhance the metadata via RADIOBROWSER API.
-			RadioBrowser4j.backgroundLookupAndAddMetadata(url, directives.get(PlaylistFolder.DIRECTIVE_RADIOBROWSERUUID), mediaInfo);
+			RadioBrowser4j.backgroundLookupAndAddMetadata(url, radioBrowserUuid, mediaInfo);
 		}
-		if (directives != null && directives.containsKey(PlaylistFolder.DIRECTIVE_ALBUMART_URI)) {
-			ThumbnailStore.updateThumbnailByURI(directives.get(PlaylistFolder.DIRECTIVE_ALBUMART_URI), getFileName(), ThumbnailSource.PLAYLIST);
+		String albumArtUri = getDirective(PlaylistFolder.DIRECTIVE_ALBUMART_URI);
+		if (albumArtUri != null) {
+			ThumbnailStore.enqueueThumbnailUpdate(albumArtUri, getFileName(), ThumbnailSource.PLAYLIST);
+		}
+		applyRatingDirective();
+	}
+
+	/**
+	 * A container that knows its stream fills album, artist and genre itself, i.e. an AudioAddict channel.
+	 */
+	private static void keepStaticAudioMetadata(MediaInfo previous, MediaInfo resolved) {
+		if (previous == null || resolved == null || previous == resolved || !previous.hasAudioMetadata()) {
+			return;
+		}
+		MediaAudioMetadata staticMetadata = previous.getAudioMetadata();
+		if (!resolved.hasAudioMetadata()) {
+			resolved.setAudioMetadata(staticMetadata);
+			return;
+		}
+		MediaAudioMetadata metadata = resolved.getAudioMetadata();
+		if (StringUtils.isBlank(metadata.getAlbum())) {
+			metadata.setAlbum(staticMetadata.getAlbum());
+		}
+		if (StringUtils.isBlank(metadata.getArtist())) {
+			metadata.setArtist(staticMetadata.getArtist());
+		}
+		if (StringUtils.isBlank(metadata.getGenre())) {
+			metadata.setGenre(staticMetadata.getGenre());
+		}
+	}
+
+	protected String getDirective(String directive) {
+		return directives == null ? null : directives.get(directive);
+	}
+
+	public Map<String, String> getPlaylistDirectives() {
+		Map<String, String> result = directives == null ? new HashMap<>() : new HashMap<>(directives);
+		if (StringUtils.isNotBlank(thumbURL)) {
+			result.putIfAbsent(PlaylistFolder.DIRECTIVE_ALBUMART_URI, thumbURL);
+		}
+		return result;
+	}
+
+	private void applyRatingDirective() {
+		String rating = getDirective(PlaylistFolder.DIRECTIVE_RATING);
+		if (rating == null || getRating() != null) {
+			return;
+		}
+		String value = rating.trim();
+		try {
+			setRating(Integer.valueOf(value));
+		} catch (NumberFormatException e) {
+			LOGGER.debug("Ignoring the rating directive \"{}\" of {} because it is not a number", value, url);
 		}
 	}
 

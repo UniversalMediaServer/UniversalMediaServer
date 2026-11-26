@@ -1,20 +1,46 @@
 package net.pms.store.container;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.formats.Format;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
+import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.DbIdResourceLocator;
+import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.PlaylistManager;
+import net.pms.store.StoreResource;
+import net.pms.store.ThumbnailStore;
+import net.pms.store.ThumbnailSource;
+import net.pms.store.item.RealFile;
+import net.pms.store.item.WebVideoStream;
 
 public class PlaylistFolderTest {
 
@@ -59,6 +85,293 @@ public class PlaylistFolderTest {
 				assertTrue(false, "Failed to get thumbnail input stream for child: " + child.getName());
 			}
 		});
+	}
+
+	@Test
+	public void testConfiguredFolderCoverForFolderTracksAndPlaylist(@TempDir Path directory) throws IOException {
+		Renderer renderer = RendererConfigurations.getDefaultRenderer();
+		var config = renderer.getUmsConfiguration().getConfiguration();
+		config.setProperty("folder_thumbnail_names", "cover");
+		try {
+			Path albumArt = directory.resolve("AlbumArt.png");
+			Path cover = directory.resolve("Cover.PNG");
+			ImageIO.write(new BufferedImage(15, 15, BufferedImage.TYPE_INT_RGB), "png", albumArt.toFile());
+			ImageIO.write(new BufferedImage(25, 25, BufferedImage.TYPE_INT_RGB), "png", cover.toFile());
+			RealFolder folder = new RealFolder(renderer, directory.toFile());
+			folder.discoverChildren();
+			assertEquals(cover.toFile(), folder.getPotentialCover());
+			try (DLNAThumbnailInputStream thumbnail = folder.getThumbnailInputStream()) {
+				assertEquals(25, thumbnail.getWidth());
+			}
+
+			Path playlist = Files.writeString(directory.resolve("Mix.m3u8"), "#EXTM3U\n");
+			PlaylistFolder mix = playlistOf(playlist);
+			ImageIO.write(new BufferedImage(35, 35, BufferedImage.TYPE_INT_RGB), "png", directory.resolve("Mix.png").toFile());
+			try (DLNAThumbnailInputStream thumbnail = mix.getThumbnailInputStream()) {
+				assertEquals(35, thumbnail.getWidth());
+			}
+			Files.delete(directory.resolve("Mix.png"));
+			ImageIO.write(new BufferedImage(45, 45, BufferedImage.TYPE_INT_RGB), "png", directory.resolve("Mix.preview.png").toFile());
+			try (DLNAThumbnailInputStream thumbnail = mix.getThumbnailInputStream()) {
+				assertEquals(25, thumbnail.getWidth());
+			}
+		} finally {
+			config.clearProperty("folder_thumbnail_names");
+		}
+	}
+
+	@Test
+	public void testStoredPlaylistCoverTakesPriorityOverLegacyAlbumArt(@TempDir Path directory) throws IOException {
+		Path playlist = Files.writeString(directory.resolve("Mix.m3u8"), "#EXTM3U\n");
+		PlaylistFolder mix = playlistOf(playlist);
+		Path albumArt = directory.resolve("AlbumArt.png");
+		Path storedCover = directory.resolve("User.png");
+		ImageIO.write(new BufferedImage(15, 15, BufferedImage.TYPE_INT_RGB), "png", albumArt.toFile());
+		ImageIO.write(new BufferedImage(25, 25, BufferedImage.TYPE_INT_RGB), "png", storedCover.toFile());
+		Long fileId = MediaTableFiles.getOrInsertFileId(mix.getFileName(), playlist.toFile().lastModified(), Format.PLAYLIST);
+		assertNotNull(fileId);
+		try (DLNAThumbnailInputStream thumbnail = ThumbnailStore.getThumbnailInputStreamForFile(storedCover.toFile())) {
+			assertNotNull(ThumbnailStore.getId(thumbnail.getThumbnail(), fileId, ThumbnailSource.USER));
+		}
+		try (DLNAThumbnailInputStream thumbnail = mix.getThumbnailInputStream()) {
+			assertEquals(25, thumbnail.getWidth());
+		}
+	}
+
+	@Test
+	public void testDirectoryReferenceSurvivesReload(@TempDir Path temp) throws Exception {
+		assertDirectoryReferenceSurvivesReload(temp, false);
+	}
+
+	@Test
+	public void testAncestorDirectoryReferenceSurvivesReload(@TempDir Path temp) throws Exception {
+		assertDirectoryReferenceSurvivesReload(temp, true);
+	}
+
+	private static void assertDirectoryReferenceSurvivesReload(Path temp, boolean playlistInsideFolder) throws Exception {
+		Path source = Files.createDirectory(temp.resolve("Music"));
+		Files.copy(Path.of("src/test/resources/net/pms/parsers/audio-mp3.mp3"), source.resolve("Track.mp3"));
+		Path playlistDirectory = playlistInsideFolder ? Files.createDirectories(source.resolve("Library").resolve("Playlists")) : temp;
+		Path playlist = Files.writeString(playlistDirectory.resolve("Links.m3u8"), "#EXTM3U\n");
+		PlaylistFolder target = playlistOf(playlist);
+		target.getDefaultRenderer().getMediaStore().addChild(target);
+		assertNotNull(PlaylistManager.addEntryToPlaylist(new RealFolder(target.getDefaultRenderer(), source.toFile()), target));
+		String expectedReference = playlistInsideFolder ? ".." + File.separator + ".." : "." + File.separator + "Music";
+		assertEquals(List.of("#EXTM3U", expectedReference), Files.readAllLines(playlist));
+
+		PlaylistFolder reloaded = playlistOf(playlist);
+		reloaded.resolve();
+		assertEquals(1, reloaded.getChildren().size());
+		RealFolder linked = assertInstanceOf(RealFolder.class, reloaded.getChildren().getFirst());
+		assertEquals(source, Path.of(linked.getSystemName()));
+	}
+
+	private static PlaylistFolder playlistOf(Path file) {
+		return new PlaylistFolder(RendererConfigurations.getDefaultRenderer(), file.toFile());
+	}
+
+	private static Path tempPlaylist(String suffix, String content) throws IOException {
+		Path file = Files.createTempFile("playlist_", suffix);
+		file.toFile().deleteOnExit();
+		Files.writeString(file, content);
+		return file;
+	}
+
+	/**
+	 * The url has to be the last line of the block : directives are collected until a line that is
+	 * neither a comment nor blank, and that line is what closes the entry.
+	 */
+	@Test
+	public void testAddWebEntryWritesTheDirectiveBlockInOrder() throws Exception {
+		Path playlist = tempPlaylist(".m3u8", "#EXTM3U\n");
+		assertTrue(playlistOf(playlist).addWebEntry("http://stream.example/live", "Radio Example",
+			"http://img.example/logo.png", "aaaabbbb-cccc-dddd-eeee-ffff00001111"));
+
+		List<String> lines = Files.readAllLines(playlist).stream().filter(l -> !l.isBlank()).toList();
+		assertEquals("#EXTM3U", lines.get(0));
+		assertEquals("#EXTINF:-1,Radio Example", lines.get(1));
+		assertEquals("#RADIOBROWSERUUID:aaaabbbb-cccc-dddd-eeee-ffff00001111", lines.get(2));
+		assertEquals("#EXTIMG:http://img.example/logo.png", lines.get(3));
+		assertEquals("http://stream.example/live", lines.get(4));
+		assertEquals(5, lines.size());
+	}
+
+	@Test
+	public void testCreateWebVideoReferencePreservesPlaylistMetadata(@TempDir Path directory) throws Exception {
+		Path playlist = Files.writeString(directory.resolve("Videos.m3u8"), "#EXTM3U\n");
+		PlaylistFolder target = playlistOf(playlist);
+		Renderer renderer = target.getDefaultRenderer();
+		renderer.getMediaStore().addChild(target);
+		String url = "http://127.0.0.1:9/video.mp4";
+		String cover = "http://127.0.0.1:9/cover.jpg";
+		WebVideoStream source = new WebVideoStream(renderer, "A web video", url, null,
+			Map.of(PlaylistFolder.DIRECTIVE_ALBUMART_URI, cover));
+
+		String id = PlaylistManager.addEntryToPlaylist(source, target);
+
+		assertNotNull(id);
+		WebVideoStream reference = assertInstanceOf(WebVideoStream.class, renderer.getMediaStore().getResource(id));
+		assertEquals(target, reference.getParent());
+		assertEquals(url, reference.getUrl());
+		assertNull(source.getParent());
+		assertEquals(List.of("#EXTM3U", "#EXTINF:-1,A web video", "#EXTIMG:" + cover, url),
+			Files.readAllLines(playlist).stream().filter(line -> !line.isBlank()).toList());
+		assertNull(PlaylistManager.addEntryToPlaylist(source, target));
+		assertEquals(1, Files.readAllLines(playlist).stream().filter(url::equals).count());
+	}
+
+	@Test
+	public void testDbIdMusicBrainzAlbumReference(@TempDir Path directory) throws Exception {
+		assertDbIdAlbumReferenceSurvivesReloadAndCanBeRemoved(true, directory);
+	}
+
+	@Test
+	public void testDbIdDiscogsAlbumReference(@TempDir Path directory) throws Exception {
+		assertDbIdAlbumReferenceSurvivesReloadAndCanBeRemoved(false, directory);
+	}
+
+	private static void assertDbIdAlbumReferenceSurvivesReloadAndCanBeRemoved(boolean musicBrainz, Path directory) throws Exception {
+		Renderer renderer = new Renderer(RendererConfigurations.getDefaultRenderer()) {
+			@Override
+			public boolean hasShareAccess(File file) {
+				return file.toPath().startsWith(directory);
+			}
+		};
+		String mbid = "b53328e0-54b0-4906-9edc-bec957c97c4c";
+		DbIdTypeAndIdent dbId = musicBrainz
+			? new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid)
+			: new DbIdTypeAndIdent(DbIdMediaType.TYPE_DISCOGS_RELEASEID, "938274");
+		Path track = Files.copy(Path.of("src/test/resources/net/pms/parsers/audio-mp3.mp3"), directory.resolve("Track.mp3"));
+		MediaInfo media = new MediaInfo();
+		MediaAudioMetadata audio = new MediaAudioMetadata();
+		audio.setAlbum("An indexed album");
+		audio.setArtist("An artist");
+		if (musicBrainz) {
+			audio.setMbidRecord(mbid);
+		} else {
+			audio.setDiscogsReleaseId(938274L);
+		}
+		media.setAudioMetadata(audio);
+		MediaTableFiles.insertOrUpdateData(track.toString(), track.toFile().lastModified(), Format.AUDIO, media);
+		MusicAlbumFolder original = assertInstanceOf(MusicAlbumFolder.class,
+			DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, dbId));
+		renderer.getMediaStore().addChild(original);
+		Path file = Files.writeString(directory.resolve("Mix.m3u8"), "#EXTM3U\n#EXTPLAYLISTRATING:5\n");
+		PlaylistFolder playlist = new PlaylistFolder(renderer, file.toFile());
+		renderer.getMediaStore().addChild(playlist);
+
+		String linkId = PlaylistManager.addEntryToPlaylist(original, playlist);
+
+		assertNotNull(linkId);
+		assertNotEquals(original.getId(), linkId);
+		assertSame(renderer.getMediaStore(), original.getParent());
+		assertNull(PlaylistManager.addEntryToPlaylist(original, playlist));
+		assertSame(playlist, renderer.getMediaStore().getResource(linkId).getParent());
+		assertTrue(Files.readAllLines(file).contains("#DBIDRESOURCE:" + dbId.toEncodedDbId()));
+
+		renderer.getMediaStore().removeChild(playlist);
+		PlaylistFolder reloaded = new PlaylistFolder(renderer, file.toFile());
+		renderer.getMediaStore().addChild(reloaded);
+		reloaded.resolve();
+		assertEquals(1, reloaded.getChildren().size());
+		MusicAlbumFolder link = assertInstanceOf(MusicAlbumFolder.class, reloaded.getChildren().getFirst());
+		assertEquals(linkId, link.getId());
+		assertEquals("An indexed album", link.getName());
+		assertSame(reloaded, link.getParent());
+		link.discoverChildren();
+		assertEquals(List.of(track.toString()), link.getChildren().stream()
+			.filter(RealFile.class::isInstance).map(StoreResource::getFileName).toList());
+		assertTrue(PlaylistManager.removeEntryFromPlaylist(link, reloaded));
+		assertTrue(Files.isRegularFile(track));
+		assertSame(original, renderer.getMediaStore().getResource(original.getId()));
+		assertEquals(List.of("#EXTM3U", "#EXTPLAYLISTRATING:5"),
+			Files.readAllLines(file).stream().filter(line -> !line.isBlank()).toList());
+	}
+
+	@Test
+	public void testDbIdDirectiveKeepsItsOrderAndEncodesTheIdentifier(@TempDir Path directory) throws Exception {
+		Path file = Files.writeString(directory.resolve("Mix.m3u"), "#EXTM3U\n#DbIdResource:$DBID$UNKNOWN$ignored\n");
+		Path folder = Files.createDirectory(directory.resolve("Music"));
+		Files.copy(Path.of("src/test/resources/net/pms/parsers/audio-mp3.mp3"), folder.resolve("Track.mp3"));
+		PlaylistFolder playlist = playlistOf(file);
+		Renderer renderer = playlist.getDefaultRenderer();
+		renderer.getMediaStore().addChild(playlist);
+		DbIdTypeAndIdent id = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_COMPOSER, "A+B / Jérôme%$");
+		StoreResource person = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, id);
+		assertNotNull(PlaylistManager.addEntryToPlaylist(person, playlist));
+		assertNotNull(PlaylistManager.addEntryToPlaylist(new RealFolder(renderer, folder.toFile()), playlist));
+
+		playlist.resolve();
+
+		assertEquals(2, playlist.getChildren().size());
+		PersonFolder link = assertInstanceOf(PersonFolder.class, playlist.getChildren().getFirst());
+		assertEquals(id.ident, link.getMediaIdent());
+		assertInstanceOf(RealFolder.class, playlist.getChildren().get(1));
+		assertTrue(PlaylistManager.removeEntryFromPlaylist(link, playlist));
+		playlist.resolve();
+		assertEquals(1, playlist.getChildren().size());
+		assertInstanceOf(RealFolder.class, playlist.getChildren().getFirst());
+	}
+
+	@Test
+	public void testAddWebEntryRejectsAnUrlThatIsAlreadyThere() throws Exception {
+		Path playlist = tempPlaylist(".m3u8", "#EXTM3U\n\n#EXTINF:-1,Already here\nhttp://stream.example/live\n");
+		assertFalse(playlistOf(playlist).addWebEntry("http://stream.example/live", "Second try", null, null));
+		assertEquals(1, Files.readAllLines(playlist).stream().filter(l -> l.startsWith("http")).count());
+	}
+
+	/**
+	 * Adding must not disturb what is already in the file, directives of other entries included.
+	 */
+	@Test
+	public void testAddWebEntryKeepsTheExistingEntries() throws Exception {
+		Path playlist = tempPlaylist(".m3u8",
+			"#EXTM3U\n\n#EXTINF:-1,First\n#EXTIMG:http://img.example/first.png\n#EXTRATING:4\nhttp://stream.example/first\n");
+		assertTrue(playlistOf(playlist).addWebEntry("http://stream.example/second", "Second", null, null));
+
+		String written = Files.readString(playlist);
+		assertTrue(written.contains("#EXTIMG:http://img.example/first.png"), written);
+		assertTrue(written.contains("#EXTRATING:4"), written);
+		assertTrue(written.contains("http://stream.example/first"), written);
+		assertTrue(written.indexOf("http://stream.example/first") < written.indexOf("http://stream.example/second"), written);
+	}
+
+	/**
+	 * The ICY order of a station lives next to its url, and going back to the automatic detection
+	 * takes the line out again instead of leaving "auto" behind.
+	 */
+	@Test
+	public void testIcyOrderDirectiveIsWrittenAndRemoved() throws Exception {
+		Path playlist = tempPlaylist(".m3u8",
+			"#EXTM3U\n\n#EXTINF:-1,First\nhttp://stream.example/first\n#EXTINF:-1,Second\nhttp://stream.example/second\n");
+
+		playlistOf(playlist).updateIcyOrderDirective("http://stream.example/second", "title-first");
+		List<String> lines = Files.readAllLines(playlist).stream().filter(l -> !l.isBlank()).toList();
+		assertEquals("#EXTINF:-1,Second", lines.get(3));
+		assertEquals("#EXTICYORDER:title-first", lines.get(4));
+		assertEquals("http://stream.example/second", lines.get(5));
+		assertEquals(6, lines.size());
+
+		playlistOf(playlist).updateIcyOrderDirective("http://stream.example/second", null);
+		assertFalse(Files.readString(playlist).contains("#EXTICYORDER"), Files.readString(playlist));
+		assertEquals(2, Files.readAllLines(playlist).stream().filter(l -> l.startsWith("http")).count());
+	}
+
+	/**
+	 * A plain m3u is read as ISO-8859-1. Writing it back with the platform default used to turn every
+	 * accented character into mojibake.
+	 */
+	@Test
+	public void testRewritingALatin1PlaylistKeepsItsAccents() throws Exception {
+		Path playlist = Files.createTempFile("playlist_", ".m3u");
+		playlist.toFile().deleteOnExit();
+		Files.write(playlist, "#EXTM3U\n\n#EXTINF:-1,Radio Köln Grüße\nhttp://stream.example/koeln\n"
+			.getBytes(StandardCharsets.ISO_8859_1));
+
+		assertTrue(playlistOf(playlist).addWebEntry("http://stream.example/second", "Second", null, null));
+
+		String reread = new String(Files.readAllBytes(playlist), StandardCharsets.ISO_8859_1);
+		assertTrue(reread.contains("Radio Köln Grüße"), reread);
 	}
 
 }

@@ -20,19 +20,27 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.eclipse.jetty.client.Request;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,21 +58,49 @@ public class JettyStreamClientImplTest {
 
 	static HttpServer server;
 	static String host;
+	static ExecutorService serverExecutor;
+	private final List<StreamClient> clientsToStop = new ArrayList<>();
+	private final List<ExecutorService> executorsToStop = new ArrayList<>();
+
+	@AfterEach
+	public void stopClients() {
+		try {
+			clientsToStop.forEach(StreamClient::stop);
+		} finally {
+			executorsToStop.forEach(ExecutorService::shutdownNow);
+		}
+	}
+
+	private ExecutorService newExecutor() {
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		executorsToStop.add(executor);
+		return executor;
+	}
+
+	private JettyStreamClientImpl newClient(StreamClientConfigurationImpl configuration) {
+		JettyStreamClientImpl client = new JettyStreamClientImpl(configuration);
+		clientsToStop.add(client);
+		return client;
+	}
 
 	@BeforeAll
 	public static void CreateServer() throws IOException {
-		ExecutorService executorService = Executors.newFixedThreadPool(10);
-		InetSocketAddress inetSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), 0);
+		serverExecutor = Executors.newFixedThreadPool(10);
+		InetSocketAddress inetSocketAddress = new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 0);
 		server = HttpServer.create(inetSocketAddress, 0);
 		server.createContext("/", new RequestHttpHandler());
-		server.setExecutor(executorService);
+		server.setExecutor(serverExecutor);
 		server.start();
 		host = server.getAddress().getAddress().getHostAddress() + ":" + server.getAddress().getPort();
 	}
 
 	@AfterAll
 	public static void StopServer() throws IOException {
-		server.stop(0);
+		try {
+			server.stop(0);
+		} finally {
+			serverExecutor.shutdownNow();
+		}
 	}
 
 	protected static class RequestHttpHandler implements HttpHandler {
@@ -109,48 +145,63 @@ public class JettyStreamClientImplTest {
 	}
 
 	@Test
-	public void testClientConnectTimeout() {
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
+	public void testClientRequestTimeout() {
+		ExecutorService executorService = newExecutor();
 		StreamClientConfigurationImpl configuration = new StreamClientConfigurationImpl(executorService, 1);
 		StreamClient client = JettyTransportConfiguration.INSTANCE.createStreamClient(executorService, configuration);
-		//non routable ip
-		StreamRequestMessage requestMessage = new StreamRequestMessage(UpnpRequest.Method.GET, URI.create("http://10.253.252.251/"));
+		clientsToStop.add(client);
+		CountDownLatch received = new CountDownLatch(1);
+		CountDownLatch release = new CountDownLatch(1);
+		server.createContext("/timeout", exchange -> {
+			received.countDown();
+			try {
+				release.await();
+			} catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+			} finally {
+				exchange.close();
+			}
+		});
 		try {
-			//timeout to 1 second
-			long start = System.currentTimeMillis();
-			StreamResponseMessage responseMessage = client.sendRequest(requestMessage);
-			assertNull(responseMessage);
-			long run = System.currentTimeMillis() - start;
-			assertTrue(run < 1500);
-		} catch (InterruptedException ex) {
-			fail(ex);
+			StreamRequestMessage message = new StreamRequestMessage(UpnpRequest.Method.GET, URI.create("http://" + host + "/timeout"));
+			// A connected server deliberately sends no response. The UMS request
+			// deadline must end the call; five seconds is only a deadlock guard.
+			assertTimeoutPreemptively(Duration.ofSeconds(5), () -> assertNull(client.sendRequest(message)));
+			assertEquals(0, received.getCount(), "Request must reach the local server");
+		} finally {
+			release.countDown();
+			server.removeContext("/timeout");
 		}
 	}
 
 	@Test
-	public void testJettyClientConnectTimeout() {
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
-		StreamClientConfigurationImpl configuration = new StreamClientConfigurationImpl(executorService, 1);
-		JettyStreamClientImpl clients = new JettyStreamClientImpl(configuration);
-		//non routable ip
-		StreamRequestMessage requestMessage = new StreamRequestMessage(UpnpRequest.Method.GET, URI.create("http://10.253.252.251/"));
+	public void testJettyClientConnectTimeoutConfiguration() {
+		for (int seconds : new int[]{1, 3}) {
+			JettyStreamClientImpl client = newClient(new StreamClientConfigurationImpl(newExecutor(), seconds));
+			assertEquals(seconds * 1000L, client.httpClient.getConnectTimeout());
+		}
+	}
 
-		Request request = clients.createRequest(requestMessage);
-		//timeout to 1 second
-		long start = System.currentTimeMillis();
-		ExecutionException e = assertThrows(ExecutionException.class, () -> {
-			clients.createCallable(requestMessage, request).call();
+	@Test
+	public void testJettyClientPropagatesConnectTimeout() {
+		JettyStreamClientImpl client = newClient(new StreamClientConfigurationImpl(newExecutor(), 1));
+		StreamRequestMessage message = new StreamRequestMessage(UpnpRequest.Method.GET, URI.create("http://127.0.0.1/"));
+		SocketTimeoutException timeout = new SocketTimeoutException("Controlled connect timeout");
+		Request request = (Request) Proxy.newProxyInstance(Request.class.getClassLoader(), new Class<?>[]{Request.class}, (proxy, method, arguments) -> {
+			if (method.getName().equals("send") && method.getParameterCount() == 0) {
+				throw new ExecutionException(timeout);
+			}
+			throw new AssertionError("Unexpected request method: " + method);
 		});
-		assertEquals(SocketTimeoutException.class, e.getCause().getClass());
-		long run = System.currentTimeMillis() - start;
-		assertTrue(run < 1500);
+		ExecutionException exception = assertThrows(ExecutionException.class, () -> client.createCallable(message, request).call());
+		assertSame(timeout, exception.getCause());
 	}
 
 	@Test
 	public void testClientServerError() {
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		ExecutorService executorService = newExecutor();
 		StreamClientConfigurationImpl configuration = new StreamClientConfigurationImpl(executorService, 1);
-		JettyStreamClientImpl clients = new JettyStreamClientImpl(configuration);
+		JettyStreamClientImpl clients = newClient(configuration);
 		StreamRequestMessage requestMessage = new StreamRequestMessage(UpnpRequest.Method.GET, URI.create("http://" + host + "/"));
 		Request request = clients.createRequest(requestMessage);
 		try {
@@ -162,9 +213,9 @@ public class JettyStreamClientImplTest {
 	}
 
 	private void testClientMethod(UpnpRequest.Method upnpMethod, String body) {
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		ExecutorService executorService = newExecutor();
 		StreamClientConfigurationImpl configuration = new StreamClientConfigurationImpl(executorService);
-		JettyStreamClientImpl clients = new JettyStreamClientImpl(configuration);
+		JettyStreamClientImpl clients = newClient(configuration);
 		StreamRequestMessage requestMessage = new StreamRequestMessage(upnpMethod, URI.create("http://" + host + "/"));
 		if (body != null) {
 			requestMessage.setBody(body);

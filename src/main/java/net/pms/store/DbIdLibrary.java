@@ -26,7 +26,8 @@ import net.pms.media.audio.metadata.AlbumMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MusicAlbumFolder;
-import net.pms.store.container.MusicBrainzPersonFolder;
+import net.pms.store.container.PersonFolder;
+import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.VirtualFolderDbId;
 
 /**
@@ -104,7 +105,12 @@ public class DbIdLibrary {
 			if (ids.size() > 1) {
 				LOGGER.warn("multiple StoreResource ids exist for: {}", typeRootFolder);
 			}
-			return (VirtualFolderDbId) renderer.getMediaStore().getResource(Long.toString(ids.get(0)));
+			for (Long id : ids) {
+				if (renderer.getMediaStore().getResource(id.toString()) instanceof VirtualFolderDbId folder &&
+					!(folder.getParent() instanceof PlaylistFolder)) {
+					return folder;
+				}
+			}
 		}
 		return null;
 	}
@@ -164,13 +170,13 @@ public class DbIdLibrary {
 	 * @param typeIdent Can be composer, conductor or regular person.
 	 * @return
 	 */
-	public static MusicBrainzPersonFolder addLibraryResourcePerson(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+	public static PersonFolder addLibraryResourcePerson(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		if (StringUtils.isAllBlank(typeIdent.ident)) {
 			LOGGER.warn("no person name given.");
 			return null;
 		}
 
-		MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
+		PersonFolder personFolder = new PersonFolder(renderer, typeIdent.ident, typeIdent);
 		personFolder.getPersonFolder(renderer).addChild(personFolder);
 		personFolder.discoverChildren();
 		return personFolder;
@@ -205,7 +211,7 @@ public class DbIdLibrary {
 
 				// Lookup person's album folder as parent
 				DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, album.getArtist());
-				MusicBrainzPersonFolder person = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, tiPerson);
+				PersonFolder person = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, tiPerson);
 				if (person == null) {
 					person = DbIdLibrary.addLibraryResourcePerson(renderer, tiPerson);
 				}

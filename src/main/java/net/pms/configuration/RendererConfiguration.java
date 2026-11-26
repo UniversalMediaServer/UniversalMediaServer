@@ -100,6 +100,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String KEY_MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String KEY_MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
+	private static final String KEY_OFFER_HLS_RESOURCE = "OfferHlsResource";
 	private static final String KEY_OFFER_SUBTITLES_BY_PROTOCOL_INFO = "OfferSubtitlesByProtocolInfo";
 	private static final String KEY_OFFER_SUBTITLES_AS_SOURCE = "OfferSubtitlesAsSource";
 	private static final String KEY_OUTPUT_3D_FORMAT = "Output3DFormat";
@@ -154,7 +155,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	public static final File NOFILE = new File("NOFILE");
 	public static final String UNKNOWN_ICON = "unknown.png";
 
-	protected Matcher sortedHeaderMatcher;
+	protected Pattern sortedHeaderPattern;
 
 	protected UmsConfiguration umsConfiguration = PMS.getConfiguration();
 	protected boolean loaded = false;
@@ -285,7 +286,7 @@ public class RendererConfiguration extends BaseConfiguration {
 			searchMap.put("User-Agent", getUserAgent());
 			searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
 			String re = searchMap.toRegex();
-			sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
+			sortedHeaderPattern = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE) : null;
 
 			boolean addWatch = file != f;
 			file = f;
@@ -386,6 +387,8 @@ public class RendererConfiguration extends BaseConfiguration {
 			LOGGER.info("Reloading renderer configuration: {}", f);
 			loaded = false;
 			init(f);
+			// init() recompiles the header pattern, so remembered matches may be wrong now
+			RendererConfigurations.clearHeaderMatches();
 		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
 		}
@@ -1341,6 +1344,13 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * Whether a video item also gets a res element pointing at its HLS rendition.
+	 */
+	public boolean offerHlsResource() {
+		return getBoolean(KEY_OFFER_HLS_RESOURCE, false);
+	}
+
+	/**
 	 * Note: This can return false even when the renderer config has defined
 	 * external subtitles support for individual filetypes.
 	 *
@@ -1496,9 +1506,9 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return True if the pattern matches or false if no match, no headers, or no matcher.
 	 */
 	public boolean match(SortedHeaderMap headers) {
-		if (headers != null && !headers.isEmpty() && sortedHeaderMatcher != null) {
+		if (headers != null && !headers.isEmpty() && sortedHeaderPattern != null) {
 			try {
-				return sortedHeaderMatcher.reset(headers.joined()).find();
+				return sortedHeaderPattern.matcher(headers.joined()).find();
 			} catch (Exception e) {
 				return false;
 			}

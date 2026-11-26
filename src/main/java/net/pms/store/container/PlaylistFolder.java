@@ -20,15 +20,18 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -36,19 +39,31 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
+import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableContainerFiles;
 import net.pms.database.MediaTableFiles;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.parsers.WebStreamParser;
+import net.pms.parsers.WebStreamParser.WebStreamProbe;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.DbIdResourceLocator;
+import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.MediaInfoStore;
+import net.pms.store.MediaStore;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
@@ -57,6 +72,7 @@ import net.pms.store.ThumbnailStore;
 import net.pms.store.item.FeedItem;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
+import net.pms.store.item.WebStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.FileUtil;
@@ -80,14 +96,48 @@ public final class PlaylistFolder extends StoreContainer {
 
 	public static final String DIRECTIVE_ALBUMART_URI = "#EXTIMG:";
 	public static final String DIRECTIVE_RADIOBROWSERUUID = "#RADIOBROWSERUUID:";
+	public static final String DIRECTIVE_RATING = "#EXTRATING:";
+	public static final String DIRECTIVE_PLAYLIST_RATING = "#EXTPLAYLISTRATING:";
+	public static final String DIRECTIVE_ICY_ORDER = "#EXTICYORDER:";
+	private static final String DIRECTIVE_DB_ID_RESOURCE = "#DBIDRESOURCE:";
+
+	// How long the first browse of a web playlist waits for its entries.
+	private static final long WEB_ENTRY_BUDGET_SECONDS = 2;
+
+	// How long it waits when there is still nothing to show at all.
+	private static final long WEB_ENTRY_EMPTY_BUDGET_SECONDS = 15;
+
+	// Set once the browse has been answered, so entries that resolve later make renderers refresh.
+	private final AtomicBoolean webEntriesResponded = new AtomicBoolean(false);
+
+	// Counts the passes of resolveOnce(). An entry that arrives from an older pass belongs to a children list that no longer exists
+	private final AtomicLong resolveGeneration = new AtomicLong();
+
 	private static final ExecutorService WEB_ENTRY_EXECUTOR =
-		Executors.newFixedThreadPool(Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())));
+		Executors.newFixedThreadPool(Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())), r -> {
+			Thread thread = new Thread(r, "web-playlist-entry");
+			thread.setDaemon(true);
+			return thread;
+		});
+
+	// A nested playlist must not wait for entries that need the pool it is running on.
+	private static final ThreadLocal<Boolean> IN_WEB_ENTRY_POOL = ThreadLocal.withInitial(() -> false);
+
+	// Reads the files of a playlist ahead of the sequential handling below.
+	private static final ExecutorService ENTRY_PREFETCH_EXECUTOR =
+		Executors.newFixedThreadPool(Math.max(4, Math.min(8, Runtime.getRuntime().availableProcessors() * 2)),
+			runnable -> {
+				Thread thread = new Thread(runnable, "playlist-entry-prefetch");
+				thread.setDaemon(true);
+				return thread;
+			});
 
 	private final String uri;
 	private File uriAsFile;
 	private final boolean isweb;
 	private final int defaultContent;
 	private boolean utf8 = false;
+	private String playlistRatingDirective = null;
 
 	public PlaylistFolder(Renderer renderer, String name, String uri, int type) {
 		super(renderer, name, null);
@@ -121,6 +171,15 @@ public final class PlaylistFolder extends StoreContainer {
 	@Override
 	public String getSystemName() {
 		return isweb ? uri : ProcessUtil.getSystemPathName(uri);
+	}
+
+	/**
+	 * GETSYSTEMNAME() returns a file path or an URL, which identifies this
+	 * container globally, so GETRATINGKEY() can use it as is.
+	 */
+	@Override
+	protected boolean hasGlobalRatingKey() {
+		return true;
 	}
 
 	@Override
@@ -162,13 +221,12 @@ public final class PlaylistFolder extends StoreContainer {
 		return extension;
 	}
 
+	private Charset getCharset() {
+		return utf8 ? StandardCharsets.UTF_8 : StandardCharsets.ISO_8859_1;
+	}
+
 	private BufferedReader getBufferedReader(boolean utf8) throws IOException {
-		Charset charset;
-		if (utf8) {
-			charset = StandardCharsets.UTF_8;
-		} else {
-			charset = StandardCharsets.ISO_8859_1;
-		}
+		Charset charset = utf8 ? StandardCharsets.UTF_8 : StandardCharsets.ISO_8859_1;
 		if (FileUtil.isUrl(uri)) {
 			BOMInputStream bi = BOMInputStream.builder().setInputStream(URI.create(uri).toURL().openStream()).get();
 			return new BufferedReader(new InputStreamReader(bi, charset));
@@ -183,36 +241,87 @@ public final class PlaylistFolder extends StoreContainer {
 		return null;
 	}
 
+	/**
+	 * The playlist's picture, most specific source first:
+	 *
+	 * 1. an image named after the playlist
+	 * 2. a cover set through UpdateObject
+	 * 3. the cover picture of the directory
+	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (!isweb) {
-			File diskThumbnail = SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile(), FilenameUtils.removeExtension(uriAsFile.getName()));
-			DLNAThumbnailInputStream result = null;
-			try {
-				if (diskThumbnail != null) {
-					result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(diskThumbnail));
-				}
-			} catch (IOException e) {
-				LOGGER.trace("getThumbnailInputStream", e);
+			DLNAThumbnailInputStream named = readDiskThumbnail(
+				SystemFilesHelper.getNamedThumbnail(
+					uriAsFile.getParentFile(),
+					FilenameUtils.removeExtension(uriAsFile.getName())
+				)
+			);
+			if (named != null) {
+				return named;
 			}
-
-			// Just use folder image as Thumbnail is available
-			if (result == null) {
-				diskThumbnail = SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile());
-				if (diskThumbnail != null) {
-					try {
-						result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(diskThumbnail));
-					} catch (IOException e) {
-						LOGGER.trace("getThumbnailInputStream", e);
-					}
-				}
-			}
-
-			return result != null ? result : super.getThumbnailInputStream();
-		} else {
-			DLNAThumbnailInputStream storeThum = ThumbnailStore.getThumbnailInputStream(getLongId());
-			return storeThum != null ? storeThum : super.getThumbnailInputStream();
 		}
+
+		DLNAThumbnailInputStream userThumbnail = getUserThumbnailInputStream();
+		if (userThumbnail != null) {
+			return userThumbnail;
+		}
+
+		if (!isweb) {
+			List<String> thumbnailNames = renderer.getUmsConfiguration().getFolderThumbnailNames();
+			DLNAThumbnailInputStream folderImage = readDiskThumbnail(SystemFilesHelper.getFolderThumbnail(uriAsFile.getParentFile(), thumbnailNames));
+			if (folderImage != null) {
+				return folderImage;
+			}
+		}
+		return super.getThumbnailInputStream();
+	}
+
+	private static DLNAThumbnailInputStream readDiskThumbnail(File diskThumbnail) {
+		if (diskThumbnail == null) {
+			return null;
+		}
+		try {
+			return ThumbnailStore.getThumbnailInputStreamForFile(diskThumbnail);
+		} catch (IOException e) {
+			LOGGER.trace("getThumbnailInputStream", e);
+			return null;
+		}
+	}
+
+	/**
+	 * The thumbnail a user set for this playlist
+	 */
+	private DLNAThumbnailInputStream getUserThumbnailInputStream() {
+		Long thumbnailId = MediaInfoStore.getStoredUserThumbnailId(getFileName());
+		if (thumbnailId == null) {
+			// The playlist file usually has no media info in memory, so the stored id is the only source.
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				thumbnailId = MediaTableFiles.getUserThumbnailId(connection, getFileName());
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return thumbnailId != null ? ThumbnailStore.getThumbnailInputStream(thumbnailId) : null;
+	}
+
+	/**
+	 * Stores a cover next to the playlist file.
+	 */
+	public File writeCoverFile(DLNAThumbnail thumbnail) throws IOException {
+		File playlistFile = getPlaylistfile();
+		if (playlistFile == null || thumbnail == null) {
+			return null;
+		}
+		List<String> thumbnailNames = renderer.getUmsConfiguration().getFolderThumbnailNames();
+		if (SystemFilesHelper.isFolderThumbnail(playlistFile, false, thumbnailNames)) {
+			LOGGER.warn("not storing the cover of {} : the name is reserved for the folder thumbnail", playlistFile);
+			return null;
+		}
+		return SystemFilesHelper.storeThumbnail(playlistFile.getParentFile(),
+			FilenameUtils.removeExtension(playlistFile.getName()), thumbnail);
 	}
 
 	@Override
@@ -225,11 +334,63 @@ public final class PlaylistFolder extends StoreContainer {
 		resolveOnce();
 	}
 
+	/**
+	 * Parses the files of this playlist in parallel, so the loop below finds their metadata ready.
+	 *
+	 * Nothing is added to the tree here: MediaInfoStore keeps what it read, and the sequential pass
+	 * then only picks it up. Failures are ignored on purpose - whatever did not work here is simply
+	 * done again, and reported, where the entry is actually added.
+	 *
+	 * @param entries the entries of this playlist
+	 */
+	private void prefetchLocalEntries(List<Entry> entries) {
+		if (entries == null || entries.size() < 2) {
+			return;
+		}
+		String parent = new File(uri).getParent();
+		if (isweb || parent == null) {
+			return;
+		}
+		List<CompletableFuture<Void>> pending = new ArrayList<>();
+		for (Entry entry : entries) {
+			if (entry == null || entry.dbIdReference() || FileUtil.isUrl(entry.fileName())) {
+				continue;
+			}
+			File file = new File(FilenameUtils.concat(parent, entry.fileName()));
+			if (!file.isFile()) {
+				continue;
+			}
+			String ext = FileUtil.getUrlExtension(entry.fileName());
+			Format format = ext != null ? FormatFactory.getAssociatedFormat("." + ext) : null;
+			if (format == null || format.getType() == Format.PLAYLIST) {
+				continue;
+			}
+			pending.add(CompletableFuture.runAsync(MediaStore.asRequestWork(() -> {
+				try {
+					MediaInfoStore.getMediaInfo(file.getAbsolutePath(), file, format, format.getType());
+				} catch (Exception e) {
+					LOGGER.trace("Could not read \"{}\" ahead of time: {}", file.getName(), e.getMessage());
+				}
+			}), ENTRY_PREFETCH_EXECUTOR));
+		}
+		if (pending.isEmpty()) {
+			return;
+		}
+		long started = System.currentTimeMillis();
+		CompletableFuture.allOf(pending.toArray(new CompletableFuture[0])).join();
+		LOGGER.debug("Read {} playlist entries of \"{}\" ahead in {} ms",
+			pending.size(), getName(), System.currentTimeMillis() - started);
+	}
+
 	@Override
 	protected void resolveOnce() {
 		Long containerId = MediaTableFiles.getOrInsertFileId(uri, getLastModified(), Format.PLAYLIST);
 
 		List<Entry> entries = getPlaylistEntries();
+		applyPlaylistRatingDirective();
+		prefetchLocalEntries(entries);
+		webEntriesResponded.set(false);
+		final long generation = resolveGeneration.incrementAndGet();
 		List<CompletableFuture<ResolvedWebEntry>> webEntryFutures = new ArrayList<>();
 		for (Entry entry : entries) {
 			if (entry == null) {
@@ -237,7 +398,9 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 			LOGGER.debug("Adding playlist entry: {}", entry);
 
-			if (!isweb && !FileUtil.isUrl(entry.fileName())) {
+			if (entry.dbIdReference()) {
+				addSavedDbIdReference(entry.fileName());
+			} else if (!isweb && !FileUtil.isUrl(entry.fileName())) {
 				int type = defaultContent;
 				String ext = FileUtil.getUrlExtension(entry.fileName());
 				if (ext != null) {
@@ -249,7 +412,9 @@ public final class PlaylistFolder extends StoreContainer {
 				}
 				File en = new File(FilenameUtils.concat(new File(uri).getParent(), entry.fileName()));
 				if (en.exists()) {
-					if (type == Format.PLAYLIST) {
+					if (en.isDirectory()) {
+						addChild(new RealFolder(renderer, en));
+					} else if (type == Format.PLAYLIST) {
 						addChild(new PlaylistFolder(renderer, en));
 					} else {
 						addChild(new RealFile(renderer, en, entry.title()));
@@ -275,12 +440,15 @@ public final class PlaylistFolder extends StoreContainer {
 					MediaTableContainerFiles.addContainerEntry(containerId, entryId);
 				} else {
 					LOGGER.debug("Web playlist entry queued for async resolve: {}", u);
-					webEntryFutures.add(CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR));
+					webEntryFutures.add(CompletableFuture.supplyAsync(() -> resolveWebEntry(entry), WEB_ENTRY_EXECUTOR)
+						.whenComplete((resolved, failure) -> addResolvedWebEntry(containerId, generation, resolved, failure)));
 				}
 			}
 		}
 
-		collectWebFutures(containerId, webEntryFutures);
+		awaitWebEntries(webEntryFutures);
+		// Everything still in flight announces itself through the update id from here on.
+		webEntriesResponded.set(true);
 
 		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == StoreResourceSorter.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
@@ -292,46 +460,70 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	/**
-	 * Asynchronously collects resolved web entries, adds them as children and updates the database. Waits max. up to 3 seconds for resolution,
-	 * then adds any remaining unresolved entries to the failedEntries list for later retry or other error handling.
-	 *
-	 * @param containerId
-	 * @param webEntryFutures
+	 * Gives the entries of a web playlist a short moment to arrive, so the first answer is not empty.
 	 */
-	private void collectWebFutures(Long containerId, List<CompletableFuture<ResolvedWebEntry>> webEntryFutures) {
+	private void awaitWebEntries(List<CompletableFuture<ResolvedWebEntry>> webEntryFutures) {
 		if (webEntryFutures.isEmpty()) {
 			return;
 		}
-
-		try {
-			CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]))
-				.get(3, TimeUnit.SECONDS);
-		} catch (java.util.concurrent.TimeoutException e) {
-			LOGGER.debug("Web playlist entry resolution timed out — collecting completed entries");
-		} catch (Exception e) {
-			// Individual failures are handled per-future below
+		if (Boolean.TRUE.equals(IN_WEB_ENTRY_POOL.get())) {
+			LOGGER.debug("Not waiting for {} web playlist entries, this is already a resolving thread", webEntryFutures.size());
+			return;
 		}
+		CompletableFuture<Void> all = CompletableFuture.allOf(webEntryFutures.toArray(new CompletableFuture[0]));
+		if (awaitWebEntries(all, WEB_ENTRY_BUDGET_SECONDS) || !getChildren().isEmpty()) {
+			return;
+		}
+		LOGGER.debug("{} web playlist entries are not resolved within {} s and there is nothing to show, waiting up to {} s",
+			webEntryFutures.size(), WEB_ENTRY_BUDGET_SECONDS, WEB_ENTRY_EMPTY_BUDGET_SECONDS);
+		awaitWebEntries(all, WEB_ENTRY_EMPTY_BUDGET_SECONDS - WEB_ENTRY_BUDGET_SECONDS);
+	}
 
-		// Collect whichever futures completed within the budget
-		List<ResolvedWebEntry> resolvedWebEntries = new ArrayList<>();
-		for (CompletableFuture<ResolvedWebEntry> future : webEntryFutures) {
-			if (!future.isDone() || future.isCompletedExceptionally() || future.isCancelled()) {
-				continue;
-			}
-			try {
-				ResolvedWebEntry resolved = future.getNow(null);
-				if (resolved != null && resolved.resource() != null) {
-					resolvedWebEntries.add(resolved);
-				}
-			} catch (Exception e) {
-				Throwable cause = (e instanceof CompletionException && e.getCause() != null) ? e.getCause() : e;
+	/**
+	 * Waits the given number of seconds for the entries. Returns false when they are still in flight.
+	 */
+	private boolean awaitWebEntries(CompletableFuture<Void> all, long seconds) {
+		try {
+			all.get(seconds, TimeUnit.SECONDS);
+		} catch (java.util.concurrent.TimeoutException e) {
+			return false;
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} catch (Exception e) {
+			// Individual failures are reported by the completion handler
+		}
+		return true;
+	}
+
+	/**
+	 * Adds a resolved web entry and stores it. A late entry bumps the update id of this folder, so renderers ask again and see it.
+	 */
+	private void addResolvedWebEntry(Long containerId, long generation, ResolvedWebEntry resolved, Throwable failure) {
+		if (failure != null) {
+			Throwable cause = (failure instanceof CompletionException && failure.getCause() != null) ? failure.getCause() : failure;
+			if (cause instanceof WebEntryResolveException re && re.entry != null) {
+				LOGGER.warn("Web playlist entry resolve failed for: {}", re.entry);
+			} else {
 				LOGGER.debug("Web playlist entry resolve failed", cause);
 			}
+			return;
+		}
+		if (resolved == null || resolved.resource() == null) {
+			return;
 		}
 
-		for (ResolvedWebEntry resolved : resolvedWebEntries) {
+		if (generation != resolveGeneration.get()) {
+			LOGGER.debug("Dropping web playlist entry {} from an outdated resolve pass", resolved.url());
+			return;
+		}
+		if (hasChildWithSystemName(resolved.resource().getSystemName())) {
+			LOGGER.debug("Web playlist entry {} is already listed", resolved.url());
+			return;
+		}
+		try {
 			LOGGER.debug("Web playlist entry async resolved: {} type {}", resolved.url(), resolved.type());
 			addChild(resolved.resource());
+			resolved.resource().syncResolve();
 			Long entryId;
 			if (resolved.resource() instanceof StoreContainer storeContainer) {
 				entryId = MediaTableFiles.getOrInsertFileId(resolved.url(), storeContainer.getLastModified(), resolved.type());
@@ -339,30 +531,27 @@ public final class PlaylistFolder extends StoreContainer {
 				entryId = MediaTableFiles.getOrInsertFileId(resolved.url(), 0L, resolved.type());
 			}
 			MediaTableContainerFiles.addContainerEntry(containerId, entryId);
-		}
-
-		for (CompletableFuture<ResolvedWebEntry> future : webEntryFutures) {
-			if (!future.isDone()) {
-				continue;
+			if (webEntriesResponded.get()) {
+				// The browse is already answered, so the renderer only learns about this entry through the update id.
+				MediaStoreIds.incrementUpdateId(getLongId());
 			}
-			if (future.isCompletedExceptionally()) {
-				try {
-					future.join();
-				} catch (CompletionException e) {
-					if (e.getCause() instanceof WebEntryResolveException re && re.entry != null) {
-						LOGGER.warn("Web playlist entry resolve failed for: {}", re.entry);
-					}
-				}
-			}
+		} catch (Exception e) {
+			LOGGER.debug("Could not add the resolved web playlist entry {}: {}", resolved.url(), e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
 	private ResolvedWebEntry resolveWebEntry(Entry entry) {
+		IN_WEB_ENTRY_POOL.set(true);
 		String u = FileUtil.urlJoin(uri, entry.fileName());
-		int type = WebStreamParser.getWebStreamType(entry.fileName(), defaultContent);
+		WebStreamProbe probe = WebStreamParser.probe(u, defaultContent);
+		int type = probe.type();
 		StoreResource d = createWebResource(entry, u, type);
 		if (d == null) {
 			throw new WebEntryResolveException(entry, "Unsupported web stream type for entry");
+		}
+		if (d instanceof WebStream) {
+			MediaInfoStore.getWebStreamMediaInfo(u, type, probe.headers());
 		}
 		return new ResolvedWebEntry(entry, u, type, d);
 	}
@@ -377,7 +566,11 @@ public final class PlaylistFolder extends StoreContainer {
 		};
 	}
 
-	public boolean deleteEntry(String url) {
+	public synchronized boolean deleteEntry(String url) {
+		return deleteEntry(line -> !isDbIdReferenceLine(line) && line.equalsIgnoreCase(url));
+	}
+
+	private boolean deleteEntry(Predicate<String> matches) {
 		try (BufferedReader br = getBufferedReader(utf8)) {
 			boolean entryRemoved = false;
 			StringBuilder out = new StringBuilder();
@@ -391,13 +584,15 @@ public final class PlaylistFolder extends StoreContainer {
 			lastEntry = new StringBuilder();
 			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
-				if (line.startsWith("#")) {
+				if ("#EXTM3U".equalsIgnoreCase(line) || StringUtils.startsWithIgnoreCase(line, DIRECTIVE_PLAYLIST_RATING)) {
+					out.append(line).append(System.lineSeparator());
+				} else if (line.startsWith("#") && !isDbIdReferenceLine(line)) {
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 				} else if (StringUtils.isAllBlank(line)) {
 					lastEntry.append(System.getProperty("line.separator"));
 				} else {
-					// Parsing finished. This line is the filename.
-					if (!line.equalsIgnoreCase(url)) {
+					// A path, URL or DBID directive closes the entry block.
+					if (!matches.test(line)) {
 						lastEntry.append(line).append(System.getProperty("line.separator"));
 						out.append(lastEntry);
 					} else {
@@ -408,7 +603,7 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 
 			if (entryRemoved) {
-				writeContentToFile(out);
+				writeContentToFile(out.append(lastEntry));
 			}
 			return entryRemoved;
 		} catch (Exception er) {
@@ -417,17 +612,291 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
+	/**
+	 * Appends a web resource.The url has to come last!
+	 */
+	public synchronized boolean addWebEntry(String url, String title, String albumArtUri, String radioBrowserUuid) {
+		Map<String, String> directives = new LinkedHashMap<>();
+		directives.put(DIRECTIVE_RADIOBROWSERUUID, radioBrowserUuid);
+		directives.put(DIRECTIVE_ALBUMART_URI, albumArtUri);
+		String entryUrl = StringUtils.trim(url);
+		try {
+			if (!appendEntry(new Entry(entryUrl, title, directives, false))) {
+				return false;
+			}
+		} catch (IOException e) {
+			LOGGER.error("cannot add {} to playlist", entryUrl, e);
+			return false;
+		}
+		warmWebEntry(entryUrl);
+		playlistEntryChanged();
+		return true;
+	}
+
+	public synchronized String addWebStreamReference(WebStream source, int type) throws IOException {
+		String url = StringUtils.trim(source.getUrl());
+		Entry entry = new Entry(url, source.getName(), source.getPlaylistDirectives(), false);
+		StoreResource reference = createWebResource(entry, url, type);
+		if (reference == null) {
+			throw new IOException("The web stream type is not supported by playlists");
+		}
+		if (!appendEntry(entry)) {
+			return null;
+		}
+		// The source already supplied the type. Register the new child without probing it again.
+		addChildInternal(reference);
+		playlistEntryChanged();
+		return reference.getId();
+	}
+
+	public synchronized String addDbIdReference(DbIdTypeAndIdent id) throws IOException {
+		if (isweb || !isM3uPlaylist()) {
+			throw new IOException("DBID references can only be added to a local M3U or M3U8 playlist");
+		}
+		StringBuilder content = buildPlaylistWithEntry(new Entry(id.toEncodedDbId(), null, Map.of(), true));
+		if (content == null) {
+			return null;
+		}
+		StoreResource reference = DbIdResourceLocator.createPlaylistReference(renderer, id);
+		if (reference == null) {
+			throw new IOException("Cannot resolve DBID resource " + id);
+		}
+		addChildInternal(reference);
+		boolean saved = false;
+		try {
+			if (reference.getLongId() == null) {
+				throw new IOException("Cannot register the DBID playlist entry");
+			}
+			writeContentToFile(content);
+			saved = true;
+			playlistEntryChanged();
+			return reference.getId();
+		} finally {
+			if (!saved) {
+				removeChild(reference);
+			}
+		}
+	}
+
+	public synchronized boolean removeDbIdReference(StoreResource reference, DbIdTypeAndIdent id) {
+		if (!deleteEntry(line -> sameDbIdReference(line, id.toEncodedDbId()))) {
+			return false;
+		}
+		removeChild(reference);
+		playlistEntryChanged();
+		return true;
+	}
+
+	private void addSavedDbIdReference(String encodedId) {
+		try {
+			if (encodedId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+				DbIdTypeAndIdent id = DbIdMediaType.getTypeIdentByDbid(encodedId);
+				StoreResource reference = DbIdResourceLocator.createPlaylistReference(renderer, id);
+				if (reference != null) {
+					addChildInternal(reference);
+					return;
+				}
+			}
+			LOGGER.debug("Unavailable DBID resource {} in playlist {}", encodedId, getName());
+		} catch (IllegalArgumentException e) {
+			LOGGER.debug("Invalid DBID resource {} in playlist {}", encodedId, getName(), e);
+		}
+	}
+
+	private static boolean isDbIdReferenceLine(String line) {
+		return StringUtils.startsWithIgnoreCase(line, DIRECTIVE_DB_ID_RESOURCE);
+	}
+
+	private static boolean sameDbIdReference(String line, String encodedId) {
+		if (!isDbIdReferenceLine(line)) {
+			return false;
+		}
+		String storedId = line.substring(DIRECTIVE_DB_ID_RESOURCE.length()).trim();
+		try {
+			return storedId.startsWith(DbIdMediaType.GENERAL_PREFIX) &&
+				DbIdMediaType.getTypeIdentByDbid(storedId).toEncodedDbId().equals(encodedId);
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
+
+	private boolean appendEntry(Entry entry) throws IOException {
+		StringBuilder content = buildPlaylistWithEntry(entry);
+		if (content == null) {
+			return false;
+		}
+		writeContentToFile(content);
+		return true;
+	}
+
+	private StringBuilder buildPlaylistWithEntry(Entry entry) throws IOException {
+		String entryUrl = entry.fileName();
+		if (StringUtils.isBlank(entryUrl)) {
+			throw new IOException("The playlist entry has no URL");
+		}
+		if (isweb || !isM3uPlaylist()) {
+			throw new IOException("Web entries can only be added to a local M3U or M3U8 playlist");
+		}
+		StringBuilder out = new StringBuilder();
+		String nl = System.lineSeparator();
+		try (BufferedReader br = getBufferedReader(utf8)) {
+			if (br == null) {
+				throw new IOException("The playlist is too large to read");
+			}
+			boolean firstline = true;
+			String line;
+			while ((line = br.readLine()) != null) {
+				line = line.trim();
+				if (firstline) {
+					firstline = false;
+					if (!"#EXTM3U".equals(line)) {
+						LOGGER.debug("adding missing #EXTM3U directive.");
+						out.append("#EXTM3U").append(nl).append(nl);
+					}
+				}
+				if (entry.dbIdReference() ? sameDbIdReference(line, entryUrl) : line.equalsIgnoreCase(entryUrl)) {
+					LOGGER.debug("{} is already in this playlist", entryUrl);
+					return null;
+				}
+				out.append(line).append(nl);
+			}
+			if (firstline) {
+				// the file was empty
+				out.append("#EXTM3U").append(nl).append(nl);
+			}
+			out.append(nl);
+			if (entry.dbIdReference()) {
+				out.append(DIRECTIVE_DB_ID_RESOURCE);
+			} else {
+				out.append("#EXTINF:-1,").append(StringUtils.isBlank(entry.title()) ? entryUrl : entry.title().trim()).append(nl);
+				for (Map.Entry<String, String> directive : entry.directives().entrySet()) {
+					if (StringUtils.isNotBlank(directive.getValue())) {
+						out.append(directive.getKey()).append(directive.getValue().trim()).append(nl);
+					}
+				}
+			}
+			out.append(entryUrl).append(nl);
+		}
+		return out;
+	}
+
+	private void playlistEntryChanged() {
+		// the children were built from the old file, so the next browse has to read it again
+		setDiscovered(false);
+		// let the renderers know the playlist changed
+		MediaStoreIds.incrementUpdateIdForFilename(getFileName());
+	}
+
+	/**
+	 * Reads a newly added web entry once and records its format, so resolving the playlist afterwards
+	 * finds it in the database and does not have to wait for the network again.
+	 */
+	private void warmWebEntry(String url) {
+		WEB_ENTRY_EXECUTOR.execute(() -> {
+			try {
+				WebStreamProbe probe = WebStreamParser.probe(url, defaultContent);
+				int type = probe.type();
+				MediaInfoStore.getWebStreamMediaInfo(url, type, probe.headers());
+				MediaTableFiles.getOrInsertFileId(url, 0L, type);
+			} catch (Exception e) {
+				LOGGER.debug("could not resolve the new playlist entry {} up front: {}", url, e.getMessage());
+			}
+		});
+	}
+
+	private boolean hasChildWithSystemName(String systemName) {
+		if (systemName == null) {
+			return false;
+		}
+		for (StoreResource child : new ArrayList<>(getChildren())) {
+			if (child != null && systemName.equals(child.getSystemName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
+		updateDirective(url, DIRECTIVE_ALBUMART_URI, externalAlbumArtUri);
+	}
+
+	/**
+	 * A NULL rating removes the directive, so an entry that is no longer rated does not keep an old value in the file.
+	 */
+	public void updateRatingDirective(String url, Integer rating) {
+		updateDirective(url, DIRECTIVE_RATING, rating == null ? null : rating.toString());
+	}
+
+	public void updateIcyOrderDirective(String url, String order) {
+		updateDirective(url, DIRECTIVE_ICY_ORDER, order);
+	}
+
+	/**
+	 * Stores the rating of the playlist itself in its header.
+	 */
+	public synchronized void updatePlaylistRatingDirective(Integer rating) {
+		if (!isM3uPlaylist()) {
+			LOGGER.debug("updating {} is only possible for m3u or m3u8 files. This playlist is {}",
+				DIRECTIVE_PLAYLIST_RATING, getExtension());
+			return;
+		}
+		String value = rating == null ? null : rating.toString();
+		try (BufferedReader br = getBufferedReader(utf8)) {
+			StringBuilder out = new StringBuilder();
+			String nl = System.getProperty("line.separator");
+			out.append("#EXTM3U").append(nl);
+			if (value != null) {
+				out.append(DIRECTIVE_PLAYLIST_RATING).append(value).append(nl);
+			}
+			String line;
+			boolean firstline = true;
+			while (br != null && (line = br.readLine()) != null) {
+				String trimmed = line.trim();
+				if (firstline) {
+					firstline = false;
+					if ("#EXTM3U".equals(trimmed)) {
+						continue;
+					}
+					LOGGER.debug("adding missing #EXTM3U directive.");
+				}
+				if (trimmed.toUpperCase().startsWith(DIRECTIVE_PLAYLIST_RATING)) {
+					continue;
+				}
+				out.append(trimmed).append(nl);
+			}
+			playlistRatingDirective = value;
+			writeContentToFile(out);
+		} catch (Exception er) {
+			LOGGER.error("cannot update {} in playlist", DIRECTIVE_PLAYLIST_RATING, er);
+		}
+	}
+
+	private void applyPlaylistRatingDirective() {
+		if (playlistRatingDirective == null || getRating() != null) {
+			return;
+		}
+		try {
+			setRating(Integer.valueOf(playlistRatingDirective));
+		} catch (NumberFormatException e) {
+			LOGGER.debug("Ignoring the playlist rating directive \"{}\" of {} because it is not a number",
+				playlistRatingDirective, getFileName());
+		}
+	}
+
+	/**
+	 * Rewrites the playlist with a new value for one directive of one entry.
+	 */
+	private synchronized void updateDirective(String url, String directive, String value) {
 		boolean firstline = true;
 		try (BufferedReader br = getBufferedReader(utf8)) {
 			StringBuilder out = new StringBuilder();
 			if (!isM3uPlaylist()) {
-				LOGGER.debug("updating album art is only possible for m3u or m3u8 files. This playlist is {}", getExtension());
+				LOGGER.debug("updating {} is only possible for m3u or m3u8 files. This playlist is {}", directive, getExtension());
 				return;
 			}
 			String line = "";
 			StringBuilder lastEntry = new StringBuilder();
-			String lastAlbumArtDirective = null;
+			String lastDirective = null;
 			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
 				if (firstline) {
@@ -437,46 +906,41 @@ public final class PlaylistFolder extends StoreContainer {
 						lastEntry.append("#EXTM3U\n\n");
 					}
 				}
-				if (line.startsWith(DIRECTIVE_ALBUMART_URI)) {
-					lastAlbumArtDirective = line.substring(DIRECTIVE_ALBUMART_URI.length());
-				} else if (line.startsWith("#")) {
+				if (line.toUpperCase().startsWith(directive)) {
+					lastDirective = line.substring(directive.length());
+				} else if (line.startsWith("#") && !isDbIdReferenceLine(line)) {
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 				} else if (StringUtils.isAllBlank(line)) {
 					lastEntry.append(System.getProperty("line.separator"));
 				} else {
-					// Parsing finished. This line is the filename.
+					// A path, URL or DBID directive closes the entry block.
 					if (line.equalsIgnoreCase(url)) {
-						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(externalAlbumArtUri).append(System.getProperty("line.separator"));
-					} else if (lastAlbumArtDirective != null) {
-						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(lastAlbumArtDirective).append(System.getProperty("line.separator"));
+						if (value != null) {
+							lastEntry.append(directive).append(value).append(System.getProperty("line.separator"));
+						}
+					} else if (lastDirective != null) {
+						lastEntry.append(directive).append(lastDirective).append(System.getProperty("line.separator"));
 					}
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 					out.append(lastEntry);
 					lastEntry = new StringBuilder();
-					lastAlbumArtDirective = null;
+					lastDirective = null;
 				}
 			}
+			// whatever follows the last entry - a trailing comment for example - would be lost otherwise
+			out.append(lastEntry);
 
 			writeContentToFile(out);
 		} catch (Exception er) {
-			LOGGER.error("updateAlbumArtUriDirective", er);
+			LOGGER.error("cannot update {} in playlist", directive, er);
 		}
 	}
 
 	private void writeContentToFile(StringBuilder out) throws IOException {
 		File file = new File(getFileName());
-		BufferedWriter writer = null;
-		try {
-			LOGGER.debug("writing playlist file ...");
-			writer = new BufferedWriter(new FileWriter(file));
+		LOGGER.debug("writing playlist file ...");
+		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), getCharset()))) {
 			writer.append(out);
-			file.setLastModified(System.currentTimeMillis());
-		} catch (Exception e) {
-			LOGGER.warn("cannot update playlist", e);
-		} finally {
-			if (writer != null) {
-				writer.close();
-			}
 		}
 	}
 
@@ -508,7 +972,14 @@ public final class PlaylistFolder extends StoreContainer {
 						}
 					}
 				} else if (isM3uPlaylist()) {
-					if (line.startsWith("#EXTINF:")) {
+					if (isDbIdReferenceLine(line)) {
+						if (!isweb) {
+							String id = line.substring(DIRECTIVE_DB_ID_RESOURCE.length()).trim();
+							entries.add(new Entry(id, title, directives, true));
+						}
+						title = null;
+						directives = new HashMap<>();
+					} else if (line.startsWith("#EXTINF:")) {
 						line = line.substring(8).trim();
 						if (line.matches("^-?\\d+,.+")) {
 							title = line.substring(line.indexOf(',') + 1).trim();
@@ -519,8 +990,14 @@ public final class PlaylistFolder extends StoreContainer {
 						directives.put(DIRECTIVE_RADIOBROWSERUUID, line.substring(DIRECTIVE_RADIOBROWSERUUID.length()));
 					} else if (line.toUpperCase().startsWith(DIRECTIVE_ALBUMART_URI)) {
 						directives.put(DIRECTIVE_ALBUMART_URI, line.substring(DIRECTIVE_ALBUMART_URI.length()));
+					} else if (line.toUpperCase().startsWith(DIRECTIVE_PLAYLIST_RATING)) {
+						playlistRatingDirective = line.substring(DIRECTIVE_PLAYLIST_RATING.length()).trim();
+					} else if (line.toUpperCase().startsWith(DIRECTIVE_RATING)) {
+						directives.put(DIRECTIVE_RATING, line.substring(DIRECTIVE_RATING.length()));
+					} else if (line.toUpperCase().startsWith(DIRECTIVE_ICY_ORDER)) {
+						directives.put(DIRECTIVE_ICY_ORDER, line.substring(DIRECTIVE_ICY_ORDER.length()));
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
-						entries.add(new Entry(line, title, directives));
+						entries.add(new Entry(line, title, directives, false));
 						title = null;
 						directives = new HashMap<>();
 					}
@@ -529,14 +1006,14 @@ public final class PlaylistFolder extends StoreContainer {
 			// Build PLS entries sorted by index
 			plsData.entrySet().stream()
 				.sorted(Map.Entry.comparingByKey())
-				.forEach(e -> entries.add(new Entry(e.getValue()[0], e.getValue()[1], null)));
+				.forEach(e -> entries.add(new Entry(e.getValue()[0], e.getValue()[1], null, false)));
 		} catch (NumberFormatException | IOException e) {
 			LOGGER.error(null, e);
 		}
 		return entries;
 	}
 
-	private record Entry(String fileName, String title, Map<String, String> directives) {
+	private record Entry(String fileName, String title, Map<String, String> directives, boolean dbIdReference) {
 		@Override
 		public String toString() {
 			return "[" + fileName + "," + title + "]";
