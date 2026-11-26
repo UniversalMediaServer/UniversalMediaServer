@@ -81,7 +81,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	/**
 	 * The format of this StoreResource.
 	 */
-	protected MediaInfo mediaInfo;
+	protected volatile MediaInfo mediaInfo;
 	private MediaStatus mediaStatus;
 
 	private long lastModified;

@@ -326,6 +326,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 	private static void sendMediaResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, StoreResource resource, String filename) throws IOException {
 		// Request to retrieve a file
 		if (resource instanceof StoreItem item) {
+			if (item instanceof WebStream webStream) {
+				webStream.prepareForPlayback();
+			}
 			TimeRange timeseekrange = getTimeSeekRange(req.getHeader("timeseekrange.dlna.org"));
 			ByteRange range = getRange(req.getHeader("Range"), item.length());
 			int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
